@@ -15,7 +15,9 @@ import {
   Info,
   ChevronUp,
   ChevronDown,
-  Plus
+  Plus,
+  Settings2,
+  Edit3
 } from "lucide-react";
 import {
   AreaChart,
@@ -24,12 +26,19 @@ import {
   Tooltip as RechartsTooltip,
   ResponsiveContainer,
   BarChart,
-  Bar
+  Bar,
+  LineChart,
+  Line
 } from 'recharts';
 import { useSectorData } from "@/hooks/use-sector-data";
 import { useDashboardStore } from "@/hooks/use-dashboard-store";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { motion, AnimatePresence } from "framer-motion";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { TemplateGallery } from "@/components/TemplateGallery";
+import { ExportDrawer } from "@/components/ExportDrawer";
+import { WidgetInspector } from "@/components/WidgetInspector";
 
 const availableWidgets = [
   { id: 'kpi', name: 'KPI Card', icon: LayoutTemplate, w: 3, h: 2 },
@@ -39,11 +48,15 @@ const availableWidgets = [
 ];
 
 export default function BuilderPage() {
-  const { metrics, chartData, sector } = useSectorData();
+  const { metrics, chartData, sector, dateRange } = useSectorData();
   const { lastRefreshed } = useDashboardStore();
   const [layout, setLayout] = useState<any[]>([]);
+  const [layouts, setLayouts] = useState<any>({});
   const [widgets, setWidgets] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentBreakpoint, setCurrentBreakpoint] = useState("lg");
+  const [editMode, setEditMode] = useState(false);
+  const [inspectedWidgetId, setInspectedWidgetId] = useState<string | null>(null);
 
   useEffect(() => {
     setLoading(true);
@@ -53,6 +66,7 @@ export default function BuilderPage() {
     
     if (savedLayout && savedWidgets) {
       setLayout(JSON.parse(savedLayout));
+      setLayouts({ lg: JSON.parse(savedLayout) });
       setWidgets(JSON.parse(savedWidgets));
     } else {
       // Default layout per sector
@@ -73,15 +87,21 @@ export default function BuilderPage() {
         { id: 'insights-1', type: 'insights' },
       ];
       setLayout(defaultLayout);
+      setLayouts({ lg: defaultLayout });
       setWidgets(defaultWidgets);
     }
     setTimeout(() => setLoading(false), 400);
   }, [sector]);
 
-  const onLayoutChange = (newLayout: any) => {
+  const onLayoutChange = (newLayout: any, allLayouts: any) => {
     setLayout(newLayout);
+    setLayouts(allLayouts);
     localStorage.setItem(`layout_${sector}`, JSON.stringify(newLayout));
     localStorage.setItem(`widgets_${sector}`, JSON.stringify(widgets));
+  };
+
+  const onBreakpointChange = (newBreakpoint: string) => {
+    setCurrentBreakpoint(newBreakpoint);
   };
 
   const addWidget = (type: string, w: number, h: number) => {
@@ -96,6 +116,39 @@ export default function BuilderPage() {
     setLayout(layout.filter(l => l.i !== id));
   };
 
+  const updateWidget = (id: string, updates: any) => {
+    setWidgets(widgets.map(w => w.id === id ? { ...w, ...updates } : w));
+  };
+
+  const applyTemplate = (templateId: string) => {
+    // In a real app this would fetch template config from backend
+    const templateWidgets = [
+      { id: `kpi-${Date.now()}-1`, type: 'kpi', metricIndex: 0, title: 'Key Metric 1' },
+      { id: `kpi-${Date.now()}-2`, type: 'kpi', metricIndex: 1, title: 'Key Metric 2' },
+      { id: `trend-${Date.now()}-1`, type: 'trend', title: 'Overall Performance' },
+    ];
+    
+    const templateLayout = [
+      { i: templateWidgets[0].id, x: 0, y: 0, w: 6, h: 2 },
+      { i: templateWidgets[1].id, x: 6, y: 0, w: 6, h: 2 },
+      { i: templateWidgets[2].id, x: 0, y: 2, w: 12, h: 4 },
+    ];
+
+    setWidgets(templateWidgets);
+    setLayout(templateLayout);
+    setLayouts({ lg: templateLayout });
+  };
+
+  const getBadgeColors = (color: string) => {
+    switch(color) {
+      case 'teal': return 'bg-teal-50 border-teal-200 text-teal-700';
+      case 'blue': return 'bg-blue-50 border-blue-200 text-blue-700';
+      case 'indigo': return 'bg-indigo-50 border-indigo-200 text-indigo-700';
+      case 'rose': return 'bg-rose-50 border-rose-200 text-rose-700';
+      default: return 'bg-slate-50 border-slate-200 text-slate-700';
+    }
+  };
+
   const renderWidgetContent = (widget: any) => {
     if (loading) return <div className="h-full w-full bg-slate-50 animate-pulse rounded-lg" />;
 
@@ -105,7 +158,7 @@ export default function BuilderPage() {
         return (
           <div className="flex flex-col h-full justify-between p-1">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">{metric.label}</span>
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">{widget.title || metric.label}</span>
               <Tooltip>
                 <TooltipTrigger>
                   <Info className="w-3.5 h-3.5 text-slate-300 hover:text-primary transition-colors" />
@@ -115,12 +168,17 @@ export default function BuilderPage() {
             </div>
             <div className="mt-2">
               <h3 className="text-2xl font-bold text-slate-900 tracking-tight">{metric.value}</h3>
-              <div className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold mt-1 ${metric.isPositive ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
-                {metric.isPositive ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                {metric.trend}
-              </div>
+              {widget.showDelta !== false && (
+                <div className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold mt-1 ${metric.isPositive ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
+                  {metric.isPositive ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                  {metric.trend}
+                </div>
+              )}
             </div>
-            <div className="h-8 w-full mt-2 opacity-30">
+            <div className="h-8 w-full mt-2 opacity-30 relative">
+               {widget.showTarget && (
+                 <div className="absolute top-1/2 left-0 right-0 border-t border-dashed border-slate-400 z-10" />
+               )}
                <ResponsiveContainer width="100%" height="100%">
                  <AreaChart data={chartData.slice(0, 5)}>
                    <Area type="monotone" dataKey="value" stroke={metric.isPositive ? "#10b981" : "#f43f5e"} fill="transparent" strokeWidth={2} />
@@ -133,22 +191,39 @@ export default function BuilderPage() {
         return (
           <div className="h-full flex flex-col p-1">
             <div className="flex items-center justify-between mb-4">
-               <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Performance Trend</h3>
-               <Badge variant="outline" className="text-[10px] bg-slate-50 border-slate-200">Real-time</Badge>
+               <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">{widget.title || 'Performance Trend'}</h3>
+               <Badge variant="outline" className={`text-[10px] ${getBadgeColors(widget.badgeColor)}`}>Real-time</Badge>
             </div>
-            <div className="flex-1">
+            <div className="flex-1 relative">
+              {widget.showTarget && (
+                 <div className="absolute top-1/3 left-0 right-0 border-t border-dashed border-slate-300 z-10 w-full" />
+              )}
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={chartData}>
-                  <defs>
-                    <linearGradient id="colorPrimary" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#0F766E" stopOpacity={0.1}/>
-                      <stop offset="95%" stopColor="#0F766E" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 10, fill: '#94A3B8'}} />
-                  <RechartsTooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
-                  <Area type="monotone" dataKey="value" stroke="#0F766E" strokeWidth={3} fill="url(#colorPrimary)" />
-                </AreaChart>
+                {widget.chartType === 'bar' ? (
+                  <BarChart data={chartData}>
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 10, fill: '#94A3B8'}} />
+                    <RechartsTooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+                    <Bar dataKey="value" fill="#0F766E" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                ) : widget.chartType === 'line' ? (
+                  <LineChart data={chartData}>
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 10, fill: '#94A3B8'}} />
+                    <RechartsTooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+                    <Line type="monotone" dataKey="value" stroke="#0F766E" strokeWidth={3} dot={{r: 4, fill: '#0F766E'}} />
+                  </LineChart>
+                ) : (
+                  <AreaChart data={chartData}>
+                    <defs>
+                      <linearGradient id={`colorPrimary-${widget.id}`} x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#0F766E" stopOpacity={0.1}/>
+                        <stop offset="95%" stopColor="#0F766E" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 10, fill: '#94A3B8'}} />
+                    <RechartsTooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+                    <Area type="monotone" dataKey="value" stroke="#0F766E" strokeWidth={3} fill={`url(#colorPrimary-${widget.id})`} />
+                  </AreaChart>
+                )}
               </ResponsiveContainer>
             </div>
           </div>
@@ -158,7 +233,7 @@ export default function BuilderPage() {
            <div className="h-full flex flex-col p-1">
               <div className="flex items-center gap-2 mb-4">
                 <BrainCircuit className="w-4 h-4 text-primary" />
-                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">AI Recommendations</h3>
+                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">{widget.title || 'AI Recommendations'}</h3>
               </div>
               <div className="space-y-3">
                 <div className="p-3 bg-slate-50 rounded-lg border border-slate-100">
@@ -178,21 +253,28 @@ export default function BuilderPage() {
 
   return (
     <AppLayout>
-      <div className="p-8 max-w-[1600px] mx-auto h-full flex flex-col gap-8">
-        <header className="flex justify-between items-end">
+      <div className="p-4 md:p-8 max-w-[1600px] mx-auto h-full flex flex-col gap-6 md:gap-8">
+        <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
           <div>
-            <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Dashboard Builder</h1>
-            <p className="text-slate-500 font-medium mt-1">Configure your supply chain command center.</p>
+            <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">Dashboard Builder</h1>
+            <p className="text-slate-500 font-medium mt-1 text-sm md:text-base">Configure your supply chain command center.</p>
           </div>
-          <div className="flex gap-3">
-             <Button variant="outline" className="rounded-xl border-slate-200 shadow-sm bg-white font-bold text-xs uppercase tracking-wider">
-               Save Template
+          <div className="flex flex-wrap gap-2 md:gap-3 w-full md:w-auto">
+             <TemplateGallery onSelect={applyTemplate} />
+             <ExportDrawer layout={layout} widgets={widgets} sector={sector} dateRange={dateRange} />
+             <Button 
+               variant={editMode ? "default" : "outline"} 
+               className={`rounded-xl shadow-sm font-bold text-xs uppercase tracking-wider h-10 w-full md:w-auto ${!editMode ? 'border-slate-200 bg-white' : ''}`}
+               onClick={() => setEditMode(!editMode)}
+             >
+               {editMode ? <Settings2 className="w-4 h-4 mr-2" /> : <Edit3 className="w-4 h-4 mr-2" />}
+               {editMode ? 'Exit Edit Mode' : 'Edit Mode'}
              </Button>
           </div>
         </header>
 
-        <div className="flex-1 flex gap-8 overflow-hidden min-h-0">
-          <div className="flex-1 bg-white rounded-2xl border border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-y-auto p-4 custom-scrollbar relative">
+        <div className="flex-1 flex flex-col lg:flex-row gap-6 md:gap-8 overflow-hidden min-h-0">
+          <div className="flex-1 bg-white rounded-2xl border border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-y-auto p-2 md:p-4 custom-scrollbar relative">
             <AnimatePresence mode="wait">
               {loading ? (
                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full flex items-center justify-center">
@@ -212,26 +294,39 @@ export default function BuilderPage() {
               ) : (
                 <MeasuredGrid
                   className="layout"
-                  layout={layout}
-                  cols={12}
+                  layouts={layouts}
+                  cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
                   rowHeight={80}
                   onLayoutChange={onLayoutChange}
+                  onBreakpointChange={onBreakpointChange}
                   draggableHandle=".widget-handle"
-                  margin={[24, 24]}
+                  margin={[16, 16]}
+                  isDraggable={currentBreakpoint === 'xs' || currentBreakpoint === 'xxs' ? editMode : true}
+                  isResizable={currentBreakpoint === 'xs' || currentBreakpoint === 'xxs' ? editMode : true}
                 >
                   {widgets.map((w) => (
-                    <div key={w.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm group hover:border-primary/20 transition-all duration-200 flex flex-col overflow-hidden">
+                    <div 
+                      key={w.id} 
+                      className="bg-white rounded-2xl border border-slate-100 shadow-sm group hover:border-primary/20 transition-all duration-200 flex flex-col overflow-hidden"
+                      onClick={(e) => {
+                        // Prevent triggering inspector if clicking handle or its children
+                        if ((e.target as HTMLElement).closest('.widget-handle')) return;
+                        if (editMode || currentBreakpoint !== 'xs' && currentBreakpoint !== 'xxs') {
+                          setInspectedWidgetId(w.id);
+                        }
+                      }}
+                    >
                       <div className="h-8 flex items-center justify-between px-3 bg-slate-50/50 widget-handle cursor-move opacity-0 group-hover:opacity-100 transition-opacity">
                          <div className="flex gap-1">
                            <div className="w-1 h-1 rounded-full bg-slate-300" />
                            <div className="w-1 h-1 rounded-full bg-slate-300" />
                            <div className="w-1 h-1 rounded-full bg-slate-300" />
                          </div>
-                         <Button variant="ghost" size="icon" className="h-5 w-5 hover:bg-rose-50 hover:text-rose-500" onClick={() => removeWidget(w.id)}>
-                           <Trash2 className="w-3 h-3" />
-                         </Button>
+                         <div className="text-[9px] uppercase font-bold text-slate-400 tracking-widest pointer-events-none">
+                            {w.type}
+                         </div>
                       </div>
-                      <div className="flex-1 p-5 pt-2">
+                      <div className="flex-1 p-3 md:p-5 pt-0 md:pt-2">
                         {renderWidgetContent(w)}
                       </div>
                     </div>
@@ -241,12 +336,12 @@ export default function BuilderPage() {
             </AnimatePresence>
           </div>
 
-          <aside className="w-80 flex flex-col gap-6">
-            <Card className="rounded-2xl border-slate-200 shadow-sm overflow-hidden">
-              <div className="p-5 border-b border-slate-100 bg-slate-50/50">
+          <aside className={`w-full lg:w-80 flex flex-col gap-6 ${(!editMode && (currentBreakpoint === 'xs' || currentBreakpoint === 'xxs')) ? 'hidden' : 'block'}`}>
+            <Card className="rounded-2xl border-slate-200 shadow-sm overflow-hidden flex-1 flex flex-col">
+              <div className="p-4 md:p-5 border-b border-slate-100 bg-slate-50/50">
                 <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest">Widget Library</h3>
               </div>
-              <CardContent className="p-4 space-y-3">
+              <CardContent className="p-4 space-y-3 flex-1 overflow-y-auto">
                 {availableWidgets.map(w => (
                   <button
                     key={w.id}
@@ -265,17 +360,23 @@ export default function BuilderPage() {
               </CardContent>
             </Card>
 
-            <div className="bg-slate-900 rounded-2xl p-6 text-white shadow-xl relative overflow-hidden group">
+            <div className="bg-slate-900 rounded-2xl p-5 md:p-6 text-white shadow-xl relative overflow-hidden group">
                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 blur-3xl rounded-full translate-x-1/2 -translate-y-1/2 group-hover:scale-150 transition-transform duration-700" />
-               <h4 className="text-sm font-black uppercase tracking-widest mb-2 relative z-10">AI Copilot</h4>
-               <p className="text-xs text-slate-400 leading-relaxed relative z-10">Select a pre-built Executive template to instantly hydrate your command center.</p>
-               <Button className="w-full mt-6 rounded-xl bg-white text-slate-900 hover:bg-slate-100 font-bold uppercase tracking-wider text-[10px] h-10 relative z-10">
-                 Apply Exec Summary
-               </Button>
+               <h4 className="text-sm font-black uppercase tracking-widest mb-2 relative z-10">Pro Tip</h4>
+               <p className="text-xs text-slate-400 leading-relaxed relative z-10">Click on any widget on the dashboard to open the Inspector and configure its data source and display options.</p>
             </div>
           </aside>
         </div>
       </div>
+      
+      <WidgetInspector 
+        widget={widgets.find(w => w.id === inspectedWidgetId)}
+        open={!!inspectedWidgetId}
+        onOpenChange={(open) => !open && setInspectedWidgetId(null)}
+        onUpdate={updateWidget}
+        onDelete={removeWidget}
+      />
+      
       <style>{`
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }

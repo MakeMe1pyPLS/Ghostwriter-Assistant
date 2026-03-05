@@ -1,23 +1,39 @@
 import React from "react";
-import GridLayout from "react-grid-layout";
+import { Responsive as ResponsiveGridLayout } from "react-grid-layout";
 import type { Layout } from "react-grid-layout";
 
+type Layouts = { [P: string]: Layout[] };
+
 type Props = {
-  layout: Layout[];
-  cols?: number;
+  layouts?: any;
+  layout?: any[];
+  breakpoints?: { lg: number; md: number; sm: number; xs: number; xxs: number };
+  cols?: { lg: number; md: number; sm: number; xs: number; xxs: number } | number;
   rowHeight?: number;
-  onLayoutChange?: (layout: Layout[]) => void;
+  onLayoutChange?: (currentLayout: Layout[], allLayouts: Layouts) => void;
+  onBreakpointChange?: (newBreakpoint: string, newCols: number) => void;
   children: React.ReactNode;
   className?: string;
+  isDraggable?: boolean;
+  isResizable?: boolean;
+  draggableHandle?: string;
+  margin?: [number, number];
 };
 
 export default function MeasuredGrid({
+  layouts,
   layout,
-  cols = 12,
+  breakpoints = { lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 },
+  cols = { lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 },
   rowHeight = 32,
   onLayoutChange,
+  onBreakpointChange,
   children,
   className,
+  isDraggable = true,
+  isResizable = true,
+  draggableHandle = ".drag-handle",
+  margin = [12, 12],
 }: Props) {
   const ref = React.useRef<HTMLDivElement | null>(null);
   const [width, setWidth] = React.useState<number>(1200);
@@ -43,25 +59,27 @@ export default function MeasuredGrid({
 
   return (
     <div ref={ref} className={className} style={{ width: "100%" }}>
-      <GridLayout
+      <ResponsiveGridLayout
         className="layout"
-        layout={layout}
-        cols={cols}
+        layouts={layouts}
+        breakpoints={breakpoints}
+        cols={typeof cols === 'number' ? { lg: cols, md: cols, sm: cols, xs: cols, xxs: cols } : cols}
         rowHeight={rowHeight}
         width={width}
-        margin={[12, 12]}
-        containerPadding={[12, 12]}
-        isResizable
-        isDraggable
-        draggableHandle=".drag-handle"
-        onLayoutChange={(l) => onLayoutChange?.(l)}
-        // makes dragging smoother
-        useCSSTransforms
-        compactType={null}
+        margin={margin}
+        containerPadding={margin}
+        onLayoutChange={(l, all) => onLayoutChange?.(l as any, all as any)}
+        onBreakpointChange={onBreakpointChange}
+        // @ts-ignore - react-grid-layout types don't correctly extend base props
         preventCollision={false}
+        compactType={null}
+        useCSSTransforms={true}
+        draggableHandle={draggableHandle}
+        isDraggable={isDraggable}
+        isResizable={isResizable}
       >
         {children}
-      </GridLayout>
+      </ResponsiveGridLayout>
     </div>
   );
 }
