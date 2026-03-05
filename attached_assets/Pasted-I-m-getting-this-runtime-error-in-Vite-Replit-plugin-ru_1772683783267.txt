@@ -1,0 +1,56 @@
+I’m getting this runtime error in Vite/Replit:
+
+[plugin:runtime-error-plugin] Importing binding name 'WidthProvider' is not found.
+
+This happens when running react-grid-layout.
+
+TASK:
+Fix the project so react-grid-layout works without runtime errors in my current dependencies.
+
+REQUIREMENTS:
+1) Do NOT assume WidthProvider exists. First verify the installed versions:
+   - react-grid-layout version
+   - react-resizable version
+   - react-draggable version
+   Print the relevant package.json entries and/or check node_modules export shape.
+
+2) Fix the import and usage based on what’s actually installed.
+   - If WidthProvider exists, use the correct import form.
+   - If WidthProvider does NOT exist, implement a safe alternative:
+     - Use ReactGridLayout directly WITHOUT WidthProvider, OR
+     - Create a small custom wrapper that measures container width using ResizeObserver and passes width to <ResponsiveReactGridLayout> (preferred).
+   The goal is: the builder grid must render + be draggable/resizable.
+
+3) Make sure the correct component is used:
+   - If using responsive behavior, use:
+     import { Responsive, WidthProvider } from "react-grid-layout";
+     const ResponsiveGridLayout = WidthProvider(Responsive);
+   - If WidthProvider isn’t available, use:
+     import { Responsive } from "react-grid-layout";
+     and build a ResponsiveWrapper that supplies width via ResizeObserver.
+
+4) Ensure required CSS is imported once in the frontend entry:
+   - "react-grid-layout/css/styles.css"
+   - "react-resizable/css/styles.css"
+   (Without these, resizing handles look broken.)
+
+5) Ensure the following dependencies exist and are compatible:
+   - react-grid-layout
+   - react-resizable
+   - react-draggable
+   If missing, install them.
+   If versions are incompatible, adjust to stable compatible versions and update package-lock.
+
+6) After fixing:
+   - Start the dev server successfully.
+   - Confirm no runtime error overlay.
+   - Confirm widgets can be dragged and resized.
+
+DELIVERABLE:
+- Tell me exactly which file(s) you changed.
+- Paste the final code for the grid component file.
+- Paste the final imports in main.tsx (or equivalent).
+- Include the final install commands if any were needed.
+
+IMPORTANT:
+Do not rewrite the app. Only fix the grid import/usage in a clean way.
