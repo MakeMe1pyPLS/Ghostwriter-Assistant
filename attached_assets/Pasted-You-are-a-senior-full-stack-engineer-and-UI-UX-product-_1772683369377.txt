@@ -1,0 +1,157 @@
+You are a senior full-stack engineer and UI/UX product designer.
+
+We already have a working Replit demo SaaS called:
+“ChainInsideIQ — AI Supply Chain Dashboard Builder”
+Stack:
+- Frontend: React + Vite + TypeScript
+- UI: Tailwind + shadcn/ui
+- Drag & drop grid: react-grid-layout
+- Charts: Recharts
+- Backend: FastAPI (Python) in-memory demo data
+- Routing: react-router-dom
+- Export CSV works; Export Excel/PDF are stubbed
+
+GOALS
+1) Make the UI look 2x more premium (enterprise SaaS polish).
+2) Fix sector switching so KPI cards + charts + insights update correctly.
+3) Make the Hub demo functional (POST + GET updates, show feed instantly).
+4) Keep everything runnable in Replit with no external credentials.
+
+IMPORTANT: Do NOT rewrite the project from scratch. Improve the existing code.
+Work in small commits and explain what you changed.
+
+----------------------------
+A) UI / VISUAL POLISH (must do)
+- Upgrade typography, spacing, shadows, and card hierarchy.
+- Add consistent section headers and microcopy.
+- Add hover states on cards and buttons, subtle transitions (200ms).
+- Add “active” highlight in the left sidebar.
+- Add a stronger top bar (sticky) with Sector switch, Date range, Refresh, Demo Mode badge, Last refreshed timestamp.
+- Improve KPI cards:
+  - include icon, main value, delta badge, sparkline (simple Recharts sparkline is fine)
+  - add “label + help tooltip” for bridge KPIs (Perfect Order Rate, Cash-to-Cash, ATP Accuracy, Bullwhip)
+- Add empty states:
+  - No widgets on builder canvas
+  - No hub posts
+- Add loading skeletons consistently on every data panel while fetching.
+- Add toast notifications:
+  - “Refreshed”
+  - “CSV Export downloaded”
+  - “Hub message posted”
+- Add a clean “Theme toggle stub” UI, but only Light theme is implemented.
+
+DESIGN SYSTEM (use these tokens consistently)
+- Background: #F4F7FA
+- Card: #FFFFFF
+- Border: #E3E8EF
+- Primary teal: #0F766E
+- Accent teal: #14B8A6
+- Text: headers #0F172A, secondary #64748B, muted #94A3B8
+- Rounded corners: 12px
+- Soft shadow: subtle; avoid heavy shadows
+
+----------------------------
+B) SECTOR SWITCHING FIX (must do)
+Right now when I change sectors, KPI cards do NOT change.
+
+Implement a proper state architecture:
+- Create a single source of truth store:
+  - selectedSector (E-commerce / Logistics / Manufacturing / Unified)
+  - selectedRange (Last 7 / 30 / 90)
+  - lastRefreshed timestamp
+- When sector or range changes:
+  - refetch metrics, timeseries, breakdowns, forecast, insights from backend
+  - all widgets should re-render with the new data
+- Make sure KPI Cards, charts, AI Insights widget, and Dashboard View page all pull from the same store.
+
+In builder mode:
+- widgets should render based on current sector/range
+- if a widget is added, it should use current sector/range automatically
+
+TECH REQUIREMENTS
+- Use React Query (TanStack Query) OR a clean custom hook approach.
+- No prop drilling mess.
+- Provide typed interfaces for API responses.
+- Ensure the UI remains fast and stable.
+
+----------------------------
+C) HUB DEMO FIX (must do)
+Hub currently doesn’t demo.
+Implement fully:
+Backend:
+- POST /api/hub: add message {sector, message, kpiTag?, timestamp}
+- GET /api/hub: return messages newest-first
+Frontend:
+- Hub page has:
+  - message composer (sector dropdown + textarea + optional KPI tag select)
+  - Post button
+  - feed with cards grouped by sector + timeago (“2m ago”)
+- After posting: update list immediately (optimistic update or refetch)
+- Show empty state if none.
+
+----------------------------
+D) DATA CONSISTENCY / REALISM (must do)
+Currently demo data feels generic.
+Make seeded demo data per sector:
+E-commerce:
+- Revenue, Orders, Conversion Rate, AOV, ROAS, Returns Rate
+Logistics:
+- On-time Delivery, Shipments, Cost per Shipment, Delays, Warehouse Utilization
+Manufacturing:
+- Units Produced, Defect Rate, Downtime Hours, Throughput, Yield
+Unified:
+- Bridge KPIs (Perfect Order Rate, Cash-to-Cash, ATP Accuracy, Bullwhip Index)
+Also provide:
+- timeseries per sector for charts
+- breakdown categories per sector (e.g., category sales, carrier mix, defect types)
+- forecast endpoint returning 14-day forecast with confidence band
+
+Make sure the frontend widgets map correctly to each sector’s metrics.
+
+----------------------------
+E) BUILDER / DASHBOARD VIEW QUALITY (must do)
+Builder page:
+- Right panel “Widget Library” should look premium
+- Add widget templates:
+  - “Executive Summary”
+  - “Bridge KPI Row”
+  - “Forecast Panel”
+So one click can add a grouped set of widgets, not just single widgets.
+
+Dashboard view page:
+- locked presentation mode
+- add “Export” dropdown (CSV working)
+- add “Share (stub)” button
+
+Ensure layouts persist in localStorage by sector:
+- layout:ecommerce
+- layout:logistics
+- layout:manufacturing
+- layout:unified
+
+----------------------------
+F) BUG FIXES / CODE HEALTH (must do)
+- Fix any TypeScript errors and clean imports.
+- Ensure react-grid-layout is used correctly. If you used WidthProvider incorrectly, fix it.
+  Correct usage is:
+    import RGL, { WidthProvider } from "react-grid-layout";
+    const ReactGridLayout = WidthProvider(RGL);
+- Ensure build passes with no runtime errors.
+- Add a /README with Replit run steps and folder structure.
+
+----------------------------
+DELIVERABLES
+1) Implement the above improvements in-place.
+2) List the files changed.
+3) Provide a short “Demo Script” for me to screen-record (30–60 seconds):
+   - switch sector
+   - refresh
+   - add widget
+   - go to dashboard view
+   - open hub, post an update
+   - export CSV
+
+Start by:
+- Inspecting the current repo structure
+- Listing the key files you will touch
+Then implement A → F.

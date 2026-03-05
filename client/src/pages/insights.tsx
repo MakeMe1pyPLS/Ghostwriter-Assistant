@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { BrainCircuit, Send, User, Sparkles } from "lucide-react";
+import { BrainCircuit, Send, User, Sparkles, TrendingUp, Calendar, Zap } from "lucide-react";
 import {
   AreaChart,
   Area,
@@ -13,6 +13,7 @@ import {
   Tooltip as RechartsTooltip,
   ResponsiveContainer
 } from 'recharts';
+import { motion, AnimatePresence } from "framer-motion";
 
 interface Message {
   id: string;
@@ -23,18 +24,17 @@ interface Message {
     changed: string;
     matters: string;
     actions: string[];
-    forecastData?: any[];
   };
 }
 
 const mockForecastData = [
-  { day: 'Day 1', actual: 4000, forecast: 4100, min: 3800, max: 4400 },
-  { day: 'Day 3', actual: 3000, forecast: 3200, min: 2900, max: 3500 },
-  { day: 'Day 5', actual: 2000, forecast: 2500, min: 2100, max: 2900 },
-  { day: 'Day 7', actual: 2780, forecast: 2900, min: 2400, max: 3400 },
-  { day: 'Day 9', actual: null, forecast: 3100, min: 2600, max: 3600 },
-  { day: 'Day 11', actual: null, forecast: 3400, min: 2800, max: 4000 },
-  { day: 'Day 14', actual: null, forecast: 3800, min: 3100, max: 4500 },
+  { day: 'D1', actual: 4000, forecast: 4100, min: 3800, max: 4400 },
+  { day: 'D3', actual: 3000, forecast: 3200, min: 2900, max: 3500 },
+  { day: 'D5', actual: 2000, forecast: 2500, min: 2100, max: 2900 },
+  { day: 'D7', actual: 2780, forecast: 2900, min: 2400, max: 3400 },
+  { day: 'D9', actual: null, forecast: 3100, min: 2600, max: 3600 },
+  { day: 'D11', actual: null, forecast: 3400, min: 2800, max: 4000 },
+  { day: 'D14', actual: null, forecast: 3800, min: 3100, max: 4500 },
 ];
 
 export default function InsightsPage() {
@@ -42,7 +42,7 @@ export default function InsightsPage() {
     {
       id: "1",
       role: "ai",
-      content: "Hello. I'm your Supply Chain AI Analyst. I've detected some anomalies in your logistics network today. Would you like a breakdown?",
+      content: "Hello. I've analyzed your multi-sector logistics chain. I've detected a significant risk in the West Coast hub. Would you like a prioritized mitigation plan?",
       timestamp: new Date(),
     }
   ]);
@@ -68,165 +68,168 @@ export default function InsightsPage() {
     setMessages(prev => [...prev, userMessage]);
     setInputValue("");
 
-    // Mock AI response
     setTimeout(() => {
       const aiResponse: Message = {
         id: (Date.now() + 1).toString(),
         role: "ai",
-        content: "Here is my analysis of the situation based on real-time multi-sector data:",
+        content: "Analysis complete. Here is the impact assessment and recommended path forward:",
         timestamp: new Date(),
         structuredData: {
-          changed: "Detected a 15% drop in manufacturing yield in the Asia-Pacific sector, likely due to reported raw material shortages.",
-          matters: "This will create a bottleneck, causing a projected 12-day delay in our Q3 consumer electronics fulfillment.",
+          changed: "Supply volatility in Tier-2 manufacturing partners is up 18% this morning.",
+          matters: "This increases Bullwhip effect risk, potentially leading to $240k in excess inventory carrying costs over 30 days.",
           actions: [
-            "Initiate immediate raw material re-orders from secondary European suppliers.",
-            "Reallocate 20% of current inventory to fulfill high-priority tier-1 client orders.",
-            "Notify logistics partners to delay container ship bookings by 1 week to avoid docking fees."
-          ],
-          forecastData: mockForecastData
+            "Throttle non-essential POs to Tier-2 suppliers immediately.",
+            "Re-run ATP projections with conservative supply buffers.",
+            "Consolidate shipping lanes to reduce single-point delay risk."
+          ]
         }
       };
       setMessages(prev => [...prev, aiResponse]);
-    }, 1500);
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
+    }, 1200);
   };
 
   return (
     <AppLayout>
-      <div className="flex h-full p-6 gap-6">
+      <div className="flex h-full p-8 gap-8 bg-[#F4F7FA]">
         
         {/* Chat Interface */}
-        <div className="flex flex-col flex-1 bg-white border border-border rounded-xl shadow-sm overflow-hidden">
-          <div className="p-4 border-b border-border bg-slate-50 flex items-center gap-3">
-            <div className="bg-primary/10 p-2 rounded-lg">
-              <BrainCircuit className="w-5 h-5 text-primary" />
-            </div>
-            <div>
-              <h2 className="font-semibold text-slate-900">AI Supply Chain Analyst</h2>
-              <p className="text-xs text-emerald-600 font-medium flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>
-                Online & Analyzing
-              </p>
+        <div className="flex flex-col flex-1 bg-white border border-slate-200 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden">
+          <div className="p-5 border-b border-slate-100 bg-white flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="bg-primary/10 p-2.5 rounded-xl">
+                <BrainCircuit className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <h2 className="font-bold text-slate-900 tracking-tight">AI Supply Chain Analyst</h2>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                  <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Active Intelligence</span>
+                </div>
+              </div>
             </div>
           </div>
 
-          <ScrollArea className="flex-1 p-6" ref={scrollRef}>
-            <div className="space-y-6">
+          <ScrollArea className="flex-1 px-8" ref={scrollRef}>
+            <div className="py-8 space-y-8 max-w-4xl mx-auto">
               {messages.map((msg) => (
-                <div key={msg.id} className={`flex gap-4 max-w-4xl mx-auto ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${msg.role === 'user' ? 'bg-slate-200' : 'bg-primary text-white'}`}>
-                    {msg.role === 'user' ? <User className="w-4 h-4 text-slate-600" /> : <BrainCircuit className="w-4 h-4" />}
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }} 
+                  animate={{ opacity: 1, y: 0 }}
+                  key={msg.id} 
+                  className={`flex gap-5 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}
+                >
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm ${msg.role === 'user' ? 'bg-slate-100' : 'bg-slate-900 text-white'}`}>
+                    {msg.role === 'user' ? <User className="w-5 h-5 text-slate-500" /> : <Zap className="w-5 h-5 text-primary" />}
                   </div>
-                  <div className={`space-y-4 max-w-[80%] ${msg.role === 'user' ? 'items-end' : ''}`}>
-                    <div className={`p-4 rounded-2xl text-sm ${msg.role === 'user' ? 'bg-primary text-primary-foreground rounded-tr-sm' : 'bg-muted/40 text-slate-800 rounded-tl-sm border border-border'}`}>
+                  <div className={`space-y-4 max-w-[85%] ${msg.role === 'user' ? 'items-end' : ''}`}>
+                    <div className={`p-5 rounded-2xl text-sm leading-relaxed ${msg.role === 'user' ? 'bg-primary text-white font-medium rounded-tr-none' : 'bg-slate-50 text-slate-800 rounded-tl-none border border-slate-100'}`}>
                       {msg.content}
                     </div>
 
                     {msg.structuredData && (
-                      <div className="bg-white border border-border rounded-xl p-5 shadow-sm space-y-5 animate-in fade-in slide-in-from-bottom-2">
-                        <div>
-                          <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">What Changed</h4>
-                          <p className="text-sm text-slate-800">{msg.structuredData.changed}</p>
-                        </div>
-                        
-                        <div>
-                          <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Why It Matters</h4>
-                          <p className="text-sm text-slate-800">{msg.structuredData.matters}</p>
+                      <motion.div 
+                        initial={{ opacity: 0, scale: 0.98 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="bg-white border border-slate-100 rounded-2xl p-6 shadow-md space-y-6"
+                      >
+                        <div className="grid grid-cols-2 gap-6">
+                          <div>
+                            <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Impact Assessment</h4>
+                            <p className="text-xs font-bold text-slate-800 leading-normal">{msg.structuredData.changed}</p>
+                          </div>
+                          <div>
+                            <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Operational Risk</h4>
+                            <p className="text-xs font-bold text-slate-800 leading-normal">{msg.structuredData.matters}</p>
+                          </div>
                         </div>
 
-                        <div>
-                          <h4 className="text-xs font-bold uppercase tracking-wider text-primary mb-2 flex items-center gap-2">
-                            <Sparkles className="w-3 h-3" />
-                            Top 3 Recommended Actions
+                        <div className="pt-4 border-t border-slate-50">
+                          <h4 className="text-[10px] font-black uppercase tracking-widest text-primary mb-3 flex items-center gap-2">
+                            <Sparkles className="w-3.5 h-3.5 fill-primary" />
+                            Priority Mitigations
                           </h4>
-                          <ul className="space-y-2">
+                          <div className="grid gap-2">
                             {msg.structuredData.actions.map((action, i) => (
-                              <li key={i} className="flex gap-2 text-sm bg-primary/5 p-2 rounded border border-primary/10 text-slate-700">
-                                <span className="font-medium text-primary">{i + 1}.</span>
-                                {action}
-                              </li>
+                              <div key={i} className="flex gap-4 items-center bg-slate-50 p-4 rounded-xl border border-slate-100 hover:border-primary/20 transition-colors">
+                                <span className="w-6 h-6 rounded-full bg-white flex items-center justify-center text-[10px] font-black text-primary border border-slate-100">{i + 1}</span>
+                                <span className="text-xs font-bold text-slate-700">{action}</span>
+                              </div>
                             ))}
-                          </ul>
+                          </div>
                         </div>
-                      </div>
+                      </motion.div>
                     )}
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
           </ScrollArea>
 
-          <div className="p-4 border-t border-border bg-white">
+          <div className="p-6 bg-white border-t border-slate-100">
             <div className="max-w-4xl mx-auto relative flex items-center">
               <Input 
-                placeholder="Ask about inventory, delays, or forecast predictions..." 
-                className="pr-12 py-6 rounded-xl border-slate-300 focus-visible:ring-primary shadow-sm"
+                placeholder="Query network performance or ask for mitigation plans..." 
+                className="pr-16 py-7 rounded-2xl border-slate-200 focus-visible:ring-primary shadow-sm text-sm font-medium"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
-                onKeyDown={handleKeyDown}
+                onKeyDown={(e) => e.key === 'Enter' && handleSend()}
               />
               <Button 
-                size="icon" 
-                className="absolute right-2 h-9 w-9 rounded-lg"
+                className="absolute right-2 h-11 w-11 rounded-xl shadow-lg shadow-primary/20 transition-transform active:scale-95"
                 onClick={handleSend}
                 disabled={!inputValue.trim()}
               >
-                <Send className="w-4 h-4" />
+                <Send className="w-5 h-5" />
               </Button>
             </div>
           </div>
         </div>
 
-        {/* Forecast Panel (Right Side) */}
-        <div className="w-80 flex flex-col gap-6">
-          <div className="bg-white border border-border rounded-xl shadow-sm p-5">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-slate-900">14-Day Forecast</h3>
-              <span className="px-2 py-1 bg-emerald-100 text-emerald-700 rounded text-xs font-semibold">
-                High Confidence
-              </span>
+        {/* Forecast Sidebar */}
+        <div className="w-96 flex flex-col gap-8">
+          <Card className="rounded-2xl border-slate-200 shadow-sm overflow-hidden p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xs font-black uppercase tracking-widest text-slate-400">Demand Forecast</h3>
+              <div className="px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded text-[10px] font-black uppercase tracking-tighter">
+                High Precision
+              </div>
             </div>
             
-            <div className="h-48 w-full">
+            <div className="h-56 w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={mockForecastData} margin={{ top: 5, right: 0, left: 0, bottom: 0 }}>
+                <AreaChart data={mockForecastData}>
                   <defs>
                     <linearGradient id="colorForecast" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#0F766E" stopOpacity={0.2}/>
+                      <stop offset="5%" stopColor="#0F766E" stopOpacity={0.15}/>
                       <stop offset="95%" stopColor="#0F766E" stopOpacity={0}/>
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
-                  <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{fontSize: 10, fill: '#64748B'}} />
-                  <RechartsTooltip />
-                  <Area type="monotone" dataKey="forecast" stroke="#0F766E" strokeWidth={2} fillOpacity={1} fill="url(#colorForecast)" />
-                  {/* Confidence band mockup */}
-                  <Area type="monotone" dataKey="max" stroke="transparent" fill="#0F766E" fillOpacity={0.05} />
-                  <Area type="monotone" dataKey="min" stroke="transparent" fill="#FFFFFF" fillOpacity={1} />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{fontSize: 10, fill: '#94A3B8', fontWeight: 700}} />
+                  <Area type="monotone" dataKey="forecast" stroke="#0F766E" strokeWidth={3} fill="url(#colorForecast)" />
+                  <Area type="monotone" dataKey="max" stroke="transparent" fill="#0F766E" fillOpacity={0.03} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
-            <p className="text-xs text-muted-foreground mt-3 text-center">
-              Projected inventory levels based on current throughput and supplier delays.
-            </p>
-          </div>
-
-          <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-xl p-5 text-white shadow-md relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-4 opacity-10">
-              <BrainCircuit className="w-24 h-24" />
+            <div className="mt-6 p-4 bg-slate-50 rounded-xl border border-slate-100">
+               <div className="flex items-center gap-2 mb-1">
+                 <TrendingUp className="w-3.5 h-3.5 text-primary" />
+                 <span className="text-[10px] font-black uppercase tracking-widest text-slate-700">Insight</span>
+               </div>
+               <p className="text-[11px] text-slate-500 font-medium leading-relaxed">Network stabilization expected in 4 days. Inventory levels returning to baseline.</p>
             </div>
-            <h3 className="font-semibold text-lg mb-2 relative z-10">Pro Insights</h3>
-            <p className="text-slate-300 text-sm mb-4 relative z-10">
-              Upgrade to connect real OpenAI models to your proprietary supply chain data.
+          </Card>
+
+          <div className="bg-slate-900 rounded-2xl p-8 text-white relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-8 opacity-10 rotate-12 group-hover:rotate-0 transition-transform duration-500">
+              <BrainCircuit className="w-32 h-32" />
+            </div>
+            <h3 className="text-lg font-black tracking-tight mb-3 relative z-10">Advanced Simulation</h3>
+            <p className="text-xs text-slate-400 leading-relaxed mb-6 relative z-10">
+              Run Monte Carlo simulations on your logistics lanes to identify failure points before they occur.
             </p>
-            <Button variant="secondary" className="w-full relative z-10 bg-white text-slate-900 hover:bg-slate-100">
-              Unlock Advanced AI
+            <Button className="w-full bg-white text-slate-900 hover:bg-slate-100 font-black uppercase tracking-widest text-[10px] h-11 relative z-10 rounded-xl">
+              Launch Simulator
             </Button>
           </div>
         </div>
