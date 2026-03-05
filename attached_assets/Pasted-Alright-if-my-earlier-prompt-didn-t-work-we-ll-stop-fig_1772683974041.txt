@@ -1,0 +1,149 @@
+Alright — if my earlier prompt didn’t work, we’ll stop fighting WidthProvider entirely.
+
+That error happens a lot in Vite/Replit because the package export shape + ESM/CJS interop can make WidthProvider appear “missing” at runtime even when docs show it.
+
+✅ Guaranteed fix: Don’t import WidthProvider at all
+
+Instead, use GridLayout (default export) and provide width yourself via ResizeObserver.
+
+Below is drop-in code that works in Vite and avoids the named export problem completely.
+
+⸻
+
+1) Install deps (run once in Replit Shell)
+
+npm i react-grid-layout react-resizable react-draggable
+
+
+⸻
+
+2) Add required CSS (in src/main.tsx or src/main.ts)
+
+import "react-grid-layout/css/styles.css";
+import "react-resizable/css/styles.css";
+
+
+⸻
+
+3) Replace your grid file with this (NO WidthProvider)
+
+Create/replace: src/components/MeasuredGrid.tsx
+
+import React from "react";
+import GridLayout from "react-grid-layout";
+import type { Layout } from "react-grid-layout";
+
+type Props = {
+  layout: Layout[];
+  cols?: number;
+  rowHeight?: number;
+  onLayoutChange?: (layout: Layout[]) => void;
+  children: React.ReactNode;
+  className?: string;
+};
+
+export default function MeasuredGrid({
+  layout,
+  cols = 12,
+  rowHeight = 32,
+  onLayoutChange,
+  children,
+  className,
+}: Props) {
+  const ref = React.useRef<HTMLDivElement | null>(null);
+  const [width, setWidth] = React.useState<number>(1200);
+
+  React.useEffect(() => {
+    if (!ref.current) return;
+
+    const el = ref.current;
+
+    // Initial
+    const rect = el.getBoundingClientRect();
+    if (rect.width > 0) setWidth(Math.floor(rect.width));
+
+    // ResizeObserver
+    const ro = new ResizeObserver((entries) => {
+      const w = entries[0]?.contentRect?.width ?? 0;
+      if (w > 0) setWidth(Math.floor(w));
+    });
+    ro.observe(el);
+
+    return () => ro.disconnect();
+  }, []);
+
+  return (
+    <div ref={ref} className={className} style={{ width: "100%" }}>
+      <GridLayout
+        className="layout"
+        layout={layout}
+        cols={cols}
+        rowHeight={rowHeight}
+        width={width}
+        margin={[12, 12]}
+        containerPadding={[12, 12]}
+        isResizable
+        isDraggable
+        draggableHandle=".drag-handle"
+        onLayoutChange={(l) => onLayoutChange?.(l)}
+        // makes dragging smoother
+        useCSSTransforms
+        compactType={null}
+        preventCollision
+      >
+        {children}
+      </GridLayout>
+    </div>
+  );
+}
+
+
+⸻
+
+4) Use it in your Builder page
+
+Example pattern (you can adapt to your file):
+
+import MeasuredGrid from "@/components/MeasuredGrid";
+import type { Layout } from "react-grid-layout";
+
+const initialLayout: Layout[] = [
+  { i: "kpi1", x: 0, y: 0, w: 3, h: 3 },
+  { i: "kpi2", x: 3, y: 0, w: 3, h: 3 },
+];
+
+export default function Builder() {
+  const [layout, setLayout] = useState<Layout[]>(initialLayout);
+
+  return (
+    <MeasuredGrid layout={layout} onLayoutChange={setLayout} cols={12} rowHeight={34}>
+      <div key="kpi1" className="rounded-xl border bg-white shadow-sm p-4">
+        <div className="drag-handle cursor-move text-xs text-slate-500 mb-2">Drag</div>
+        KPI 1
+      </div>
+
+      <div key="kpi2" className="rounded-xl border bg-white shadow-sm p-4">
+        <div className="drag-handle cursor-move text-xs text-slate-500 mb-2">Drag</div>
+        KPI 2
+      </div>
+    </MeasuredGrid>
+  );
+}
+
+
+⸻
+
+Why this works (and your old one didn’t)
+	•	WidthProvider is a named export that sometimes doesn’t survive Vite/Replit runtime bundling depending on the package build.
+	•	Importing only the default export (GridLayout) is the most compatible path.
+	•	We still get responsive behavior by measuring width ourselves.
+
+⸻
+
+If you want, I can fix it exactly inside your project
+
+Paste just these two snippets and I’ll give you the exact patched code:
+	1.	Your package.json dependencies section
+	2.	The file where you import react-grid-layout (Builder/Grid file)
+
+No back-and-forth — I’ll rewrite it to the working pattern above using your exact structure.
