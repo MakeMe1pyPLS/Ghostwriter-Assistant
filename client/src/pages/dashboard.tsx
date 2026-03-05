@@ -1,8 +1,6 @@
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useState, useEffect } from "react";
-import RGL, { WidthProvider } from "react-grid-layout";
-import "react-grid-layout/css/styles.css";
-import "react-resizable/css/styles.css";
+import MeasuredGrid from "@/components/MeasuredGrid";
 import { BrainCircuit, ChevronUp, ChevronDown, Info, Download, Share2 } from "lucide-react";
 import {
   AreaChart,
@@ -16,8 +14,6 @@ import { useDashboardStore } from "@/hooks/use-dashboard-store";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-
-const ReactGridLayout = WidthProvider(RGL);
 
 export default function DashboardPage() {
   const { metrics, chartData, sector } = useSectorData();
@@ -127,7 +123,7 @@ export default function DashboardPage() {
         </header>
 
         <div className="bg-transparent overflow-hidden">
-          <ReactGridLayout
+          <MeasuredGrid
             className="layout"
             layout={layout.map(l => ({ ...l, static: true }))}
             cols={12}
@@ -142,7 +138,7 @@ export default function DashboardPage() {
                 </div>
               );
             })}
-          </ReactGridLayout>
+          </MeasuredGrid>
         </div>
       </div>
       <style>{`

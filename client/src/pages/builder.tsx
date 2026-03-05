@@ -1,8 +1,6 @@
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useState, useEffect } from "react";
-import RGL, { WidthProvider } from "react-grid-layout";
-import "react-grid-layout/css/styles.css";
-import "react-resizable/css/styles.css";
+import MeasuredGrid from "@/components/MeasuredGrid";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { 
@@ -32,8 +30,6 @@ import { useSectorData } from "@/hooks/use-sector-data";
 import { useDashboardStore } from "@/hooks/use-dashboard-store";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { motion, AnimatePresence } from "framer-motion";
-
-const ReactGridLayout = WidthProvider(RGL);
 
 const availableWidgets = [
   { id: 'kpi', name: 'KPI Card', icon: LayoutTemplate, w: 3, h: 2 },
@@ -214,7 +210,7 @@ export default function BuilderPage() {
                   <p className="text-slate-500 max-w-sm mt-2 mb-8">Drag widgets from the library on the right to build your custom operational view.</p>
                 </div>
               ) : (
-                <ReactGridLayout
+                <MeasuredGrid
                   className="layout"
                   layout={layout}
                   cols={12}
@@ -240,7 +236,7 @@ export default function BuilderPage() {
                       </div>
                     </div>
                   ))}
-                </ReactGridLayout>
+                </MeasuredGrid>
               )}
             </AnimatePresence>
           </div>
