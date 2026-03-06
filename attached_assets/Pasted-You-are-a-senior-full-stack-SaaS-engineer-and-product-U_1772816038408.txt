@@ -1,0 +1,226 @@
+You are a senior full-stack SaaS engineer and product UX designer.
+
+I need you to improve my existing app:
+“ChainInsideIQ — AI Supply Chain Dashboard Builder”
+
+Do NOT rewrite the whole app. Refactor and improve the current codebase in-place.
+
+GOALS
+1) Fix the Dashboard page so it is stable, smooth, and not jumpy/glitchy.
+2) Make the distinction between Builder and Dashboard clear.
+3) Add a real Import Data option so users can bring in their own data.
+4) Improve the Widget Library so users can choose KPI/widget presets by sector:
+   - E-commerce
+   - Manufacturing
+   - Logistics Firm
+   - Unified Supply Chain
+   - Custom
+5) Keep these AI widgets always available in all sector categories:
+   - AI Insights
+   - AI Chat
+   - Demand Forecast
+   - Executive Summary
+6) Allow custom KPI selection even if the user chooses a different primary sector.
+
+==================================================
+A) FIX THE DASHBOARD PAGE
+==================================================
+
+The Dashboard page is currently jumpy and glitchy.
+Fix it so it behaves like a clean, locked presentation/live dashboard.
+
+DASHBOARD PAGE PURPOSE
+The Dashboard page should be:
+- the finished/live view of the dashboard
+- stable and non-editable by default
+- good for presenting, viewing, filtering, and exporting
+- separate from the Builder page
+
+REQUIREMENTS
+- No drag/drop on Dashboard page
+- No resizing on Dashboard page
+- No layout shifting when data refreshes
+- No widget jumping
+- No edit handles visible
+- Charts and KPI cards should render smoothly
+- Scrolling should be smooth and clean
+- Keep filters, sector switching, refresh, and export available
+- Add a clear “Back to Builder” button
+- Add “Presentation Mode” styling so it feels polished
+
+If necessary:
+- separate Builder layout state from Dashboard display state
+- make Dashboard use a read-only layout snapshot
+- prevent the Dashboard page from using builder drag state or edit-mode state
+
+==================================================
+B) ADD IMPORT DATA OPTION
+==================================================
+
+I need users to be able to bring in their own data.
+
+Add a visible “Import Data” action in the app.
+Best place:
+- top bar button
+- or Connectors page
+- or both
+
+For the demo, implement:
+1) CSV upload
+2) Excel upload (.xlsx or .csv if xlsx is too hard for now)
+3) JSON upload (optional if easy)
+
+Behavior:
+- uploaded data should be parsed
+- mapped into a simple internal structure
+- previewed in a modal or side panel
+- allow user to assign the dataset to a sector:
+  - E-commerce
+  - Manufacturing
+  - Logistics
+  - Unified
+  - Custom
+
+For now, it is okay if uploaded data only replaces demo data in memory for the current session.
+But structure the code cleanly so real persistence can be added later.
+
+Add:
+- “Import Data” button
+- upload modal
+- dataset preview table
+- basic validation
+- empty state if no import yet
+
+==================================================
+C) WIDGET LIBRARY MUST BE SECTOR-AWARE
+==================================================
+
+Right now the Widget Library needs to be smarter.
+
+I want the Widget Library to let the user choose widget groups by:
+- E-commerce
+- Manufacturing
+- Logistics Firm
+- Unified Supply Chain
+- Custom
+
+Add tabs, pills, or dropdown filters in the Widget Library for these categories.
+
+Each category should show the appropriate KPIs and widgets.
+
+SECTOR KPI RULES
+
+E-commerce KPIs:
+- Revenue
+- Orders
+- Average Order Value
+- Conversion Rate
+- ROAS
+- Returns Rate
+
+Manufacturing KPIs:
+- Units Produced
+- Throughput
+- Downtime
+- Defect Rate
+- Yield
+- Capacity Utilization
+
+Logistics Firm KPIs:
+- On-Time Delivery
+- Late Shipments
+- Cost per Shipment
+- Transit Time
+- Warehouse Utilization
+- Shipment Volume
+
+Unified Supply Chain KPIs:
+- Perfect Order Rate
+- Cash-to-Cash Cycle Time
+- Available-to-Promise Accuracy
+- Bullwhip Effect Index
+
+Custom category:
+- Let user mix KPIs from any sector
+- This is important because a manufacturing company may still want e-commerce KPIs
+- Or a logistics firm may want unified supply chain bridge metrics
+
+IMPORTANT:
+The AI-related widgets must always remain visible in ALL categories and never disappear:
+- AI Insights
+- AI Chat
+- Demand Forecast
+- Executive Summary
+
+Also, make these always available regardless of sector selection.
+
+==================================================
+D) KPI / WIDGET CONFIGURATION IMPROVEMENT
+==================================================
+
+When user adds a KPI widget:
+- allow choosing sector source
+- allow choosing metric
+- allow changing title
+- allow changing subtitle
+- allow custom display label
+- allow custom metric mapping
+
+This means a user can:
+- pick Manufacturing as primary sector
+- but still choose Revenue or Orders if they want
+- or choose Bridge KPIs even outside Unified
+
+Add a “Custom Metric Source” option in widget settings.
+
+==================================================
+E) CLEAN SHARED STATE
+==================================================
+
+Refactor state so it is more stable.
+
+Need a clear store/state for:
+- selectedSector
+- selectedDateRange
+- selectedToolTemplate
+- importedDataset
+- widget library category
+- dashboard layout
+- dashboard read-only layout snapshot
+- edit mode
+
+Make sure:
+- Builder uses editable state
+- Dashboard uses stable read-only state
+- Sector changes update KPI cards/charts/insights properly
+- Imported data can be used by widgets
+
+==================================================
+F) UX / POLISH
+==================================================
+
+Improve the experience:
+- Add better labels and helper text
+- Add empty states
+- Add success/error toasts for uploads
+- Add upload progress/loading state
+- Add clean tab or pill UI for sector categories in widget library
+- Make the Dashboard page feel polished and presentation-ready
+- Keep light + teal corporate style
+- Do not break responsive behavior
+
+==================================================
+G) DELIVERABLES
+==================================================
+
+1) Inspect current repo structure first
+2) Identify files to update
+3) Implement the improvements in-place
+4) Explain file-by-file what changed
+5) Confirm:
+   - Dashboard page is stable and non-jumpy
+   - Builder remains editable
+   - Import Data works for demo
+   - Widget Library is sector-aware
+   - AI widgets remain visible in all sectors
+   - Custom KPI option works

@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { useDashboardStore, Sector, DateRange } from "@/hooks/use-dashboard-store";
 import { format } from "date-fns";
+import { ImportDataModal } from "@/components/ImportDataModal";
 
 export function TopBar() {
   const { toast } = useToast();
@@ -41,6 +42,7 @@ export function TopBar() {
             <SelectItem value="ecommerce">E-commerce</SelectItem>
             <SelectItem value="logistics">Logistics</SelectItem>
             <SelectItem value="manufacturing">Manufacturing</SelectItem>
+            <SelectItem value="custom">Custom Data</SelectItem>
           </SelectContent>
         </Select>
 
@@ -57,6 +59,8 @@ export function TopBar() {
       </div>
 
       <div className="flex items-center gap-3 lg:gap-4 shrink-0">
+        <ImportDataModal />
+        
         <div className="hidden md:flex flex-col items-end mr-2">
           <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Last Sync</span>
           <span className="text-xs text-slate-600 font-medium">{format(lastRefreshed, 'HH:mm:ss')}</span>

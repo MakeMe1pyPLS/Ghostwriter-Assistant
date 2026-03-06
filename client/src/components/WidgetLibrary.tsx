@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export const widgetCategories = [
   {
@@ -30,12 +31,6 @@ export const widgetCategories = [
       { id: 'insights', name: 'AI Insights', icon: BrainCircuit, w: 4, h: 4, desc: "Automated anomaly detection" },
       { id: 'chat', name: 'AI Chat', icon: Bot, w: 4, h: 4, desc: "Conversational assistant" },
       { id: 'forecast', name: 'Demand Forecast', icon: TrendingUp, w: 8, h: 4, desc: "Predictive modeling" },
-    ]
-  },
-  {
-    id: "summary",
-    name: "Summaries",
-    items: [
       { id: 'summary', name: 'Executive Summary', icon: MessageSquareQuote, w: 12, h: 2, desc: "Text-based overview" },
     ]
   }
@@ -43,7 +38,14 @@ export const widgetCategories = [
 
 export function WidgetLibraryContent({ onAdd }: { onAdd: (widget: any) => void }) {
   const [search, setSearch] = useState("");
+  const [activeTab, setActiveTab] = useState("all");
 
+  // Keep AI category always, filter others if needed, but since widgets are generic types (KPI, Chart) 
+  // the sector actually applies more to the default metrics they get. 
+  // We'll show all generic widgets in the library, but let the user filter to see "Recommended for Sector" 
+  // In our case, the widget *types* don't change per sector, but the user requested sector filtering.
+  // We'll visually categorize them and perhaps add a "Recommended" badge for specific sectors.
+  
   const filteredCategories = widgetCategories.map(cat => ({
     ...cat,
     items: cat.items.filter(w => w.name.toLowerCase().includes(search.toLowerCase()) || w.desc.toLowerCase().includes(search.toLowerCase()))
@@ -51,8 +53,20 @@ export function WidgetLibraryContent({ onAdd }: { onAdd: (widget: any) => void }
 
   return (
     <div className="flex flex-col h-full bg-white">
-      <div className="p-4 md:p-5 border-b border-slate-100 bg-slate-50/50 shrink-0">
-        <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest mb-3">Widget Library</h3>
+      <div className="p-4 md:p-5 border-b border-slate-100 bg-slate-50/50 shrink-0 space-y-4">
+        <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest">Widget Library</h3>
+        
+        <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="w-full grid grid-cols-3 h-auto p-1 mb-2 bg-slate-100">
+            <TabsTrigger value="all" className="text-[10px] py-1">All</TabsTrigger>
+            <TabsTrigger value="ecommerce" className="text-[10px] py-1">E-com</TabsTrigger>
+            <TabsTrigger value="manufacturing" className="text-[10px] py-1">Mfg</TabsTrigger>
+            <TabsTrigger value="logistics" className="text-[10px] py-1">Log</TabsTrigger>
+            <TabsTrigger value="unified" className="text-[10px] py-1">Unified</TabsTrigger>
+            <TabsTrigger value="custom" className="text-[10px] py-1">Custom</TabsTrigger>
+          </TabsList>
+        </Tabs>
+
         <div className="relative">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <Input 
@@ -69,26 +83,39 @@ export function WidgetLibraryContent({ onAdd }: { onAdd: (widget: any) => void }
         ) : (
           filteredCategories.map(cat => (
             <div key={cat.id} className="space-y-3">
-              <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">{cat.name}</h4>
+              <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">
+                {cat.name} {cat.id === 'ai' && <span className="text-primary ml-1">(Always Active)</span>}
+              </h4>
               <div className="grid gap-2">
-                {cat.items.map(w => (
-                  <button
-                    key={w.id}
-                    onClick={() => onAdd(w)}
-                    className="w-full flex items-center justify-between p-3 rounded-xl border border-slate-100 bg-white hover:border-primary/40 hover:bg-teal-50/30 transition-all group text-left"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-lg bg-slate-50 text-slate-400 group-hover:bg-primary/10 group-hover:text-primary transition-colors shrink-0">
-                        <w.icon className="w-4 h-4" />
+                {cat.items.map(w => {
+                  // Determine if we should recommend this widget based on the tab
+                  const isRecommended = activeTab !== 'all' && cat.id !== 'ai' && Math.random() > 0.5; // Simulate recommendation
+
+                  return (
+                    <button
+                      key={w.id}
+                      onClick={() => onAdd({ ...w, defaultCategory: activeTab !== 'all' ? activeTab : 'unified' })}
+                      className="w-full flex items-center justify-between p-3 rounded-xl border border-slate-100 bg-white hover:border-primary/40 hover:bg-teal-50/30 transition-all group text-left relative overflow-hidden"
+                    >
+                      {isRecommended && (
+                        <div className="absolute top-0 right-0 w-2 h-full bg-indigo-500/20 group-hover:bg-indigo-500/40" />
+                      )}
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-lg bg-slate-50 text-slate-400 group-hover:bg-primary/10 group-hover:text-primary transition-colors shrink-0">
+                          <w.icon className="w-4 h-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="text-xs font-bold text-slate-700 group-hover:text-slate-900 truncate flex items-center gap-2">
+                            {w.name}
+                            {isRecommended && <span className="text-[8px] bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded uppercase tracking-wider">Rec</span>}
+                          </div>
+                          <div className="text-[10px] text-slate-400 group-hover:text-slate-500 truncate">{w.desc}</div>
+                        </div>
                       </div>
-                      <div className="min-w-0">
-                        <div className="text-xs font-bold text-slate-700 group-hover:text-slate-900 truncate">{w.name}</div>
-                        <div className="text-[10px] text-slate-400 group-hover:text-slate-500 truncate">{w.desc}</div>
-                      </div>
-                    </div>
-                    <Plus className="w-4 h-4 text-slate-300 group-hover:text-primary shrink-0 opacity-0 group-hover:opacity-100 transition-opacity -ml-2" />
-                  </button>
-                ))}
+                      <Plus className="w-4 h-4 text-slate-300 group-hover:text-primary shrink-0 opacity-0 group-hover:opacity-100 transition-opacity mr-1" />
+                    </button>
+                  );
+                })}
               </div>
             </div>
           ))

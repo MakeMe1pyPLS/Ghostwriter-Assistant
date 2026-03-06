@@ -1,7 +1,7 @@
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
@@ -24,9 +24,16 @@ export function WidgetInspector({
   onUpdateLayout?: (id: string, updates: any) => void;
   onDelete: (id: string) => void;
 }) {
-  const { metrics } = useSectorData();
+  const { metrics, allMetrics } = useSectorData();
 
   if (!widget) return null;
+
+  // Group all metrics by category for the custom picker
+  const metricsByCategory = allMetrics.reduce((acc, m) => {
+    if (!acc[m.category]) acc[m.category] = [];
+    acc[m.category].push(m);
+    return acc;
+  }, {} as Record<string, typeof allMetrics>);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -83,20 +90,26 @@ export function WidgetInspector({
 
           {widget.type === 'kpi' && (
             <div className="space-y-3">
-              <Label className="text-xs font-bold uppercase tracking-widest text-slate-500">Bound Metric</Label>
+              <Label className="text-xs font-bold uppercase tracking-widest text-slate-500">Bound Metric (Custom Source)</Label>
               <Select 
-                value={widget.metricIndex?.toString() || "0"} 
-                onValueChange={(val) => onUpdate(widget.id, { metricIndex: parseInt(val) })}
+                value={widget.customMetricId || metrics[widget.metricIndex % metrics.length]?.label} 
+                onValueChange={(val) => onUpdate(widget.id, { customMetricId: val })}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select metric" />
+                  <SelectValue placeholder="Select a specific metric" />
                 </SelectTrigger>
                 <SelectContent>
-                  {metrics.map((m, i) => (
-                    <SelectItem key={i} value={i.toString()}>{m.label}</SelectItem>
+                  {Object.entries(metricsByCategory).map(([category, catMetrics]) => (
+                    <SelectGroup key={category}>
+                      <SelectLabel className="capitalize text-primary font-black bg-slate-50/50">{category}</SelectLabel>
+                      {catMetrics.map((m, i) => (
+                        <SelectItem key={`${category}-${i}`} value={m.label}>{m.label}</SelectItem>
+                      ))}
+                    </SelectGroup>
                   ))}
                 </SelectContent>
               </Select>
+              <p className="text-[10px] text-slate-400">Override the default sector metric and choose any KPI from any sector.</p>
             </div>
           )}
 
