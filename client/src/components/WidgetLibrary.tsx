@@ -1,24 +1,19 @@
 import { useState } from "react";
-import { Plus, Search, LayoutTemplate, LineChart as LineChartIcon, BarChart3, PieChart, Table as TableIcon, BrainCircuit, Bot, MessageSquareQuote, TrendingUp } from "lucide-react";
+import { Plus, Search, LayoutTemplate, LineChart as LineChartIcon, BarChart3, PieChart, Table as TableIcon, BrainCircuit, Bot, MessageSquareQuote, TrendingUp, Sparkles } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useSectorData } from "@/hooks/use-sector-data";
+import { getRecommendedVisualization } from "@/lib/visualization-map";
 
 export const widgetCategories = [
   {
-    id: "kpi",
-    name: "KPI & Metrics",
+    id: "generic",
+    name: "Generic Visuals",
     items: [
-      { id: 'kpi', name: 'KPI Card', icon: LayoutTemplate, w: 3, h: 2, desc: "Single metric with trend" },
       { id: 'table', name: 'Data Table', icon: TableIcon, w: 6, h: 4, desc: "Detailed tabular data" },
-    ]
-  },
-  {
-    id: "charts",
-    name: "Charts & Visuals",
-    items: [
       { id: 'trend', name: 'Line Chart', icon: LineChartIcon, w: 6, h: 3, defaultProps: { chartType: 'line' }, desc: "Time-series line" },
       { id: 'bar', name: 'Bar Chart', icon: BarChart3, w: 6, h: 3, defaultProps: { chartType: 'bar' }, desc: "Categorical comparison" },
       { id: 'donut', name: 'Donut Chart', icon: PieChart, w: 4, h: 3, defaultProps: { chartType: 'donut' }, desc: "Part-to-whole distribution" },
@@ -28,10 +23,10 @@ export const widgetCategories = [
     id: "ai",
     name: "AI & Insights",
     items: [
-      { id: 'insights', name: 'AI Insights', icon: BrainCircuit, w: 4, h: 4, desc: "Automated anomaly detection" },
-      { id: 'chat', name: 'AI Chat', icon: Bot, w: 4, h: 4, desc: "Conversational assistant" },
-      { id: 'forecast', name: 'Demand Forecast', icon: TrendingUp, w: 8, h: 4, desc: "Predictive modeling" },
-      { id: 'summary', name: 'Executive Summary', icon: MessageSquareQuote, w: 12, h: 2, desc: "Text-based overview" },
+      { id: 'insights', name: 'AI Insights', icon: BrainCircuit, w: 4, h: 4, desc: "Automated anomaly detection", alwaysAvailable: true },
+      { id: 'chat', name: 'AI Chat', icon: Bot, w: 4, h: 4, desc: "Conversational assistant", alwaysAvailable: true },
+      { id: 'forecast', name: 'Demand Forecast', icon: TrendingUp, w: 8, h: 4, desc: "Predictive modeling", alwaysAvailable: true },
+      { id: 'summary', name: 'Executive Summary', icon: MessageSquareQuote, w: 12, h: 2, desc: "Text-based overview", alwaysAvailable: true },
     ]
   }
 ];
@@ -39,14 +34,34 @@ export const widgetCategories = [
 export function WidgetLibraryContent({ onAdd }: { onAdd: (widget: any) => void }) {
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState("all");
+  const { allMetrics } = useSectorData();
 
-  // Keep AI category always, filter others if needed, but since widgets are generic types (KPI, Chart) 
-  // the sector actually applies more to the default metrics they get. 
-  // We'll show all generic widgets in the library, but let the user filter to see "Recommended for Sector" 
-  // In our case, the widget *types* don't change per sector, but the user requested sector filtering.
-  // We'll visually categorize them and perhaps add a "Recommended" badge for specific sectors.
-  
-  const filteredCategories = widgetCategories.map(cat => ({
+  const dynamicCategories = [
+    {
+      id: "kpis",
+      name: "Key Performance Indicators",
+      items: (activeTab === 'all' || activeTab === 'custom' ? allMetrics : allMetrics.filter(m => m.category === activeTab)).map((m) => {
+        const rec = getRecommendedVisualization(m.label);
+        return {
+          id: rec.type,
+          name: m.label,
+          icon: rec.type === 'trend' ? LineChartIcon : rec.type === 'bar' ? BarChart3 : LayoutTemplate,
+          w: rec.type === 'kpi' ? 3 : 6,
+          h: rec.type === 'kpi' ? 2 : 3,
+          desc: m.helpText,
+          isRecommended: rec.type !== 'kpi',
+          defaultProps: {
+            customMetricId: m.label,
+            chartType: rec.chartType,
+            title: m.label
+          }
+        };
+      })
+    },
+    ...widgetCategories
+  ];
+
+  const filteredCategories = dynamicCategories.map(cat => ({
     ...cat,
     items: cat.items.filter(w => w.name.toLowerCase().includes(search.toLowerCase()) || w.desc.toLowerCase().includes(search.toLowerCase()))
   })).filter(cat => cat.items.length > 0);
@@ -87,9 +102,8 @@ export function WidgetLibraryContent({ onAdd }: { onAdd: (widget: any) => void }
                 {cat.name} {cat.id === 'ai' && <span className="text-primary ml-1">(Always Active)</span>}
               </h4>
               <div className="grid gap-2">
-                {cat.items.map(w => {
-                  // Determine if we should recommend this widget based on the tab
-                  const isRecommended = activeTab !== 'all' && cat.id !== 'ai' && Math.random() > 0.5; // Simulate recommendation
+                {cat.items.map((w: any) => {
+                  const isRecommended = w.isRecommended || (activeTab !== 'all' && cat.id !== 'ai' && Math.random() > 0.7);
 
                   return (
                     <button

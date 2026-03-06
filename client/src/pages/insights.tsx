@@ -15,6 +15,8 @@ import {
   ResponsiveContainer
 } from 'recharts';
 import { motion, AnimatePresence } from "framer-motion";
+import { ai } from "@/lib/ai-provider";
+import { useDashboardStore } from "@/hooks/use-dashboard-store";
 
 interface Message {
   id: string;
@@ -22,9 +24,9 @@ interface Message {
   content: string;
   timestamp: Date;
   structuredData?: {
-    changed: string;
-    matters: string;
-    actions: string[];
+    changed?: string;
+    matters?: string;
+    actions?: string[];
   };
 }
 
@@ -39,24 +41,31 @@ const mockForecastData = [
 ];
 
 export default function InsightsPage() {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "1",
-      role: "ai",
-      content: "Hello. I've analyzed your multi-sector logistics chain. I've detected a significant risk in the West Coast hub. Would you like a prioritized mitigation plan?",
-      timestamp: new Date(),
-    }
-  ]);
+  const { selectedSector } = useDashboardStore();
+  const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [isTyping, setIsTyping] = useState(false);
+
+  useEffect(() => {
+    // Initial greeting
+    ai.chat("", { sector: selectedSector }).then(response => {
+      setMessages([{
+        id: "1",
+        role: "ai",
+        content: response,
+        timestamp: new Date(),
+      }]);
+    });
+  }, [selectedSector]);
 
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages]);
+  }, [messages, isTyping]);
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!inputValue.trim()) return;
 
     const userMessage: Message = {
@@ -68,25 +77,37 @@ export default function InsightsPage() {
 
     setMessages(prev => [...prev, userMessage]);
     setInputValue("");
+    setIsTyping(true);
 
-    setTimeout(() => {
+    try {
+      // Simulate network delay for effect
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      const response = await ai.chat(userMessage.content, { sector: selectedSector });
+      
+      // If it's a risk query, also generate insights to attach structured data
+      let structuredData = undefined;
+      if (userMessage.content.toLowerCase().includes('risk') || userMessage.content.toLowerCase().includes('insight')) {
+        const insights = await ai.generateInsights(selectedSector, {});
+        structuredData = {
+          changed: insights.what_changed,
+          matters: insights.why_it_matters || "This requires immediate attention to prevent downstream supply chain disruptions.",
+          actions: insights.actions
+        };
+      }
+
       const aiResponse: Message = {
         id: (Date.now() + 1).toString(),
         role: "ai",
-        content: "Analysis complete. Here is the impact assessment and recommended path forward:",
+        content: response,
         timestamp: new Date(),
-        structuredData: {
-          changed: "Supply volatility in Tier-2 manufacturing partners is up 18% this morning.",
-          matters: "This increases Bullwhip effect risk, potentially leading to $240k in excess inventory carrying costs over 30 days.",
-          actions: [
-            "Throttle non-essential POs to Tier-2 suppliers immediately.",
-            "Re-run ATP projections with conservative supply buffers.",
-            "Consolidate shipping lanes to reduce single-point delay risk."
-          ]
-        }
+        structuredData
       };
+      
       setMessages(prev => [...prev, aiResponse]);
-    }, 1200);
+    } finally {
+      setIsTyping(false);
+    }
   };
 
   return (
@@ -144,20 +165,22 @@ export default function InsightsPage() {
                           </div>
                         </div>
 
-                        <div className="pt-4 border-t border-slate-50">
-                          <h4 className="text-[10px] font-black uppercase tracking-widest text-primary mb-3 flex items-center gap-2">
-                            <Sparkles className="w-3.5 h-3.5 fill-primary" />
-                            Priority Mitigations
-                          </h4>
-                          <div className="grid gap-2">
-                            {msg.structuredData.actions.map((action, i) => (
-                              <div key={i} className="flex gap-4 items-center bg-slate-50 p-4 rounded-xl border border-slate-100 hover:border-primary/20 transition-colors">
-                                <span className="w-6 h-6 rounded-full bg-white flex items-center justify-center text-[10px] font-black text-primary border border-slate-100">{i + 1}</span>
-                                <span className="text-xs font-bold text-slate-700">{action}</span>
+                          {msg.structuredData.actions && msg.structuredData.actions.length > 0 && (
+                            <div className="pt-4 border-t border-slate-50">
+                              <h4 className="text-[10px] font-black uppercase tracking-widest text-primary mb-3 flex items-center gap-2">
+                                <Sparkles className="w-3.5 h-3.5 fill-primary" />
+                                Priority Mitigations
+                              </h4>
+                              <div className="grid gap-2">
+                                {msg.structuredData.actions.map((action, i) => (
+                                  <div key={i} className="flex gap-4 items-center bg-slate-50 p-4 rounded-xl border border-slate-100 hover:border-primary/20 transition-colors">
+                                    <span className="w-6 h-6 rounded-full bg-white flex items-center justify-center text-[10px] font-black text-primary border border-slate-100">{i + 1}</span>
+                                    <span className="text-xs font-bold text-slate-700">{action}</span>
+                                  </div>
+                                ))}
                               </div>
-                            ))}
-                          </div>
-                        </div>
+                            </div>
+                          )}
                       </motion.div>
                     )}
                   </div>

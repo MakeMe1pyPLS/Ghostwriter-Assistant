@@ -12,10 +12,14 @@ export function ExportDrawer({ layout, widgets, sector, dateRange = '30d' }: { l
         sector,
         dateRange,
         timestamp: new Date().toISOString(),
-        widgets,
+        widgets: widgets.map((w: any) => ({
+          ...w,
+          isAI: ['insights', 'chat', 'forecast', 'summary'].includes(w.type)
+        })),
         layouts: {
           lg: layout // In real app, we'd pull all layouts
         },
+        ai_enabled: widgets.some((w: any) => ['insights', 'chat', 'forecast', 'summary'].includes(w.type)),
         styling: { theme: 'light', primary: 'teal' }
       };
       

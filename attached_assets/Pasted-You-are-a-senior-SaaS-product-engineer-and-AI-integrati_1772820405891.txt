@@ -1,0 +1,209 @@
+You are a senior SaaS product engineer and AI integration architect.
+
+Improve my existing app:
+“ChainInsideIQ — AI Supply Chain Dashboard Builder”
+
+Do NOT rewrite the entire app from scratch.
+Refactor and enhance the current codebase in-place.
+
+PRIMARY GOALS
+1) Let users choose the visualization type for each KPI/widget.
+2) Load a smart preset visualization automatically when a KPI is selected.
+3) Keep AI widgets always available in all sector categories.
+4) Prepare the platform for ChatGPT-powered AI in a clean, scalable way.
+5) Keep exports aligned with the builder state and future Dashboard Generator concept.
+
+==================================================
+A) KPI → VISUALIZATION LOGIC
+==================================================
+
+Add a KPI visualization system.
+
+When a user adds or edits a KPI widget:
+- they can choose the KPI/metric
+- they can manually choose the visualization type
+- but the app should auto-load a recommended default visualization preset based on the KPI selected
+
+Examples:
+- Revenue → line chart or KPI card with sparkline
+- Orders → KPI card or bar chart
+- Conversion Rate → KPI card or line chart
+- ROAS → KPI card or line chart
+- On-Time Delivery → KPI card or gauge-like display
+- Defect Rate → KPI card or trend line
+- Bullwhip Effect Index → KPI card or line chart
+- Cash-to-Cash Cycle Time → KPI card or trend line
+- Perfect Order Rate → KPI card or scorecard
+- Available-to-Promise Accuracy → KPI card or line chart
+
+IMPORTANT:
+Only KPIs that actually need a visual chart should load a preset chart.
+Simple KPI cards should remain KPI cards by default.
+
+Implement:
+- a metric visualization recommendation map
+- a manual override so user can still select a different visualization
+- a clean widget settings panel where user can switch visualization type
+
+Supported visualization types:
+- KPI Card
+- KPI Card + Sparkline
+- Line Chart
+- Area Chart
+- Bar Chart
+- Donut Chart
+- Data Table
+- Executive Summary block
+
+==================================================
+B) SECTOR-AWARE KPI LIBRARY
+==================================================
+
+In the widget library, users must be able to browse KPI/widget presets by category:
+
+- E-commerce
+- Manufacturing
+- Logistics Firm
+- Unified Supply Chain
+- Custom
+
+Each category should show appropriate KPIs for that sector.
+
+E-commerce KPIs:
+- Revenue
+- Orders
+- Average Order Value
+- Conversion Rate
+- ROAS
+- Returns Rate
+
+Manufacturing KPIs:
+- Units Produced
+- Throughput
+- Downtime
+- Defect Rate
+- Yield
+- Capacity Utilization
+
+Logistics Firm KPIs:
+- On-Time Delivery
+- Late Shipments
+- Cost per Shipment
+- Transit Time
+- Warehouse Utilization
+- Shipment Volume
+
+Unified Supply Chain KPIs:
+- Perfect Order Rate
+- Cash-to-Cash Cycle Time
+- Available-to-Promise Accuracy
+- Bullwhip Effect Index
+
+Custom:
+- let user mix KPIs from any category
+- user can choose Manufacturing as primary dashboard type but still use E-commerce KPIs if desired
+
+IMPORTANT:
+These AI and summary widgets must always appear in every category:
+- AI Insights
+- AI Chat
+- Demand Forecast
+- Executive Summary
+
+==================================================
+C) CHATGPT-READY AI ARCHITECTURE
+==================================================
+
+Refactor the AI system so it is ready for ChatGPT integration.
+
+Current requirement:
+- keep demo/rule-based AI responses working now
+
+Future requirement:
+- code structure must support plugging in OpenAI ChatGPT later
+
+Implement a clean backend AI service layer such as:
+- /api/chat
+- /api/insights/generate
+- /api/summary/generate
+- /api/forecast/explain
+
+Create an AI provider abstraction:
+- DemoProvider
+- OpenAIProvider (stubbed)
+So later I can switch providers cleanly.
+
+The AI system should support:
+1) conversational AI chat
+2) KPI explanation
+3) anomaly explanation
+4) recommended next actions
+5) executive summary generation
+6) forecast narrative generation
+
+Each AI response should return structured data like:
+- summary
+- what_changed
+- why_it_matters
+- actions
+- forecast_note
+
+==================================================
+D) EXPORT + GENERATOR READINESS
+==================================================
+
+My product is also a Dashboard Generator.
+
+Improve exports so they match the builder state.
+
+Keep:
+- Export CSV working
+- Export JSON Spec working
+- Excel/PDF can remain stubbed if needed, but wire them correctly
+
+JSON spec export must include:
+- selected sector
+- selected date range
+- selected template/tool type
+- widgets
+- widget metric source
+- widget visualization type
+- layout
+- AI widgets used
+- theme/style config
+
+Also export AI-generated summaries with the dashboard state where appropriate.
+
+==================================================
+E) IMPORT / USER DATA READINESS
+==================================================
+
+Keep or improve Import Data support:
+- CSV upload
+- simple preview
+- assign uploaded dataset to sector
+- allow widgets to bind to uploaded data where possible
+
+==================================================
+F) UX / POLISH
+==================================================
+
+Improve the product UX:
+- make widget settings panel cleaner
+- show the recommended default visualization when KPI is selected
+- show a “Recommended” badge on suggested chart types
+- keep the UI clean and premium
+- preserve light + teal corporate design
+- do not break responsive behavior
+
+==================================================
+G) DELIVERABLES
+==================================================
+
+1) Inspect current repo structure first
+2) Identify files to update
+3) Implement the KPI visualization preset system
+4) Implement sector-aware KPI library with Custom mode
+5) Keep AI widgets always available
+6) Refactor AI into a provider architecture
+7) Explain file-by-file what changed

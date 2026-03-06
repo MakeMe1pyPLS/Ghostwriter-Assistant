@@ -190,6 +190,45 @@ export default function DashboardPage() {
              </div>
           </div>
         );
+      case 'chat':
+        return (
+          <div className="h-full flex flex-col p-1">
+             <div className="flex items-center gap-2 mb-4">
+                <BrainCircuit className="w-4 h-4 text-primary" />
+                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{widget.title || 'AI Assistant'}</h3>
+             </div>
+             <div className="flex-1 flex flex-col gap-3 overflow-auto mb-3 px-1">
+               <div className="bg-slate-50 rounded-xl rounded-tl-none p-3 text-[11px] font-medium text-slate-700 self-start max-w-[85%] border border-slate-100 shadow-sm">
+                 How can I help you analyze the {sector} data today?
+               </div>
+               <div className="bg-primary/10 rounded-xl rounded-tr-none p-3 text-[11px] font-bold text-primary self-end max-w-[85%] border border-primary/20 shadow-sm">
+                 What's our biggest risk?
+               </div>
+               <div className="bg-slate-50 rounded-xl rounded-tl-none p-3 text-[11px] font-medium text-slate-700 self-start max-w-[85%] border border-slate-100 shadow-sm">
+                 The biggest risk currently is a potential bottleneck at the Central Hub due to incoming weather.
+               </div>
+             </div>
+             <div className="h-10 border border-slate-200 rounded-xl flex items-center px-4 text-xs font-medium text-slate-400 bg-white shadow-sm">Ask a question...</div>
+          </div>
+        );
+      case 'forecast':
+        return (
+          <div className="h-full flex flex-col p-1">
+             <div className="flex items-center justify-between mb-4">
+               <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{widget.title || 'Demand Forecast'}</h3>
+               <span className="text-[9px] font-black bg-indigo-50 text-indigo-700 border border-indigo-100 px-2 py-0.5 rounded-md uppercase tracking-widest">Predictive</span>
+             </div>
+             <div className="flex-1 relative min-h-0">
+               <ResponsiveContainer width="100%" height="100%">
+                 <LineChart data={chartData}>
+                   <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 10, fill: '#94A3B8', fontWeight: 700}} />
+                   <RechartsTooltip contentStyle={{ borderRadius: '12px', border: '1px solid #f1f5f9', boxShadow: '0 8px 30px rgba(0,0,0,0.08)' }} />
+                   <Line type="monotone" dataKey="value" stroke="#4F46E5" strokeWidth={3} strokeDasharray="5 5" dot={false} />
+                 </LineChart>
+               </ResponsiveContainer>
+             </div>
+          </div>
+        );
       case 'summary':
         return (
           <div className="h-full flex flex-col justify-center p-4">

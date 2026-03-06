@@ -4,8 +4,9 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
+import { Trash2, Sparkles } from "lucide-react";
 import { useSectorData } from "@/hooks/use-sector-data";
+import { getRecommendedVisualization } from "@/lib/visualization-map";
 
 export function WidgetInspector({ 
   widget, 
@@ -62,6 +63,76 @@ export function WidgetInspector({
             />
           </div>
 
+          {widget.type !== 'summary' && widget.type !== 'insights' && widget.type !== 'chat' && widget.type !== 'forecast' && (
+            <>
+              <div className="space-y-3">
+                <Label className="text-xs font-bold uppercase tracking-widest text-slate-500 flex items-center gap-2">
+                  Visualization Type
+                  {getRecommendedVisualization(widget.customMetricId || metrics[widget.metricIndex % metrics.length]?.label || '').type === widget.type && (
+                    <span className="text-[9px] bg-primary/10 text-primary px-1.5 py-0.5 rounded flex items-center gap-1"><Sparkles className="w-3 h-3" /> Recommended</span>
+                  )}
+                </Label>
+                <Select 
+                  value={widget.type} 
+                  onValueChange={(val) => {
+                     onUpdate(widget.id, { type: val });
+                     if (onUpdateLayout) {
+                         if (val === 'kpi') onUpdateLayout(widget.id, { w: 3, h: 2 });
+                         else if (val === 'trend' || val === 'bar') onUpdateLayout(widget.id, { w: 6, h: 3 });
+                         else if (val === 'table') onUpdateLayout(widget.id, { w: 6, h: 4 });
+                     }
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select visualization" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="kpi">KPI Card</SelectItem>
+                    <SelectItem value="trend">Trend Chart</SelectItem>
+                    <SelectItem value="bar">Bar Chart</SelectItem>
+                    <SelectItem value="donut">Donut Chart</SelectItem>
+                    <SelectItem value="table">Data Table</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-3">
+                <Label className="text-xs font-bold uppercase tracking-widest text-slate-500">Bound Metric (Data Source)</Label>
+                <Select 
+                  value={widget.customMetricId || metrics[widget.metricIndex % metrics.length]?.label} 
+                  onValueChange={(val) => {
+                      const rec = getRecommendedVisualization(val);
+                      onUpdate(widget.id, { 
+                          customMetricId: val, 
+                          type: rec.type, 
+                          chartType: rec.chartType,
+                          title: val
+                      });
+                      if (onUpdateLayout) {
+                          if (rec.type === 'kpi') onUpdateLayout(widget.id, { w: 3, h: 2 });
+                          else onUpdateLayout(widget.id, { w: 6, h: 3 });
+                      }
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a specific metric" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(metricsByCategory).map(([category, catMetrics]) => (
+                      <SelectGroup key={category}>
+                        <SelectLabel className="capitalize text-primary font-black bg-slate-50/50">{category}</SelectLabel>
+                        {catMetrics.map((m, i) => (
+                          <SelectItem key={`${category}-${i}`} value={m.label}>{m.label}</SelectItem>
+                        ))}
+                      </SelectGroup>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-[10px] text-slate-400">Selecting a KPI will automatically apply its recommended visualization.</p>
+              </div>
+            </>
+          )}
+
           {layoutItem && onUpdateLayout && (
             <div className="space-y-3">
               <Label className="text-xs font-bold uppercase tracking-widest text-slate-500">Size Preset</Label>
@@ -85,31 +156,6 @@ export function WidgetInspector({
                   <SelectItem value="12x4">Full Width (12x4)</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-          )}
-
-          {widget.type === 'kpi' && (
-            <div className="space-y-3">
-              <Label className="text-xs font-bold uppercase tracking-widest text-slate-500">Bound Metric (Custom Source)</Label>
-              <Select 
-                value={widget.customMetricId || metrics[widget.metricIndex % metrics.length]?.label} 
-                onValueChange={(val) => onUpdate(widget.id, { customMetricId: val })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a specific metric" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.entries(metricsByCategory).map(([category, catMetrics]) => (
-                    <SelectGroup key={category}>
-                      <SelectLabel className="capitalize text-primary font-black bg-slate-50/50">{category}</SelectLabel>
-                      {catMetrics.map((m, i) => (
-                        <SelectItem key={`${category}-${i}`} value={m.label}>{m.label}</SelectItem>
-                      ))}
-                    </SelectGroup>
-                  ))}
-                </SelectContent>
-              </Select>
-              <p className="text-[10px] text-slate-400">Override the default sector metric and choose any KPI from any sector.</p>
             </div>
           )}
 
