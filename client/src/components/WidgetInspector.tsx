@@ -30,8 +30,8 @@ export function WidgetInspector({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-md overflow-y-auto">
-        <SheetHeader className="mb-6">
+      <SheetContent className="w-full sm:max-w-md overflow-y-auto z-[100]">
+        <SheetHeader className="mb-6 mt-4 md:mt-0">
           <SheetTitle>Inspector</SheetTitle>
           <SheetDescription>Configure widget properties</SheetDescription>
         </SheetHeader>
@@ -43,6 +43,15 @@ export function WidgetInspector({
               placeholder="e.g. Q3 Performance" 
               value={widget.title || ''} 
               onChange={(e) => onUpdate(widget.id, { title: e.target.value })}
+            />
+          </div>
+
+          <div className="space-y-3">
+            <Label className="text-xs font-bold uppercase tracking-widest text-slate-500">Subtitle / Description</Label>
+            <Input 
+              placeholder="Optional brief description" 
+              value={widget.description || ''} 
+              onChange={(e) => onUpdate(widget.id, { description: e.target.value })}
             />
           </div>
 
@@ -64,6 +73,8 @@ export function WidgetInspector({
                   <SelectItem value="4x3">Medium Square (4x3)</SelectItem>
                   <SelectItem value="6x3">Wide Panel (6x3)</SelectItem>
                   <SelectItem value="6x4">Large Panel (6x4)</SelectItem>
+                  <SelectItem value="8x4">Hero Panel (8x4)</SelectItem>
+                  <SelectItem value="12x2">Thin Strip (12x2)</SelectItem>
                   <SelectItem value="12x4">Full Width (12x4)</SelectItem>
                 </SelectContent>
               </Select>
@@ -157,6 +168,15 @@ export function WidgetInspector({
                 id="show-delta" 
                 checked={widget.showDelta !== false} 
                 onCheckedChange={(c) => onUpdate(widget.id, { showDelta: c })}
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <Label htmlFor="show-sparkline" className="cursor-pointer">Show Sparkline</Label>
+              <Switch 
+                id="show-sparkline" 
+                checked={widget.showSparkline !== false} 
+                onCheckedChange={(c) => onUpdate(widget.id, { showSparkline: c })}
               />
             </div>
             

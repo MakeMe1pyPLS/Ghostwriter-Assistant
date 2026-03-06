@@ -1,0 +1,287 @@
+You are a senior full-stack SaaS engineer and responsive UI/UX specialist.
+
+I already have a working demo SaaS called:
+“ChainInsideIQ — AI Supply Chain Dashboard Builder”
+
+STACK
+- Frontend: React + Vite + TypeScript
+- UI: TailwindCSS + shadcn/ui
+- Charts: Recharts
+- Drag layout: react-grid-layout
+- Backend: FastAPI (Python)
+- Demo data only for now
+
+CURRENT PROBLEMS
+The app is glitching and the builder is unstable.
+Responsive behavior is not good enough.
+Landscape mode does not fit properly.
+Desktop is the most usable right now, but tablet and phone still need major improvement.
+I need the app to feel launch-ready and much more polished.
+
+IMPORTANT
+Do NOT rewrite the app from scratch.
+Refactor and improve the existing codebase.
+Preserve the current light + teal corporate theme.
+Focus on stability, responsiveness, layout quality, and UX.
+
+GOAL
+Make the SaaS feel complete enough that I can start showing and launching it.
+
+==================================================
+PHASE 1 — STABILIZE CORE FUNCTIONALITY
+==================================================
+
+Fix all builder/dashboard glitches first.
+
+1) Builder Stability
+- Fix drag/drop glitches
+- Fix resizing glitches
+- Prevent widget overlap
+- Prevent widgets from jumping after drag ends
+- Prevent layout shifts when toggling edit mode
+- Save layout reliably in localStorage
+- Save layout by:
+  - sector
+  - breakpoint
+  - template type if applicable
+
+2) Edit Mode vs View Mode
+Create a strict separation between:
+VIEW MODE
+- no dragging
+- no resizing
+- layout locked
+- all widgets interact normally
+- no edit controls visible
+
+EDIT MODE
+- dragging enabled
+- resizing enabled
+- edit controls visible
+- add/remove widgets enabled
+- widget settings enabled
+
+3) Runtime / code health
+- Fix all TypeScript issues
+- Fix any react-grid-layout instability
+- If WidthProvider causes any issue, do NOT use it
+- Use a measured width wrapper instead
+- Ensure the app runs in Replit with no overlay/runtime errors
+
+==================================================
+PHASE 2 — RESPONSIVE LAYOUT FOR DESKTOP / TABLET / PHONE
+==================================================
+
+Make the app truly responsive.
+
+DESKTOP
+- full builder works
+- right widget library visible
+- settings sidebar visible
+- dashboard looks premium
+
+TABLET
+- optimize for both portrait and landscape
+- layout should fit horizontally
+- no cutoff content
+- cards/charts should resize correctly
+- builder controls should collapse intelligently
+- right panels can become drawers if needed
+
+PHONE
+- stacked mobile-friendly layout
+- top bar becomes compact
+- sidebar becomes hamburger menu / drawer
+- widget library becomes bottom sheet or modal
+- widget settings become bottom sheet or drawer
+- drag/resizing OFF by default on phones
+- enable edit mode toggle for mobile adjustments only
+- improve touch target sizes
+- prevent overflow and clipping
+
+LANDSCAPE MODE
+- Must display all critical controls cleanly
+- No horizontal content cutoff
+- Charts/cards should shrink intelligently
+- Top bar must wrap or collapse correctly
+- Side panels should become drawers if needed
+
+Implement responsive breakpoints and layout behavior for:
+- desktop
+- tablet portrait
+- tablet landscape
+- phone portrait
+- phone landscape
+
+==================================================
+PHASE 3 — MAKE THE PRODUCT FEEL FINISHED
+==================================================
+
+Upgrade the app so it feels like a premium SaaS.
+
+1) Top Bar
+Include:
+- sector switch
+- date range selector
+- refresh button
+- edit mode toggle
+- export button
+- demo mode badge
+- last refreshed timestamp
+
+Make this top bar sticky and responsive.
+
+2) Sidebar
+- highlight active route
+- collapse on smaller screens
+- clean icons
+- smooth transitions
+
+3) Builder Improvements
+- better widget cards
+- cleaner drag handles
+- stronger visual hierarchy
+- widget inspector/settings panel
+- right panel on desktop
+- drawer/bottom sheet on mobile/tablet
+
+4) Widget Library
+Make it more premium:
+- grouped categories
+- search/filter if possible
+- categories:
+  - KPI widgets
+  - Charts
+  - AI widgets
+  - Summary widgets
+- show icons and short descriptions
+
+5) Widget Controls
+In edit mode, each widget should have:
+- edit
+- duplicate
+- delete
+- move up
+- move down
+
+6) Settings Panel
+For selected widget, allow:
+- title
+- subtitle
+- metric selector
+- chart type selector
+- color/accent selector
+- show delta toggle
+- show sparkline toggle
+- size preset
+- description/help text
+
+==================================================
+PHASE 4 — FIX SECTOR SWITCHING / DATA BEHAVIOR
+==================================================
+
+Right now sector-based behavior needs to feel complete.
+
+Implement a clean shared state/store for:
+- selectedSector
+- selectedDateRange
+- editMode
+- selectedToolTemplate
+- lastRefreshed
+
+When sector changes:
+- KPI cards update
+- charts update
+- insights update
+- builder widgets update
+- dashboard presentation page updates
+
+Use one metric dictionary/config layer so different sectors show the correct metrics:
+
+E-commerce:
+- Revenue
+- Orders
+- AOV
+- Conversion Rate
+- ROAS
+- Returns Rate
+
+Logistics:
+- On-time Delivery
+- Late Shipments
+- Cost per Shipment
+- Transit Time
+- Warehouse Utilization
+
+Manufacturing:
+- Units Produced
+- Throughput
+- Defect Rate
+- Downtime
+- Yield
+
+Unified:
+- Perfect Order Rate
+- Cash-to-Cash Cycle Time
+- Available-to-Promise Accuracy
+- Bullwhip Effect Index
+
+==================================================
+PHASE 5 — EXPORT / GENERATOR IMPROVEMENT
+==================================================
+
+Since this is also a Dashboard Generator, improve the export experience.
+
+1) Export Drawer / Export Menu
+Have one clean Export button with:
+- Export CSV (working)
+- Export JSON Spec (working)
+- Export Excel (stub is okay)
+- Export PDF (stub is okay)
+- Export Power BI Template (stub)
+- Export Tableau Template (stub)
+
+2) JSON Spec Export must include:
+- selected sector
+- date range
+- dashboard/tool template type
+- active widgets
+- layout by breakpoint
+- widget settings
+- colors/theme config
+
+3) Make export use current builder state, not static defaults.
+
+==================================================
+PHASE 6 — UX POLISH
+==================================================
+
+Add:
+- loading skeletons
+- empty states
+- toast notifications
+- hover states
+- subtle motion/transitions
+- polished spacing
+- stronger typography hierarchy
+
+Keep the UI premium, clean, and launch-ready.
+
+==================================================
+DELIVERABLES
+==================================================
+
+1) Inspect current repo structure first
+2) List the files you will update
+3) Fix the builder and responsiveness in-place
+4) Make the app stable and polished
+5) Explain what changed file-by-file
+6) Confirm:
+   - Desktop works well
+   - Tablet portrait works well
+   - Tablet landscape works well
+   - Phone portrait works well
+   - Phone landscape works well
+
+DO NOT stop after only fixing one part.
+Work through all phases in order.

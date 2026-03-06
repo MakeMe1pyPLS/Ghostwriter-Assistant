@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/select";
 import { RefreshCw, Calendar, Zap, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useDashboardStore, Sector, DateRange } from "@/hooks/use-dashboard-store";
 import { format } from "date-fns";
 
@@ -30,10 +30,10 @@ export function TopBar() {
   };
 
   return (
-    <div className="h-16 border-b border-border bg-white/80 backdrop-blur-md sticky top-0 z-50 flex items-center justify-between px-6 shadow-sm">
-      <div className="flex items-center gap-4">
+    <div className="h-16 border-b border-border bg-white/80 backdrop-blur-md sticky top-0 z-40 flex items-center justify-between px-4 lg:px-6 shadow-sm overflow-x-auto custom-scrollbar no-scrollbar-on-mobile">
+      <div className="flex items-center gap-2 lg:gap-4 shrink-0 pr-4">
         <Select value={selectedSector} onValueChange={(v) => setSector(v as Sector)}>
-          <SelectTrigger className="w-[180px] bg-slate-50 border-slate-200 font-medium">
+          <SelectTrigger className="w-[140px] lg:w-[180px] bg-slate-50 border-slate-200 font-medium h-9">
             <SelectValue placeholder="Select Sector" />
           </SelectTrigger>
           <SelectContent>
@@ -45,7 +45,7 @@ export function TopBar() {
         </Select>
 
         <Select value={selectedRange} onValueChange={(v) => setRange(v as DateRange)}>
-          <SelectTrigger className="w-[130px] bg-slate-50 border-slate-200 text-sm">
+          <SelectTrigger className="w-[110px] lg:w-[130px] bg-slate-50 border-slate-200 text-sm h-9">
             <SelectValue placeholder="Range" />
           </SelectTrigger>
           <SelectContent>
@@ -56,13 +56,13 @@ export function TopBar() {
         </Select>
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3 lg:gap-4 shrink-0">
         <div className="hidden md:flex flex-col items-end mr-2">
           <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Last Sync</span>
           <span className="text-xs text-slate-600 font-medium">{format(lastRefreshed, 'HH:mm:ss')}</span>
         </div>
 
-        <div className="flex items-center gap-2 text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100 uppercase tracking-tight">
+        <div className="hidden sm:flex items-center gap-2 text-[10px] lg:text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1.5 rounded-full border border-emerald-100 uppercase tracking-tight">
           <Zap className="w-3 h-3 fill-emerald-500" />
           Live Demo
         </div>
@@ -71,12 +71,21 @@ export function TopBar() {
           variant="ghost" 
           size="sm" 
           onClick={handleRefresh}
-          className="gap-2 text-slate-600 hover:bg-slate-100 transition-all duration-200"
+          className="gap-2 text-slate-600 hover:bg-slate-100 transition-all duration-200 h-9"
         >
           <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
           <span className="hidden sm:inline">Refresh</span>
         </Button>
       </div>
+      <style>{`
+        .no-scrollbar-on-mobile::-webkit-scrollbar {
+          display: none;
+        }
+        .no-scrollbar-on-mobile {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}</style>
     </div>
   );
 }
