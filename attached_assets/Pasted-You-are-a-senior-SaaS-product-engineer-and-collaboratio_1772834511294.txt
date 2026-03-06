@@ -1,0 +1,251 @@
+You are a senior SaaS product engineer and collaboration-system designer.
+
+Enhance my existing app:
+“ChainInsideIQ — AI Supply Chain Dashboard Builder”
+
+Do NOT rewrite the whole app from scratch.
+Refactor and improve the current codebase in-place.
+
+PRIMARY GOAL
+Upgrade the Hub into a real cross-sector operations and communication center.
+
+The Hub should feel like:
+- an operations command center
+- a team collaboration feed
+- an alert and notification system
+- a place where E-commerce, Logistics, Manufacturing, and Unified teams communicate around KPIs and issues
+
+Keep the current light + teal corporate design.
+Make the Hub polished, functional, and premium.
+
+==================================================
+A) HUB CORE IMPROVEMENT
+==================================================
+
+The Hub currently feels too basic.
+Upgrade it into a more useful operational collaboration system.
+
+Add these core areas to the Hub page:
+
+1) Top Summary Bar
+Display:
+- total open alerts
+- critical alerts
+- unread updates
+- latest urgent message timestamp
+
+2) Hub Tabs or sections
+Create tabs or segmented sections for:
+- All Updates
+- Alerts
+- Notifications
+- Urgent
+- Resolved
+
+3) Message Composer
+Allow users to create a post/update with:
+- sector
+- title
+- message body
+- urgency level
+- optional KPI tag
+- optional assignee/team tag
+- status
+
+Fields:
+- Sector: E-commerce / Logistics / Manufacturing / Unified
+- Urgency: Low / Medium / High / Critical
+- Status: Open / In Progress / Resolved
+- KPI Tag: optional dropdown based on current sector
+- Optional “Needs action” toggle
+
+==================================================
+B) URGENCY / PRIORITY SYSTEM
+==================================================
+
+Every message or alert should support urgency levels:
+
+- Low
+- Medium
+- High
+- Critical
+
+Display urgency visually:
+- Low = gray/neutral badge
+- Medium = blue or teal badge
+- High = amber/orange badge
+- Critical = red badge
+
+Requirements:
+- urgency badge visible on every card
+- urgent items sortable/filterable
+- urgent items can appear pinned at the top
+
+Also allow:
+- filter by urgency
+- filter by status
+- filter by sector
+
+==================================================
+C) ALERTS + NOTIFICATIONS SYSTEM
+==================================================
+
+Add a real alerts/notifications layer to the Hub.
+
+1) Alerts
+Alerts are operational issues tied to KPI conditions.
+
+Examples:
+- On-time delivery dropped below threshold
+- Defect rate exceeded 3%
+- Perfect Order Rate fell 5%
+- Bullwhip Effect Index spiked
+
+For demo:
+- alerts can be auto-generated from seeded KPI data
+- OR generated from simple backend rules
+
+Each alert should include:
+- title
+- sector
+- urgency
+- impacted KPI
+- timestamp
+- short explanation
+- suggested next step
+
+2) Notifications
+Notifications are smaller updates such as:
+- message posted
+- KPI threshold crossed
+- export completed
+- AI insight generated
+- sector update posted
+
+Add a notifications panel or list.
+
+==================================================
+D) HUB FEED DESIGN
+==================================================
+
+Each hub item card should show:
+
+- title
+- sector badge
+- urgency badge
+- status badge
+- KPI tag if present
+- timestamp
+- message preview
+- action buttons
+
+Action buttons:
+- Mark as Read
+- Mark as Resolved
+- Escalate
+- View Details
+
+Optional:
+- pin item
+- assign item
+
+Make the feed look like a premium operations dashboard, not a basic chat list.
+
+==================================================
+E) SMART ALERT GENERATION (DEMO LOGIC)
+==================================================
+
+Use the existing seeded demo KPI data to generate example alerts.
+
+Simple backend rule examples:
+- if on_time_delivery < 92 -> create high alert
+- if defect_rate > 3 -> create critical alert
+- if perfect_order_rate drops by more than 2 points -> create high alert
+- if bullwhip_effect_index > threshold -> create medium/high alert
+
+Add backend endpoints if needed:
+- GET /api/hub
+- POST /api/hub
+- GET /api/hub/alerts
+- GET /api/hub/notifications
+- POST /api/hub/:id/resolve
+- POST /api/hub/:id/read
+- POST /api/hub/:id/escalate
+
+Keep in-memory storage for demo purposes.
+
+==================================================
+F) DASHBOARD / KPI CONNECTION
+==================================================
+
+The Hub should feel connected to the dashboard.
+
+Requirements:
+- Hub messages can reference KPIs
+- Clicking a KPI tag should filter or highlight related dashboard widgets if possible
+- Sector switch should influence the visible Hub items
+- Alerts should reference the same metrics used in the dashboard
+
+Examples:
+- Logistics alert links to On-Time Delivery
+- Unified alert links to Perfect Order Rate
+- Manufacturing update links to Defect Rate
+
+==================================================
+G) UX / POLISH
+==================================================
+
+Improve the experience:
+- Add loading skeletons
+- Add empty states
+- Add toast notifications for:
+  - alert resolved
+  - message posted
+  - escalation triggered
+- Add smooth transitions
+- Add visual hierarchy
+- Make filters sticky if helpful
+- Add search bar for alerts/messages
+- Add “Only urgent” quick filter
+- Add “Unread only” quick filter
+
+Make it feel like a premium SaaS collaboration module.
+
+==================================================
+H) RESPONSIVENESS
+==================================================
+
+Make the Hub responsive for:
+- Desktop
+- Tablet
+- Phone
+
+Desktop:
+- full feed + filters + summary cards visible
+
+Tablet:
+- cleaner stacked layout
+- summary cards responsive
+- filters collapse well
+
+Phone:
+- feed stacked vertically
+- filters become drawer or dropdown
+- composer becomes modal or bottom sheet
+- cards remain readable and touch-friendly
+
+==================================================
+I) DELIVERABLES
+==================================================
+
+1) Inspect the current repo structure first
+2) Identify the files that need updating
+3) Improve the Hub in-place
+4) Keep design consistent with the rest of the SaaS
+5) Explain what changed file-by-file
+6) Confirm that:
+   - urgency levels work
+   - alerts render correctly
+   - notifications render correctly
+   - filters work
+   - Hub feels significantly more premium and useful
