@@ -38,9 +38,9 @@ export function WidgetInspector({
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:max-w-md overflow-y-auto z-[100]">
-        <SheetHeader className="mb-6 mt-4 md:mt-0">
-          <SheetTitle>Inspector</SheetTitle>
-          <SheetDescription>Configure widget properties</SheetDescription>
+        <SheetHeader className="mb-6 mt-4 md:mt-0 pb-4 border-b border-slate-100">
+          <SheetTitle className="text-lg font-black text-slate-900 uppercase tracking-tight">Widget Inspector</SheetTitle>
+          <SheetDescription className="text-xs font-medium text-slate-500">Configure widget properties and data sources</SheetDescription>
         </SheetHeader>
 
         <div className="space-y-6">

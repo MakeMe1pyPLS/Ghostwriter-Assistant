@@ -54,16 +54,16 @@ export function WidgetLibraryContent({ onAdd }: { onAdd: (widget: any) => void }
   return (
     <div className="flex flex-col h-full bg-white">
       <div className="p-4 md:p-5 border-b border-slate-100 bg-slate-50/50 shrink-0 space-y-4">
-        <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest">Widget Library</h3>
+        <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest">Widget Library</h3>
         
         <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="w-full grid grid-cols-3 h-auto p-1 mb-2 bg-slate-100">
-            <TabsTrigger value="all" className="text-[10px] py-1">All</TabsTrigger>
-            <TabsTrigger value="ecommerce" className="text-[10px] py-1">E-com</TabsTrigger>
-            <TabsTrigger value="manufacturing" className="text-[10px] py-1">Mfg</TabsTrigger>
-            <TabsTrigger value="logistics" className="text-[10px] py-1">Log</TabsTrigger>
-            <TabsTrigger value="unified" className="text-[10px] py-1">Unified</TabsTrigger>
-            <TabsTrigger value="custom" className="text-[10px] py-1">Custom</TabsTrigger>
+          <TabsList className="w-full grid grid-cols-3 h-auto p-1.5 mb-2 bg-slate-100 rounded-xl">
+            <TabsTrigger value="all" className="text-[11px] py-1.5 font-bold rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">All</TabsTrigger>
+            <TabsTrigger value="ecommerce" className="text-[11px] py-1.5 font-bold rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">E-com</TabsTrigger>
+            <TabsTrigger value="manufacturing" className="text-[11px] py-1.5 font-bold rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">Mfg</TabsTrigger>
+            <TabsTrigger value="logistics" className="text-[11px] py-1.5 font-bold rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">Log</TabsTrigger>
+            <TabsTrigger value="unified" className="text-[11px] py-1.5 font-bold rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">Unified</TabsTrigger>
+            <TabsTrigger value="custom" className="text-[11px] py-1.5 font-bold rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">Custom</TabsTrigger>
           </TabsList>
         </Tabs>
 
@@ -71,7 +71,7 @@ export function WidgetLibraryContent({ onAdd }: { onAdd: (widget: any) => void }
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <Input 
             placeholder="Search widgets..." 
-            className="pl-9 bg-white border-slate-200 h-9 text-xs shadow-sm"
+            className="pl-9 bg-white border-slate-200 h-10 text-xs shadow-sm rounded-xl font-medium"
             value={search}
             onChange={e => setSearch(e.target.value)}
           />

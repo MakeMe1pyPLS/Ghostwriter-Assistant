@@ -46,50 +46,50 @@ export function ExportDrawer({ layout, widgets, sector, dateRange = '30d' }: { l
   return (
     <Drawer>
       <DrawerTrigger asChild>
-        <Button variant="outline" className="rounded-xl border-slate-200 shadow-sm bg-white font-bold text-[10px] md:text-xs uppercase tracking-wider h-9 md:h-10 w-full md:w-auto px-3 md:px-4">
+        <Button variant="outline" className="rounded-xl border-slate-200 shadow-sm bg-white font-bold text-[10px] md:text-xs uppercase tracking-wider h-9 md:h-10 w-full md:w-auto px-3 md:px-4 hover:bg-slate-50 transition-colors">
           <Download className="w-3 h-3 md:w-4 md:h-4 mr-1.5 md:mr-2" />
           Export
         </Button>
       </DrawerTrigger>
       <DrawerContent>
         <div className="mx-auto w-full max-w-sm">
-          <DrawerHeader>
-            <DrawerTitle>Export Dashboard</DrawerTitle>
-            <DrawerDescription>Download specifications or send directly to BI tools.</DrawerDescription>
+          <DrawerHeader className="pb-4">
+            <DrawerTitle className="text-xl font-black text-slate-900">Export Dashboard</DrawerTitle>
+            <DrawerDescription className="text-sm font-medium text-slate-500">Download specifications or send directly to BI tools.</DrawerDescription>
           </DrawerHeader>
-          <div className="p-4 pb-0 space-y-4">
+          <div className="p-4 pb-0 space-y-5">
              <div className="grid grid-cols-2 gap-3">
-               <Button onClick={() => handleRealExport('json')} variant="secondary" className="h-20 flex flex-col gap-2">
+               <Button onClick={() => handleRealExport('json')} variant="secondary" className="h-24 flex flex-col gap-3 rounded-xl bg-slate-50 hover:bg-primary/5 hover:border-primary/20 border border-transparent transition-all">
                  <FileJson className="w-6 h-6 text-primary" />
-                 <span className="text-[10px] uppercase font-bold tracking-widest">JSON Spec</span>
+                 <span className="text-[11px] uppercase font-black tracking-widest text-slate-700">JSON Spec</span>
                </Button>
-               <Button onClick={() => handleRealExport('csv')} variant="secondary" className="h-20 flex flex-col gap-2">
+               <Button onClick={() => handleRealExport('csv')} variant="secondary" className="h-24 flex flex-col gap-3 rounded-xl bg-emerald-50 hover:bg-emerald-100/50 hover:border-emerald-200 border border-transparent transition-all text-emerald-800">
                  <FileSpreadsheet className="w-6 h-6 text-emerald-600" />
-                 <span className="text-[10px] uppercase font-bold tracking-widest">Raw CSV</span>
+                 <span className="text-[11px] uppercase font-black tracking-widest">Raw CSV</span>
                </Button>
              </div>
              
-             <div className="pt-4 border-t border-slate-100">
-               <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">BI Connectors</h4>
+             <div className="pt-5 border-t border-slate-100">
+               <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">BI Connectors</h4>
                <div className="grid grid-cols-2 gap-3">
-                 <Button onClick={() => handleStubExport('Power BI')} variant="outline" className="justify-start">
+                 <Button onClick={() => handleStubExport('Power BI')} variant="outline" className="justify-start rounded-xl h-10 border-slate-200 font-bold shadow-sm">
                    <Monitor className="w-4 h-4 mr-2 text-yellow-600" /> Power BI
                  </Button>
-                 <Button onClick={() => handleStubExport('Tableau')} variant="outline" className="justify-start">
+                 <Button onClick={() => handleStubExport('Tableau')} variant="outline" className="justify-start rounded-xl h-10 border-slate-200 font-bold shadow-sm">
                    <Monitor className="w-4 h-4 mr-2 text-blue-600" /> Tableau
                  </Button>
-                 <Button onClick={() => handleStubExport('PDF')} variant="outline" className="justify-start">
+                 <Button onClick={() => handleStubExport('PDF')} variant="outline" className="justify-start rounded-xl h-10 border-slate-200 font-bold shadow-sm">
                    <FileText className="w-4 h-4 mr-2 text-red-500" /> PDF Report
                  </Button>
-                 <Button onClick={() => handleStubExport('Image')} variant="outline" className="justify-start">
+                 <Button onClick={() => handleStubExport('Image')} variant="outline" className="justify-start rounded-xl h-10 border-slate-200 font-bold shadow-sm">
                    <ImageIcon className="w-4 h-4 mr-2 text-indigo-500" /> Screenshot
                  </Button>
                </div>
              </div>
           </div>
-          <DrawerFooter>
+          <DrawerFooter className="pt-6">
             <DrawerClose asChild>
-              <Button variant="ghost">Cancel</Button>
+              <Button variant="ghost" className="rounded-xl font-bold">Cancel</Button>
             </DrawerClose>
           </DrawerFooter>
         </div>

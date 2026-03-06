@@ -29,11 +29,11 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
     <div className="w-full lg:w-72 border-r border-slate-200 bg-white flex flex-col h-full relative z-[60] shadow-[1px_0_10px_rgb(0,0,0,0.02)]">
       <div className="hidden lg:flex h-16 items-center px-8 border-b border-slate-50 shrink-0">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-slate-900 text-primary flex items-center justify-center shadow-lg">
-             <Zap size={20} fill="currentColor" />
+          <div className="w-10 h-10 rounded-xl bg-slate-900 text-primary flex items-center justify-center shadow-lg shrink-0">
+             <Zap size={22} fill="currentColor" />
           </div>
           <div className="flex flex-col">
-            <span className="font-black text-sm text-slate-900 uppercase tracking-tighter leading-none">ChainInside</span>
+            <span className="font-black text-[15px] text-slate-900 uppercase tracking-tighter leading-none">ChainInside</span>
             <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mt-1">Intelligence IQ</span>
           </div>
         </div>
@@ -43,43 +43,45 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         {navItems.map((item) => {
           const isActive = location === item.href || (location === "/" && item.href === "/builder");
           return (
-            <Link key={item.name} href={item.href}>
-              <a
-                onClick={onNavigate}
-                className={cn(
-                  "flex items-center group relative px-4 py-3.5 rounded-2xl transition-all duration-200",
-                  isActive 
-                    ? "bg-slate-900 text-white shadow-xl shadow-slate-200" 
-                    : "text-slate-400 hover:text-slate-900 hover:bg-slate-50"
-                )}
-              >
-                <div className={cn(
-                  "p-2 rounded-xl transition-colors duration-200 mr-4 shrink-0",
-                  isActive ? "bg-white/10 text-primary" : "bg-slate-50 text-slate-400 group-hover:bg-white group-hover:text-slate-900"
-                )}>
-                  <item.icon className="w-5 h-5" />
-                </div>
-                <div className="flex flex-col min-w-0">
-                  <span className="text-sm font-black uppercase tracking-widest truncate">{item.name}</span>
-                  <span className={cn("text-[10px] font-medium opacity-60 truncate", isActive ? "text-slate-300" : "text-slate-400")}>{item.description}</span>
-                </div>
-                {isActive && (
-                   <motion.div layoutId="activeNav" className="absolute right-4 hidden lg:block">
-                     <ChevronRight className="w-4 h-4 text-primary" />
-                   </motion.div>
-                )}
-              </a>
+            <Link 
+              key={item.name} 
+              href={item.href}
+              onClick={onNavigate}
+              className={cn(
+                "flex items-center group relative px-4 py-3.5 rounded-2xl transition-all duration-200",
+                isActive 
+                  ? "bg-slate-900 text-white shadow-[0_8px_20px_rgb(0,0,0,0.12)]" 
+                  : "text-slate-400 hover:text-slate-900 hover:bg-slate-50"
+              )}
+            >
+              <div className={cn(
+                "p-2 rounded-xl transition-colors duration-200 mr-4 shrink-0",
+                isActive ? "bg-white/15 text-white" : "bg-slate-50 text-slate-400 group-hover:bg-white group-hover:text-primary shadow-sm group-hover:shadow-md"
+              )}>
+                <item.icon className="w-5 h-5" />
+              </div>
+              <div className="flex flex-col min-w-0">
+                <span className="text-sm font-black uppercase tracking-widest truncate">{item.name}</span>
+                <span className={cn("text-[10px] font-medium opacity-60 truncate", isActive ? "text-slate-300" : "text-slate-400")}>{item.description}</span>
+              </div>
+              {isActive && (
+                 <motion.div layoutId="activeNav" className="absolute right-4 hidden lg:block">
+                   <ChevronRight className="w-4 h-4 text-primary" />
+                 </motion.div>
+              )}
             </Link>
           );
         })}
       </div>
 
       <div className="p-6 lg:p-8 border-t border-slate-50 shrink-0">
-        <Link href="/settings">
-          <a onClick={onNavigate} className="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-400 hover:text-slate-900 hover:bg-slate-50 transition-all group">
-            <Settings className="w-5 h-5 group-hover:rotate-45 transition-transform" />
-            <span className="text-xs font-bold uppercase tracking-widest">Settings</span>
-          </a>
+        <Link 
+          href="/settings"
+          onClick={onNavigate} 
+          className="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-400 hover:text-slate-900 hover:bg-slate-50 transition-all group"
+        >
+          <Settings className="w-5 h-5 group-hover:rotate-45 transition-transform" />
+          <span className="text-xs font-bold uppercase tracking-widest">Settings</span>
         </Link>
       </div>
       <style>{`

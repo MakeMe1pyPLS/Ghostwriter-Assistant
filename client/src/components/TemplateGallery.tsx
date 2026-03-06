@@ -19,37 +19,37 @@ export function TemplateGallery({ onSelect }: { onSelect: (id: string) => void }
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="rounded-xl border-slate-200 shadow-sm bg-white font-bold text-[10px] md:text-xs uppercase tracking-wider h-9 md:h-10 w-full md:w-auto px-3 md:px-4">
+        <Button variant="outline" className="rounded-xl border-slate-200 shadow-sm bg-white font-bold text-[10px] md:text-xs uppercase tracking-wider h-9 md:h-10 w-full md:w-auto px-3 md:px-4 hover:bg-slate-50 transition-colors">
           <LayoutTemplate className="w-3 h-3 md:w-4 md:h-4 mr-1.5 md:mr-2" />
           Templates
         </Button>
       </DialogTrigger>
-      <DialogContent className="w-[95vw] sm:max-w-[700px] max-h-[90vh] md:h-[80vh] flex flex-col p-0 overflow-hidden rounded-2xl">
-        <DialogHeader className="p-4 md:p-6 border-b border-slate-100 bg-slate-50/50">
-          <DialogTitle className="text-xl font-bold">Template Gallery</DialogTitle>
-          <DialogDescription>
+      <DialogContent className="w-[95vw] sm:max-w-[700px] max-h-[90vh] md:h-[80vh] flex flex-col p-0 overflow-hidden rounded-3xl">
+        <DialogHeader className="p-6 md:p-8 border-b border-slate-100 bg-slate-50/50 pb-6">
+          <DialogTitle className="text-2xl font-black text-slate-900 tracking-tight">Template Gallery</DialogTitle>
+          <DialogDescription className="text-sm font-medium text-slate-500 mt-2">
             Start with a pre-configured layout based on your favorite BI tool.
           </DialogDescription>
         </DialogHeader>
-        <ScrollArea className="flex-1 p-4 md:p-6">
+        <ScrollArea className="flex-1 p-4 md:p-6 bg-slate-50/30">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {templates.map((t) => (
               <div 
                 key={t.id} 
-                className="group p-5 rounded-xl border border-slate-200 bg-white hover:border-primary/40 hover:bg-teal-50/10 transition-all cursor-pointer relative overflow-hidden"
+                className="group p-6 rounded-2xl border border-slate-200 bg-white hover:border-primary/40 hover:bg-teal-50/10 hover:shadow-lg transition-all cursor-pointer relative overflow-hidden flex flex-col items-start"
                 onClick={() => {
                   onSelect(t.id);
                   setOpen(false);
                 }}
               >
-                <div className="absolute top-0 right-0 p-3">
-                   <Badge variant="secondary" className="text-[10px] uppercase font-bold">{t.tool}</Badge>
+                <div className="absolute top-0 right-0 p-4">
+                   <Badge variant="secondary" className="text-[10px] uppercase font-black tracking-widest bg-slate-100 text-slate-500">{t.tool}</Badge>
                 </div>
-                <div className="w-12 h-12 rounded-lg bg-slate-50 flex items-center justify-center mb-4 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
-                  <t.icon className="w-6 h-6 text-slate-400 group-hover:text-primary" />
+                <div className="w-14 h-14 rounded-xl bg-slate-50 flex items-center justify-center mb-5 group-hover:bg-primary/10 group-hover:text-primary transition-colors border border-slate-100 group-hover:border-primary/20">
+                  <t.icon className="w-7 h-7 text-slate-400 group-hover:text-primary" />
                 </div>
-                <h3 className="text-sm font-bold text-slate-900 mb-1">{t.name}</h3>
-                <p className="text-xs text-slate-500">{t.desc}</p>
+                <h3 className="text-base font-black text-slate-900 mb-1">{t.name}</h3>
+                <p className="text-xs font-medium text-slate-500">{t.desc}</p>
               </div>
             ))}
           </div>

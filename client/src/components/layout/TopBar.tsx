@@ -31,7 +31,7 @@ export function TopBar() {
   };
 
   return (
-    <div className="h-16 border-b border-border bg-white/80 backdrop-blur-md sticky top-0 z-40 flex items-center justify-between px-4 lg:px-6 shadow-sm overflow-x-auto custom-scrollbar no-scrollbar-on-mobile">
+    <div className="h-16 border-b border-border bg-white/80 backdrop-blur-md sticky top-0 z-40 flex items-center justify-between px-4 lg:px-6 shadow-sm overflow-x-auto custom-scrollbar no-scrollbar-on-mobile shrink-0">
       <div className="flex items-center gap-2 lg:gap-4 shrink-0 pr-4">
         <Select value={selectedSector} onValueChange={(v) => setSector(v as Sector)}>
           <SelectTrigger className="w-[140px] lg:w-[180px] bg-slate-50 border-slate-200 font-medium h-9">
