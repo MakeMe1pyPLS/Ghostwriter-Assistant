@@ -1,0 +1,199 @@
+Fix the Dashboard Builder so it behaves correctly inside and outside Edit Mode.
+
+CURRENT PROBLEM
+The builder is buggy when Edit Mode is OFF. Widgets still behave incorrectly or the layout feels unstable. I need the builder to be much more functional, predictable, and polished.
+
+GOAL
+Make the builder feel like a real SaaS dashboard editor:
+- Stable in view mode
+- Smooth in edit mode
+- Responsive on desktop, tablet, and mobile
+- Clean drag/drop behavior
+- Better widget interaction and customization
+
+IMPORTANT
+Do NOT rewrite the whole app from scratch.
+Refactor and fix the existing codebase.
+Preserve the current light + teal corporate theme.
+
+-----------------------------------
+1) FIX EDIT MODE / VIEW MODE BEHAVIOR
+-----------------------------------
+
+Implement a clear separation between:
+
+VIEW MODE
+- No dragging
+- No resizing
+- No accidental widget movement
+- Widgets should be clickable for normal interaction only
+- Charts, buttons, and AI panels should work normally
+- Hover effects should remain clean and subtle
+- Layout must remain locked and stable
+
+EDIT MODE
+- Dragging enabled
+- Resizing enabled
+- Widget handles visible
+- Widget borders or edit outlines visible
+- Add/remove widgets enabled
+- Widget settings panel enabled
+
+REQUIREMENTS
+- Add one single source of truth for edit mode state
+- All grid behavior must depend on edit mode
+- Prevent layout jitter when switching between edit and view modes
+- Ensure widgets do not shift unexpectedly after edit mode is turned off
+- Save layout after drag/resize ends, not constantly in a buggy way
+
+-----------------------------------
+2) FIX GRID STABILITY
+-----------------------------------
+
+Make the grid builder more reliable:
+- Prevent overlapping widgets
+- Prevent random snapping bugs
+- Prevent widgets from jumping after drag ends
+- Make resizing feel smooth
+- Save layout correctly in localStorage
+- Keep separate layouts by:
+  - sector
+  - breakpoint
+  - template/tool type if needed
+
+If react-grid-layout is causing issues:
+- audit the current implementation
+- simplify configuration
+- ensure correct width calculation
+- ensure no WidthProvider runtime problems
+- use a stable measured width wrapper if necessary
+
+-----------------------------------
+3) MAKE THE BUILDER MORE FUNCTIONAL
+-----------------------------------
+
+Add real functionality to make the builder feel useful:
+
+A) Widget toolbar on each widget in Edit Mode
+- Edit
+- Duplicate
+- Delete
+- Move to top
+- Move to bottom
+
+B) Widget settings panel
+When user clicks Edit on a widget:
+- title
+- subtitle
+- metric selector
+- chart type selector
+- color/accent selector
+- size preset
+- show/hide delta
+- show/hide sparkline
+- show/hide description
+
+C) Add widget menu
+User can add:
+- KPI Card
+- Line Chart
+- Bar Chart
+- Donut Chart
+- Table
+- AI Insights
+- AI Chat
+- Executive Summary
+- Forecast Panel
+
+-----------------------------------
+4) IMPROVE RESPONSIVE EXPERIENCE
+-----------------------------------
+
+Desktop:
+- full builder with drag/drop
+
+Tablet:
+- drag/drop still works but cleaner spacing
+
+Mobile:
+- dragging OFF by default
+- enable only in Edit Mode
+- use stacked layout
+- widget settings open in bottom sheet / drawer
+- make buttons touch-friendly
+- no clipping or overflow issues
+
+-----------------------------------
+5) IMPROVE BUILDER UX
+-----------------------------------
+
+Make it feel like a polished product:
+- Add a clear Edit Mode toggle
+- Add “Done Editing” button
+- Add “Auto Layout” button
+- Add “Reset Layout” button
+- Add “Save Layout” confirmation toast
+- Add empty state when no widgets exist
+- Add skeleton loaders where needed
+- Add subtle transitions
+
+Top bar should include:
+- Sector switch
+- Date range
+- Edit Mode toggle
+- Refresh button
+- Export button
+- Last refreshed timestamp
+
+-----------------------------------
+6) FIX DATA / SECTOR SWITCHING
+-----------------------------------
+
+Right now all widgets must correctly respond to:
+- selected sector
+- selected date range
+
+When sector changes:
+- KPI cards update
+- charts update
+- AI insights update
+- any sector-specific widget updates
+
+Use a clean shared state/store and avoid stale values.
+
+-----------------------------------
+7) EXPORT / GENERATOR READINESS
+-----------------------------------
+
+Since this is also a Dashboard Generator:
+- Export should use the current visible layout and widget configuration
+- Add Export JSON Spec (working)
+- Keep CSV working
+- Keep Excel/PDF as stubs if needed, but wire them to current builder state
+
+JSON spec should include:
+- sector
+- date range
+- template/tool type
+- widget list
+- layout
+- widget settings
+
+-----------------------------------
+8) CODE QUALITY
+-----------------------------------
+
+Please:
+- inspect current repo structure first
+- identify the builder-related files
+- only change the necessary files
+- clean up TypeScript issues
+- keep code modular and readable
+- explain what files were changed and why
+
+DELIVERABLES
+1. Fix the edit/view mode bugs
+2. Make builder more functional and stable
+3. Improve responsiveness
+4. Show file-by-file changes
+5. Confirm the builder works in Replit without runtime overlay errors

@@ -9,15 +9,19 @@ import { useSectorData } from "@/hooks/use-sector-data";
 
 export function WidgetInspector({ 
   widget, 
+  layoutItem,
   open, 
   onOpenChange, 
   onUpdate, 
+  onUpdateLayout,
   onDelete 
 }: { 
   widget: any;
+  layoutItem?: any;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onUpdate: (id: string, updates: any) => void;
+  onUpdateLayout?: (id: string, updates: any) => void;
   onDelete: (id: string) => void;
 }) {
   const { metrics } = useSectorData();
@@ -42,6 +46,30 @@ export function WidgetInspector({
             />
           </div>
 
+          {layoutItem && onUpdateLayout && (
+            <div className="space-y-3">
+              <Label className="text-xs font-bold uppercase tracking-widest text-slate-500">Size Preset</Label>
+              <Select 
+                value={`${layoutItem.w}x${layoutItem.h}`} 
+                onValueChange={(val) => {
+                  const [w, h] = val.split('x').map(Number);
+                  onUpdateLayout(widget.id, { w, h });
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select size" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="3x2">Small Card (3x2)</SelectItem>
+                  <SelectItem value="4x3">Medium Square (4x3)</SelectItem>
+                  <SelectItem value="6x3">Wide Panel (6x3)</SelectItem>
+                  <SelectItem value="6x4">Large Panel (6x4)</SelectItem>
+                  <SelectItem value="12x4">Full Width (12x4)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
           {widget.type === 'kpi' && (
             <div className="space-y-3">
               <Label className="text-xs font-bold uppercase tracking-widest text-slate-500">Bound Metric</Label>
@@ -61,7 +89,7 @@ export function WidgetInspector({
             </div>
           )}
 
-          {widget.type === 'trend' && (
+          {(widget.type === 'trend' || widget.type === 'bar' || widget.type === 'donut') && (
             <>
               <div className="space-y-3">
                 <Label className="text-xs font-bold uppercase tracking-widest text-slate-500">Chart Type</Label>
@@ -76,6 +104,7 @@ export function WidgetInspector({
                     <SelectItem value="area">Area Chart</SelectItem>
                     <SelectItem value="bar">Bar Chart</SelectItem>
                     <SelectItem value="line">Line Chart</SelectItem>
+                    <SelectItem value="donut">Donut Chart</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
