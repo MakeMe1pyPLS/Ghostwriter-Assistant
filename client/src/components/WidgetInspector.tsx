@@ -4,9 +4,10 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
-import { Trash2, Sparkles, Type, Database, Palette, Settings } from "lucide-react";
+import { Trash2, Sparkles, Type, Database, Palette, Settings, Copy, CheckCircle2 } from "lucide-react";
 import { useSectorData } from "@/hooks/use-sector-data";
 import { getRecommendedVisualization } from "@/lib/visualization-map";
+import { useState, useEffect } from "react";
 
 export function WidgetInspector({ 
   widget, 
@@ -15,7 +16,8 @@ export function WidgetInspector({
   onOpenChange, 
   onUpdate, 
   onUpdateLayout,
-  onDelete 
+  onDelete,
+  onDuplicate
 }: { 
   widget: any;
   layoutItem?: any;
@@ -24,8 +26,24 @@ export function WidgetInspector({
   onUpdate: (id: string, updates: any) => void;
   onUpdateLayout?: (id: string, updates: any) => void;
   onDelete: (id: string) => void;
+  onDuplicate?: (id: string) => void;
 }) {
   const { metrics, allMetrics } = useSectorData();
+  const [saveStatus, setSaveStatus] = useState<'saved' | 'saving'>('saved');
+
+  // We wrap onUpdate to provide auto-save visual feedback
+  const handleUpdate = (updates: any) => {
+    setSaveStatus('saving');
+    onUpdate(widget.id, updates);
+    setTimeout(() => setSaveStatus('saved'), 600);
+  };
+
+  const handleLayoutUpdate = (updates: any) => {
+    if (!onUpdateLayout) return;
+    setSaveStatus('saving');
+    onUpdateLayout(widget.id, updates);
+    setTimeout(() => setSaveStatus('saved'), 600);
+  };
 
   if (!widget) return null;
 
@@ -44,9 +62,16 @@ export function WidgetInspector({
       <SheetContent className="w-full sm:max-w-md p-0 flex flex-col z-[100] bg-slate-50 border-l-0 sm:border-l sm:border-slate-200 shadow-2xl">
         <div className="px-5 py-5 sm:px-6 bg-white border-b border-slate-200 shrink-0 shadow-sm relative z-10">
           <SheetHeader className="text-left">
-            <SheetTitle className="text-lg font-black text-slate-900 uppercase tracking-tight flex items-center gap-2">
-              <Settings className="w-5 h-5 text-primary" />
-              Widget Settings
+            <SheetTitle className="text-lg font-black text-slate-900 uppercase tracking-tight flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Settings className="w-5 h-5 text-primary" />
+                Widget Settings
+              </div>
+              {saveStatus === 'saved' ? (
+                <span className="text-[9px] text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full flex items-center gap-1 transition-all"><CheckCircle2 className="w-3 h-3" /> Auto-saved</span>
+              ) : (
+                <span className="text-[9px] text-slate-500 bg-slate-100 px-2 py-1 rounded-full transition-all">Saving...</span>
+              )}
             </SheetTitle>
             <SheetDescription className="text-xs font-medium text-slate-500">
               Customize data sources and visual properties
@@ -68,7 +93,7 @@ export function WidgetInspector({
                   placeholder={widget.type === 'kpi' ? "e.g. Total Revenue" : "Custom Title"} 
                   className="h-9 text-xs rounded-xl shadow-sm border-slate-200 bg-white focus-visible:ring-primary/20"
                   value={widget.title || ''} 
-                  onChange={(e) => onUpdate(widget.id, { title: e.target.value })}
+                  onChange={(e) => handleUpdate({ title: e.target.value })}
                 />
               </div>
               <div className="space-y-2">
@@ -77,7 +102,7 @@ export function WidgetInspector({
                   placeholder="Optional context" 
                   className="h-9 text-xs rounded-xl shadow-sm border-slate-200 bg-white focus-visible:ring-primary/20"
                   value={widget.description || ''} 
-                  onChange={(e) => onUpdate(widget.id, { description: e.target.value })}
+                  onChange={(e) => handleUpdate({ description: e.target.value })}
                 />
               </div>
             </div>
@@ -92,34 +117,91 @@ export function WidgetInspector({
               </div>
               <div className="p-4 space-y-4">
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Visualization Type</Label>
-                    {getRecommendedVisualization(widget.customMetricId || metrics[widget.metricIndex % metrics.length]?.label || '').type === widget.type && (
-                      <span className="text-[8px] bg-primary/10 text-primary px-1.5 py-0.5 rounded font-black flex items-center gap-1 uppercase tracking-wider"><Sparkles className="w-2.5 h-2.5" /> Recommended</span>
-                    )}
-                  </div>
+                  <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Data Source</Label>
                   <Select 
-                    value={widget.type} 
-                    onValueChange={(val) => {
-                       onUpdate(widget.id, { type: val });
-                       if (onUpdateLayout) {
-                           if (val === 'kpi') onUpdateLayout(widget.id, { w: 3, h: 2 });
-                           else if (val === 'trend' || val === 'bar') onUpdateLayout(widget.id, { w: 6, h: 3 });
-                           else if (val === 'table') onUpdateLayout(widget.id, { w: 6, h: 4 });
-                       }
-                    }}
+                    value={widget.dataSource || "demo"} 
+                    onValueChange={(val) => handleUpdate({ dataSource: val })}
                   >
                     <SelectTrigger className="h-9 text-xs rounded-xl shadow-sm border-slate-200 bg-white">
-                      <SelectValue placeholder="Select visualization" />
+                      <SelectValue placeholder="Select source" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl z-[105]">
-                      <SelectItem value="kpi" className="text-xs">KPI Card</SelectItem>
-                      <SelectItem value="trend" className="text-xs">Trend Chart</SelectItem>
-                      <SelectItem value="bar" className="text-xs">Bar Chart</SelectItem>
-                      <SelectItem value="donut" className="text-xs">Donut Chart</SelectItem>
-                      <SelectItem value="table" className="text-xs">Data Table</SelectItem>
+                      <SelectItem value="demo" className="text-xs">Demo Dataset</SelectItem>
+                      <SelectItem value="live" className="text-xs">Live API Connection</SelectItem>
+                      <SelectItem value="imported" className="text-xs">Imported Dataset</SelectItem>
                     </SelectContent>
                   </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Sector Context</Label>
+                  <Select 
+                    value={widget.sectorContext || "unified"} 
+                    onValueChange={(val) => handleUpdate({ sectorContext: val })}
+                  >
+                    <SelectTrigger className="h-9 text-xs rounded-xl shadow-sm border-slate-200 bg-white">
+                      <SelectValue placeholder="Select sector" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl z-[105]">
+                      <SelectItem value="unified" className="text-xs">Unified Supply Chain</SelectItem>
+                      <SelectItem value="ecommerce" className="text-xs">E-Commerce</SelectItem>
+                      <SelectItem value="manufacturing" className="text-xs">Manufacturing</SelectItem>
+                      <SelectItem value="logistics" className="text-xs">Logistics Firm</SelectItem>
+                      <SelectItem value="custom" className="text-xs">Custom</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Date Range Override</Label>
+                  <Select 
+                    value={widget.dateRange || "global"} 
+                    onValueChange={(val) => handleUpdate({ dateRange: val })}
+                  >
+                    <SelectTrigger className="h-9 text-xs rounded-xl shadow-sm border-slate-200 bg-white">
+                      <SelectValue placeholder="Global Default" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl z-[105]">
+                      <SelectItem value="global" className="text-xs">Global Default</SelectItem>
+                      <SelectItem value="7d" className="text-xs">Last 7 Days</SelectItem>
+                      <SelectItem value="30d" className="text-xs">Last 30 Days</SelectItem>
+                      <SelectItem value="90d" className="text-xs">Last 90 Days</SelectItem>
+                      <SelectItem value="ytd" className="text-xs">Year to Date</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="pt-2">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Visualization Type</Label>
+                      {getRecommendedVisualization(widget.customMetricId || metrics[widget.metricIndex % metrics.length]?.label || '').type === widget.type && (
+                        <span className="text-[8px] bg-primary/10 text-primary px-1.5 py-0.5 rounded font-black flex items-center gap-1 uppercase tracking-wider"><Sparkles className="w-2.5 h-2.5" /> Recommended</span>
+                      )}
+                    </div>
+                    <Select 
+                      value={widget.type} 
+                      onValueChange={(val) => {
+                         handleUpdate({ type: val });
+                         if (onUpdateLayout) {
+                             if (val === 'kpi') handleLayoutUpdate({ w: 3, h: 2 });
+                             else if (val === 'trend' || val === 'bar') handleLayoutUpdate({ w: 6, h: 3 });
+                             else if (val === 'table') handleLayoutUpdate({ w: 6, h: 4 });
+                         }
+                      }}
+                    >
+                      <SelectTrigger className="h-9 text-xs rounded-xl shadow-sm border-slate-200 bg-white">
+                        <SelectValue placeholder="Select visualization" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl z-[105]">
+                        <SelectItem value="kpi" className="text-xs">KPI Card</SelectItem>
+                        <SelectItem value="trend" className="text-xs">Trend Chart</SelectItem>
+                        <SelectItem value="bar" className="text-xs">Bar Chart</SelectItem>
+                        <SelectItem value="donut" className="text-xs">Donut Chart</SelectItem>
+                        <SelectItem value="table" className="text-xs">Data Table</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
                 <div className="space-y-2">
@@ -128,15 +210,15 @@ export function WidgetInspector({
                     value={widget.customMetricId || metrics[widget.metricIndex % metrics.length]?.label} 
                     onValueChange={(val) => {
                         const rec = getRecommendedVisualization(val);
-                        onUpdate(widget.id, { 
+                        handleUpdate({ 
                             customMetricId: val, 
                             type: rec.type, 
                             chartType: rec.chartType,
                             title: val
                         });
                         if (onUpdateLayout) {
-                            if (rec.type === 'kpi') onUpdateLayout(widget.id, { w: 3, h: 2 });
-                            else onUpdateLayout(widget.id, { w: 6, h: 3 });
+                            if (rec.type === 'kpi') handleLayoutUpdate({ w: 3, h: 2 });
+                            else handleLayoutUpdate({ w: 6, h: 3 });
                         }
                     }}
                   >
@@ -159,6 +241,91 @@ export function WidgetInspector({
             </div>
           )}
 
+          {/* AI Settings Section */}
+          {isAIWidget && (
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="px-4 py-3 bg-slate-50/80 border-b border-slate-100 flex items-center gap-2">
+                <Sparkles className="w-3.5 h-3.5 text-slate-400" />
+                <h3 className="text-[10px] font-black text-slate-700 uppercase tracking-widest">AI Configuration</h3>
+              </div>
+              <div className="p-4 space-y-4">
+                {widget.type === 'summary' && (
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Summary Style</Label>
+                    <Select 
+                      value={widget.summaryStyle || "standard"} 
+                      onValueChange={(val) => handleUpdate({ summaryStyle: val })}
+                    >
+                      <SelectTrigger className="h-9 text-xs rounded-xl shadow-sm border-slate-200 bg-white">
+                        <SelectValue placeholder="Select style" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl z-[105]">
+                        <SelectItem value="brief" className="text-xs">Brief (Bullet Points)</SelectItem>
+                        <SelectItem value="standard" className="text-xs">Standard Paragraph</SelectItem>
+                        <SelectItem value="detailed" className="text-xs">Detailed Analysis</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                {widget.type === 'insights' && (
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Insight Density</Label>
+                    <Select 
+                      value={widget.insightDensity || "standard"} 
+                      onValueChange={(val) => handleUpdate({ insightDensity: val })}
+                    >
+                      <SelectTrigger className="h-9 text-xs rounded-xl shadow-sm border-slate-200 bg-white">
+                        <SelectValue placeholder="Select density" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl z-[105]">
+                        <SelectItem value="brief" className="text-xs">Top 2 Only</SelectItem>
+                        <SelectItem value="standard" className="text-xs">Standard (Up to 4)</SelectItem>
+                        <SelectItem value="detailed" className="text-xs">Detailed (All available)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+                
+                {widget.type === 'chat' && (
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Placeholder Prompt</Label>
+                    <Input 
+                      placeholder="Ask a question..." 
+                      className="h-9 text-xs rounded-xl shadow-sm border-slate-200 bg-white"
+                      value={widget.placeholderPrompt || ''} 
+                      onChange={(e) => handleUpdate({ placeholderPrompt: e.target.value })}
+                    />
+                  </div>
+                )}
+
+                {(widget.type === 'insights' || widget.type === 'summary') && (
+                  <div className="flex items-center justify-between group bg-slate-50 p-3 rounded-xl border border-slate-100 transition-colors hover:border-slate-200">
+                    <Label htmlFor="show-actions" className="text-xs font-bold text-slate-700 cursor-pointer group-hover:text-slate-900">Show Suggested Actions</Label>
+                    <Switch 
+                      id="show-actions" 
+                      checked={widget.showActions !== false} 
+                      onCheckedChange={(c) => handleUpdate({ showActions: c })}
+                      className="data-[state=checked]:bg-primary"
+                    />
+                  </div>
+                )}
+
+                {widget.type === 'forecast' && (
+                  <div className="flex items-center justify-between group bg-slate-50 p-3 rounded-xl border border-slate-100 transition-colors hover:border-slate-200">
+                    <Label htmlFor="show-forecast-note" className="text-xs font-bold text-slate-700 cursor-pointer group-hover:text-slate-900">Show AI Forecast Note</Label>
+                    <Switch 
+                      id="show-forecast-note" 
+                      checked={widget.showForecastNote !== false} 
+                      onCheckedChange={(c) => handleUpdate({ showForecastNote: c })}
+                      className="data-[state=checked]:bg-primary"
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Appearance Section */}
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
             <div className="px-4 py-3 bg-slate-50/80 border-b border-slate-100 flex items-center gap-2">
@@ -173,7 +340,7 @@ export function WidgetInspector({
                     value={`${layoutItem.w}x${layoutItem.h}`} 
                     onValueChange={(val) => {
                       const [w, h] = val.split('x').map(Number);
-                      onUpdateLayout(widget.id, { w, h });
+                      handleLayoutUpdate({ w, h });
                     }}
                   >
                     <SelectTrigger className="h-9 text-xs rounded-xl shadow-sm border-slate-200 bg-white">
@@ -198,7 +365,7 @@ export function WidgetInspector({
                     <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Chart Style</Label>
                     <Select 
                       value={widget.chartType || "area"} 
-                      onValueChange={(val) => onUpdate(widget.id, { chartType: val })}
+                      onValueChange={(val) => handleUpdate({ chartType: val })}
                     >
                       <SelectTrigger className="h-9 text-xs rounded-xl shadow-sm border-slate-200 bg-white">
                         <SelectValue placeholder="Select type" />
@@ -216,7 +383,7 @@ export function WidgetInspector({
                     <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Aggregation Method</Label>
                     <Select 
                       value={widget.aggregation || "sum"} 
-                      onValueChange={(val) => onUpdate(widget.id, { aggregation: val })}
+                      onValueChange={(val) => handleUpdate({ aggregation: val })}
                     >
                       <SelectTrigger className="h-9 text-xs rounded-xl shadow-sm border-slate-200 bg-white">
                         <SelectValue placeholder="Select aggregation" />
@@ -236,7 +403,7 @@ export function WidgetInspector({
                 <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Theme Color</Label>
                 <Select 
                   value={widget.badgeColor || "default"} 
-                  onValueChange={(val) => onUpdate(widget.id, { badgeColor: val })}
+                  onValueChange={(val) => handleUpdate({ badgeColor: val })}
                 >
                   <SelectTrigger className="h-9 text-xs rounded-xl shadow-sm border-slate-200 bg-white">
                     <SelectValue placeholder="Select color" />
@@ -260,7 +427,7 @@ export function WidgetInspector({
                     <Switch 
                       id="show-delta" 
                       checked={widget.showDelta !== false} 
-                      onCheckedChange={(c) => onUpdate(widget.id, { showDelta: c })}
+                      onCheckedChange={(c) => handleUpdate({ showDelta: c })}
                       className="data-[state=checked]:bg-primary"
                     />
                   </div>
@@ -270,7 +437,7 @@ export function WidgetInspector({
                     <Switch 
                       id="show-sparkline" 
                       checked={widget.showSparkline !== false} 
-                      onCheckedChange={(c) => onUpdate(widget.id, { showSparkline: c })}
+                      onCheckedChange={(c) => handleUpdate({ showSparkline: c })}
                       className="data-[state=checked]:bg-primary"
                     />
                   </div>
@@ -280,7 +447,7 @@ export function WidgetInspector({
                     <Switch 
                       id="show-target" 
                       checked={widget.showTarget === true} 
-                      onCheckedChange={(c) => onUpdate(widget.id, { showTarget: c })}
+                      onCheckedChange={(c) => handleUpdate({ showTarget: c })}
                       className="data-[state=checked]:bg-primary"
                     />
                   </div>
@@ -290,17 +457,27 @@ export function WidgetInspector({
           </div>
         </div>
 
-        <div className="p-4 sm:p-5 bg-white border-t border-slate-200 shrink-0 z-10 shadow-[0_-4px_10px_rgba(0,0,0,0.02)]">
+        <div className="p-4 sm:p-5 bg-white border-t border-slate-200 shrink-0 z-10 shadow-[0_-4px_10px_rgba(0,0,0,0.02)] flex gap-3">
+          {onDuplicate && (
+            <Button 
+              variant="outline" 
+              className="flex-1 h-11 rounded-xl font-bold uppercase tracking-widest text-[11px] shadow-sm hover:shadow-md transition-shadow border-slate-200 text-slate-600 hover:text-slate-900" 
+              onClick={() => onDuplicate(widget.id)}
+            >
+              <Copy className="w-4 h-4 mr-2" />
+              Duplicate
+            </Button>
+          )}
           <Button 
             variant="destructive" 
-            className="w-full h-11 rounded-xl font-bold uppercase tracking-widest text-[11px] shadow-sm hover:shadow-md transition-shadow" 
+            className="flex-1 h-11 rounded-xl font-bold uppercase tracking-widest text-[11px] shadow-sm hover:shadow-md transition-shadow" 
             onClick={() => {
               onDelete(widget.id);
               onOpenChange(false);
             }}
           >
             <Trash2 className="w-4 h-4 mr-2" />
-            Delete Widget
+            Delete
           </Button>
         </div>
       </SheetContent>

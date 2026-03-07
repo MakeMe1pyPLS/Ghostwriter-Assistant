@@ -91,17 +91,37 @@ export default function BuilderPage() {
   };
 
   const addWidget = (widgetInfo: any) => {
-    const id = `${widgetInfo.id}-${Date.now()}`;
+    const id = `${widgetInfo.id}-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
     const newItem = { i: id, x: 0, y: Infinity, w: widgetInfo.w, h: widgetInfo.h };
-    setWidgets([...widgets, { id, type: widgetInfo.id, metricIndex: Math.floor(Math.random() * 4), ...(widgetInfo.defaultProps || {}) }]);
-    setLayout([...layout, newItem]);
+    
+    setWidgets(prev => {
+      const newWidgets = [...prev, { id, type: widgetInfo.id, metricIndex: Math.floor(Math.random() * 4), ...(widgetInfo.defaultProps || {}) }];
+      localStorage.setItem(`widgets_${sector}`, JSON.stringify(newWidgets));
+      return newWidgets;
+    });
+    
+    setLayout(prev => {
+      const newLayout = [...prev, newItem];
+      setLayouts((prevLayouts: any) => ({ ...prevLayouts, lg: newLayout }));
+      localStorage.setItem(`layout_${sector}`, JSON.stringify(newLayout));
+      return newLayout;
+    });
     
     toast({ title: "Widget Added", description: `${widgetInfo.name} added to dashboard.` });
   };
 
   const removeWidget = (id: string) => {
-    setWidgets(widgets.filter(w => w.id !== id));
-    setLayout(layout.filter(l => l.i !== id));
+    setWidgets(prev => {
+      const newWidgets = prev.filter(w => w.id !== id);
+      localStorage.setItem(`widgets_${sector}`, JSON.stringify(newWidgets));
+      return newWidgets;
+    });
+    setLayout(prev => {
+      const newLayout = prev.filter(l => l.i !== id);
+      setLayouts((prevLayouts: any) => ({ ...prevLayouts, lg: newLayout }));
+      localStorage.setItem(`layout_${sector}`, JSON.stringify(newLayout));
+      return newLayout;
+    });
   };
 
   const duplicateWidget = (id: string) => {
@@ -110,25 +130,45 @@ export default function BuilderPage() {
     if (!widgetToDup || !layoutItem) return;
     
     const newId = `${widgetToDup.type}-${Date.now()}`;
-    setWidgets([...widgets, { ...widgetToDup, id: newId }]);
-    setLayout([...layout, { ...layoutItem, i: newId, y: Infinity }]);
+    
+    setWidgets(prev => {
+      const newWidgets = [...prev, { ...widgetToDup, id: newId }];
+      localStorage.setItem(`widgets_${sector}`, JSON.stringify(newWidgets));
+      return newWidgets;
+    });
+    
+    setLayout(prev => {
+      const newLayout = [...prev, { ...layoutItem, i: newId, y: Infinity }];
+      setLayouts((prevLayouts: any) => ({ ...prevLayouts, lg: newLayout }));
+      localStorage.setItem(`layout_${sector}`, JSON.stringify(newLayout));
+      return newLayout;
+    });
+    
     toast({ title: "Widget Duplicated" });
   };
 
   const moveWidget = (id: string, dir: 'up' | 'down') => {
-      const layoutItem = layout.find(l => l.i === id);
-      if (!layoutItem) return;
-      const newLayout = layout.map(l => {
-          if (l.i === id) {
-              return { ...l, y: dir === 'up' ? Math.max(0, l.y - 1) : l.y + 1 };
-          }
-          return l;
+      setLayout(prev => {
+          const layoutItem = prev.find(l => l.i === id);
+          if (!layoutItem) return prev;
+          const newLayout = prev.map(l => {
+              if (l.i === id) {
+                  return { ...l, y: dir === 'up' ? Math.max(0, l.y - 1) : l.y + 1 };
+              }
+              return l;
+          });
+          setLayouts((prevLayouts: any) => ({ ...prevLayouts, lg: newLayout }));
+          localStorage.setItem(`layout_${sector}`, JSON.stringify(newLayout));
+          return newLayout;
       });
-      setLayout(newLayout);
   };
 
   const updateWidget = (id: string, updates: any) => {
-    setWidgets(widgets.map(w => w.id === id ? { ...w, ...updates } : w));
+    setWidgets(prev => {
+      const newWidgets = prev.map(w => w.id === id ? { ...w, ...updates } : w);
+      localStorage.setItem(`widgets_${sector}`, JSON.stringify(newWidgets));
+      return newWidgets;
+    });
   };
 
   const resetLayout = (showToast = true) => {
@@ -543,9 +583,16 @@ export default function BuilderPage() {
         onOpenChange={(open) => !open && setInspectedWidgetId(null)}
         onUpdate={updateWidget}
         onUpdateLayout={(id, updates) => {
-          setLayout(layout.map(l => l.i === id ? { ...l, ...updates } : l));
+          const newLayout = layout.map(l => l.i === id ? { ...l, ...updates } : l);
+          setLayout(newLayout);
+          setLayouts({ ...layouts, lg: newLayout, md: newLayout, sm: newLayout });
+          localStorage.setItem(`layout_${sector}`, JSON.stringify(newLayout));
         }}
         onDelete={removeWidget}
+        onDuplicate={(id) => {
+            duplicateWidget(id);
+            setInspectedWidgetId(null);
+        }}
       />
       
       <style>{`
