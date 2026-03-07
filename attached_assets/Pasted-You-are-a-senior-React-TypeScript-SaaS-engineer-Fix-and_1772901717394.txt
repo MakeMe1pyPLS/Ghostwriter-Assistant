@@ -1,0 +1,198 @@
+You are a senior React + TypeScript SaaS engineer.
+
+Fix and enhance the Widget Inspector in my existing app:
+“ChainInsideIQ — AI Supply Chain Dashboard Builder”
+
+Do NOT rewrite the whole app from scratch.
+Refactor and improve the current codebase in-place.
+
+PRIMARY PROBLEM
+The Widget Inspector is not letting me make customizations properly.
+I need the inspector to actually update the selected widget and save the changes reliably.
+
+PRIMARY GOAL
+Make the Widget Inspector fully functional, stable, and easy to use.
+
+==================================================
+1) FIX WIDGET INSPECTOR FUNCTIONALITY
+==================================================
+
+Audit the current Widget Inspector logic and fix these issues:
+
+- Inspector should open when a widget is selected
+- Inspector should always show the currently selected widget’s settings
+- Changes made in the inspector must immediately update the widget preview
+- Changes must persist correctly in state
+- Changes must remain after leaving edit mode
+- Changes must remain after refresh if layout/settings are saved in localStorage
+- Selecting a different widget should load that widget’s settings correctly
+- Inspector must not lag, reset unexpectedly, or edit the wrong widget
+
+==================================================
+2) REQUIRED WIDGET SETTINGS
+==================================================
+
+The inspector must allow me to customize these fields for each widget:
+
+BASIC
+- Widget title
+- Widget subtitle
+- Widget description/help text
+
+DATA
+- Sector source
+  - E-commerce
+  - Manufacturing
+  - Logistics Firm
+  - Unified Supply Chain
+  - Custom
+- Metric selector
+- Custom metric source option
+- Date range override (optional)
+- Data source selector (demo/imported dataset if applicable)
+
+VISUALIZATION
+- Visualization type
+  - KPI Card
+  - KPI Card + Sparkline
+  - Line Chart
+  - Area Chart
+  - Bar Chart
+  - Donut Chart
+  - Table
+  - Executive Summary
+- Color/accent selector
+- Size preset
+- Show delta toggle
+- Show sparkline toggle
+- Show target/benchmark toggle
+- Show description toggle
+
+DISPLAY
+- Badge label
+- Badge color
+- KPI formatting type
+  - Currency
+  - Percentage
+  - Integer
+  - Decimal
+- Prefix / suffix
+- Decimal places
+
+==================================================
+3) KPI PRESET + MANUAL OVERRIDE
+==================================================
+
+When a metric/KPI is selected:
+- automatically load the recommended visualization preset
+- but allow manual override in the inspector
+
+Examples:
+- Revenue -> KPI Card + Sparkline or Line Chart
+- Orders -> KPI Card or Bar Chart
+- Conversion Rate -> KPI Card or Line Chart
+- On-Time Delivery -> KPI Card
+- Bullwhip Effect Index -> KPI Card or Line Chart
+
+Only load recommended presets automatically when the widget is first configured or when the metric changes.
+Do NOT override the user’s manual visualization choice after they customize it.
+
+==================================================
+4) AI WIDGETS MUST ALSO BE CONFIGURABLE
+==================================================
+
+For AI widgets (AI Insights, AI Chat, Forecast, Executive Summary), allow settings such as:
+
+- title
+- subtitle
+- sector source
+- summary style
+- insight density (brief / standard / detailed)
+- show actions toggle
+- show forecast note toggle
+- placeholder prompt (for AI chat)
+- height preset
+
+==================================================
+5) CLEAN STATE MANAGEMENT
+==================================================
+
+Refactor widget inspector state so it is reliable.
+
+Need a clean model for:
+- selectedWidgetId
+- selectedWidgetConfig
+- layout
+- widget settings map
+
+Requirements:
+- avoid prop drilling mess
+- do not mutate state directly
+- update widgets immutably
+- inspector form should be controlled and stable
+- save widget config changes in a central store or clean local state pattern
+
+If needed:
+- create a dedicated widget settings store/context
+- separate layout state from widget config state
+
+==================================================
+6) SAVE / APPLY / RESET UX
+==================================================
+
+Make the inspector easier to use.
+
+Add:
+- Apply button
+- Reset widget button
+- Duplicate widget button
+- Delete widget button
+- Save confirmation toast
+
+Optional:
+- auto-save on change if stable
+- if auto-save is used, still give visual feedback that changes were saved
+
+==================================================
+7) RESPONSIVE INSPECTOR UX
+==================================================
+
+Desktop:
+- inspector panel on the right side
+
+Tablet:
+- inspector can become a drawer if needed
+
+Mobile:
+- inspector should open as a bottom sheet or drawer
+- controls must be touch-friendly
+- no overflow or clipping
+
+==================================================
+8) DEBUG + BUG FIXING
+==================================================
+
+Inspect the current builder and widget inspector code for:
+- wrong selected widget references
+- stale state
+- mismatched widget IDs
+- settings not mapped back to the rendered widget
+- localStorage save/load issues
+- rerender issues
+
+Fix all of those.
+
+==================================================
+9) DELIVERABLES
+==================================================
+
+1. Inspect current repo structure first
+2. Identify the files related to the widget inspector
+3. Fix the inspector in-place
+4. Make all listed settings functional
+5. Explain file-by-file what changed
+6. Confirm that widget customizations now:
+   - update live
+   - save correctly
+   - persist correctly
+   - work across edit/view mode
