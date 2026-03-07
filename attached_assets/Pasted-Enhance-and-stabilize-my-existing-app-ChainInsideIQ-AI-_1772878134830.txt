@@ -1,0 +1,374 @@
+Enhance and stabilize my existing app:
+“ChainInsideIQ — AI Supply Chain Dashboard Builder”
+
+Do NOT rewrite the whole app from scratch.
+Refactor and improve the current codebase in-place.
+
+PRIMARY GOAL
+Make the Dashboard Builder significantly more powerful, more stable, less buggy, and more launch-ready.
+
+The builder currently needs major improvement in:
+- drag/drop stability
+- edit mode behavior
+- responsive layout
+- widget customization
+- state consistency
+- overall premium feel
+
+Keep the existing light + teal corporate design.
+
+==================================================
+SECTION 1 — STABILIZE THE BUILDER
+==================================================
+
+Fix the builder so it feels reliable.
+
+Requirements:
+- dragging must be smooth
+- resizing must be smooth
+- widgets must not jump unexpectedly
+- widgets must not overlap
+- widgets must not shift after edit mode is turned off
+- layout must save reliably in localStorage
+- prevent layout corruption
+- prevent duplicated layout glitches
+- avoid unnecessary re-renders
+
+If react-grid-layout is unstable:
+- audit the current implementation
+- simplify configuration
+- do not use WidthProvider if it causes runtime issues
+- use a measured width wrapper instead if needed
+- ensure correct breakpoints and layout persistence
+
+The builder must feel stable in:
+- Desktop
+- Tablet
+- Phone
+
+==================================================
+SECTION 2 — EDIT MODE VS VIEW MODE
+==================================================
+
+Implement a clear and strict distinction between:
+
+VIEW MODE
+- no dragging
+- no resizing
+- no edit controls visible
+- all widgets behave like a clean final dashboard
+- no layout changes allowed
+
+EDIT MODE
+- dragging enabled
+- resizing enabled
+- widget toolbar visible
+- widget settings panel visible
+- add/remove widgets enabled
+
+Add:
+- clear Edit Mode toggle
+- Done Editing button
+- Save Layout button
+- Reset Layout button
+- Auto Layout button
+
+When switching modes:
+- no layout jitter
+- no visual glitching
+- no widget position change unless intentionally edited
+
+==================================================
+SECTION 3 — RESPONSIVE DASHBOARD BUILDER
+==================================================
+
+Make the builder fully responsive and usable across:
+
+DESKTOP
+- full editing experience
+- sidebars visible
+- widget library visible
+- settings panel visible
+
+TABLET
+- builder still usable
+- panels can collapse into drawers
+- no content clipping
+- landscape and portrait both supported
+
+PHONE
+- dragging OFF by default
+- enable only in Edit Mode
+- stacked widget layout
+- widget library opens in a modal or bottom sheet
+- settings panel opens as a bottom drawer
+- larger touch targets
+- no overflow or broken alignment
+
+LANDSCAPE MODE
+- all content should fit intelligently
+- top bar should wrap or collapse cleanly
+- panels should not push content off screen
+
+Implement responsive breakpoints and testable layouts for:
+- desktop
+- tablet portrait
+- tablet landscape
+- phone portrait
+- phone landscape
+
+==================================================
+SECTION 4 — MAKE THE BUILDER MORE POWERFUL
+==================================================
+
+Add real builder functionality.
+
+A) Widget Library Improvements
+Organize widgets into categories:
+- KPI Widgets
+- Charts
+- AI Widgets
+- Summary Widgets
+- Data Widgets
+
+Allow adding:
+- KPI Card
+- KPI Card + Sparkline
+- Line Chart
+- Area Chart
+- Bar Chart
+- Donut Chart
+- Data Table
+- Executive Summary
+- AI Insights
+- AI Chat
+- Forecast Panel
+- Alert Summary
+
+B) Widget Toolbar
+Every widget in Edit Mode should have:
+- Edit
+- Duplicate
+- Delete
+- Move Up
+- Move Down
+
+C) Widget Settings Panel
+When editing a widget allow:
+- title
+- subtitle
+- metric selector
+- chart type selector
+- sector source selector
+- custom metric source
+- color/accent selector
+- show delta toggle
+- show sparkline toggle
+- show description toggle
+- size preset
+- data source selection
+
+==================================================
+SECTION 5 — KPI / VISUALIZATION IMPROVEMENT
+==================================================
+
+Implement KPI-based visualization presets.
+
+When a KPI is selected:
+- assign a recommended visualization automatically
+- allow manual override
+
+Examples:
+- Revenue -> KPI card + sparkline or line chart
+- Orders -> KPI card or bar chart
+- Conversion Rate -> KPI card or line chart
+- ROAS -> KPI card or line chart
+- On-Time Delivery -> KPI card or scorecard
+- Defect Rate -> KPI card or trend line
+- Perfect Order Rate -> KPI card or scorecard
+- Cash-to-Cash Cycle Time -> KPI card or line chart
+- Available-to-Promise Accuracy -> KPI card or line chart
+- Bullwhip Effect Index -> KPI card or line chart
+
+Only load chart visuals for KPIs that need them.
+Simple KPIs should remain simple cards by default.
+
+==================================================
+SECTION 6 — SECTOR-AWARE WIDGET LIBRARY
+==================================================
+
+The widget library must support KPI/widget categories by sector:
+
+- E-commerce
+- Manufacturing
+- Logistics Firm
+- Unified Supply Chain
+- Custom
+
+Each category should show the proper KPIs.
+
+E-commerce:
+- Revenue
+- Orders
+- Average Order Value
+- Conversion Rate
+- ROAS
+- Returns Rate
+
+Manufacturing:
+- Units Produced
+- Throughput
+- Downtime
+- Defect Rate
+- Yield
+- Capacity Utilization
+
+Logistics:
+- On-Time Delivery
+- Late Shipments
+- Cost per Shipment
+- Transit Time
+- Warehouse Utilization
+- Shipment Volume
+
+Unified:
+- Perfect Order Rate
+- Cash-to-Cash Cycle Time
+- Available-to-Promise Accuracy
+- Bullwhip Effect Index
+
+Custom:
+- user can mix KPIs from any category
+
+IMPORTANT:
+These widgets must always remain available in ALL categories:
+- AI Insights
+- AI Chat
+- Demand Forecast
+- Executive Summary
+- Alert Summary
+
+==================================================
+SECTION 7 — IMPORT DATA / DATA BINDING
+==================================================
+
+Improve Import Data support.
+
+Add:
+- Import Data button
+- upload modal
+- CSV upload
+- Excel upload if possible, or stub structure for it
+- preview imported data
+- assign imported dataset to sector
+- bind widgets to imported dataset
+
+For now:
+- imported data can stay in memory
+- current session only is okay
+- structure cleanly so persistence can be added later
+
+==================================================
+SECTION 8 — DASHBOARD PAGE IMPROVEMENT
+==================================================
+
+The Dashboard page must be stable and presentation-ready.
+
+Requirements:
+- read-only version of the builder layout
+- no drag/drop
+- no widget jitter
+- no resizing
+- no edit controls visible
+- filters, refresh, export still work
+- Back to Builder button
+- Presentation Mode feel
+- sticky top bar
+- smooth scrolling
+
+Use a stable read-only layout snapshot from the builder.
+
+==================================================
+SECTION 9 — HUB / ALERT INTEGRATION
+==================================================
+
+Improve connection between Hub and Builder/Dashboard.
+
+Allow:
+- alert summary widget
+- KPI-tagged alerts
+- clicking alert filters related widgets if possible
+- AI insights and alerts to appear as widgets
+
+==================================================
+SECTION 10 — EXPORT / GENERATOR READINESS
+==================================================
+
+Improve export behavior.
+
+The builder must export the current builder state.
+
+Implement or improve:
+- Export CSV (working)
+- Export JSON Spec (working)
+- Export Excel (stub if needed)
+- Export PDF (stub if needed)
+
+JSON spec must include:
+- selected sector
+- date range
+- selected template/tool type
+- widget list
+- widget settings
+- visualization type
+- layout by breakpoint
+- imported data mapping
+- AI widgets used
+- theme config
+
+==================================================
+SECTION 11 — UX / POLISH
+==================================================
+
+Polish the builder to feel premium.
+
+Add:
+- loading skeletons
+- empty states
+- save success toast
+- refresh success toast
+- import success/error toasts
+- hover states
+- smooth transitions
+- stronger spacing hierarchy
+- cleaner typography
+- premium top bar
+- premium sidebar
+- premium widget cards
+
+==================================================
+SECTION 12 — CODE QUALITY
+==================================================
+
+Please:
+- inspect the current repo structure first
+- identify builder-related files
+- only change necessary files
+- fix TypeScript/runtime errors
+- keep code modular
+- explain file-by-file changes
+- ensure everything runs correctly in Replit
+
+==================================================
+FINAL DELIVERABLES
+==================================================
+
+1) Fix the buggy builder
+2) Make it responsive across desktop/tablet/phone
+3) Make edit/view mode stable
+4) Improve widget customization
+5) Improve sector-aware KPI selection
+6) Improve import/export readiness
+7) Improve the dashboard page
+8) Explain all changed files
+9) Confirm the builder now feels significantly more functional and polished
