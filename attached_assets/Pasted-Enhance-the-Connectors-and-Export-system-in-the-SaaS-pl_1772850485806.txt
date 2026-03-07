@@ -1,0 +1,242 @@
+Enhance the Connectors and Export system in the SaaS platform:
+"ChainInsideIQ — AI Supply Chain Dashboard Builder"
+
+Do NOT rebuild the entire application. Improve the current Connectors and Export pages so the platform looks like a real enterprise analytics product.
+
+The goal is to make the platform feel like a UNIVERSAL DASHBOARD GENERATOR that can connect to many tools and export dashboards or data into multiple formats.
+
+Maintain the existing light + teal corporate design.
+
+-------------------------------------------------
+
+SECTION 1 — CONNECTORS PAGE
+
+Upgrade the Connectors page into a clean integration hub.
+
+Create connector cards grouped by category.
+
+Each connector card must include:
+- tool logo icon
+- connector name
+- short description
+- connection status
+- "Connect" button
+- optional "Configure" button
+
+Connector categories:
+
+DATA SOURCES
+- SQL Database
+- PostgreSQL
+- MySQL
+- Snowflake
+- BigQuery
+- Redshift
+- MongoDB
+
+SPREADSHEETS
+- Microsoft Excel
+- Google Sheets
+- Airtable
+
+BUSINESS INTELLIGENCE
+- Power BI
+- Tableau
+- Looker
+- Metabase
+- Redash
+
+BUSINESS PLATFORMS
+- Shopify
+- Amazon Seller Central
+- Stripe
+- QuickBooks
+- Salesforce
+- HubSpot
+
+COMMUNICATION
+- Slack
+- Microsoft Teams
+- Email notifications
+
+Each connector should open a modal when clicked.
+
+Example modal fields:
+- connection name
+- API key / credentials
+- database host
+- port
+- username
+- password
+- test connection button
+
+For demo mode:
+simulate connection success.
+
+Display status badges:
+- Connected
+- Not Connected
+- Error
+
+Add search and filtering for connectors.
+
+-------------------------------------------------
+
+SECTION 2 — EXPORT PAGE
+
+Upgrade the Export page into a professional export center.
+
+Group export options into categories.
+
+CATEGORY: DASHBOARD FILES
+- Export Excel (.xlsx)
+- Export CSV (.csv)
+- Export Google Sheets
+- Export JSON
+
+CATEGORY: BUSINESS INTELLIGENCE
+- Export Power BI (.pbix)
+- Export Tableau (.twbx)
+
+CATEGORY: REPORTS
+- Export PDF report
+- Export PowerPoint report
+
+CATEGORY: DATA
+- Export SQL dataset
+- Export JSON dataset
+
+CATEGORY: EMBED
+- Copy embed link
+- Generate embed iframe
+
+Each export option must be displayed as a card with:
+
+- icon
+- export type
+- description
+- export button
+
+Example:
+
+Export Excel
+Download a fully formatted Excel dashboard with charts and KPI tables.
+
+Button: Download .xlsx
+
+-------------------------------------------------
+
+SECTION 3 — EXPORT SETTINGS
+
+Add export configuration options before downloading.
+
+User can choose:
+
+- sector (E-commerce / Logistics / Manufacturing / Unified)
+- date range
+- data scope
+- include AI insights
+- include forecasts
+- include alerts
+- include hub notes
+
+Add toggle switches for these options.
+
+-------------------------------------------------
+
+SECTION 4 — AUTOMATED EXPORTS
+
+Add a scheduled exports feature.
+
+Users can schedule:
+
+- Daily report
+- Weekly report
+- Monthly report
+
+Delivery options:
+- Email
+- Slack
+- Teams
+
+Example:
+Send Monday executive report at 9 AM.
+
+-------------------------------------------------
+
+SECTION 5 — EXPORT ENGINE STRUCTURE
+
+Create a backend structure for exports.
+
+Example API endpoints:
+
+GET /api/export/csv
+GET /api/export/excel
+GET /api/export/json
+GET /api/export/pdf
+GET /api/export/powerpoint
+
+Use seeded demo data for now.
+
+CSV export must work fully.
+
+Other formats can be stubbed with placeholder responses.
+
+-------------------------------------------------
+
+SECTION 6 — CONNECTOR DATA FLOW
+
+When connectors are connected:
+
+Data should flow into the dashboard builder.
+
+Example connectors:
+
+Excel → upload spreadsheet
+Google Sheets → fetch sheet data
+SQL → query database
+Shopify → fetch sales data
+QuickBooks → fetch financial metrics
+
+Show a connected data preview panel.
+
+-------------------------------------------------
+
+SECTION 7 — UI POLISH
+
+Improve visual polish.
+
+Add:
+- loading skeletons
+- hover effects
+- connection animations
+- toast notifications for exports
+- export progress indicator
+
+Example:
+
+"Exporting Excel dashboard..."
+
+Then show download link.
+
+-------------------------------------------------
+
+SECTION 8 — RESPONSIVENESS
+
+Ensure connectors and export cards work on:
+
+Desktop
+Tablet
+Mobile
+
+Cards should stack vertically on smaller screens.
+
+-------------------------------------------------
+
+FINAL RESULT
+
+The Connectors page should feel like an integration marketplace.
+
+The Export page should feel like a professional analytics export center.
+
+Both pages should significantly increase the perceived value of the SaaS product.
