@@ -51,7 +51,7 @@ import { WidgetLibraryContent, WidgetLibraryMobile, widgetCategories } from "@/c
 import { useToast } from "@/hooks/use-toast";
 
 export default function BuilderPage() {
-  const { metrics, chartData, sector, dateRange } = useSectorData();
+  const { metrics, chartData, donutData, sector, dateRange } = useSectorData();
   const { lastRefreshed } = useDashboardStore();
   const { toast } = useToast();
   
@@ -278,7 +278,8 @@ export default function BuilderPage() {
           </div>
         );
       case 'trend':
-      case 'bar':
+      case 'bar': {
+        const historicalData = chartData.filter((d: any) => d.value !== null);
         return (
           <div className="h-full flex flex-col p-1">
             <div className="flex items-center justify-between mb-4">
@@ -291,49 +292,89 @@ export default function BuilderPage() {
               )}
               <ResponsiveContainer width="100%" height="100%">
                 {widget.chartType === 'bar' ? (
-                  <BarChart data={chartData}>
+                  <BarChart data={historicalData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                     <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 10, fill: '#94A3B8'}} />
-                    <RechartsTooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+                    <RechartsTooltip cursor={{ fill: 'rgba(15, 118, 110, 0.05)' }} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
                     <Bar dataKey="value" fill="#0F766E" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 ) : widget.chartType === 'line' ? (
-                  <LineChart data={chartData}>
+                  <LineChart data={historicalData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                     <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 10, fill: '#94A3B8'}} />
                     <RechartsTooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
-                    <Line type="monotone" dataKey="value" stroke="#0F766E" strokeWidth={3} dot={{r: 4, fill: '#0F766E'}} />
+                    <Line type="monotone" dataKey="value" stroke="#0F766E" strokeWidth={3} dot={{r: 4, fill: '#0F766E', strokeWidth: 2, stroke: '#fff'}} activeDot={{r: 6, fill: '#0F766E', stroke: '#fff', strokeWidth: 2}} />
                   </LineChart>
                 ) : (
-                  <AreaChart data={chartData}>
+                  <AreaChart data={historicalData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                     <defs>
                       <linearGradient id={`colorPrimary-${widget.id}`} x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#0F766E" stopOpacity={0.1}/>
+                        <stop offset="5%" stopColor="#0F766E" stopOpacity={0.15}/>
                         <stop offset="95%" stopColor="#0F766E" stopOpacity={0}/>
                       </linearGradient>
                     </defs>
                     <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 10, fill: '#94A3B8'}} />
                     <RechartsTooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
-                    <Area type="monotone" dataKey="value" stroke="#0F766E" strokeWidth={3} fill={`url(#colorPrimary-${widget.id})`} />
+                    <Area type="monotone" dataKey="value" stroke="#0F766E" strokeWidth={3} fill={`url(#colorPrimary-${widget.id})`} activeDot={{r: 6, fill: '#0F766E', stroke: '#fff', strokeWidth: 2}} />
                   </AreaChart>
                 )}
               </ResponsiveContainer>
             </div>
           </div>
         );
+      }
       case 'donut':
         return (
           <div className="h-full flex flex-col p-1">
             <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">{widget.title || 'Distribution'}</h3>
-            <div className="flex-1 min-h-0">
-              <ResponsiveContainer width="100%" height="100%">
-                <RechartsPieChart>
-                  <Pie data={chartData.slice(0, 4)} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius="60%" outerRadius="80%" stroke="none">
-                    {chartData.slice(0,4).map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={['#0F766E', '#14B8A6', '#2DD4BF', '#99F6E4'][index % 4]} />
-                    ))}
-                  </Pie>
-                  <RechartsTooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
-                </RechartsPieChart>
-              </ResponsiveContainer>
+            <div className="flex-1 min-h-0 flex flex-col sm:flex-row items-center relative">
+              <div className="w-full sm:w-1/2 h-full min-h-[120px] relative">
+                <ResponsiveContainer width="100%" height="100%">
+                  <RechartsPieChart>
+                    <Pie data={donutData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius="65%" outerRadius="85%" stroke="none" paddingAngle={2}>
+                      {donutData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.fill} />
+                      ))}
+                    </Pie>
+                    <RechartsTooltip 
+                      content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                          const data = payload[0].payload;
+                          return (
+                            <div className="bg-white p-3 rounded-xl shadow-xl border border-slate-100 flex flex-col gap-1">
+                              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">{data.name}</span>
+                              <div className="flex items-end gap-2">
+                                <span className="text-lg font-black text-slate-900">{data.value}%</span>
+                                <span className="text-xs font-medium text-slate-400 mb-0.5">(${data.absolute.toLocaleString()})</span>
+                              </div>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
+                  </RechartsPieChart>
+                </ResponsiveContainer>
+                {/* Center Label for Donut */}
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                  <span className="text-2xl font-black text-slate-900 tracking-tighter">100%</span>
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Total</span>
+                </div>
+              </div>
+              
+              {/* Legend with Values */}
+              <div className="w-full sm:w-1/2 flex flex-col gap-2 p-2 justify-center">
+                {donutData.map((item, i) => (
+                  <div key={i} className="flex items-center justify-between group">
+                     <div className="flex items-center gap-2">
+                       <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.fill }} />
+                       <span className="text-xs font-bold text-slate-600 group-hover:text-slate-900 transition-colors">{item.name}</span>
+                     </div>
+                     <div className="text-right">
+                       <div className="text-xs font-black text-slate-900">{item.value}%</div>
+                       <div className="text-[9px] font-medium text-slate-400">${(item.absolute / 1000).toFixed(0)}k</div>
+                     </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         );
@@ -396,12 +437,22 @@ export default function BuilderPage() {
                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">{widget.title || 'Demand Forecast'}</h3>
                <Badge variant="outline" className={`text-[10px] ${getBadgeColors(widget.badgeColor)} bg-indigo-50 text-indigo-700 border-indigo-200`}>Predictive</Badge>
              </div>
+             {widget.showForecastNote !== false && (
+                <div className="mb-2 text-[10px] text-slate-500 bg-slate-50 p-2 rounded-lg border border-slate-100 flex items-center gap-2">
+                  <Sparkles className="w-3 h-3 text-indigo-500 shrink-0" />
+                  AI projects a 12% upside over the next 7 days based on current {sector} trends.
+                </div>
+             )}
              <div className="flex-1 relative min-h-0">
                <ResponsiveContainer width="100%" height="100%">
-                 <LineChart data={chartData}>
+                 <LineChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 10, fill: '#94A3B8'}} />
-                   <RechartsTooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
-                   <Line type="monotone" dataKey="value" stroke="#4F46E5" strokeWidth={3} strokeDasharray="5 5" dot={false} />
+                   <RechartsTooltip 
+                      contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                      labelStyle={{ fontSize: '10px', fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase', marginBottom: '4px' }}
+                   />
+                   <Line type="monotone" dataKey="value" name="Actual" stroke="#0F766E" strokeWidth={3} dot={{r: 3, fill: '#0F766E'}} connectNulls />
+                   <Line type="monotone" dataKey="forecast" name="Forecast" stroke="#6366f1" strokeWidth={3} strokeDasharray="5 5" dot={false} connectNulls />
                  </LineChart>
                </ResponsiveContainer>
              </div>

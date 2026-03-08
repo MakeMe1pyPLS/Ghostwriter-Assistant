@@ -110,41 +110,52 @@ export default function InsightsPage() {
     }
   };
 
+  const demoPrompts = [
+    "Why did on-time delivery drop?",
+    "What should we do next?",
+    "Which KPI needs urgent attention?",
+    "Summarize this dashboard for leadership",
+    "Forecast the next 14 days"
+  ];
+
   return (
     <AppLayout>
-      <div className="flex h-full p-8 gap-8 bg-[#F4F7FA]">
+      <div className="flex flex-col lg:flex-row h-full p-4 md:p-6 lg:p-8 gap-6 md:gap-8 bg-[#F4F7FA]">
         
         {/* Chat Interface */}
-        <div className="flex flex-col flex-1 bg-white border border-slate-200 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden">
-          <div className="p-5 border-b border-slate-100 bg-white flex items-center justify-between">
+        <div className="flex flex-col flex-1 bg-white border border-slate-200 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden min-h-[500px]">
+          <div className="p-4 md:p-5 border-b border-slate-100 bg-white flex items-center justify-between shrink-0">
             <div className="flex items-center gap-3">
-              <div className="bg-primary/10 p-2.5 rounded-xl">
-                <BrainCircuit className="w-5 h-5 text-primary" />
+              <div className="bg-primary/10 p-2 md:p-2.5 rounded-xl">
+                <BrainCircuit className="w-4 h-4 md:w-5 md:h-5 text-primary" />
               </div>
               <div>
-                <h2 className="font-bold text-slate-900 tracking-tight">AI Supply Chain Analyst</h2>
+                <h2 className="text-sm md:text-base font-bold text-slate-900 tracking-tight">AI Supply Chain Analyst</h2>
                 <div className="flex items-center gap-1.5 mt-0.5">
                   <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
-                  <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Active Intelligence</span>
+                  <span className="text-[9px] md:text-[10px] font-black text-emerald-600 uppercase tracking-widest">Active Intelligence: {selectedSector}</span>
                 </div>
               </div>
             </div>
+            <div className="bg-slate-100 text-slate-500 text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-md">
+              Demo Mode
+            </div>
           </div>
 
-          <ScrollArea className="flex-1 px-8" ref={scrollRef}>
-            <div className="py-8 space-y-8 max-w-4xl mx-auto">
+          <ScrollArea className="flex-1 px-4 md:px-8" ref={scrollRef}>
+            <div className="py-6 md:py-8 space-y-6 md:space-y-8 max-w-4xl mx-auto">
               {messages.map((msg) => (
                 <motion.div 
                   initial={{ opacity: 0, y: 10 }} 
                   animate={{ opacity: 1, y: 0 }}
                   key={msg.id} 
-                  className={`flex gap-5 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}
+                  className={`flex gap-3 md:gap-5 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}
                 >
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm ${msg.role === 'user' ? 'bg-slate-100' : 'bg-slate-900 text-white'}`}>
-                    {msg.role === 'user' ? <User className="w-5 h-5 text-slate-500" /> : <Zap className="w-5 h-5 text-primary" />}
+                  <div className={`w-8 h-8 md:w-10 md:h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm ${msg.role === 'user' ? 'bg-slate-100' : 'bg-slate-900 text-white'}`}>
+                    {msg.role === 'user' ? <User className="w-4 h-4 md:w-5 md:h-5 text-slate-500" /> : <Zap className="w-4 h-4 md:w-5 md:h-5 text-primary" />}
                   </div>
-                  <div className={`space-y-4 max-w-[85%] ${msg.role === 'user' ? 'items-end' : ''}`}>
-                    <div className={`p-5 rounded-2xl text-sm leading-relaxed ${msg.role === 'user' ? 'bg-primary text-white font-medium rounded-tr-none' : 'bg-slate-50 text-slate-800 rounded-tl-none border border-slate-100'}`}>
+                  <div className={`space-y-3 md:space-y-4 max-w-[90%] md:max-w-[85%] ${msg.role === 'user' ? 'items-end' : ''}`}>
+                    <div className={`p-4 md:p-5 rounded-2xl text-xs md:text-sm leading-relaxed ${msg.role === 'user' ? 'bg-primary text-white font-medium rounded-tr-none' : 'bg-slate-50 text-slate-800 rounded-tl-none border border-slate-100'}`}>
                       {msg.content}
                     </div>
 
@@ -152,30 +163,30 @@ export default function InsightsPage() {
                       <motion.div 
                         initial={{ opacity: 0, scale: 0.98 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        className="bg-white border border-slate-100 rounded-2xl p-6 shadow-md space-y-6"
+                        className="bg-white border border-slate-100 rounded-2xl p-4 md:p-6 shadow-md space-y-4 md:space-y-6 w-full"
                       >
-                        <div className="grid grid-cols-2 gap-6">
-                          <div>
-                            <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Impact Assessment</h4>
-                            <p className="text-xs font-bold text-slate-800 leading-normal">{msg.structuredData.changed}</p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                          <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                            <h4 className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5 md:mb-2">Impact Assessment</h4>
+                            <p className="text-[11px] md:text-xs font-bold text-slate-800 leading-normal">{msg.structuredData.changed}</p>
                           </div>
-                          <div>
-                            <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Operational Risk</h4>
-                            <p className="text-xs font-bold text-slate-800 leading-normal">{msg.structuredData.matters}</p>
+                          <div className="bg-rose-50 p-3 rounded-xl border border-rose-100">
+                            <h4 className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-rose-500 mb-1.5 md:mb-2">Operational Risk</h4>
+                            <p className="text-[11px] md:text-xs font-bold text-rose-900 leading-normal">{msg.structuredData.matters}</p>
                           </div>
                         </div>
 
                           {msg.structuredData.actions && msg.structuredData.actions.length > 0 && (
-                            <div className="pt-4 border-t border-slate-50">
-                              <h4 className="text-[10px] font-black uppercase tracking-widest text-primary mb-3 flex items-center gap-2">
-                                <Sparkles className="w-3.5 h-3.5 fill-primary" />
+                            <div className="pt-3 md:pt-4 border-t border-slate-50">
+                              <h4 className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-primary mb-2 md:mb-3 flex items-center gap-1.5 md:gap-2">
+                                <Sparkles className="w-3 h-3 md:w-3.5 md:h-3.5 fill-primary" />
                                 Priority Mitigations
                               </h4>
                               <div className="grid gap-2">
                                 {msg.structuredData.actions.map((action, i) => (
-                                  <div key={i} className="flex gap-4 items-center bg-slate-50 p-4 rounded-xl border border-slate-100 hover:border-primary/20 transition-colors">
-                                    <span className="w-6 h-6 rounded-full bg-white flex items-center justify-center text-[10px] font-black text-primary border border-slate-100">{i + 1}</span>
-                                    <span className="text-xs font-bold text-slate-700">{action}</span>
+                                  <div key={i} className="flex gap-3 md:gap-4 items-center bg-slate-50 p-3 md:p-4 rounded-xl border border-slate-100 hover:border-primary/20 transition-colors">
+                                    <span className="w-5 h-5 md:w-6 md:h-6 rounded-full bg-white flex items-center justify-center text-[9px] md:text-[10px] font-black text-primary border border-slate-100 shrink-0">{i + 1}</span>
+                                    <span className="text-[11px] md:text-xs font-bold text-slate-700">{action}</span>
                                   </div>
                                 ))}
                               </div>
@@ -186,32 +197,57 @@ export default function InsightsPage() {
                   </div>
                 </motion.div>
               ))}
+              {isTyping && (
+                <div className="flex gap-3 md:gap-5">
+                   <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm bg-slate-900 text-white">
+                      <Zap className="w-4 h-4 md:w-5 md:h-5 text-primary" />
+                   </div>
+                   <div className="p-4 md:p-5 rounded-2xl bg-slate-50 rounded-tl-none border border-slate-100 flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-slate-300 animate-bounce" />
+                      <div className="w-2 h-2 rounded-full bg-slate-300 animate-bounce" style={{ animationDelay: '0.2s' }} />
+                      <div className="w-2 h-2 rounded-full bg-slate-300 animate-bounce" style={{ animationDelay: '0.4s' }} />
+                   </div>
+                </div>
+              )}
             </div>
           </ScrollArea>
 
-          <div className="p-6 bg-white border-t border-slate-100">
-            <div className="max-w-4xl mx-auto relative flex items-center">
-              <Input 
-                placeholder="Query network performance or ask for mitigation plans..." 
-                className="pr-16 py-7 rounded-2xl border-slate-200 focus-visible:ring-primary shadow-sm text-sm font-medium"
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-              />
-              <Button 
-                className="absolute right-2 h-11 w-11 rounded-xl shadow-lg shadow-primary/20 transition-transform active:scale-95"
-                onClick={handleSend}
-                disabled={!inputValue.trim()}
-              >
-                <Send className="w-5 h-5" />
-              </Button>
+          <div className="p-3 md:p-6 bg-white border-t border-slate-100 shrink-0">
+            <div className="max-w-4xl mx-auto space-y-3">
+              <div className="flex flex-wrap gap-2 overflow-x-auto pb-1 custom-scrollbar">
+                {demoPrompts.map((prompt, i) => (
+                  <button 
+                    key={i}
+                    onClick={() => setInputValue(prompt)}
+                    className="text-[10px] font-bold text-primary bg-primary/5 hover:bg-primary/10 border border-primary/10 px-3 py-1.5 rounded-full transition-colors whitespace-nowrap"
+                  >
+                    {prompt}
+                  </button>
+                ))}
+              </div>
+              <div className="relative flex items-center">
+                <Input 
+                  placeholder="Ask a question or try a demo prompt..." 
+                  className="pr-14 md:pr-16 py-6 md:py-7 rounded-2xl border-slate-200 focus-visible:ring-primary shadow-sm text-xs md:text-sm font-medium"
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+                />
+                <Button 
+                  className="absolute right-2 h-9 w-9 md:h-11 md:w-11 rounded-xl shadow-lg shadow-primary/20 transition-transform active:scale-95"
+                  onClick={handleSend}
+                  disabled={!inputValue.trim() || isTyping}
+                >
+                  <Send className="w-4 h-4 md:w-5 md:h-5" />
+                </Button>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Forecast Sidebar */}
-        <div className="w-96 flex flex-col gap-8">
-          <Card className="rounded-2xl border-slate-200 shadow-sm overflow-hidden p-6">
+        <div className="w-full lg:w-96 flex flex-col gap-6 md:gap-8 shrink-0">
+          <Card className="rounded-2xl border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden p-5 md:p-6">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xs font-black uppercase tracking-widest text-slate-400">Demand Forecast</h3>
               <div className="px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded text-[10px] font-black uppercase tracking-tighter">
@@ -219,9 +255,9 @@ export default function InsightsPage() {
               </div>
             </div>
             
-            <div className="h-56 w-full">
+            <div className="h-48 md:h-56 w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={mockForecastData}>
+                <AreaChart data={mockForecastData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorForecast" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#0F766E" stopOpacity={0.15}/>
@@ -230,29 +266,32 @@ export default function InsightsPage() {
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                   <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{fontSize: 10, fill: '#94A3B8', fontWeight: 700}} />
-                  <Area type="monotone" dataKey="forecast" stroke="#0F766E" strokeWidth={3} fill="url(#colorForecast)" />
-                  <Area type="monotone" dataKey="max" stroke="transparent" fill="#0F766E" fillOpacity={0.03} />
+                  <RechartsTooltip 
+                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                    labelStyle={{ fontSize: '10px', fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase', marginBottom: '4px' }}
+                  />
+                  <Area type="monotone" dataKey="forecast" name="Forecast" stroke="#0F766E" strokeWidth={3} fill="url(#colorForecast)" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
             <div className="mt-6 p-4 bg-slate-50 rounded-xl border border-slate-100">
-               <div className="flex items-center gap-2 mb-1">
+               <div className="flex items-center gap-2 mb-2">
                  <TrendingUp className="w-3.5 h-3.5 text-primary" />
-                 <span className="text-[10px] font-black uppercase tracking-widest text-slate-700">Insight</span>
+                 <span className="text-[10px] font-black uppercase tracking-widest text-slate-700">AI Insight</span>
                </div>
-               <p className="text-[11px] text-slate-500 font-medium leading-relaxed">Network stabilization expected in 4 days. Inventory levels returning to baseline.</p>
+               <p className="text-[11px] md:text-xs text-slate-500 font-medium leading-relaxed">Network stabilization expected in 4 days. Inventory levels returning to baseline across {selectedSector} operations.</p>
             </div>
           </Card>
 
-          <div className="bg-slate-900 rounded-2xl p-8 text-white relative overflow-hidden group">
+          <div className="bg-slate-900 rounded-2xl p-6 md:p-8 text-white relative overflow-hidden group shadow-[0_8px_30px_rgb(0,0,0,0.08)]">
             <div className="absolute top-0 right-0 p-8 opacity-10 rotate-12 group-hover:rotate-0 transition-transform duration-500">
-              <BrainCircuit className="w-32 h-32" />
+              <BrainCircuit className="w-24 h-24 md:w-32 md:h-32" />
             </div>
-            <h3 className="text-lg font-black tracking-tight mb-3 relative z-10">Advanced Simulation</h3>
-            <p className="text-xs text-slate-400 leading-relaxed mb-6 relative z-10">
-              Run Monte Carlo simulations on your logistics lanes to identify failure points before they occur.
+            <h3 className="text-base md:text-lg font-black tracking-tight mb-2 md:mb-3 relative z-10">Advanced Simulation</h3>
+            <p className="text-[11px] md:text-xs text-slate-400 leading-relaxed mb-5 md:mb-6 relative z-10">
+              Run Monte Carlo simulations on your operations to identify failure points before they occur.
             </p>
-            <Button className="w-full bg-white text-slate-900 hover:bg-slate-100 font-black uppercase tracking-widest text-[10px] h-11 relative z-10 rounded-xl">
+            <Button className="w-full bg-white text-slate-900 hover:bg-slate-100 font-black uppercase tracking-widest text-[10px] h-10 md:h-11 relative z-10 rounded-xl shadow-sm">
               Launch Simulator
             </Button>
           </div>

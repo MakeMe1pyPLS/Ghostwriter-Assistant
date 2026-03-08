@@ -91,13 +91,20 @@ export const useSectorData = () => {
     }
 
     const base = [
-      { name: 'Mon', value: 4000 },
-      { name: 'Tue', value: 3000 },
-      { name: 'Wed', value: 2000 },
-      { name: 'Thu', value: 2780 },
-      { name: 'Fri', value: 1890 },
-      { name: 'Sat', value: 2390 },
-      { name: 'Sun', value: 3490 },
+      { name: 'Jan 1', value: 4000, forecast: null, lower: null, upper: null },
+      { name: 'Jan 2', value: 3000, forecast: null, lower: null, upper: null },
+      { name: 'Jan 3', value: 2000, forecast: null, lower: null, upper: null },
+      { name: 'Jan 4', value: 2780, forecast: null, lower: null, upper: null },
+      { name: 'Jan 5', value: 1890, forecast: null, lower: null, upper: null },
+      { name: 'Jan 6', value: 2390, forecast: null, lower: null, upper: null },
+      { name: 'Jan 7', value: 3490, forecast: null, lower: null, upper: null },
+      { name: 'Jan 8', value: null, forecast: 3600, lower: 3200, upper: 4000 },
+      { name: 'Jan 9', value: null, forecast: 3800, lower: 3300, upper: 4300 },
+      { name: 'Jan 10', value: null, forecast: 4100, lower: 3500, upper: 4700 },
+      { name: 'Jan 11', value: null, forecast: 4300, lower: 3600, upper: 5000 },
+      { name: 'Jan 12', value: null, forecast: 4000, lower: 3300, upper: 4700 },
+      { name: 'Jan 13', value: null, forecast: 4200, lower: 3400, upper: 5000 },
+      { name: 'Jan 14', value: null, forecast: 4500, lower: 3600, upper: 5400 },
     ];
     
     const multipliers: Record<string, number> = {
@@ -111,13 +118,26 @@ export const useSectorData = () => {
     const rangeMultiplier = selectedRange === '90d' ? 3 : selectedRange === '30d' ? 1 : 0.25;
     const multi = multipliers[selectedSector] || 1.0;
 
-    return base.map(d => ({ ...d, value: Math.round(d.value * multi * rangeMultiplier) }));
+    return base.map(d => ({ 
+      ...d, 
+      value: d.value ? Math.round(d.value * multi * rangeMultiplier) : null,
+      forecast: d.forecast ? Math.round(d.forecast * multi * rangeMultiplier) : null,
+      lower: d.lower ? Math.round(d.lower * multi * rangeMultiplier) : null,
+      upper: d.upper ? Math.round(d.upper * multi * rangeMultiplier) : null,
+    }));
   };
+
+  const donutData = [
+    { name: 'Direct Sales', value: 48, absolute: 420000, fill: '#0F766E' },
+    { name: 'Distributor', value: 27, absolute: 236000, fill: '#14B8A6' },
+    { name: 'Retail', value: 25, absolute: 218000, fill: '#2DD4BF' }
+  ];
 
   return {
     metrics: getMetrics(),
     allMetrics: getAllMetrics(selectedRange === '90d' ? 3 : selectedRange === '30d' ? 1 : 0.25),
     chartData: getChartData(),
+    donutData,
     sector: selectedSector,
     dateRange: selectedRange,
     hasImportedData: !!importedData && importedData.length > 0

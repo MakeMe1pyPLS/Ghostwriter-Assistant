@@ -1,0 +1,232 @@
+You are a senior full-stack SaaS engineer and product UX designer.
+
+Enhance my existing app:
+“ChainInsideIQ — AI Supply Chain Dashboard Builder”
+
+Do NOT rewrite the whole app from scratch.
+Refactor and improve the current codebase in-place.
+
+PRIMARY GOALS
+1) Upgrade the visualizations so they look more premium and informative.
+2) Make the AI Supply Chain Analyst much more functional, interactive, and demo-ready.
+3) Add forecasting into the builder as a widget option in the Widget Library.
+4) Improve donut visualizations so they show actual numbers/percentages clearly.
+5) Make the app feel like a real customer can use and explore it.
+
+Keep the current light + teal corporate theme and keep everything responsive.
+
+==================================================
+A) VISUALIZATION UPGRADE
+==================================================
+
+Improve all chart widgets so they feel more polished and enterprise-ready.
+
+Requirements:
+- Better spacing and chart card layout
+- Better chart headers and descriptions
+- Better legends
+- Better tooltip design
+- Better axis formatting
+- Better label formatting
+- Smoother chart rendering
+- More realistic demo data
+
+Improve these chart/widget types:
+1) Line Chart
+2) Area Chart
+3) Bar Chart
+4) Donut Chart
+5) KPI Card + Sparkline
+6) Table
+7) Forecast Chart
+
+Use Recharts but make the visuals look more premium.
+
+Design requirements:
+- soft grid lines
+- consistent teal/neutral palette
+- rounded card containers
+- better tooltip cards
+- no clutter
+- stronger visual hierarchy
+
+==================================================
+B) DONUT CHART IMPROVEMENTS
+==================================================
+
+The donut visualizations need to be more useful.
+
+Implement:
+- show actual values and percentages
+- show center value or summary inside donut if possible
+- show labels clearly in legend or tooltip
+- improve readability on tablet and mobile
+- support category names + percentage + absolute number
+
+For example:
+- Direct: 48% ($420K)
+- Distributor: 27% ($236K)
+- Retail: 25% ($218K)
+
+Make donut charts feel like a real analytics product, not just decorative circles.
+
+==================================================
+C) FORECASTING WIDGET
+==================================================
+
+Add Forecasting as a real widget option in the Widget Library.
+
+Widget name:
+- Forecast Panel
+- Demand Forecast
+- Revenue Forecast
+- Operations Forecast
+
+Requirements:
+- user can add forecast widget from widget library
+- forecast widget works in builder and dashboard view
+- show projected 14-day forecast
+- include confidence band if possible
+- include forecast summary text
+- allow sector-aware forecasting:
+  - E-commerce
+  - Logistics
+  - Manufacturing
+  - Unified
+
+Examples:
+- Revenue forecast for e-commerce
+- Shipment volume forecast for logistics
+- Throughput forecast for manufacturing
+- Bullwhip/ATP trend forecast for unified
+
+Use seeded demo forecast data if needed.
+
+Add settings for forecast widget:
+- forecast title
+- metric to forecast
+- forecast horizon
+- show confidence band toggle
+- show forecast note toggle
+
+==================================================
+D) AI SUPPLY CHAIN ANALYST UPGRADE
+==================================================
+
+The AI Supply Chain Analyst must feel more functional and demo-ready.
+
+Current goal:
+I want to play with the SaaS like a real customer would.
+The AI must look responsive, useful, and realistic in the demo.
+
+Enhance the AI Analyst so it supports:
+
+1) AI Chat
+- responsive chat UI
+- clean message bubbles
+- typing/loading state
+- realistic demo responses
+- better placeholder prompts
+- quick suggestion prompts
+
+2) AI Insight Cards
+Generate structured responses that include:
+- what changed
+- why it matters
+- top 3 actions
+- forecast note
+- risk level
+- impacted KPI
+
+3) AI Demo Interactions
+Allow the user to click preset prompts such as:
+- “Why did on-time delivery drop?”
+- “What should we do next?”
+- “Which KPI needs urgent attention?”
+- “Summarize this dashboard for leadership”
+- “Forecast the next 14 days”
+
+4) Sector-aware AI behavior
+AI should change responses depending on selected sector:
+- E-commerce
+- Logistics
+- Manufacturing
+- Unified
+
+5) KPI-aware AI behavior
+If current dashboard has selected KPI widgets, AI responses should reference them where possible.
+
+For now:
+- use rule-based / simulated AI responses if needed
+- but structure the code cleanly so OpenAI can be plugged in later
+
+==================================================
+E) AI WIDGET LIBRARY IMPROVEMENT
+==================================================
+
+Improve the AI widgets in the Widget Library.
+
+Always keep these available:
+- AI Insights
+- AI Chat
+- Executive Summary
+- Demand Forecast
+- Alert Summary
+
+These should be clearly grouped under an “AI & Intelligence” section.
+
+==================================================
+F) DEMO-READY CUSTOMER EXPERIENCE
+==================================================
+
+Make the app feel like a customer can actually test it.
+
+Add:
+- preset demo prompts for AI
+- meaningful realistic data
+- better button labels
+- better empty states
+- loading states for AI and charts
+- clear “Demo Mode” badge
+- clear “Try AI Analysis” call-to-action
+- smooth user flow from Builder -> Dashboard -> AI -> Export
+
+==================================================
+G) RESPONSIVENESS
+==================================================
+
+Ensure all improved visuals and AI elements work across:
+- Desktop
+- Tablet
+- Phone
+
+Particularly:
+- donut charts must remain readable
+- chat panel must not break layout
+- forecast widget must scale correctly
+- chart legends should collapse intelligently on smaller screens
+
+==================================================
+H) CODE REQUIREMENTS
+==================================================
+
+- inspect current repo structure first
+- identify files to update
+- improve existing widgets instead of rewriting whole app
+- keep TypeScript clean
+- keep components modular
+- preserve current working functionality
+- do not break builder/edit mode logic
+
+==================================================
+I) DELIVERABLES
+==================================================
+
+1) Inspect repo structure first
+2) Identify the files related to charts, AI widgets, and widget library
+3) Improve visualizations
+4) Add forecast widget into widget library
+5) Improve donut charts with numbers/percentages
+6) Improve AI Supply Chain Analyst interactivity and demo behavior
+7) Explain file-by-file what changed
+8) Confirm the app now feels more realistic and demo-ready
