@@ -6,12 +6,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { RefreshCw, Calendar, Zap, Clock } from "lucide-react";
+import { RefreshCw, Calendar, Zap, Clock, ArrowRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { useDashboardStore, Sector, DateRange } from "@/hooks/use-dashboard-store";
 import { format } from "date-fns";
 import { ImportDataModal } from "@/components/ImportDataModal";
+import { Link } from "wouter";
 
 export function TopBar() {
   const { toast } = useToast();
@@ -66,10 +67,12 @@ export function TopBar() {
           <span className="text-xs text-slate-600 font-medium">{format(lastRefreshed, 'HH:mm:ss')}</span>
         </div>
 
-        <div className="hidden sm:flex items-center gap-2 text-[10px] lg:text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1.5 rounded-full border border-emerald-100 uppercase tracking-tight">
-          <Zap className="w-3 h-3 fill-emerald-500" />
-          Live Demo
-        </div>
+        <Link href="/pricing" className="hidden sm:flex">
+          <Button className="items-center gap-2 text-[10px] font-black bg-primary text-white hover:bg-primary/90 rounded-full h-9 px-4 uppercase tracking-widest shadow-sm">
+            Upgrade to Pro
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Button>
+        </Link>
         
         <Button 
           variant="ghost" 

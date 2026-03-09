@@ -8,7 +8,8 @@ import {
   Settings,
   BrainCircuit,
   Wrench,
-  ChevronRight
+  ChevronRight,
+  ArrowLeft
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
@@ -39,7 +40,18 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         </div>
       </div>
       
-      <div className="flex-1 py-6 lg:py-10 px-4 lg:px-6 space-y-1.5 overflow-y-auto custom-scrollbar">
+      <div className="px-4 lg:px-6 pt-6 shrink-0 mb-2">
+        <Link 
+          href="/"
+          onClick={onNavigate}
+          className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors text-[10px] font-bold uppercase tracking-widest shadow-sm"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          Back to Home
+        </Link>
+      </div>
+      
+      <div className="flex-1 py-4 lg:py-6 px-4 lg:px-6 space-y-1.5 overflow-y-auto custom-scrollbar">
         {navItems.map((item) => {
           const isActive = location === item.href || (location === "/" && item.href === "/builder");
           return (

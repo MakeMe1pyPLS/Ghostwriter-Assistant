@@ -1,0 +1,402 @@
+You are a senior SaaS frontend engineer, product marketer, and landing-page designer.
+
+Build a polished marketing website for my SaaS platform called:
+
+“ChainInsideIQ — AI Dashboard Generator Platform”
+
+IMPORTANT:
+Do NOT rebuild my existing demo app from scratch.
+The website must connect to the demo I already created.
+The goal is to make the site feel like a real SaaS business website with a strong home page and a clean path into the live demo.
+
+STACK
+- React + Vite + TypeScript
+- TailwindCSS
+- Use clean reusable components
+- Keep existing light + teal corporate theme unless a premium variation improves the marketing site
+
+PRIMARY GOAL
+Create a professional SaaS marketing site where users can:
+1) Land on the home page
+2) Understand the product quickly
+3) Click a Demo button
+4) Open the live demo/app we already built
+5) Return back to the home page easily
+6) See pricing and call-to-action buttons to purchase or request setup
+
+==================================================
+WEBSITE STRUCTURE
+==================================================
+
+Create these pages/routes:
+
+/               -> Home page
+/pricing        -> Pricing page
+/features       -> Features page
+/demo           -> Demo/app entry page or redirect to existing app
+/contact        -> Contact / Request Setup page
+
+If the demo already exists on another route, connect the Demo button to that route instead of rebuilding the demo.
+
+==================================================
+HOME PAGE REQUIREMENTS
+==================================================
+
+The home page must feel complete and premium.
+
+Include:
+
+1) TOP NAVBAR
+- Logo / brand name
+- Features
+- Pricing
+- Demo
+- Contact
+- CTA button: “Try Demo”
+
+Navbar should be sticky and responsive.
+
+Use strong CTA language in nav/buttons such as:
+- Try Demo
+- Start Pro
+- View Pricing
+- Book Setup
+- Request Custom Dashboard
+- Upgrade to Pro
+
+2) MARQUEE BANNER
+Add a premium marquee banner near the top with rotating / scrolling value statements such as:
+- Build once. Render dashboards anywhere.
+- AI dashboard generator for Excel, Power BI, Google Sheets, and more.
+- Bridge KPIs for E-commerce, Logistics, Manufacturing, and Unified Supply Chains.
+- AI Supply Chain Analyst included.
+- Founder pricing now available.
+- Request custom dashboard setup.
+- Turn raw data into tool-ready dashboards.
+- AI-powered dashboard generation for modern operations teams.
+- From builder to Excel, Power BI, Sheets, and beyond.
+
+Make this visually appealing and responsive.
+
+3) HERO SECTION
+Strong headline:
+“Build Once. Render Dashboards Anywhere.”
+
+Subheadline:
+“ChainInsideIQ is an AI-powered dashboard generator platform that helps businesses create analytics dashboards and render them into Excel, Power BI, Google Sheets, and more.”
+
+Primary CTA:
+- Try Interactive Demo
+
+Secondary CTA:
+- View Pricing
+
+Optional third CTA:
+- Request Custom Build
+
+Also allow strong CTA variations such as:
+- Launch the Demo
+- Explore the Builder
+- Start Pro
+- Book a Setup
+- Get Your Dashboard Built
+- See It in Action
+
+Add a dashboard/product mockup or preview section in the hero if possible.
+
+4) SOCIAL PROOF / TRUST BAR
+Even if no real logos yet, create a clean placeholder trust section with copy like:
+- Built for operations teams
+- Designed for analysts
+- Made for E-commerce, Logistics, and Manufacturing
+- Built for modern supply chain decision-making
+- Designed to work with the tools teams already use
+
+5) FEATURES SECTION
+Explain major features with cards:
+- Dashboard Builder
+- AI Supply Chain Analyst
+- Forecasting Widgets
+- Bridge KPIs
+- Export Engine
+- Tool Connectors
+- Hub / Alerts
+- Dashboard Generator
+
+Include CTA-style supporting copy under sections if useful, such as:
+- Build dashboards faster with AI
+- Generate once, render anywhere
+- Connect your tools, keep your workflow
+- Turn insights into action
+
+6) HOW IT WORKS SECTION
+Simple 3-step flow:
+1. Build your dashboard
+2. Connect or import your data
+3. Render/export into your preferred tools
+
+Add CTA support text:
+- Start with the builder
+- Import your data
+- Export where your team already works
+
+7) TOOL COMPATIBILITY SECTION
+Show supported destinations / integrations:
+- Excel
+- Google Sheets
+- Power BI
+- Tableau
+- SQL
+- CSV / JSON
+
+Explain that the platform is a Dashboard Generator Platform that can render dashboards into multiple tools.
+
+Include messaging like:
+- One dashboard builder. Multiple native outputs.
+- Build in one place. Deliver in many.
+- Designed for teams that use Excel, BI tools, and operational systems.
+
+8) AI ANALYST SECTION
+Highlight:
+- AI chat
+- KPI recommendations
+- anomaly explanations
+- executive summaries
+- forecast narratives
+
+Use strong messaging such as:
+- Ask the AI what changed
+- Understand why performance shifted
+- Get the next best actions instantly
+- Turn KPI movement into decisions
+
+9) MOAT / BRIDGE KPI SECTION
+Show these clearly:
+- Perfect Order Rate
+- Cash-to-Cash Cycle Time
+- Available-to-Promise Accuracy
+- Bullwhip Effect Index
+
+Explain these are cross-supply-chain bridge metrics.
+
+Add support copy like:
+- Most tools measure silos. ChainInsideIQ measures the links between them.
+- Bridge metrics reveal what isolated dashboards miss.
+
+10) DEMO CTA SECTION
+Big section encouraging users to try the demo:
+- See the platform in action
+- Launch the demo
+- Explore the builder
+- Try the interactive demo
+- Experience the AI dashboard generator live
+
+11) PRICING PREVIEW SECTION
+Show a clean summary of the Pro tier only.
+
+Use CTA copy such as:
+- Start Pro
+- Unlock the full platform
+- Upgrade your reporting workflow
+- Get the AI dashboard generator
+
+12) FOOTER
+Include:
+- Product
+- Features
+- Pricing
+- Demo
+- Contact
+- Support
+- Privacy
+- Terms
+
+Also include CTA links in the footer such as:
+- Try Demo
+- Request Setup
+- Start Pro
+
+==================================================
+PRICING PAGE
+==================================================
+
+Create a polished pricing page for a Pro-tier-only SaaS.
+
+Show:
+Plan Name: ChainInsideIQ Pro
+
+Recommended launch pricing:
+- Founder Price: $79/month for early adopters
+- Standard Price: $99/month
+- Future Price: $149/month
+
+Explain what is included:
+- Dashboard Builder
+- AI Supply Chain Analyst
+- Forecasting
+- Bridge KPIs
+- Export Engine
+- Hub + Alerts
+- Sector-aware widgets
+- Import / export support
+
+Also create an Add-Ons section:
+- Excel AI Add-on
+- Google Sheets AI Add-on
+- Power BI AI Add-on
+- Tableau AI Add-on
+- Custom Dashboard Build
+- Database Setup
+- KPI Engineering
+
+Add strong CTA buttons:
+- Start Pro
+- Book Setup
+- Contact Sales
+- Request Custom Dashboard
+- Upgrade to Pro
+
+==================================================
+FEATURES PAGE
+==================================================
+
+Create a features page that goes deeper into:
+- Builder
+- Generator
+- AI
+- Exports
+- Connectors
+- Hub
+- Forecasting
+- KPI library
+
+Use section-level CTA messaging such as:
+- See the builder in action
+- Try AI-powered insights
+- Explore exports
+- Connect your data
+
+==================================================
+CONTACT / REQUEST SETUP PAGE
+==================================================
+
+Create a contact page with:
+- contact form
+- request custom dashboard form
+- request database setup form
+- request KPI engineering form
+
+Fields:
+- Name
+- Company
+- Email
+- Industry
+- What do you need help with?
+- Preferred tool/software
+- Message
+
+Include CTA/support language such as:
+- Tell us what you need
+- Request setup help
+- Book your custom dashboard build
+- Let’s build your analytics system
+
+==================================================
+DEMO INTEGRATION REQUIREMENTS
+==================================================
+
+The website must connect to the demo/app I already built.
+
+Requirements:
+- “Try Demo” button routes to the existing live demo page
+- The demo/app should have a visible button or top nav item:
+  - Back to Home
+  - Pricing
+  - Request Setup
+  - Upgrade to Pro
+
+This means the demo should never feel disconnected from the marketing site.
+
+If necessary:
+- add a shared top bar or demo header in the demo view
+- add a persistent “Back to Home” button
+- add “Upgrade to Pro” button inside the demo
+
+==================================================
+DESIGN REQUIREMENTS
+==================================================
+
+Style should feel:
+- premium
+- modern SaaS
+- clean corporate
+- trustworthy
+- launch-ready
+
+Color style:
+- Background: #F4F7FA
+- Cards: #FFFFFF
+- Borders: #E3E8EF
+- Primary teal: #0F766E
+- Accent teal: #14B8A6
+- Headings: #0F172A
+- Secondary text: #64748B
+
+Use:
+- soft shadows
+- rounded corners
+- strong spacing hierarchy
+- polished CTA buttons
+- responsive design
+- subtle animations/hover effects
+
+==================================================
+RESPONSIVENESS
+==================================================
+
+Make the site responsive for:
+- desktop
+- tablet
+- mobile
+
+Navbar should collapse into hamburger menu on smaller screens.
+Marquee should remain readable.
+Hero and CTA sections should stack cleanly.
+
+==================================================
+BEST CTA MESSAGES TO USE THROUGHOUT THE SITE
+==================================================
+
+Use these CTA messages naturally throughout the site wherever appropriate:
+
+- Build Once. Render Anywhere.
+- Try Interactive Demo
+- Launch the Demo
+- Explore the Builder
+- Start Pro
+- View Pricing
+- Book Setup
+- Request Custom Dashboard
+- Upgrade to Pro
+- See It in Action
+- Build dashboards faster with AI
+- Turn raw data into tool-ready dashboards
+- Generate once, render anywhere
+- Connect your tools, keep your workflow
+- Get the AI dashboard generator
+- Experience the platform live
+- Need a custom dashboard? We’ll build it for you.
+- Ask the AI what changed
+- Turn KPI movement into decisions
+
+==================================================
+DELIVERABLES
+==================================================
+
+1) Inspect the current repo structure first
+2) Identify routing and the existing demo route
+3) Build the marketing website in-place
+4) Connect the Demo button to the real demo
+5) Add a way back from the demo to the website
+6) Explain file-by-file what changed
+7) Confirm the site feels complete, creative, and launch-ready
