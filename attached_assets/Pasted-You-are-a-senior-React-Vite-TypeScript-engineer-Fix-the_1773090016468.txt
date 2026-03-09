@@ -1,0 +1,111 @@
+You are a senior React + Vite + TypeScript engineer.
+
+Fix the following runtime error in my app:
+
+[plugin:runtime-error-plugin] Can't find variable: ExportDrawer
+
+This is happening in the Demo Dashboard section of my SaaS app:
+
+“ChainInsideIQ — AI Dashboard Generator Platform”
+
+DO NOT rebuild the app.
+Refactor and fix the current codebase in-place.
+
+PRIMARY GOAL
+Find why ExportDrawer is missing and fix the Dashboard section so it loads correctly without runtime errors.
+
+==================================================
+STEP 1 — FIND ALL ExportDrawer REFERENCES
+==================================================
+
+Search the codebase for:
+- ExportDrawer
+- <ExportDrawer
+- import ExportDrawer
+- import { ExportDrawer }
+
+Identify:
+- which file is trying to use ExportDrawer
+- whether the component file actually exists
+- whether the import path is correct
+- whether it is a default export or named export mismatch
+
+==================================================
+STEP 2 — FIX THE ROOT CAUSE
+==================================================
+
+Audit these possible issues:
+
+1) ExportDrawer component file does not exist
+- If missing, create it cleanly
+
+2) Wrong import path
+- Fix the path to the actual component file
+
+3) Wrong export type
+- If the component is default export but imported as named export, fix it
+- If the component is named export but imported as default, fix it
+
+4) Variable name mismatch
+- If the component was renamed (example: ExportsDrawer, DashboardExportDrawer, ExportPanel), update all references consistently
+
+==================================================
+STEP 3 — CREATE A CLEAN FALLBACK ExportDrawer IF NEEDED
+==================================================
+
+If ExportDrawer does not exist, create a working version.
+
+Requirements for ExportDrawer:
+- reusable component
+- opens/closes cleanly
+- can be a drawer, modal, or side panel
+- shows export options:
+  - Export CSV
+  - Export JSON Spec
+  - Export Excel (stub if needed)
+  - Export PDF (stub if needed)
+- fits the existing light + teal corporate theme
+- works on desktop, tablet, and mobile
+
+Suggested props:
+- open
+- onClose
+- onExportCsv
+- onExportJson
+- onExportExcel
+- onExportPdf
+
+The component should be simple but stable.
+
+==================================================
+STEP 4 — MAKE DASHBOARD PAGE STABLE
+==================================================
+
+The Dashboard demo should not crash if ExportDrawer is unavailable.
+
+If needed:
+- guard the component
+- lazy load it safely
+- or temporarily replace it with a stable fallback export panel
+
+The dashboard must load even if export functionality is basic.
+
+==================================================
+STEP 5 — VERIFY INTEGRATION
+==================================================
+
+After fixing:
+- the Dashboard page should render normally
+- no runtime error about ExportDrawer
+- export UI should open correctly
+- layout should remain clean and responsive
+
+==================================================
+STEP 6 — DELIVERABLES
+==================================================
+
+1) Inspect the current repo structure first
+2) Identify the Dashboard file and ExportDrawer reference
+3) Fix the missing ExportDrawer issue in-place
+4) Explain which file(s) were changed
+5) Confirm the Dashboard demo now loads without runtime errors

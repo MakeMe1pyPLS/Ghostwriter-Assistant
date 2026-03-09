@@ -22,6 +22,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { WidgetRenderer } from "@/components/visualizations/WidgetRenderer";
+import { ExportDrawer } from "@/components/ExportDrawer";
 import { Link } from "wouter";
 
 function InsightsWidgetContent({ sector, title }: { sector: string, title?: string }) {
