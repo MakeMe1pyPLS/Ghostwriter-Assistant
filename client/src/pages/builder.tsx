@@ -50,6 +50,60 @@ import { WidgetInspector } from "@/components/WidgetInspector";
 import { WidgetLibraryContent, WidgetLibraryMobile, widgetCategories } from "@/components/WidgetLibrary";
 import { useToast } from "@/hooks/use-toast";
 
+function InsightsWidgetContent({ sector, title }: { sector: string, title?: string }) {
+  const [insights, setInsights] = useState<any>(null);
+  
+  useEffect(() => {
+    import('@/lib/ai-provider').then(({ ai }) => {
+      ai.generateInsights(sector, {}).then(setInsights);
+    });
+  }, [sector]);
+
+  if (!insights) {
+    return (
+      <div className="h-full flex flex-col p-1 animate-pulse">
+        <div className="flex items-center gap-2 mb-4">
+          <BrainCircuit className="w-4 h-4 text-primary opacity-50" />
+          <div className="h-4 w-32 bg-slate-200 rounded"></div>
+        </div>
+        <div className="flex-1 space-y-3">
+          <div className="h-20 bg-slate-100 rounded-lg"></div>
+          <div className="h-20 bg-slate-100 rounded-lg"></div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-full flex flex-col p-1">
+      <div className="flex items-center gap-2 mb-4 shrink-0">
+        <BrainCircuit className="w-4 h-4 text-primary" />
+        <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">{title || 'AI Recommendations'}</h3>
+      </div>
+      <div className="space-y-3 overflow-y-auto flex-1 pr-1 custom-scrollbar">
+        <div className="p-3 bg-slate-50 rounded-lg border border-slate-100">
+          <p className="text-xs font-bold text-slate-700 mb-2">Impact Assessment</p>
+          <ul className="text-[11px] text-slate-500 leading-relaxed list-disc pl-3 space-y-1">
+            {insights.what_changed?.map((c: string, i: number) => <li key={i}>{c}</li>)}
+          </ul>
+        </div>
+        <div className="p-3 bg-teal-50/50 rounded-lg border border-teal-100">
+          <p className="text-xs font-bold text-teal-700 mb-2">Recommended Actions</p>
+          <ul className="text-[11px] text-teal-700/80 leading-relaxed list-disc pl-3 space-y-1">
+            {insights.actions?.slice(0, 2).map((a: string, i: number) => <li key={i}>{a}</li>)}
+          </ul>
+        </div>
+        {insights.forecast_note && (
+          <div className="p-3 bg-indigo-50/50 rounded-lg border border-indigo-100">
+            <p className="text-xs font-bold text-indigo-700 mb-1">Forecast Note</p>
+            <p className="text-[11px] text-indigo-700/80 leading-relaxed">{insights.forecast_note}</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function BuilderPage() {
   const { metrics, chartData, donutData, sector, dateRange } = useSectorData();
   const { lastRefreshed } = useDashboardStore();
@@ -284,7 +338,7 @@ export default function BuilderPage() {
           <div className="h-full flex flex-col p-1">
             <div className="flex items-center justify-between mb-4">
                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">{widget.title || 'Performance Trend'}</h3>
-               <Badge variant="outline" className={`text-[10px] ${getBadgeColors(widget.badgeColor)}`}>Real-time</Badge>
+               <div className={`px-1.5 py-0.5 rounded border text-[9px] font-bold uppercase tracking-widest ${getBadgeColors(widget.badgeColor)}`}>Real-time</div>
             </div>
             <div className="flex-1 relative min-h-0">
               {widget.showTarget && (
@@ -435,12 +489,15 @@ export default function BuilderPage() {
           <div className="h-full flex flex-col p-1">
              <div className="flex items-center justify-between mb-4">
                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">{widget.title || 'Demand Forecast'}</h3>
-               <Badge variant="outline" className={`text-[10px] ${getBadgeColors(widget.badgeColor)} bg-indigo-50 text-indigo-700 border-indigo-200`}>Predictive</Badge>
+               <div className="flex gap-2">
+                 <div className="px-1.5 py-0.5 rounded border text-[9px] font-bold uppercase tracking-widest bg-slate-50 text-slate-500 border-slate-200">Confidence: Med</div>
+                 <div className={`px-1.5 py-0.5 rounded border text-[9px] font-bold uppercase tracking-widest ${getBadgeColors(widget.badgeColor)} bg-indigo-50 text-indigo-700 border-indigo-200`}>Predictive</div>
+               </div>
              </div>
              {widget.showForecastNote !== false && (
                 <div className="mb-2 text-[10px] text-slate-500 bg-slate-50 p-2 rounded-lg border border-slate-100 flex items-center gap-2">
                   <Sparkles className="w-3 h-3 text-indigo-500 shrink-0" />
-                  AI projects a 12% upside over the next 7 days based on current {sector} trends.
+                  <span className="truncate">Recent trends indicate a projected 12% increase over the next 14 days based on {sector} historical patterns.</span>
                 </div>
              )}
              <div className="flex-1 relative min-h-0">
@@ -459,24 +516,7 @@ export default function BuilderPage() {
           </div>
         );
       case 'insights':
-        return (
-           <div className="h-full flex flex-col p-1">
-              <div className="flex items-center gap-2 mb-4">
-                <BrainCircuit className="w-4 h-4 text-primary" />
-                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">{widget.title || 'AI Recommendations'}</h3>
-              </div>
-              <div className="space-y-3 overflow-y-auto flex-1 pr-1">
-                <div className="p-3 bg-slate-50 rounded-lg border border-slate-100">
-                  <p className="text-xs font-bold text-slate-700 mb-1">Optimization Found</p>
-                  <p className="text-[11px] text-slate-500 leading-relaxed">System detected a 4.2% potential yield increase by adjusting Line C throughput.</p>
-                </div>
-                <div className="p-3 bg-teal-50/50 rounded-lg border border-teal-100">
-                  <p className="text-xs font-bold text-teal-700 mb-1">Suggested Action</p>
-                  <p className="text-[11px] text-slate-600 leading-relaxed">Reroute inventory from Central Hub to West Coast to avoid 3-day weather delay.</p>
-                </div>
-              </div>
-           </div>
-        );
+        return <InsightsWidgetContent sector={sector} title={widget.title} />;
       default: return null;
     }
   };

@@ -24,9 +24,11 @@ interface Message {
   content: string;
   timestamp: Date;
   structuredData?: {
-    changed?: string;
+    summary?: string;
+    changed?: string[];
     matters?: string;
     actions?: string[];
+    forecast_note?: string;
   };
 }
 
@@ -87,12 +89,14 @@ export default function InsightsPage() {
       
       // If it's a risk query, also generate insights to attach structured data
       let structuredData = undefined;
-      if (userMessage.content.toLowerCase().includes('risk') || userMessage.content.toLowerCase().includes('insight')) {
+      if (userMessage.content.toLowerCase().includes('risk') || userMessage.content.toLowerCase().includes('insight') || userMessage.content.toLowerCase().includes('late') || userMessage.content.toLowerCase().includes('drop')) {
         const insights = await ai.generateInsights(selectedSector, {});
         structuredData = {
+          summary: insights.summary,
           changed: insights.what_changed,
           matters: insights.why_it_matters || "This requires immediate attention to prevent downstream supply chain disruptions.",
-          actions: insights.actions
+          actions: insights.actions,
+          forecast_note: insights.forecast_note
         };
       }
 
@@ -166,13 +170,19 @@ export default function InsightsPage() {
                         className="bg-white border border-slate-100 rounded-2xl p-4 md:p-6 shadow-md space-y-4 md:space-y-6 w-full"
                       >
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                          <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
-                            <h4 className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5 md:mb-2">Impact Assessment</h4>
-                            <p className="text-[11px] md:text-xs font-bold text-slate-800 leading-normal">{msg.structuredData.changed}</p>
+                          <div className="bg-slate-50 p-3 md:p-4 rounded-xl border border-slate-100">
+                            <h4 className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 md:mb-3">Impact Assessment</h4>
+                            {msg.structuredData.changed && msg.structuredData.changed.length > 0 ? (
+                              <ul className="list-disc pl-4 space-y-1 text-[11px] md:text-xs font-bold text-slate-800 leading-relaxed">
+                                {msg.structuredData.changed.map((item, idx) => <li key={idx}>{item}</li>)}
+                              </ul>
+                            ) : (
+                              <p className="text-[11px] md:text-xs font-bold text-slate-800 leading-normal">No changes detected.</p>
+                            )}
                           </div>
-                          <div className="bg-rose-50 p-3 rounded-xl border border-rose-100">
-                            <h4 className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-rose-500 mb-1.5 md:mb-2">Operational Risk</h4>
-                            <p className="text-[11px] md:text-xs font-bold text-rose-900 leading-normal">{msg.structuredData.matters}</p>
+                          <div className="bg-rose-50 p-3 md:p-4 rounded-xl border border-rose-100">
+                            <h4 className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-rose-500 mb-2 md:mb-3">Operational Risk</h4>
+                            <p className="text-[11px] md:text-xs font-bold text-rose-900 leading-relaxed">{msg.structuredData.matters}</p>
                           </div>
                         </div>
 
@@ -189,6 +199,18 @@ export default function InsightsPage() {
                                     <span className="text-[11px] md:text-xs font-bold text-slate-700">{action}</span>
                                   </div>
                                 ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {msg.structuredData.forecast_note && (
+                            <div className="pt-3 md:pt-4 border-t border-slate-50">
+                              <div className="bg-indigo-50/50 p-3 md:p-4 rounded-xl border border-indigo-100 flex items-start gap-3">
+                                <TrendingUp className="w-4 h-4 text-indigo-500 mt-0.5 shrink-0" />
+                                <div>
+                                  <h4 className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-indigo-700 mb-1">Forecast Simulation</h4>
+                                  <p className="text-[11px] md:text-xs font-medium text-indigo-900 leading-relaxed">{msg.structuredData.forecast_note}</p>
+                                </div>
                               </div>
                             </div>
                           )}
@@ -250,8 +272,8 @@ export default function InsightsPage() {
           <Card className="rounded-2xl border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden p-5 md:p-6">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xs font-black uppercase tracking-widest text-slate-400">Demand Forecast</h3>
-              <div className="px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded text-[10px] font-black uppercase tracking-tighter">
-                High Precision
+              <div className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] font-black uppercase tracking-tighter border border-slate-200 shadow-sm">
+                Confidence: Medium
               </div>
             </div>
             
@@ -279,7 +301,7 @@ export default function InsightsPage() {
                  <TrendingUp className="w-3.5 h-3.5 text-primary" />
                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-700">AI Insight</span>
                </div>
-               <p className="text-[11px] md:text-xs text-slate-500 font-medium leading-relaxed">Network stabilization expected in 4 days. Inventory levels returning to baseline across {selectedSector} operations.</p>
+               <p className="text-[11px] md:text-xs text-slate-500 font-medium leading-relaxed">Forecast simulation indicates a 14-day trend continuation with a potential seasonal bump. Network capacity should remain closely monitored across {selectedSector} operations.</p>
             </div>
           </Card>
 

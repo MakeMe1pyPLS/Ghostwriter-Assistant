@@ -24,6 +24,60 @@ import { useToast } from "@/hooks/use-toast";
 import { ExportDrawer } from "@/components/ExportDrawer";
 import { Link } from "wouter";
 
+function InsightsWidgetContent({ sector, title }: { sector: string, title?: string }) {
+  const [insights, setInsights] = useState<any>(null);
+  
+  useEffect(() => {
+    import('@/lib/ai-provider').then(({ ai }) => {
+      ai.generateInsights(sector, {}).then(setInsights);
+    });
+  }, [sector]);
+
+  if (!insights) {
+    return (
+      <div className="h-full flex flex-col animate-pulse">
+        <div className="flex items-center gap-2 mb-4">
+          <BrainCircuit className="w-4 h-4 text-primary opacity-50" />
+          <div className="h-4 w-32 bg-slate-200 rounded"></div>
+        </div>
+        <div className="flex-1 space-y-3">
+          <div className="h-20 bg-slate-100 rounded-xl"></div>
+          <div className="h-20 bg-slate-100 rounded-xl"></div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-full flex flex-col">
+      <div className="flex items-center gap-2 mb-4 shrink-0">
+        <BrainCircuit className="w-4 h-4 text-primary" />
+        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{title || 'AI Recommendations'}</h3>
+      </div>
+      <div className="space-y-4 overflow-y-auto flex-1 pr-1 custom-scrollbar">
+        <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+          <p className="text-xs font-bold text-slate-700 mb-2 uppercase tracking-wider">Impact Assessment</p>
+          <ul className="text-xs text-slate-500 leading-relaxed list-disc pl-4 space-y-1.5 font-medium">
+            {insights.what_changed?.map((c: string, i: number) => <li key={i}>{c}</li>)}
+          </ul>
+        </div>
+        <div className="p-4 bg-teal-50/50 rounded-xl border border-teal-100">
+          <p className="text-xs font-bold text-teal-700 mb-2 uppercase tracking-wider">Recommended Actions</p>
+          <ul className="text-xs text-teal-700/80 leading-relaxed list-disc pl-4 space-y-1.5 font-medium">
+            {insights.actions?.slice(0, 2).map((a: string, i: number) => <li key={i}>{a}</li>)}
+          </ul>
+        </div>
+        {insights.forecast_note && (
+          <div className="p-4 bg-indigo-50/50 rounded-xl border border-indigo-100">
+            <p className="text-[10px] font-black text-indigo-700 mb-1.5 uppercase tracking-widest">Forecast Note</p>
+            <p className="text-xs text-indigo-700/80 leading-relaxed font-medium">{insights.forecast_note}</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function DashboardPage() {
   const { metrics, chartData, donutData, sector, dateRange, allMetrics } = useSectorData();
   const { toast } = useToast();
@@ -288,24 +342,7 @@ export default function DashboardPage() {
           </div>
         );
       case 'insights':
-        return (
-           <div className="h-full flex flex-col">
-              <div className="flex items-center gap-2 mb-4">
-                <BrainCircuit className="w-4 h-4 text-primary" />
-                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{widget.title || 'AI Recommendations'}</h3>
-              </div>
-              <div className="space-y-3 overflow-y-auto flex-1 pr-1">
-                <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-                  <p className="text-xs font-bold text-slate-700 mb-1">Optimization Found</p>
-                  <p className="text-xs text-slate-500 leading-relaxed">System detected a 4.2% potential yield increase by adjusting Line C throughput.</p>
-                </div>
-                <div className="p-4 bg-teal-50/50 rounded-xl border border-teal-100">
-                  <p className="text-xs font-bold text-teal-700 mb-1">Suggested Action</p>
-                  <p className="text-xs text-slate-600 leading-relaxed">Reroute inventory from Central Hub to West Coast to avoid 3-day weather delay.</p>
-                </div>
-              </div>
-           </div>
-        );
+        return <InsightsWidgetContent sector={sector} title={widget.title} />;
       default: return (
         <div className="h-full flex flex-col">
           <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">{widget.title || widget.type}</h3>
