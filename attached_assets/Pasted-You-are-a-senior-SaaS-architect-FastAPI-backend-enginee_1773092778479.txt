@@ -1,0 +1,282 @@
+You are a senior SaaS architect, FastAPI backend engineer, Python Excel automation engineer, and React product engineer.
+
+Continue building my SaaS platform:
+
+“ChainInsideIQ — AI Dashboard Generator Platform”
+
+IMPORTANT
+- Do NOT rebuild the whole app from scratch.
+- Refactor and improve the current codebase in-place.
+- Sprint 1 and Sprint 2 are already completed.
+- Now complete Sprint 3 only.
+- Do not jump ahead to Sprint 4 or later.
+- Preserve existing working functionality.
+- Keep the current light + teal product style where relevant.
+
+==================================================
+SPRINT 3 — EXCEL DASHBOARD GENERATOR
+==================================================
+
+GOAL
+Generate dashboards in Excel.
+
+TASKS
+- KPI card renderer
+- chart renderer
+- layout engine
+- Excel sheet generator
+- data sheet generator
+
+DELIVERABLE
+Exported Excel dashboard with:
+- KPI cards
+- charts
+- tables
+
+MILESTONE
+A dashboard built in the platform can now be exported into a native Excel dashboard workbook.
+
+==================================================
+PRIMARY OBJECTIVE
+==================================================
+
+Take the existing DashboardSpec + Renderer architecture from Sprint 1 and Sprint 2 and implement a working Excel dashboard generator.
+
+The generator must create a real Excel workbook from the current dashboard spec.
+
+Start with a clean, reliable v1.
+
+==================================================
+1) EXCEL RENDERER IMPLEMENTATION
+==================================================
+
+Implement or complete the ExcelRenderer.
+
+It should take:
+- dashboard spec
+- normalized data
+- theme/layout instructions
+
+and output:
+- a real .xlsx workbook
+
+Use Python backend code for this.
+Prefer a stable library such as:
+- openpyxl
+or
+- xlsxwriter
+Use whichever fits the current architecture best.
+
+==================================================
+2) WORKBOOK STRUCTURE
+==================================================
+
+Generate at least these sheets:
+
+1. Dashboard
+- main presentation sheet
+- KPI cards
+- chart sections
+- table sections
+- clean layout
+
+2. Data
+- source data for widgets
+- chart source data
+- KPI source values
+
+Optional:
+3. Spec
+- dashboard metadata/spec snapshot for debugging
+
+==================================================
+3) KPI CARD RENDERER
+==================================================
+
+Render KPI widgets into Excel as native KPI cards using:
+- merged cells
+- fills
+- borders
+- font styling
+- title
+- value
+- delta text if available
+- optional subtitle/description
+
+Each KPI card should include:
+- title
+- metric value
+- optional delta
+- optional subtitle
+- consistent spacing and formatting
+
+Use a premium but simple style aligned with the app branding:
+- light background
+- subtle border
+- teal accent where appropriate
+- readable typography
+
+==================================================
+4) CHART RENDERER
+==================================================
+
+Map widget visualization types into native Excel charts.
+
+Support at minimum:
+- line chart
+- bar chart
+- donut chart
+- area chart if easy
+- table widget as formatted data table
+
+If the dashboard spec says:
+- line_chart -> render Excel line chart
+- bar_chart -> render Excel bar chart
+- donut_chart -> render Excel donut chart
+- table -> render clean table block
+
+The Excel renderer must respect the selected visualization type from the spec.
+Do NOT fall back to a generic line chart unless no valid visualization exists.
+
+==================================================
+5) LAYOUT ENGINE
+==================================================
+
+Implement a simple but stable layout engine.
+
+Use the DashboardSpec layout instructions to place widgets onto the Dashboard sheet.
+
+The output should:
+- place KPI cards near the top
+- place charts in sections below or beside cards
+- maintain readable spacing
+- avoid overlap
+- convert spec positions into Excel cell ranges
+
+If exact pixel-perfect translation is not possible, preserve structure and hierarchy:
+- top KPI row
+- chart area
+- table area
+- summary area
+
+==================================================
+6) DATA SHEET GENERATOR
+==================================================
+
+Create a Data sheet that contains:
+- raw records used for dashboard generation
+- values used by charts
+- values used by KPI cards
+
+This data sheet should support the Dashboard sheet visuals.
+
+Keep the data organized cleanly by widget or metric source.
+
+==================================================
+7) EXPORT FLOW
+==================================================
+
+Connect the Excel export flow to the renderer.
+
+When the user triggers Excel export:
+- use the current DashboardSpec
+- use current data
+- call ExcelRenderer
+- generate downloadable .xlsx file
+
+Keep CSV and JSON exports intact.
+Do not break existing exports.
+
+==================================================
+8) THEME / STYLE MAPPING
+==================================================
+
+Use the Sprint 2 theme system to style the Excel output.
+
+Map theme rules into Excel-friendly formatting:
+- colors
+- borders
+- section headers
+- KPI card styling
+- chart title styling
+
+Keep it simple but professional.
+
+==================================================
+9) SUPPORTED WIDGETS FOR SPRINT 3
+==================================================
+
+Fully support these widget types first:
+- KPI Card
+- KPI Card + Delta
+- Line Chart
+- Bar Chart
+- Donut Chart
+- Data Table
+- Executive Summary block if simple
+- Forecast block can be basic if already available
+
+If a widget type is unsupported:
+- render a safe placeholder section
+- do not crash the export
+
+==================================================
+10) ERROR HANDLING
+==================================================
+
+The renderer must fail gracefully.
+
+If:
+- a visualization is unsupported
+- data is missing
+- layout is incomplete
+
+then:
+- render a placeholder section
+- log clearly
+- keep workbook generation working
+
+==================================================
+11) CODE / ARCHITECTURE REQUIREMENTS
+==================================================
+
+Keep this modular.
+
+Use or create files such as:
+- excel_renderer.py
+- renderer_utils.py
+- excel_layout_mapper.py
+- excel_theme_mapper.py
+- export service integration file
+
+Keep backend renderer code clean and reusable for later renderers.
+
+==================================================
+12) TEST / VALIDATION
+==================================================
+
+After implementation:
+- test with at least one sample dashboard spec
+- confirm workbook downloads correctly
+- confirm workbook includes KPI cards, charts, and tables
+- confirm Data sheet exists
+- confirm no overlapping broken layout in the generated workbook
+
+==================================================
+13) DELIVERABLES
+==================================================
+
+1. Inspect the current repo structure first
+2. Identify Sprint 3 related files to update
+3. Implement Sprint 3 only
+4. Explain file-by-file what changed
+5. Confirm whether the following now work:
+   - dashboard spec can be rendered to Excel
+   - KPI cards render in Excel
+   - charts render in Excel
+   - table sections render in Excel
+   - workbook downloads correctly
+
+At the end, print:
+
+✅ Sprint 3 Complete: Excel Dashboard Generator
