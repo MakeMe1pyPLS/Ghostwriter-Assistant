@@ -1,0 +1,153 @@
+You are a senior Stripe payments engineer, FastAPI backend engineer, and React frontend engineer.
+
+Fix my existing SaaS checkout flow for:
+
+“ChainInsideIQ — AI Dashboard Generator Platform”
+
+DO NOT rebuild the whole app from scratch.
+Refactor and correct the pricing-to-checkout flow in-place.
+
+PRIMARY PROBLEM
+When the user clicks “Start Pro” on the pricing page, it skips directly to a success state that says:
+“You’re all set”
+and shows a “Launch Platform” button.
+
+This is incorrect.
+
+I want the user to see the real Stripe Checkout payment form first, enter card details, and then start a 14-day trial.
+
+==================================================
+DESIRED FLOW
+==================================================
+
+Correct flow should be:
+
+1. User visits Pricing page
+2. User clicks “Start Pro”
+3. Frontend calls backend endpoint to create Stripe Checkout Session
+4. Backend creates Stripe Checkout Session in subscription mode
+5. Stripe Checkout opens and shows card/payment form
+6. User enters card details
+7. User starts a 14-day trial
+8. Stripe redirects to success page
+9. Success page says:
+   - “You’re all set”
+   - “Your 14-day free trial has started”
+   - button: “Launch Platform”
+
+The success page must only appear AFTER Stripe Checkout completes.
+
+==================================================
+STRIPE REQUIREMENTS
+==================================================
+
+Use Stripe Checkout Sessions with:
+
+- mode = "subscription"
+- recurring price ID for ChainInsideIQ Pro
+- trial period = 14 days
+- collect card/payment method during checkout
+
+IMPORTANT:
+Do NOT configure the trial as “no payment method required”.
+Do NOT use payment_method_collection=if_required.
+The goal is to collect card details up front before the user gets access.
+
+Use environment variables:
+- STRIPE_SECRET_KEY
+- STRIPE_PUBLIC_KEY
+- STRIPE_PRICE_ID
+- STRIPE_WEBHOOK_SECRET
+
+Do not hardcode keys.
+
+==================================================
+BACKEND REQUIREMENTS
+==================================================
+
+Create or fix backend route:
+- POST /api/create-checkout-session
+
+The route should:
+- create a real Stripe Checkout Session
+- use the subscription price
+- set a 14-day trial
+- return the session URL
+
+Also scaffold or improve:
+- POST /api/stripe-webhook
+
+Listen for:
+- checkout.session.completed
+
+Even if account activation is still basic, the payment flow itself must work correctly.
+
+==================================================
+FRONTEND REQUIREMENTS
+==================================================
+
+Fix the “Start Pro” button so it does NOT go directly to the success page.
+
+Instead:
+- button must call /api/create-checkout-session
+- frontend must read the returned session URL
+- frontend must redirect user to Stripe Checkout
+
+The pricing page should keep the current design.
+Only fix the payment flow behavior.
+
+==================================================
+SUCCESS PAGE
+==================================================
+
+Create or improve:
+- /checkout/success
+
+This page should only be shown AFTER successful Stripe checkout.
+
+It should display:
+- “You’re all set”
+- “Your 14-day free trial has started”
+- “Launch Platform” button
+- optional “Back to Home” button
+
+==================================================
+CANCEL PAGE
+==================================================
+
+Create or improve:
+- /checkout/cancel
+
+Display:
+- “Checkout canceled”
+- “You can return to pricing or try again”
+- buttons:
+  - Back to Pricing
+  - Try Again
+
+==================================================
+DEBUGGING TASK
+==================================================
+
+Audit the current implementation and identify why Stripe Checkout is not showing the payment form.
+
+Possible issues to inspect:
+- button is routing directly to success page
+- backend is not creating a real Checkout Session
+- missing or invalid Stripe price ID
+- wrong Stripe mode
+- trial configured incorrectly
+- missing redirect to session.url
+
+==================================================
+DELIVERABLES
+==================================================
+
+1. Inspect current repo structure first
+2. Identify the pricing / checkout related files
+3. Fix the Start Pro button flow
+4. Ensure Stripe Checkout appears with card entry
+5. Implement 14-day trial with payment method collection
+6. Explain file-by-file what changed
+7. Confirm the flow now works like this:
+   Pricing -> Start Pro -> Stripe Checkout -> Card form -> Success -> Launch Platform

@@ -8,14 +8,15 @@ export default function PricingPage() {
   const [, setLocation] = useLocation();
   const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     setIsCheckoutLoading(true);
-    // TODO: Wire this up to real Stripe checkout session creation
-    // e.g. fetch('/api/create-checkout-session', { method: 'POST' })
-    // For now, simulate network delay and redirect to success
-    setTimeout(() => {
-      setLocation("/checkout/success");
-    }, 800);
+    
+    // Simulate an API call to /api/create-checkout-session
+    await new Promise(resolve => setTimeout(resolve, 800));
+    
+    // Since we are in frontend mockup mode without a FastAPI backend,
+    // we redirect to a simulated Stripe Checkout UI to demonstrate the flow.
+    setLocation("/checkout/stripe-mock");
   };
 
   return (
