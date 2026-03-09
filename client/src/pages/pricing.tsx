@@ -43,7 +43,7 @@ export default function PricingPage() {
             
             <div className="mb-8 relative z-10">
               <h2 className="text-2xl font-black text-slate-900 mb-2">ChainInsideIQ Pro</h2>
-              <p className="text-sm text-slate-500 font-medium">Everything you need to build and export professional analytics.</p>
+              <p className="text-sm text-slate-500 font-medium">Everything you need to build and export professional analytics. <span className="text-primary font-bold">Includes a 14-Day Free Trial.</span></p>
             </div>
             
             <div className="mb-8 flex items-end gap-2 relative z-10">
@@ -60,7 +60,7 @@ export default function PricingPage() {
               {isCheckoutLoading ? (
                 <>Processing <Loader2 className="w-5 h-5 ml-2 animate-spin" /></>
               ) : (
-                <>Start Pro <ArrowRight className="w-5 h-5 ml-2" /></>
+                <>Start 14-Day Free Trial <ArrowRight className="w-5 h-5 ml-2" /></>
               )}
             </Button>
             

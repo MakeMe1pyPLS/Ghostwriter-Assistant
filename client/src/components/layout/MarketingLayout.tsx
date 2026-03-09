@@ -23,11 +23,15 @@ export function MarketingLayout({ children }: { children: React.ReactNode }) {
             <div key={i} className="flex items-center gap-8 mx-4 text-[11px] font-black uppercase tracking-widest text-slate-300">
               <span>Build once. Render dashboards anywhere.</span>
               <span className="w-1.5 h-1.5 bg-primary rounded-full" />
+              <span className="text-primary">14-Day Free Trial available now.</span>
+              <span className="w-1.5 h-1.5 bg-primary rounded-full" />
               <span>AI dashboard generator for Excel, Power BI & Sheets.</span>
               <span className="w-1.5 h-1.5 bg-primary rounded-full" />
-              <span>Bridge KPIs for Supply Chain.</span>
+              <span>Bridge KPIs for E-commerce, Logistics, and Manufacturing.</span>
               <span className="w-1.5 h-1.5 bg-primary rounded-full" />
-              <span className="text-primary">Founder pricing now available.</span>
+              <span>AI Supply Chain Analyst included.</span>
+              <span className="w-1.5 h-1.5 bg-primary rounded-full" />
+              <span>Turn raw data into tool-ready dashboards.</span>
               <span className="w-1.5 h-1.5 bg-primary rounded-full" />
               <span>Request custom dashboard setup.</span>
               <span className="w-1.5 h-1.5 bg-primary rounded-full" />
@@ -69,12 +73,12 @@ export function MarketingLayout({ children }: { children: React.ReactNode }) {
           </nav>
 
           <div className="hidden md:flex items-center gap-4">
-            <Link href="/pricing">
-              <Button variant="ghost" className="font-bold uppercase tracking-wider text-xs">View Pricing</Button>
-            </Link>
             <Link href="/builder">
+              <Button variant="ghost" className="font-bold uppercase tracking-wider text-xs">Interactive Demo</Button>
+            </Link>
+            <Link href="/pricing">
               <Button className="font-bold uppercase tracking-widest text-xs h-11 px-6 rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:-translate-y-0.5 transition-all">
-                Try Demo <ArrowRight className="w-4 h-4 ml-2" />
+                Start 14-Day Free Trial <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </Link>
           </div>
@@ -104,12 +108,12 @@ export function MarketingLayout({ children }: { children: React.ReactNode }) {
                   Live Demo
                 </Link>
                 <div className="flex flex-col gap-3 pt-2">
-                  <Link href="/pricing" onClick={() => setMobileMenuOpen(false)}>
-                    <Button variant="outline" className="w-full font-bold uppercase tracking-wider h-11 rounded-xl">View Pricing</Button>
-                  </Link>
                   <Link href="/builder" onClick={() => setMobileMenuOpen(false)}>
+                    <Button variant="outline" className="w-full font-bold uppercase tracking-wider h-11 rounded-xl">Interactive Demo</Button>
+                  </Link>
+                  <Link href="/pricing" onClick={() => setMobileMenuOpen(false)}>
                     <Button className="w-full font-bold uppercase tracking-widest h-11 rounded-xl shadow-lg shadow-primary/20">
-                      Try Demo <ArrowRight className="w-4 h-4 ml-2" />
+                      Start 14-Day Free Trial <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>
                   </Link>
                 </div>
@@ -151,7 +155,7 @@ export function MarketingLayout({ children }: { children: React.ReactNode }) {
                 </Link>
                 <Link href="/pricing">
                   <Button variant="outline" className="font-black uppercase tracking-widest text-[10px] h-10 px-5 rounded-xl border-slate-700 text-white hover:bg-slate-800 hover:text-white">
-                    Start Pro
+                    Start Your 14-Day Free Trial
                   </Button>
                 </Link>
               </div>

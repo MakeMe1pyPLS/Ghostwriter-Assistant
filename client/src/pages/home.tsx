@@ -27,21 +27,22 @@ export default function HomePage() {
           </p>
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link href="/builder">
+            <Link href="/pricing">
               <Button className="w-full sm:w-auto font-black uppercase tracking-widest text-sm h-14 px-8 rounded-2xl shadow-xl shadow-primary/20 hover:shadow-primary/30 hover:-translate-y-0.5 transition-all">
-                Try Interactive Demo <ArrowRight className="w-5 h-5 ml-2" />
+                Start 14-Day Free Trial <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </Link>
-            <Link href="/pricing">
+            <Link href="/builder">
               <Button variant="outline" className="w-full sm:w-auto font-black uppercase tracking-widest text-sm h-14 px-8 rounded-2xl border-slate-200 bg-white hover:bg-slate-50 shadow-sm">
-                View Pricing
+                Explore the Demo
               </Button>
             </Link>
           </div>
           
-          <div className="mt-6 flex items-center justify-center gap-6 text-xs font-bold text-slate-400 uppercase tracking-widest">
-            <span className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 text-emerald-500" /> No credit card</span>
-            <span className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 text-emerald-500" /> Live Demo</span>
+          <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 text-xs font-bold text-slate-400 uppercase tracking-widest">
+            <span className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 text-emerald-500" /> No setup friction</span>
+            <span className="hidden sm:inline">•</span>
+            <span className="text-primary">Try it free for 14 days</span>
           </div>
         </div>
       </section>
@@ -135,13 +136,23 @@ export default function HomePage() {
       {/* CTA SECTION */}
       <section className="py-32 px-4 md:px-6 bg-primary text-white text-center">
         <div className="max-w-3xl mx-auto">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/10 rounded-full text-xs font-bold uppercase tracking-widest text-white mb-8 border border-white/20">
+            Start free, then upgrade
+          </div>
           <h2 className="text-4xl md:text-6xl font-black tracking-tighter mb-6">Experience the AI dashboard generator live.</h2>
-          <p className="text-teal-50 text-lg mb-10 font-medium">See the platform in action. No signup required to explore the builder.</p>
-          <Link href="/builder">
-            <Button className="font-black uppercase tracking-widest text-sm h-14 px-10 rounded-2xl bg-white text-primary hover:bg-slate-50 hover:scale-105 transition-all shadow-2xl">
-              Launch the Demo
-            </Button>
-          </Link>
+          <p className="text-teal-50 text-lg mb-10 font-medium">Start with a guided demo, then unlock your 14-day free trial.</p>
+          <div className="flex flex-col sm:flex-row justify-center gap-4">
+            <Link href="/pricing">
+              <Button className="w-full sm:w-auto font-black uppercase tracking-widest text-sm h-14 px-10 rounded-2xl bg-white text-primary hover:bg-slate-50 hover:scale-105 transition-all shadow-2xl">
+                Start Your 14-Day Free Trial
+              </Button>
+            </Link>
+            <Link href="/builder">
+              <Button variant="outline" className="w-full sm:w-auto font-black uppercase tracking-widest text-sm h-14 px-10 rounded-2xl border-white/30 text-white hover:bg-white/10 transition-all">
+                Try Interactive Demo
+              </Button>
+            </Link>
+          </div>
         </div>
       </section>
     </MarketingLayout>

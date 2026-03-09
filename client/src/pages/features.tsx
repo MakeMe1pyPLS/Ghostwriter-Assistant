@@ -7,12 +7,19 @@ export default function FeaturesPage() {
   return (
     <MarketingLayout>
       <div className="pt-20 pb-32 px-4 md:px-6 max-w-7xl mx-auto">
-        <div className="text-center max-w-3xl mx-auto mb-20">
+        <div className="text-center max-w-3xl mx-auto mb-10">
           <h1 className="text-4xl md:text-6xl font-black text-slate-900 tracking-tighter mb-6">Features Built for Operations</h1>
-          <p className="text-lg text-slate-500 font-medium">Explore the tools that power the next generation of supply chain analytics.</p>
+          <p className="text-lg text-slate-500 font-medium mb-8">Explore the tools that power the next generation of supply chain analytics.</p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Link href="/pricing">
+              <Button className="w-full sm:w-auto font-black uppercase tracking-widest text-sm h-12 px-8 rounded-xl shadow-xl shadow-primary/20 hover:-translate-y-0.5 transition-all">
+                Start Your 14-Day Free Trial
+              </Button>
+            </Link>
+          </div>
         </div>
 
-        <div className="space-y-24 md:space-y-32">
+        <div className="space-y-24 md:space-y-32 mt-20">
           {/* Feature 1 */}
           <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-center">
             <div>

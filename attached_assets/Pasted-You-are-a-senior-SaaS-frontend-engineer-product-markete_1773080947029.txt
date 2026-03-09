@@ -1,0 +1,149 @@
+You are a senior SaaS frontend engineer, product marketer, and conversion-focused landing page designer.
+
+Enhance the existing marketing website for:
+
+“ChainInsideIQ — AI Dashboard Generator Platform”
+
+DO NOT rebuild the whole site from scratch.
+Refactor and improve the current website in-place.
+
+PRIMARY GOAL
+Add “14-Day Free Trial” messaging as a strong conversion CTA across the website.
+
+IMPORTANT
+This is only a marketing / UI / copy change for now.
+Do NOT implement Stripe checkout logic yet.
+Do NOT build payment processing yet.
+Only update the site messaging, CTA placement, and visual emphasis.
+
+==================================================
+1) MARQUEE BANNER UPDATE
+==================================================
+
+Add “14-Day Free Trial” as one of the rotating marquee banner messages.
+
+Make sure it appears naturally alongside the existing SaaS value messages.
+
+Examples of marquee messages to include:
+- Build once. Render dashboards anywhere.
+- AI dashboard generator for Excel, Power BI, Google Sheets, and more.
+- 14-Day Free Trial available now.
+- Try the interactive demo before you commit.
+- Bridge KPIs for E-commerce, Logistics, Manufacturing, and Unified Supply Chains.
+- AI Supply Chain Analyst included.
+- Founder pricing now available.
+- Request custom dashboard setup.
+- Turn raw data into tool-ready dashboards.
+- Generate once, render anywhere.
+- From builder to Excel, Power BI, Sheets, and beyond.
+
+Ensure the marquee remains visually clean, readable, and responsive.
+
+==================================================
+2) CTA PLACEMENT THROUGHOUT THE WEBSITE
+==================================================
+
+Place “14-Day Free Trial” messaging appropriately throughout the marketing site.
+
+Add or improve CTA buttons and supporting text in these locations:
+
+A) NAVBAR
+Add a strong CTA button such as:
+- Start Free Trial
+or
+- Try 14-Day Free Trial
+
+B) HERO SECTION
+Include trial messaging in the hero section.
+
+Examples:
+- Start your 14-Day Free Trial
+- Try the platform free for 14 days
+- Explore the AI dashboard generator risk-free
+
+C) PRICING SECTION
+Add clear messaging like:
+- Includes a 14-Day Free Trial
+- Start free, then upgrade
+- Try Pro free for 14 days
+
+D) DEMO CTA SECTION
+Add support text like:
+- Explore the demo, then start your 14-Day Free Trial
+- See it in action before you subscribe
+
+E) FOOTER OR FINAL CTA BLOCK
+Add a final CTA such as:
+- Start Your 14-Day Free Trial
+- Try ChainInsideIQ Free for 14 Days
+
+==================================================
+3) CTA COPY / MESSAGING SYSTEM
+==================================================
+
+Use strong CTA messaging naturally across the site.
+
+Incorporate these CTA phrases where appropriate:
+
+- Start Your 14-Day Free Trial
+- Try 14 Days Free
+- Explore the Demo
+- Try Interactive Demo
+- Build Once. Render Anywhere.
+- Start Pro
+- View Pricing
+- Book Setup
+- Request Custom Dashboard
+- Upgrade to Pro
+- See It in Action
+- Build dashboards faster with AI
+- Turn raw data into tool-ready dashboards
+- Generate once, render anywhere
+- Connect your tools, keep your workflow
+- Get the AI dashboard generator
+- Experience the platform live
+- Need a custom dashboard? We’ll build it for you.
+
+Make sure CTA placement feels strategic and not spammy.
+
+==================================================
+4) DESIGN / VISUAL EMPHASIS
+==================================================
+
+Visually emphasize the 14-Day Free Trial messaging without overwhelming the page.
+
+Use:
+- badge or pill styling where appropriate
+- subtle highlight color
+- premium button styling
+- small supporting text under hero CTA
+- tasteful treatment in pricing section
+
+Examples:
+- “No setup friction. Try it free for 14 days.”
+- “Start with a guided demo, then unlock your 14-day free trial.”
+
+Keep the light + teal premium SaaS aesthetic.
+
+==================================================
+5) RESPONSIVENESS
+==================================================
+
+Ensure all trial CTAs and supporting messaging work across:
+- desktop
+- tablet
+- mobile
+
+Navbar CTA should remain visible or accessible via mobile menu.
+Hero buttons should stack cleanly on smaller screens.
+Marquee should remain readable.
+
+==================================================
+6) DELIVERABLES
+==================================================
+
+1. Inspect the current repo structure first
+2. Identify the website / landing page files that need to be updated
+3. Add the 14-Day Free Trial messaging and CTA placement in-place
+4. Explain file-by-file what changed
+5. Confirm the website now clearly communicates the free trial without implementing payment logic yet
