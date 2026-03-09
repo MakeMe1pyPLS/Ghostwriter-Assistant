@@ -1,0 +1,141 @@
+You are a senior React + Vite + TypeScript engineer.
+
+Fix the following runtime error in my application:
+
+"[plugin:runtime-error-plugin] Can't find variable: useToast"
+
+This is happening in my SaaS project:
+
+"ChainInsideIQ — AI Dashboard Generator Platform"
+
+DO NOT rebuild the application.
+
+Your job is to locate and correctly fix the missing or incorrect useToast implementation.
+
+--------------------------------------------------
+
+STEP 1 — IDENTIFY WHERE useToast IS USED
+
+Search the codebase for:
+
+useToast()
+
+Find every component that calls it.
+
+Examples may include:
+- export notifications
+- refresh actions
+- success messages
+- demo alerts
+- widget updates
+
+--------------------------------------------------
+
+STEP 2 — VERIFY TOAST SYSTEM EXISTS
+
+Check if the project includes the shadcn toast system.
+
+Look for these files:
+
+/components/ui/toast.tsx
+/components/ui/toaster.tsx
+/hooks/use-toast.ts
+
+If these files DO NOT exist:
+
+Create them using the standard shadcn structure.
+
+--------------------------------------------------
+
+STEP 3 — IMPLEMENT THE TOAST HOOK
+
+Create the hook file if missing:
+
+/hooks/use-toast.ts
+
+The hook must export:
+
+export function useToast()
+
+This hook should return a function allowing components to trigger toast notifications.
+
+--------------------------------------------------
+
+STEP 4 — VERIFY COMPONENT IMPORTS
+
+In components that call useToast, ensure the import is correct.
+
+Example:
+
+import { useToast } from "@/hooks/use-toast"
+
+or
+
+import { useToast } from "@/components/ui/use-toast"
+
+Correct the import paths if they are wrong.
+
+--------------------------------------------------
+
+STEP 5 — ADD THE TOASTER PROVIDER
+
+Ensure the global toaster component is mounted in the root layout.
+
+Check:
+
+main.tsx
+or
+App.tsx
+
+Make sure the app includes:
+
+<Toaster />
+
+Example:
+
+import { Toaster } from "@/components/ui/toaster"
+
+function App() {
+  return (
+    <>
+      <Router />
+      <Toaster />
+    </>
+  )
+}
+
+--------------------------------------------------
+
+STEP 6 — TEST TOAST FUNCTION
+
+After fixing imports and provider, verify toast calls work.
+
+Example usage:
+
+const { toast } = useToast()
+
+toast({
+  title: "Export successful",
+  description: "Your dashboard has been exported."
+})
+
+--------------------------------------------------
+
+STEP 7 — ENSURE NO RUNTIME ERRORS
+
+After fixing:
+
+- useToast should be properly imported
+- Toaster should exist globally
+- runtime error should disappear
+
+--------------------------------------------------
+
+DELIVERABLE
+
+1. Identify the broken useToast references
+2. Fix or create the toast system
+3. Ensure correct imports
+4. Ensure <Toaster /> exists in the root app
+5. Confirm the runtime error is resolved
+6. Explain what files were modified

@@ -49,6 +49,7 @@ import { ExportDrawer } from "@/components/ExportDrawer";
 import { WidgetInspector } from "@/components/WidgetInspector";
 import { WidgetLibraryContent, WidgetLibraryMobile, widgetCategories } from "@/components/WidgetLibrary";
 import { WidgetRenderer } from "@/components/visualizations/WidgetRenderer";
+import { useToast } from "@/hooks/use-toast";
 
 function InsightsWidgetContent({ sector, title }: { sector: string, title?: string }) {
   const [insights, setInsights] = useState<any>(null);
