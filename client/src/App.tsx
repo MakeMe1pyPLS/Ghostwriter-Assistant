@@ -9,6 +9,7 @@ import HomePage from "@/pages/home";
 import PricingPage from "@/pages/pricing";
 import FeaturesPage from "@/pages/features";
 import ContactPage from "@/pages/contact";
+import CheckoutSuccessPage from "@/pages/checkout-success";
 
 import BuilderPage from "@/pages/builder";
 import DashboardPage from "@/pages/dashboard";
@@ -24,6 +25,7 @@ function Router() {
       <Route path="/pricing" component={PricingPage} />
       <Route path="/features" component={FeaturesPage} />
       <Route path="/contact" component={ContactPage} />
+      <Route path="/checkout/success" component={CheckoutSuccessPage} />
       <Route path="/demo" component={BuilderPage} />
 
       <Route path="/builder" component={BuilderPage} />

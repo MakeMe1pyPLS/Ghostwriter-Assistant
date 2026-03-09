@@ -1,9 +1,23 @@
 import { MarketingLayout } from "@/components/layout/MarketingLayout";
 import { Button } from "@/components/ui/button";
-import { Link } from "wouter";
-import { Check, ArrowRight, Sparkles } from "lucide-react";
+import { Link, useLocation } from "wouter";
+import { Check, ArrowRight, Sparkles, Loader2 } from "lucide-react";
+import { useState } from "react";
 
 export default function PricingPage() {
+  const [, setLocation] = useLocation();
+  const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
+
+  const handleCheckout = () => {
+    setIsCheckoutLoading(true);
+    // TODO: Wire this up to real Stripe checkout session creation
+    // e.g. fetch('/api/create-checkout-session', { method: 'POST' })
+    // For now, simulate network delay and redirect to success
+    setTimeout(() => {
+      setLocation("/checkout/success");
+    }, 800);
+  };
+
   return (
     <MarketingLayout>
       <div className="pt-20 pb-32 px-4 md:px-6">
@@ -15,30 +29,38 @@ export default function PricingPage() {
         <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-8 md:gap-12 items-start">
           
           {/* Main Pricing Card */}
-          <div className="bg-white rounded-[2rem] p-8 md:p-10 border-2 border-primary shadow-2xl shadow-primary/10 relative">
-            <div className="absolute top-0 right-8 -translate-y-1/2 bg-primary text-white px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5">
+          <div className="bg-white rounded-[2rem] p-8 md:p-10 border-2 border-primary shadow-2xl shadow-primary/10 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-primary/5 blur-[80px] rounded-full translate-x-1/2 -translate-y-1/2 pointer-events-none group-hover:bg-primary/10 transition-colors duration-500" />
+            
+            <div className="absolute top-0 right-8 -translate-y-1/2 bg-primary text-white px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 shadow-lg shadow-primary/30">
               <Sparkles className="w-3 h-3" />
               Founder Price
             </div>
             
-            <div className="mb-8">
+            <div className="mb-8 relative z-10">
               <h2 className="text-2xl font-black text-slate-900 mb-2">ChainInsideIQ Pro</h2>
               <p className="text-sm text-slate-500 font-medium">Everything you need to build and export professional analytics.</p>
             </div>
             
-            <div className="mb-8 flex items-end gap-2">
+            <div className="mb-8 flex items-end gap-2 relative z-10">
               <span className="text-6xl font-black text-slate-900 tracking-tighter">$79</span>
               <span className="text-slate-500 font-bold mb-2">/month</span>
               <span className="text-sm text-slate-400 line-through mb-2 ml-2">$149</span>
             </div>
             
-            <Link href="/contact">
-              <Button className="w-full h-14 rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl shadow-primary/20 hover:-translate-y-0.5 transition-all">
-                Start Pro <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
-            </Link>
+            <Button 
+              onClick={handleCheckout}
+              disabled={isCheckoutLoading}
+              className="w-full h-14 rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl shadow-primary/20 hover:-translate-y-0.5 transition-all relative z-10"
+            >
+              {isCheckoutLoading ? (
+                <>Processing <Loader2 className="w-5 h-5 ml-2 animate-spin" /></>
+              ) : (
+                <>Start Pro <ArrowRight className="w-5 h-5 ml-2" /></>
+              )}
+            </Button>
             
-            <div className="mt-8 space-y-4">
+            <div className="mt-8 space-y-4 relative z-10">
               <h4 className="text-xs font-black text-slate-900 uppercase tracking-widest mb-4">What's included:</h4>
               {[
                 "Dashboard Builder",
@@ -62,7 +84,7 @@ export default function PricingPage() {
 
           {/* Add-ons & Services */}
           <div className="space-y-6">
-            <div className="bg-[#F4F7FA] rounded-3xl p-8 border border-slate-200">
+            <div className="bg-[#F4F7FA] rounded-3xl p-8 border border-slate-200 transition-colors hover:border-slate-300">
               <h3 className="text-lg font-black text-slate-900 mb-6">Expert Services</h3>
               <div className="space-y-6">
                 {[
@@ -80,13 +102,13 @@ export default function PricingPage() {
                 ))}
               </div>
               <Link href="/contact">
-                <Button variant="outline" className="w-full mt-6 h-12 rounded-xl font-bold uppercase tracking-widest text-xs border-slate-300">
+                <Button variant="outline" className="w-full mt-6 h-12 rounded-xl font-bold uppercase tracking-widest text-xs border-slate-300 bg-white hover:bg-slate-50">
                   Book Setup
                 </Button>
               </Link>
             </div>
 
-            <div className="bg-[#F4F7FA] rounded-3xl p-8 border border-slate-200">
+            <div className="bg-[#F4F7FA] rounded-3xl p-8 border border-slate-200 transition-colors hover:border-slate-300">
               <h3 className="text-lg font-black text-slate-900 mb-6">Native Add-ons</h3>
               <div className="space-y-4">
                 {["Excel AI Add-on", "Power BI AI Add-on", "Tableau AI Add-on", "Google Sheets Add-on"].map((addon, i) => (
@@ -95,10 +117,14 @@ export default function PricingPage() {
                       <div className="w-2 h-2 rounded-full bg-slate-300" />
                       <span className="font-bold text-slate-700 text-sm">{addon}</span>
                     </div>
-                    <span className="text-xs font-bold text-slate-500">+$29/mo</span>
+                    <span className="text-xs font-black text-slate-500 bg-slate-100 px-2 py-1 rounded-md">+$29/mo</span>
                   </div>
                 ))}
               </div>
+            </div>
+            
+            <div className="flex items-center justify-center gap-2 text-xs font-medium text-slate-400 mt-8">
+               Questions? <a href="mailto:support@chaininsideiq.com" className="font-bold text-primary hover:underline">Contact Sales</a>
             </div>
           </div>
 

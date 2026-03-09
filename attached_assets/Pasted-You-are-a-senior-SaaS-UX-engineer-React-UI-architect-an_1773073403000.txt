@@ -1,0 +1,358 @@
+You are a senior SaaS UX engineer, React UI architect, and Stripe integration engineer.
+
+Refactor and improve my application:
+
+“ChainInsideIQ — AI Dashboard Generator Platform”.
+
+DO NOT rebuild the whole application from scratch.
+
+Improve the “AI Supply Chain Analyst” interface and also add a polished pre-launch payment flow using Stripe so the product feels launch-ready.
+
+The application should feel like a premium SaaS product with:
+1) a much better AI analyst interface
+2) a clean pricing / checkout / success flow
+3) Stripe-ready purchase setup before launch
+
+Use the existing app structure and improve it in-place.
+
+STACK
+- React + Vite + TypeScript
+- TailwindCSS
+- Existing UI components where possible
+- Keep code modular
+- Stripe integration should be structured cleanly for Replit deployment
+
+==================================================
+PART 1 — AI SUPPLY CHAIN ANALYST UX IMPROVEMENT
+==================================================
+
+PRIMARY UX GOAL
+
+Transform the AI Supply Chain Analyst into a structured interface with 3 sections:
+
+1) AI Insight Summary Panel
+2) Scrollable Prompt Suggestions
+3) AI Chat Interaction Area
+
+Everything should feel clean, organized, and professional.
+
+--------------------------------------------------
+1) AI INSIGHT SUMMARY PANEL
+--------------------------------------------------
+
+The top section should display AI-generated insights clearly.
+
+Replace the current cramped text blocks with structured insight cards.
+
+Each insight card should show:
+
+- Title
+- Short explanation
+- Why it matters
+- Recommended action
+
+Example structure:
+
+Supply Chain Signal
+
+Cash-to-Cash Cycle Increased
+• Cycle extended to 16 days
+• Safety stock increased by 15%
+• Supplier lead times increased
+
+Why this matters
+This reduces liquidity and indicates a growing bullwhip effect across the supply chain.
+
+Recommended Action
+Review supplier lead times and adjust reorder policies.
+
+Display insights as cards with:
+- soft borders
+- padding
+- clean typography
+- icons where appropriate
+
+Do NOT split sentences into awkward vertical columns.
+Text should wrap naturally.
+
+--------------------------------------------------
+2) SCROLLABLE PROMPT SUGGESTION PANEL
+--------------------------------------------------
+
+Replace the small prompt buttons with a scrollable suggestion menu.
+
+Instead of random small pills scattered in the panel, create a clean list.
+
+Add a scrollable container that shows suggested questions the user can ask.
+
+Example layout:
+
+Suggested Questions
+
+- Why did on-time delivery drop?
+- What KPI needs urgent attention?
+- What should we do next?
+- Summarize this dashboard for leadership
+- Forecast the next 14 days
+- Which supply chain node is creating the most delays?
+
+Each item should be clickable.
+
+When clicked:
+- the prompt should automatically populate the chat input
+- and optionally trigger analysis
+
+The suggestion list should be vertically scrollable if it exceeds the panel height.
+
+Use subtle hover effects.
+
+--------------------------------------------------
+3) AI CHAT INTERACTION PANEL
+--------------------------------------------------
+
+Below the suggestion panel create a proper AI chat interface.
+
+Structure:
+- Scrollable conversation feed
+- User message bubble
+- AI response bubble
+
+AI responses should support:
+- bullet points
+- short paragraphs
+- highlighted KPI references
+
+The chat input should stay fixed at the bottom.
+
+Replace the current simple input with:
+
+Placeholder:
+“Ask the AI Supply Chain Analyst...”
+
+Also include:
+- Send icon
+- keyboard submit support
+
+--------------------------------------------------
+4) BETTER VISUAL HIERARCHY
+--------------------------------------------------
+
+Improve spacing and readability.
+
+Use:
+- clear section titles
+- consistent margins
+- soft card shadows
+- rounded containers
+
+Avoid text splitting across narrow columns.
+
+AI responses should expand naturally across the container width.
+
+--------------------------------------------------
+5) RESPONSIVE DESIGN
+--------------------------------------------------
+
+Ensure the AI panel works well on:
+- desktop
+- tablet
+- mobile
+
+On smaller screens:
+- stack sections vertically
+- suggested questions can collapse into a dropdown or accordion
+
+--------------------------------------------------
+6) DEMO MODE LABEL
+--------------------------------------------------
+
+Keep the existing "Demo Mode" badge.
+
+Also display:
+
+Active Intelligence: Unified
+
+or
+
+Active Intelligence: E-commerce
+Active Intelligence: Logistics
+Active Intelligence: Manufacturing
+
+based on selected sector.
+
+--------------------------------------------------
+7) OPTIONAL UX ENHANCEMENTS
+--------------------------------------------------
+
+Add these improvements if possible:
+- loading animation when AI generates response
+- typing indicator
+- ability to collapse insight cards
+- "Copy Insight" button
+- "Generate Executive Summary" quick button
+
+--------------------------------------------------
+8) CODE REQUIREMENTS
+--------------------------------------------------
+
+Do NOT introduce heavy dependencies.
+
+Use:
+- React
+- Tailwind
+- existing UI components where possible
+
+Keep the code modular.
+
+Create or improve components such as:
+- AISummaryPanel
+- AISuggestedPrompts
+- AIChatPanel
+- AIResponseCard
+
+==================================================
+PART 2 — PRICING / CHECKOUT / STRIPE PRE-LAUNCH FLOW
+==================================================
+
+Add a polished pre-launch payment flow so the SaaS is ready to sell.
+
+PRIMARY GOAL
+Allow users to:
+1) view pricing
+2) click “Start Pro”
+3) go through Stripe checkout
+4) land on a clean success / purchase confirmation page
+5) return back into the app or website
+
+--------------------------------------------------
+1) PRICING PAGE / CTA FLOW
+--------------------------------------------------
+
+Create or improve the pricing flow using the existing SaaS design.
+
+Use the Pro-only model.
+
+Pricing content:
+- Founder Price: $79/month
+- Standard Price: $99/month
+- Future Price: $149/month
+
+Include:
+- Start Pro
+- Book Setup
+- Contact Sales
+- Request Custom Dashboard
+
+The “Start Pro” button should be wired for Stripe readiness.
+
+--------------------------------------------------
+2) STRIPE INTEGRATION STRUCTURE
+--------------------------------------------------
+
+Set up the frontend and backend structure for Stripe checkout.
+
+Requirements:
+- Create a clean purchase button flow
+- Add endpoint for Stripe checkout session creation
+- Use environment variables for Stripe keys
+- Do not hardcode secret keys
+- Prepare the app for pre-launch Stripe testing in Replit
+
+Suggested backend routes:
+- POST /api/create-checkout-session
+- POST /api/stripe-webhook
+
+Frontend behavior:
+- User clicks “Start Pro”
+- App requests checkout session from backend
+- User is redirected to Stripe Checkout
+- On success user is redirected to a success page
+- On cancel user returns to pricing page with clean feedback
+
+If full Stripe integration cannot be fully completed in one pass, scaffold the structure cleanly and leave TODO comments where needed.
+
+--------------------------------------------------
+3) SUCCESS / PURCHASE CONFIRMATION PAGE
+--------------------------------------------------
+
+Create a polished success page after checkout.
+
+Route example:
+- /checkout/success
+
+This page should feel finished and premium.
+
+Include:
+- Success headline
+- Confirmation message
+- “Welcome to ChainInsideIQ Pro”
+- summary of what they unlocked
+- buttons:
+  - Go to App
+  - Back to Home
+  - View Pricing
+  - Request Setup
+
+Suggested copy:
+“Your Pro access is ready. You can now explore the dashboard builder, AI Supply Chain Analyst, exports, and advanced intelligence features.”
+
+Also create a cancel/failure state:
+- /checkout/cancel
+with a softer message and CTA back to pricing/demo.
+
+--------------------------------------------------
+4) DEMO TO PURCHASE FLOW
+--------------------------------------------------
+
+The demo/app should feel connected to the purchase path.
+
+In the demo or app top bar, add visible actions such as:
+- Back to Home
+- Pricing
+- Upgrade to Pro
+- Request Setup
+
+If helpful, add a subtle upgrade CTA within the demo:
+“Want exports, AI, and advanced features? Upgrade to Pro.”
+
+--------------------------------------------------
+5) SUPPORT / CONTACT TOUCHPOINTS
+--------------------------------------------------
+
+On the success page or pricing page, include:
+- support email placeholder
+- Request Setup CTA
+- Contact Sales CTA
+
+This makes the product feel more real and launch-ready.
+
+==================================================
+PART 3 — LAUNCH-READY POLISH
+==================================================
+
+Make the combined result feel like a real product.
+
+Add or improve:
+- clean top navigation links between home, pricing, demo, and checkout success
+- premium button styling
+- strong CTA hierarchy
+- spacing consistency
+- subtle animations / hover states
+- mobile responsiveness across the AI panel and pricing/checkout flow
+
+==================================================
+DELIVERABLE
+==================================================
+
+After implementing:
+1) Explain which files were modified
+2) Explain how the new AI panel works
+3) Explain how the pricing / checkout / success flow works
+4) Confirm the app now includes:
+   - organized AI insight cards
+   - scrollable prompt suggestions
+   - proper AI chat interface
+   - clean responsive layout
+   - pricing-to-checkout flow
+   - Stripe-ready pre-launch purchase structure
+   - finished success page
