@@ -1,0 +1,241 @@
+You are a senior React dashboard engineer and data visualization architect.
+
+Refactor the visualization system inside my application:
+
+"ChainInsideIQ — AI Dashboard Generator Platform"
+
+The goal is to fix a bug and also upgrade the visualization system to feel like a real enterprise analytics platform.
+
+DO NOT rebuild the entire app.
+Improve the visualization engine in-place.
+
+--------------------------------------------------
+
+CURRENT BUG
+
+When I change a KPI widget visualization type inside the Widget Settings / Inspector (for example selecting "Donut Chart"), the widget still renders a Line Chart.
+
+This means the visualization selector is not correctly controlling the rendered chart.
+
+--------------------------------------------------
+
+PRIMARY GOAL
+
+1) Fix the visualization selector bug.
+2) Build a proper visualization library system.
+3) Make charts richer with numbers, labels, and formatting.
+
+--------------------------------------------------
+
+1) FIX VISUALIZATION TYPE STATE
+
+Each widget must store its visualization type.
+
+Example widget structure:
+
+{
+  id: "widget-1",
+  type: "kpi",
+  visualization: "donut",
+  kpi: "Perfect Order Rate",
+  dataSource: "metrics"
+}
+
+The visualization property must control the chart renderer.
+
+When the user changes the visualization in the widget inspector:
+
+Line
+Bar
+Donut
+Area
+Table
+KPI Card
+
+The widget state must update and re-render the correct chart.
+
+--------------------------------------------------
+
+2) ENSURE RENDER FUNCTION USES VISUALIZATION TYPE
+
+Currently the renderer likely defaults to a line chart.
+
+Update the rendering logic so it dynamically renders based on widget.visualization.
+
+Example logic:
+
+if visualization === "line"
+render LineChart
+
+if visualization === "bar"
+render BarChart
+
+if visualization === "donut"
+render DonutChart
+
+if visualization === "area"
+render AreaChart
+
+if visualization === "table"
+render DataTable
+
+if visualization === "kpi"
+render KPICard
+
+--------------------------------------------------
+
+3) BUILD A VISUALIZATION LIBRARY
+
+Create a reusable chart library.
+
+Folder example:
+
+/components/charts
+  LineChartWidget.tsx
+  BarChartWidget.tsx
+  DonutChartWidget.tsx
+  AreaChartWidget.tsx
+  TableWidget.tsx
+  KPICardWidget.tsx
+
+Each chart should accept:
+
+data
+labels
+colors
+metric name
+
+--------------------------------------------------
+
+4) IMPROVE VISUAL QUALITY
+
+Charts should not look basic.
+
+Enhance visualizations using Recharts features:
+
+Donut charts should include:
+- numeric labels
+- percentages
+- center KPI value
+
+Example donut center text:
+
+On-Time Delivery
+97.2%
+
+Bar charts should include:
+- numeric labels above bars
+- tooltip values
+
+Line charts should include:
+- smooth lines
+- hover tooltip
+- grid lines
+- highlighted latest value
+
+Area charts should include:
+- soft gradient fill
+- trend direction indicator
+
+--------------------------------------------------
+
+5) KPI CARD VISUALIZATION
+
+When a KPI Card is selected:
+
+Allow optional visualization types:
+
+KPI only
+KPI + sparkline
+KPI + donut
+KPI + trend line
+
+Example card layout:
+
+Revenue
+
+$1.28M
+
+▲ +8.3%
+
+Mini trend chart
+
+--------------------------------------------------
+
+6) WIDGET INSPECTOR IMPROVEMENT
+
+Improve the widget inspector visualization selector.
+
+Instead of a simple dropdown, create a visual selector grid.
+
+Example options:
+
+Line Chart
+Bar Chart
+Donut Chart
+Area Chart
+Table
+KPI Card
+
+Each option should show a small preview icon.
+
+--------------------------------------------------
+
+7) ADD NUMBERS TO VISUALIZATIONS
+
+Charts must display real numeric information.
+
+Add:
+
+tooltips
+data labels
+percentage labels
+hover values
+axis values
+
+Donut charts should show:
+
+segment label
+percentage
+value
+
+--------------------------------------------------
+
+8) DATA HANDLING
+
+Charts should accept a structured dataset.
+
+Example:
+
+{
+  name: "Jan",
+  revenue: 120000,
+  orders: 420
+}
+
+Ensure charts properly map data keys.
+
+--------------------------------------------------
+
+9) RESPONSIVE CHARTS
+
+Charts must resize automatically inside widgets.
+
+Use responsive containers so they work in:
+
+desktop
+tablet
+mobile
+
+--------------------------------------------------
+
+10) DELIVERABLE
+
+1) Identify where the visualization type is stored
+2) Fix the bug where chart type doesn't change
+3) Implement visualization-based rendering
+4) Build reusable chart components
+5) Improve visual formatting
+6) Ensure KPI widgets can switch visualization types
+
+Explain which files were modified and how the visualization system now works.
