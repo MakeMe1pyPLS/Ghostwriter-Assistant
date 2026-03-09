@@ -22,7 +22,8 @@ import {
   ArrowUpToLine,
   ArrowDownToLine,
   LineChart as LineChartIcon,
-  Bot
+  Bot,
+  Download
 } from "lucide-react";
 import {
   AreaChart,
@@ -50,6 +51,8 @@ import { WidgetInspector } from "@/components/WidgetInspector";
 import { WidgetLibraryContent, WidgetLibraryMobile, widgetCategories } from "@/components/WidgetLibrary";
 import { WidgetRenderer } from "@/components/visualizations/WidgetRenderer";
 import { useToast } from "@/hooks/use-toast";
+import { buildSpecFromState, buildStateFromSpec, downloadSpecJson } from "@/lib/dashboard-spec";
+
 
 function InsightsWidgetContent({ sector, title }: { sector: string, title?: string }) {
   const [insights, setInsights] = useState<any>(null);
@@ -297,6 +300,49 @@ export default function BuilderPage() {
                  <Button variant="outline" onClick={() => resetLayout(true)} className="flex-1 md:flex-none rounded-xl shadow-sm font-bold text-[10px] md:text-xs uppercase tracking-wider h-9 md:h-10 border-slate-200 bg-white px-3 md:px-4">
                    Reset
                  </Button>
+               )}
+                              {!editMode && (
+                 <>
+                 <Button variant="outline" onClick={() => {
+                   const input = document.createElement('input');
+                   input.type = 'file';
+                   input.accept = 'application/json';
+                   input.onchange = (e) => {
+                     const file = (e.target as HTMLInputElement).files?.[0];
+                     if (!file) return;
+                     const reader = new FileReader();
+                     reader.onload = (event) => {
+                       try {
+                         const spec = JSON.parse(event.target?.result as string);
+                         if (spec.version === "1.0.0" && spec.widgets) {
+                                                      const { widgets: newWidgets, layouts: newLayouts } = buildStateFromSpec(spec);
+                           setWidgets(newWidgets);
+                           setLayout(newLayouts.lg || []);
+                           setLayouts(newLayouts);
+                           localStorage.setItem(`widgets_${sector}`, JSON.stringify(newWidgets));
+                           localStorage.setItem(`layout_${sector}`, JSON.stringify(newLayouts.lg || []));
+                           toast({ title: "Blueprint Imported", description: "Dashboard updated from spec." });
+                         } else {
+                           toast({ title: "Invalid Spec", description: "The uploaded file is not a valid v1.0.0 Dashboard Blueprint.", variant: "destructive" });
+                         }
+                       } catch (e) {
+                         toast({ title: "Import Failed", description: "Failed to parse JSON blueprint.", variant: "destructive" });
+                       }
+                     };
+                     reader.readAsText(file);
+                   };
+                   input.click();
+                 }} className="flex-1 md:flex-none rounded-xl shadow-sm font-bold text-[10px] md:text-xs uppercase tracking-wider h-9 md:h-10 border-slate-200 bg-white px-3 md:px-4">
+                   Import Spec
+                 </Button>
+                 <Button variant="outline" onClick={() => {
+                   const spec = buildSpecFromState("My Dashboard", sector, widgets, layouts);
+                   downloadSpecJson(spec);
+                   toast({ title: "Blueprint Exported", description: "Your Dashboard JSON spec has been downloaded." });
+                 }} className="flex-1 md:flex-none rounded-xl shadow-sm font-bold text-[10px] md:text-xs uppercase tracking-wider h-9 md:h-10 border-slate-200 bg-white px-3 md:px-4">
+                   <Download className="w-3.5 h-3.5 mr-1.5" /> Export Spec
+                 </Button>
+                 </>
                )}
                {!editMode && <div className="flex-1 md:flex-none"><TemplateGallery onSelect={applyTemplate} /></div>}
                {!editMode && <div className="flex-1 md:flex-none"><ExportDrawer layout={layout} widgets={widgets} sector={sector} dateRange={dateRange} /></div>}
