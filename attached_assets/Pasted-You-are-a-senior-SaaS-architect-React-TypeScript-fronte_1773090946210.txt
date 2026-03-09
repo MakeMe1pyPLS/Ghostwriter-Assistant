@@ -1,0 +1,336 @@
+You are a senior SaaS architect, React + TypeScript frontend engineer, and FastAPI backend engineer.
+
+Help me complete my SaaS platform in structured sprint order.
+
+Project name:
+“ChainInsideIQ — AI Dashboard Generator Platform”
+
+IMPORTANT
+- Do NOT rebuild the whole app from scratch.
+- Refactor and improve the current codebase in-place.
+- Work sprint by sprint.
+- At the end of each sprint, clearly confirm whether the sprint deliverable is complete.
+- Keep the current light + teal SaaS style unless a small improvement is needed.
+- Preserve existing working functionality unless the sprint requires refactoring it.
+
+PRIMARY GOAL
+Turn the existing dashboard builder into a full Dashboard Generator Platform that can:
+- save portable dashboard specs
+- render dashboards into tools
+- generate Excel dashboards
+- support AI insights
+- normalize data
+- export dashboards
+- connect to external data sources
+- support a Hub / alerts system
+- work well on desktop/tablet/mobile
+- become launch-ready
+
+==================================================
+SPRINT EXECUTION RULES
+==================================================
+
+For every sprint:
+
+1) Inspect the current repo structure first
+2) Identify the exact files to modify
+3) Implement only the current sprint goal
+4) Do not jump ahead unless needed structurally
+5) Explain file-by-file what changed
+6) Confirm the deliverable and milestone clearly at the end
+
+After completing each sprint, print a completion message like:
+
+“✅ Sprint X Complete: [Sprint Name]”
+
+If something is missing, explain exactly what remains.
+
+==================================================
+SPRINT 1 — DASHBOARD SPEC ENGINE
+==================================================
+
+GOAL
+Convert the builder into a dashboard blueprint generator.
+
+TASKS
+- Create DashboardSpec schema
+- Create WidgetSpec schema
+- Create responsive layout structure
+- Implement builder → spec mapper
+- Implement spec → builder mapper
+- Save spec to localStorage
+- Load spec on app startup
+- Add export dashboard JSON
+
+DELIVERABLE
+A dashboard can:
+- be created
+- be saved
+- be reloaded
+- be exported as JSON
+
+MILESTONE
+Builder now produces portable dashboard blueprints.
+
+IMPLEMENTATION NOTES
+- Create clean TypeScript types/schemas for DashboardSpec and WidgetSpec
+- Save the builder state as a portable spec
+- Ensure the builder can reload from the saved spec
+- Add a button or action to export dashboard_spec.json
+- Keep the builder usable while doing this
+
+==================================================
+SPRINT 2 — RENDERER ARCHITECTURE
+==================================================
+
+GOAL
+Create the foundation for rendering dashboards in multiple tools.
+
+TASKS
+- Create Renderer interface
+- Create BaseRenderer
+- Implement ExcelRenderer skeleton
+- Implement layout translator
+- Implement theme system
+
+DELIVERABLE
+System can convert a dashboard spec into a renderer instruction set.
+
+IMPLEMENTATION NOTES
+- Create a backend renderer architecture
+- Add a base renderer abstraction
+- Add ExcelRenderer as the first renderer target
+- Create a layout translator that maps spec layout into renderable placement instructions
+- Create a theme system that can be reused by renderers
+
+==================================================
+SPRINT 3 — EXCEL DASHBOARD GENERATOR
+==================================================
+
+GOAL
+Generate dashboards in Excel.
+
+TASKS
+- KPI card renderer
+- chart renderer
+- layout engine
+- Excel sheet generator
+- data sheet generator
+
+DELIVERABLE
+Exported Excel dashboard with:
+- KPI cards
+- charts
+- tables
+
+IMPLEMENTATION NOTES
+- Build a real Excel output using backend renderer logic
+- Start with:
+  - KPI cards
+  - line charts
+  - bar charts
+  - donut charts
+  - tables
+- Generate at least:
+  - Dashboard sheet
+  - Data sheet
+- Map builder widgets into native Excel structures
+- Keep CSV and JSON export intact
+
+==================================================
+SPRINT 4 — AI SUPPLY CHAIN ANALYST
+==================================================
+
+GOAL
+Add AI insight engine.
+
+TASKS
+- AI endpoints
+- chat widget
+- insight generator
+- forecasting generator
+- KPI explanation system
+
+DELIVERABLE
+AI can analyze dashboards.
+
+IMPLEMENTATION NOTES
+- Add backend AI endpoints:
+  - /api/ai/chat
+  - /api/ai/summary
+  - /api/ai/forecast
+  - /api/ai/recommend-kpis
+- Start with demo/rule-based provider if needed
+- Keep code structured so OpenAI can be plugged in later
+- Make AI responses sector-aware and KPI-aware
+
+==================================================
+SPRINT 5 — DATA ENGINE
+==================================================
+
+GOAL
+Create normalized data structure.
+
+TASKS
+- define entities
+- build metric engine
+- sector KPI groups
+- data transformation layer
+
+DELIVERABLE
+A normalized data model that can support multiple sectors and power the dashboards consistently.
+
+IMPLEMENTATION NOTES
+- Define common entities such as:
+  - orders
+  - shipments
+  - inventory
+  - products
+  - customers
+  - production_batches
+- Create sector KPI groups:
+  - ecommerce
+  - logistics
+  - manufacturing
+  - unified
+- Build a metric calculation layer
+- Build transformation helpers for imported datasets
+
+==================================================
+SPRINT 6 — EXPORT SYSTEM
+==================================================
+
+GOAL
+Export dashboards to multiple tools.
+
+TASKS
+- Excel export
+- CSV export
+- JSON export
+- dataset export
+
+DELIVERABLE
+Dashboards and datasets can be exported in usable formats.
+
+IMPLEMENTATION NOTES
+- Ensure Excel export uses the renderer
+- Keep CSV export working
+- Keep JSON export working
+- Add dataset export support
+- Use current builder/dashboard state for exports
+
+==================================================
+SPRINT 7 — DATA CONNECTORS
+==================================================
+
+GOAL
+Connect external data sources.
+
+TASKS
+- CSV import
+- SQL connector
+- Google Sheets connector
+- API ingestion
+
+DELIVERABLE
+Users can bring real data into the platform.
+
+IMPLEMENTATION NOTES
+- CSV import can be fully working first
+- SQL and Google Sheets can be scaffolded if needed
+- Add import flow UI if missing
+- Allow imported dataset to map into one sector at minimum
+
+==================================================
+SPRINT 8 — OPERATIONAL HUB
+==================================================
+
+GOAL
+Communication + alerts system.
+
+TASKS
+- alerts
+- notifications
+- feed system
+- severity levels
+
+DELIVERABLE
+A working operational hub for alerts and updates.
+
+IMPLEMENTATION NOTES
+- Build single-company operations command center behavior
+- Support:
+  - alerts
+  - notes
+  - issue tracking
+  - severity levels
+- Make alerts KPI-aware and sector-aware
+
+==================================================
+SPRINT 9 — RESPONSIVE UX
+==================================================
+
+GOAL
+Make SaaS fully usable on mobile/tablet.
+
+TASKS
+- responsive builder
+- responsive dashboard view
+- touch drag interactions
+
+DELIVERABLE
+The SaaS is usable on desktop, tablet, and phone.
+
+IMPLEMENTATION NOTES
+- Desktop: full builder
+- Tablet: collapse panels into drawers where needed
+- Phone: drag off by default, touch-friendly controls
+- Improve chart readability, card layout, and inspector behavior on smaller screens
+
+==================================================
+SPRINT 10 — LAUNCH
+==================================================
+
+GOAL
+Prepare SaaS for real customers.
+
+TASKS
+- onboarding
+- templates
+- pricing
+- marketing pages
+
+DELIVERABLE
+The SaaS feels launch-ready.
+
+IMPLEMENTATION NOTES
+- Improve onboarding flow
+- Add starter templates
+- Ensure pricing and demo site are connected
+- Keep room for Stripe integration later if not already active
+
+==================================================
+QUALITY REQUIREMENTS
+==================================================
+
+- Keep TypeScript clean
+- Keep FastAPI routes organized
+- Do not add unnecessary heavy dependencies
+- Prefer modular components and services
+- Preserve current working UI where possible
+- Explain all file changes clearly
+
+==================================================
+OUTPUT FORMAT
+==================================================
+
+For the current run:
+1) Start with Sprint 1 only
+2) Inspect the repo structure
+3) Identify the exact files to create/update
+4) Implement Sprint 1 fully
+5) Explain file-by-file changes
+6) End with:
+   ✅ Sprint 1 Complete: Dashboard Spec Engine
+
+Do not move to Sprint 2 until Sprint 1 is complete.
