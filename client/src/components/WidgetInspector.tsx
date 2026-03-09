@@ -55,7 +55,7 @@ export function WidgetInspector({
   }, {} as Record<string, typeof allMetrics>);
 
   const isAIWidget = ['summary', 'insights', 'chat', 'forecast'].includes(widget.type);
-  const isChartWidget = ['trend', 'bar', 'donut'].includes(widget.type);
+  const isChartWidget = ['trend', 'bar', 'donut', 'kpi', 'table', 'progress'].includes(widget.type);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -193,12 +193,22 @@ export function WidgetInspector({
                       <SelectTrigger className="h-9 text-xs rounded-xl shadow-sm border-slate-200 bg-white">
                         <SelectValue placeholder="Select visualization" />
                       </SelectTrigger>
-                      <SelectContent className="rounded-xl z-[105]">
-                        <SelectItem value="kpi" className="text-xs">KPI Card</SelectItem>
-                        <SelectItem value="trend" className="text-xs">Trend Chart</SelectItem>
-                        <SelectItem value="bar" className="text-xs">Bar Chart</SelectItem>
-                        <SelectItem value="donut" className="text-xs">Donut Chart</SelectItem>
-                        <SelectItem value="table" className="text-xs">Data Table</SelectItem>
+                      <SelectContent className="rounded-xl z-[105] max-h-[300px]">
+                        <SelectGroup>
+                          <SelectLabel className="text-[10px] text-slate-500 uppercase">Summary Cards</SelectLabel>
+                          <SelectItem value="kpi" className="text-xs">KPI Card</SelectItem>
+                        </SelectGroup>
+                        <SelectGroup>
+                          <SelectLabel className="text-[10px] text-slate-500 uppercase mt-2">Charts & Graphs</SelectLabel>
+                          <SelectItem value="trend" className="text-xs">Trend / Time Series</SelectItem>
+                          <SelectItem value="bar" className="text-xs">Bar / Comparison</SelectItem>
+                          <SelectItem value="donut" className="text-xs">Donut / Distribution</SelectItem>
+                          <SelectItem value="progress" className="text-xs">Progress Ring</SelectItem>
+                        </SelectGroup>
+                        <SelectGroup>
+                          <SelectLabel className="text-[10px] text-slate-500 uppercase mt-2">Data & Lists</SelectLabel>
+                          <SelectItem value="table" className="text-xs">Data Table</SelectItem>
+                        </SelectGroup>
                       </SelectContent>
                     </Select>
                   </div>
@@ -333,6 +343,24 @@ export function WidgetInspector({
               <h3 className="text-[10px] font-black text-slate-700 uppercase tracking-widest">Appearance</h3>
             </div>
             <div className="p-4 space-y-5">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Card Style Preset</Label>
+                <Select 
+                  value={widget.stylePreset || "soft"} 
+                  onValueChange={(val) => handleUpdate({ stylePreset: val })}
+                >
+                  <SelectTrigger className="h-9 text-xs rounded-xl shadow-sm border-slate-200 bg-white">
+                    <SelectValue placeholder="Select preset" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl z-[105]">
+                    <SelectItem value="soft" className="text-xs">Soft Modern (Default)</SelectItem>
+                    <SelectItem value="corporate" className="text-xs">Clean Corporate</SelectItem>
+                    <SelectItem value="elevated" className="text-xs">Elevated Insight</SelectItem>
+                    <SelectItem value="executive" className="text-xs">Executive Tile (Dark)</SelectItem>
+                    <SelectItem value="compact" className="text-xs">Compact Dense</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               {layoutItem && onUpdateLayout && (
                 <div className="space-y-2">
                   <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Size Preset</Label>
@@ -371,10 +399,21 @@ export function WidgetInspector({
                         <SelectValue placeholder="Select type" />
                       </SelectTrigger>
                       <SelectContent className="rounded-xl z-[105]">
-                        <SelectItem value="area" className="text-xs">Area</SelectItem>
-                        <SelectItem value="bar" className="text-xs">Bar</SelectItem>
-                        <SelectItem value="line" className="text-xs">Line</SelectItem>
-                        <SelectItem value="donut" className="text-xs">Donut</SelectItem>
+                        <SelectGroup>
+                          <SelectLabel className="text-[10px] text-slate-500 uppercase">Trend</SelectLabel>
+                          <SelectItem value="area" className="text-xs">Area</SelectItem>
+                          <SelectItem value="bar" className="text-xs">Bar</SelectItem>
+                          <SelectItem value="line" className="text-xs">Line</SelectItem>
+                        </SelectGroup>
+                        <SelectGroup>
+                          <SelectLabel className="text-[10px] text-slate-500 uppercase mt-2">Distribution</SelectLabel>
+                          <SelectItem value="donut" className="text-xs">Donut</SelectItem>
+                          <SelectItem value="pie" className="text-xs">Pie</SelectItem>
+                        </SelectGroup>
+                        <SelectGroup>
+                          <SelectLabel className="text-[10px] text-slate-500 uppercase mt-2">Part-to-Whole</SelectLabel>
+                          <SelectItem value="progress" className="text-xs">Progress Ring</SelectItem>
+                        </SelectGroup>
                       </SelectContent>
                     </Select>
                   </div>

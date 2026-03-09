@@ -1,0 +1,373 @@
+You are a senior SaaS product engineer, React UI architect, and analytics dashboard designer.
+
+Enhance my existing app:
+“ChainInsideIQ — AI Dashboard Generator Platform”
+
+DO NOT rebuild the whole app from scratch.
+Refactor and improve the current codebase in-place.
+
+PRIMARY GOALS
+1) Fix the visualization selection bug where a selected chart type (example: donut) is not rendering correctly.
+2) Build a real visualization library for dashboard users.
+3) Allow users to customize KPI cards and chart cards visually.
+4) Make the visualization system responsive and customizable on desktop, tablet, and phone.
+5) Make the visuals feel much more premium and modern, not basic.
+
+==================================================
+A) FIX THE VISUALIZATION SELECTION BUG
+==================================================
+
+CURRENT PROBLEM
+If I choose a KPI Card and set the visualization to Donut, it sometimes still loads a Line Chart instead of a Donut Chart.
+
+Fix this.
+
+REQUIREMENTS
+- When the user selects a visualization type in the widget inspector, the selected visualization must be the one that renders.
+- Recommended/default visualization logic must NOT overwrite the user’s manual selection after they change it.
+- Separate:
+  1) KPI / metric selection
+  2) recommended default visualization
+  3) user-selected manual override
+
+Expected behavior:
+- Metric selection may suggest a recommended chart
+- But once the user manually changes the visualization, that choice becomes authoritative
+- Renderer must respect the saved visualization type exactly
+
+Audit and fix:
+- widget inspector save logic
+- widget settings state
+- widget render switch/case mapping
+- chart component fallback behavior
+- stale state or incorrect config mapping
+
+==================================================
+B) BUILD A PROFESSIONAL VISUALIZATION LIBRARY (V1)
+==================================================
+
+I do NOT want a basic chart system.
+I want a real professional data visualization library inside the product.
+
+Create a Visualization Library panel or section in the widget system with categories.
+
+VISUALIZATION FAMILIES TO SUPPORT
+
+1) KPI / SUMMARY CARDS
+- KPI Card
+- KPI Card + Delta
+- KPI Card + Sparkline
+- KPI Card + Mini Trend
+- Scorecard
+- Executive Metric Tile
+
+2) TIME SERIES / TREND
+- Line Chart
+- Smooth Line Chart
+- Area Chart
+- Stacked Area Chart
+- Trend Comparison Chart
+- Forecast Line with Confidence Band
+
+3) COMPARISON / CATEGORY
+- Vertical Bar Chart
+- Horizontal Bar Chart
+- Grouped Bar Chart
+- Stacked Bar Chart
+- Ranked Category Bars
+
+4) PART-TO-WHOLE
+- Donut Chart
+- Pie Chart
+- Multi-ring Donut
+- Progress Ring / Radial KPI
+
+5) DISTRIBUTION / MIX
+- Histogram
+- Segment Mix Chart
+- Share of Category Visualization
+
+6) TABLE / DETAIL
+- Data Table
+- Highlight Table
+- KPI Matrix
+- Summary Grid
+
+7) OPERATIONAL / STATUS
+- Alert Summary Card
+- Status Breakdown Chart
+- Risk Level Card
+- Issue Tracker Summary
+
+8) AI / INTELLIGENCE
+- AI Insights Card
+- Executive Summary Block
+- Forecast Panel
+- Recommended Actions Panel
+
+IMPORTANT
+Do not just create placeholders.
+Actually create the visual component structure and make the main ones work cleanly:
+- KPI Card
+- KPI Card + Sparkline
+- Line
+- Area
+- Vertical Bar
+- Horizontal Bar
+- Donut
+- Progress Ring
+- Data Table
+- Forecast Panel
+- Executive Summary
+
+==================================================
+C) DATA / LABELS / VALUES INSIDE VISUALIZATIONS
+==================================================
+
+The visualizations must show useful business data, not just shapes.
+
+Implement:
+- numbers in charts where appropriate
+- percentages where appropriate
+- legends
+- tooltips
+- labels
+- center values in donut/progress charts
+- category labels + values
+- formatting options:
+  - currency
+  - percent
+  - integer
+  - decimal
+
+Examples:
+Donut chart:
+- Direct: 48% ($420K)
+- Distributor: 27% ($236K)
+- Retail: 25% ($218K)
+
+KPI card:
+- value
+- delta
+- sparkline
+- label
+- optional benchmark or target
+
+==================================================
+D) SECTOR-AWARE KPI + VISUAL LIBRARY
+==================================================
+
+Build a library of KPIs and recommended visuals for these categories:
+
+1) E-commerce
+KPIs:
+- Revenue
+- Orders
+- Average Order Value
+- Conversion Rate
+- ROAS
+- Returns Rate
+- Repeat Purchase Rate
+- Cart Abandonment
+- Product Performance
+- Sales by Channel
+
+Recommended visuals:
+- KPI cards
+- line charts
+- bar charts
+- donut charts
+- funnel-like summary sections if possible
+
+2) Manufacturing
+KPIs:
+- Units Produced
+- Throughput
+- Downtime
+- Defect Rate
+- Yield
+- Capacity Utilization
+- Lead Time
+- Scrap Rate
+- Batch Performance
+- Machine Utilization
+
+Recommended visuals:
+- KPI cards
+- line/area charts
+- bar charts
+- progress rings
+- status/risk panels
+
+3) Logistics Firm
+KPIs:
+- On-Time Delivery
+- Late Shipments
+- Shipment Volume
+- Cost per Shipment
+- Transit Time
+- Warehouse Utilization
+- Carrier Performance
+- Fulfillment Cycle Time
+- Delivery Exceptions
+- Regional Performance
+
+Recommended visuals:
+- KPI cards
+- line charts
+- horizontal bars
+- donut charts
+- map-ready placeholders if needed later
+- alert summaries
+
+4) Unified Supply Chain
+KPIs:
+- Perfect Order Rate
+- Cash-to-Cash Cycle Time
+- Available-to-Promise Accuracy
+- Bullwhip Effect Index
+- Inventory-to-Demand Risk
+- Cross-Sector Delay Impact
+
+Recommended visuals:
+- KPI cards
+- trend charts
+- multi-ring donuts
+- executive summaries
+- forecast panels
+- AI analysis cards
+
+5) Custom
+Allow the user to mix KPIs from any category.
+
+==================================================
+E) FULL CARD / VISUAL CUSTOMIZATION
+==================================================
+
+Users must be able to design the look of cards and visualizations more freely.
+
+Allow customization of:
+- card style preset
+- border radius
+- shadow intensity
+- padding
+- card density
+- title alignment
+- subtitle visibility
+- icon on/off
+- badge on/off
+- accent color
+- chart color palette
+- chart legend position
+- center label on/off
+- tooltip style
+- sparkline on/off
+- value formatting
+- background style
+- light card / dark card mode if possible
+
+CARD STYLE PRESETS
+Add style presets inspired by premium SaaS dashboard design, similar to:
+- clean corporate card
+- soft modern analytics card
+- executive KPI tile
+- elevated insight card
+- compact mobile card
+
+Do NOT copy external designs directly.
+Create premium-inspired configurable card presets.
+
+==================================================
+F) WIDGET INSPECTOR IMPROVEMENTS
+==================================================
+
+The widget inspector must fully support this system.
+
+In the inspector, add sections:
+1) Metric
+2) Visualization
+3) Data Labels
+4) Style
+5) Layout
+6) Advanced
+
+When the user changes:
+- visualization type
+- chart style
+- card preset
+- color
+- labels
+the widget preview should update immediately.
+
+==================================================
+G) RESPONSIVE CUSTOMIZATION (PHONE / TABLET / DESKTOP)
+==================================================
+
+Users must be able to customize visuals on:
+- desktop
+- tablet
+- phone
+
+Requirements:
+- inspector becomes drawer / bottom sheet on smaller screens
+- chart preview stays readable
+- card style options remain usable on touch screens
+- no clipping or overflow
+- donut charts and labels remain readable on smaller screens
+
+==================================================
+H) PREMIUM VISUAL QUALITY
+==================================================
+
+The visuals should not feel basic.
+
+Improve:
+- spacing
+- chart header layout
+- chart subtitles
+- data labels
+- tooltip cards
+- legend styling
+- empty states
+- loading skeletons
+
+Design direction:
+- premium SaaS dashboard quality
+- modern, clean, data-rich visuals
+- visually informative, not decorative
+
+==================================================
+I) CODE / ARCHITECTURE REQUIREMENTS
+==================================================
+
+Refactor cleanly.
+
+Need:
+- visualization registry / component map
+- clear metric-to-visual recommendation system
+- clear user override logic
+- modular chart/card components
+- no hardcoded line-chart fallback for all widgets
+
+If needed, create files/components such as:
+- visualizationRegistry.ts
+- metricVisualizationMap.ts
+- KPIVisualCard.tsx
+- DonutMetricChart.tsx
+- ProgressRingCard.tsx
+- ForecastPanel.tsx
+- VisualizationPicker.tsx
+
+==================================================
+J) DELIVERABLES
+==================================================
+
+1) Inspect the current repo structure first
+2) Identify builder, widget inspector, and visualization files
+3) Fix the visualization override bug
+4) Build the visualization library v1
+5) Add sector-aware KPI/visual mapping
+6) Add full style customization for cards/visuals
+7) Ensure mobile/tablet customization works
+8) Explain file-by-file what changed
+9) Confirm that when I select Donut, it renders Donut and does not fall back to Line unless explicitly chosen
