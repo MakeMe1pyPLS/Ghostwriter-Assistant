@@ -1,0 +1,160 @@
+You are a senior SaaS payments engineer, React frontend engineer, and FastAPI backend engineer.
+
+Enhance my existing SaaS application:
+
+“ChainInsideIQ — AI Dashboard Generator Platform”
+
+DO NOT rebuild the whole app from scratch.
+Refactor and improve the existing pricing / payment flow in-place.
+
+PRIMARY GOAL
+Fix the pricing-to-payment flow so it works like a real SaaS checkout experience powered by Stripe.
+
+CURRENT ISSUE
+When the user clicks “Start Pro” on the pricing page, it skips directly to a “You’re all set” state and then shows “Launch Platform.”
+This is not correct.
+
+REQUIRED FLOW
+I want the payment flow to work like this:
+
+1. User visits Pricing page
+2. User clicks “Start Pro”
+3. Stripe Checkout opens
+4. User enters card details
+5. User starts a 14-day free trial
+6. After successful Stripe checkout, redirect to a success page
+7. Success page says:
+   - “You’re all set”
+   - “Your 14-day free trial has started”
+   - button: “Launch Platform”
+8. User can then enter the SaaS
+
+IMPORTANT
+I want the user to enter card information first through Stripe Checkout before they get access to the platform.
+The success page should only happen AFTER the Stripe checkout is completed.
+
+==================================================
+1) STRIPE CHECKOUT FLOW
+==================================================
+
+Implement a proper Stripe Checkout subscription flow.
+
+Requirements:
+- Use Stripe Checkout Sessions
+- Subscription mode
+- 14-day free trial
+- Collect payment method / card details during checkout
+- Redirect to success page after checkout
+- Redirect to pricing page or cancel page if user cancels
+
+Backend route examples:
+- POST /api/create-checkout-session
+- POST /api/stripe-webhook
+
+Frontend behavior:
+- “Start Pro” button must call the backend
+- backend creates Stripe Checkout session
+- frontend redirects user to session.url
+
+The current issue where it immediately says “You’re all set” without asking for card info must be fixed.
+
+==================================================
+2) SUCCESS PAGE
+==================================================
+
+Create or improve a checkout success page.
+
+Route example:
+- /checkout/success
+
+This page should display:
+- headline: “You’re all set”
+- subheadline: “Your 14-day free trial has started”
+- confirmation that card details were successfully collected through Stripe
+- button: “Launch Platform”
+- optional button: “Back to Home”
+
+This page must only appear AFTER successful Stripe checkout.
+
+==================================================
+3) CANCEL PAGE
+==================================================
+
+Create a cancel page or pricing feedback state.
+
+Route example:
+- /checkout/cancel
+
+Display:
+- “Checkout canceled”
+- “You can return to pricing or try again”
+- buttons:
+  - “Back to Pricing”
+  - “Try Again”
+
+==================================================
+4) STRIPE CONFIGURATION
+==================================================
+
+Use environment variables for Stripe:
+- STRIPE_SECRET_KEY
+- STRIPE_PUBLIC_KEY
+- STRIPE_PRICE_ID
+- STRIPE_WEBHOOK_SECRET
+
+Do NOT hardcode secret keys.
+
+Use a recurring subscription product for:
+- ChainInsideIQ Pro
+- Founder pricing / launch pricing
+
+Configure trial period:
+- 14 days
+
+Make sure Stripe Checkout is set up to collect a payment method during trial signup.
+
+==================================================
+5) WEBHOOK / ACCOUNT ACTIVATION STRUCTURE
+==================================================
+
+Set up a webhook endpoint to prepare for proper subscription handling.
+
+Webhook should listen for:
+- checkout.session.completed
+
+For now, it is okay if webhook handling is scaffolded cleanly for later account activation logic.
+
+But the payment flow itself must work properly.
+
+==================================================
+6) UI / UX
+==================================================
+
+Make the flow feel premium and polished.
+
+Pricing page:
+- keep current design
+- Start Pro button should feel real and responsive
+
+Success page:
+- premium confirmation card
+- subtle success styling
+- clean spacing
+- clear Launch Platform CTA
+
+Cancel page:
+- clear but softer messaging
+- easy path back into pricing
+
+==================================================
+7) DELIVERABLES
+==================================================
+
+1. Inspect the current repo structure first
+2. Identify the pricing / checkout related files
+3. Fix the Start Pro flow so Stripe Checkout appears correctly
+4. Add a 14-day trial flow with card collection
+5. Create or improve success and cancel pages
+6. Explain file-by-file what changed
+7. Confirm the flow now works like this:
+   Pricing -> Start Pro -> Stripe Checkout -> Card input -> Success -> Launch Platform
