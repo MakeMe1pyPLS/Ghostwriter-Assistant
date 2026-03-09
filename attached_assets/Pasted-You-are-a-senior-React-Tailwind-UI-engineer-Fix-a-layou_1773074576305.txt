@@ -1,0 +1,142 @@
+You are a senior React + Tailwind UI engineer.
+
+Fix a layout issue in the pricing section of my SaaS website for:
+
+"ChainInsideIQ — AI Dashboard Generator Platform"
+
+DO NOT redesign the entire pricing page.
+
+The issue is specifically with the pricing card that displays:
+
+ChainInsideIQ Pro
+$79/month
+Founder Price badge
+
+Currently the "Founder Price" badge is cut off at the top of the pricing card.
+
+The badge is being clipped by the card container.
+
+The rest of the pricing design should remain the same.
+
+--------------------------------------------------
+
+PRIMARY GOAL
+
+Fix the pricing card so the “Founder Price” badge displays fully and cleanly above the card without being cut off.
+
+--------------------------------------------------
+
+PROBLEM DETAILS
+
+The badge appears partially outside the card and is clipped.
+
+This usually happens due to:
+
+- overflow: hidden on the card container
+- incorrect absolute positioning
+- insufficient top padding
+- parent container clipping
+
+--------------------------------------------------
+
+REQUIRED FIX
+
+1. Adjust the pricing card container so the badge can extend above the card safely.
+
+Possible fixes:
+
+- remove overflow:hidden from the card container
+- allow overflow-visible
+- add proper relative positioning
+- add spacing above the card
+- ensure badge positioning uses:
+
+position: absolute
+top: -12px or similar
+
+but does not get clipped.
+
+--------------------------------------------------
+
+2. Ensure the badge is anchored correctly.
+
+Badge should be positioned like this visually:
+
+        [Founder Price Badge]
+    ┌───────────────────────────┐
+    │ ChainInsideIQ Pro         │
+    │ $79 / month               │
+    │ Start Pro Button          │
+    │ Feature list              │
+    └───────────────────────────┘
+
+Badge should sit slightly above the card with a clean floating effect.
+
+--------------------------------------------------
+
+3. Improve the badge styling slightly if needed:
+
+Badge should have:
+
+- rounded pill style
+- subtle shadow
+- teal or accent color
+- clear text: “Founder Price”
+
+Example Tailwind style:
+
+absolute
+top-[-12px]
+right-4
+px-3
+py-1
+rounded-full
+text-xs
+font-semibold
+shadow-sm
+
+--------------------------------------------------
+
+4. Maintain responsive behavior.
+
+Ensure the badge remains visible on:
+
+- desktop
+- tablet
+- mobile
+
+The card should not clip the badge on smaller screens.
+
+--------------------------------------------------
+
+5. Do NOT break the rest of the pricing layout.
+
+The following elements must remain unchanged:
+
+- $79/month price
+- Start Pro button
+- feature list
+- card spacing
+- card shadows
+- color theme
+
+Only fix the badge overflow and card layout issue.
+
+--------------------------------------------------
+
+6. After fixing, verify:
+
+- badge is fully visible
+- badge floats above the card
+- card layout still looks premium
+- responsive layout still works
+
+--------------------------------------------------
+
+DELIVERABLE
+
+Explain:
+
+- which component was modified
+- which Tailwind classes were adjusted
+- how the overflow issue was fixed

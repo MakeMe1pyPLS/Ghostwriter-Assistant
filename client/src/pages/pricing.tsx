@@ -26,13 +26,16 @@ export default function PricingPage() {
           <p className="text-lg text-slate-500 font-medium">Get the complete AI dashboard generator platform with simple tiering for professional teams.</p>
         </div>
 
-        <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-8 md:gap-12 items-start">
+        <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-8 md:gap-12 items-start mt-8">
           
           {/* Main Pricing Card */}
-          <div className="bg-white rounded-[2rem] p-8 md:p-10 border-2 border-primary shadow-2xl shadow-primary/10 relative overflow-hidden group">
-            <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-primary/5 blur-[80px] rounded-full translate-x-1/2 -translate-y-1/2 pointer-events-none group-hover:bg-primary/10 transition-colors duration-500" />
+          <div className="bg-white rounded-[2rem] p-8 md:p-10 border-2 border-primary shadow-2xl shadow-primary/10 relative overflow-visible group mt-4">
+            {/* Inner background container to clip glows but let the badge break out */}
+            <div className="absolute inset-0 rounded-[2rem] overflow-hidden pointer-events-none">
+              <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-primary/5 blur-[80px] rounded-full translate-x-1/2 -translate-y-1/2 group-hover:bg-primary/10 transition-colors duration-500" />
+            </div>
             
-            <div className="absolute top-0 right-8 -translate-y-1/2 bg-primary text-white px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 shadow-lg shadow-primary/30">
+            <div className="absolute -top-4 right-6 md:right-8 bg-primary text-white px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 shadow-lg shadow-primary/30 z-20 border-2 border-white">
               <Sparkles className="w-3 h-3" />
               Founder Price
             </div>
