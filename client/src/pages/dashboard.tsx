@@ -144,7 +144,7 @@ export default function DashboardPage() {
             </div>
           </div>
           <div className="flex gap-2 md:gap-4 flex-wrap">
-             <ExportDrawer layout={layout} widgets={widgets} sector={sector} dateRange={dateRange} />
+             <ExportDrawer layout={layout} widgets={widgets} sector={sector} dateRange={dateRange} metrics={metrics} chartData={chartData} donutData={donutData} allMetrics={allMetrics} />
              <Button variant="outline" className="rounded-xl font-black text-[10px] uppercase tracking-widest h-9 md:h-12 px-4 md:px-6 shadow-sm border-slate-200">
                <Share2 className="w-4 h-4 md:mr-2" /> <span className="hidden md:inline">Share View</span>
              </Button>

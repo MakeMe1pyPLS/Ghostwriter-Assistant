@@ -1,10 +1,23 @@
 import { Button } from "@/components/ui/button";
 import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
-import { Download, FileJson, FileSpreadsheet, FileText, Image as ImageIcon, Monitor } from "lucide-react";
+import { Download, FileJson, FileSpreadsheet, FileText, Image as ImageIcon, Monitor, Loader2, Table2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
 
-export function ExportDrawer({ layout, widgets, sector, dateRange = '30d' }: { layout: any, widgets: any, sector: string, dateRange?: string }) {
+interface ExportDrawerProps {
+  layout: any;
+  widgets: any;
+  sector: string;
+  dateRange?: string;
+  metrics?: any[];
+  chartData?: any[];
+  donutData?: any[];
+  allMetrics?: any[];
+}
+
+export function ExportDrawer({ layout, widgets, sector, dateRange = '30d', metrics, chartData, donutData, allMetrics }: ExportDrawerProps) {
   const { toast } = useToast();
+  const [excelLoading, setExcelLoading] = useState(false);
 
   const handleRealExport = (type: 'csv' | 'json') => {
     if (type === 'json') {
@@ -17,7 +30,7 @@ export function ExportDrawer({ layout, widgets, sector, dateRange = '30d' }: { l
           isAI: ['insights', 'chat', 'forecast', 'summary'].includes(w.type)
         })),
         layouts: {
-          lg: layout // In real app, we'd pull all layouts
+          lg: layout
         },
         ai_enabled: widgets.some((w: any) => ['insights', 'chat', 'forecast', 'summary'].includes(w.type)),
         styling: { theme: 'light', primary: 'teal' }
@@ -31,7 +44,6 @@ export function ExportDrawer({ layout, widgets, sector, dateRange = '30d' }: { l
       a.click();
       toast({ title: "Exported", description: "JSON specification downloaded." });
     } else {
-      // Mock CSV
       const csv = "id,type,metric\n" + widgets.map((w: any) => `${w.id},${w.type},${w.metricIndex || ''}`).join('\n');
       const blob = new Blob([csv], { type: 'text/csv' });
       const url = URL.createObjectURL(blob);
@@ -43,6 +55,56 @@ export function ExportDrawer({ layout, widgets, sector, dateRange = '30d' }: { l
     }
   };
 
+  const handleExcelExport = async () => {
+    setExcelLoading(true);
+    try {
+      const payload = {
+        spec: {
+          meta: {
+            title: `${sector.charAt(0).toUpperCase() + sector.slice(1)} Dashboard`,
+            sectorContext: sector
+          },
+          widgets: widgets,
+          globalConfig: { theme: 'light', dateRange, primaryColor: 'teal' }
+        },
+        data: {
+          metrics: metrics || [],
+          chartData: chartData || [],
+          donutData: donutData || [],
+          allMetrics: allMetrics || []
+        },
+        layouts: { lg: layout },
+        widgets: widgets
+      };
+
+      const response = await fetch('/api/export/excel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Export failed');
+      }
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `dashboard-${sector}-${Date.now()}.xlsx`;
+      a.click();
+      URL.revokeObjectURL(url);
+
+      toast({ title: "Excel Exported", description: "Your dashboard workbook has been downloaded." });
+    } catch (err: any) {
+      console.error('Excel export error:', err);
+      toast({ title: "Export Failed", description: err.message || "Could not generate Excel file.", variant: "destructive" });
+    } finally {
+      setExcelLoading(false);
+    }
+  };
+
   const handleStubExport = (tool: string) => {
     toast({ title: "Connecting...", description: `Exporting directly to ${tool} requires backend integration.` });
   };
@@ -50,7 +112,7 @@ export function ExportDrawer({ layout, widgets, sector, dateRange = '30d' }: { l
   return (
     <Drawer>
       <DrawerTrigger asChild>
-        <Button variant="outline" className="rounded-xl border-slate-200 shadow-sm bg-white font-bold text-[10px] md:text-xs uppercase tracking-wider h-9 md:h-10 w-full md:w-auto px-3 md:px-4 hover:bg-slate-50 transition-colors">
+        <Button data-testid="button-export" variant="outline" className="rounded-xl border-slate-200 shadow-sm bg-white font-bold text-[10px] md:text-xs uppercase tracking-wider h-9 md:h-10 w-full md:w-auto px-3 md:px-4 hover:bg-slate-50 transition-colors">
           <Download className="w-3 h-3 md:w-4 md:h-4 mr-1.5 md:mr-2" />
           Export
         </Button>
@@ -62,14 +124,22 @@ export function ExportDrawer({ layout, widgets, sector, dateRange = '30d' }: { l
             <DrawerDescription className="text-sm font-medium text-slate-500">Download specifications or send directly to BI tools.</DrawerDescription>
           </DrawerHeader>
           <div className="p-4 pb-0 space-y-5">
-             <div className="grid grid-cols-2 gap-3">
-               <Button onClick={() => handleRealExport('json')} variant="secondary" className="h-24 flex flex-col gap-3 rounded-xl bg-slate-50 hover:bg-primary/5 hover:border-primary/20 border border-transparent transition-all">
+             <div className="grid grid-cols-3 gap-3">
+               <Button data-testid="button-export-json" onClick={() => handleRealExport('json')} variant="secondary" className="h-24 flex flex-col gap-3 rounded-xl bg-slate-50 hover:bg-primary/5 hover:border-primary/20 border border-transparent transition-all">
                  <FileJson className="w-6 h-6 text-primary" />
-                 <span className="text-[11px] uppercase font-black tracking-widest text-slate-700">JSON Spec</span>
+                 <span className="text-[11px] uppercase font-black tracking-widest text-slate-700">JSON</span>
                </Button>
-               <Button onClick={() => handleRealExport('csv')} variant="secondary" className="h-24 flex flex-col gap-3 rounded-xl bg-emerald-50 hover:bg-emerald-100/50 hover:border-emerald-200 border border-transparent transition-all text-emerald-800">
-                 <FileSpreadsheet className="w-6 h-6 text-emerald-600" />
-                 <span className="text-[11px] uppercase font-black tracking-widest">Raw CSV</span>
+               <Button data-testid="button-export-csv" onClick={() => handleRealExport('csv')} variant="secondary" className="h-24 flex flex-col gap-3 rounded-xl bg-emerald-50 hover:bg-emerald-100/50 hover:border-emerald-200 border border-transparent transition-all text-emerald-800">
+                 <Table2 className="w-6 h-6 text-emerald-600" />
+                 <span className="text-[11px] uppercase font-black tracking-widest">CSV</span>
+               </Button>
+               <Button data-testid="button-export-excel" onClick={handleExcelExport} disabled={excelLoading} variant="secondary" className="h-24 flex flex-col gap-3 rounded-xl bg-green-50 hover:bg-green-100/50 hover:border-green-200 border border-transparent transition-all text-green-800">
+                 {excelLoading ? (
+                   <Loader2 className="w-6 h-6 text-green-600 animate-spin" />
+                 ) : (
+                   <FileSpreadsheet className="w-6 h-6 text-green-600" />
+                 )}
+                 <span className="text-[11px] uppercase font-black tracking-widest">Excel</span>
                </Button>
              </div>
              
