@@ -11,10 +11,9 @@ export interface WidgetPlacement {
   range: CellRange;
 }
 
-const GRID_COLS = 12;
 const COL_MULTIPLIER = 2;
-const ROW_MULTIPLIER = 4;
-const START_ROW = 5;
+const ROW_MULTIPLIER = 5;
+const START_ROW = 7;
 const START_COL = 2;
 
 export function computeWidgetPlacements(widgets: any[], layouts: any): WidgetPlacement[] {
@@ -54,54 +53,48 @@ function fallbackPlacement(widgets: any[]): WidgetPlacement[] {
   const tables = widgets.filter(w => w.type === 'table');
   const others = widgets.filter(w => !kpis.includes(w) && !charts.includes(w) && !tables.includes(w));
 
+  const kpiWidth = 6;
+  const kpiHeight = 5;
   let col = START_COL;
   for (const kpi of kpis) {
-    const w = 6;
-    const h = 4;
     placements.push({
       widgetId: kpi.id,
       type: 'kpi',
-      range: { startCol: col, startRow: currentRow, endCol: col + w - 1, endRow: currentRow + h - 1 }
+      range: { startCol: col, startRow: currentRow, endCol: col + kpiWidth - 1, endRow: currentRow + kpiHeight - 1 }
     });
-    col += w;
+    col += kpiWidth;
     if (col >= START_COL + 24) {
       col = START_COL;
-      currentRow += h + 1;
+      currentRow += kpiHeight + 2;
     }
   }
-  if (kpis.length > 0) currentRow += 5;
+  if (kpis.length > 0) currentRow += kpiHeight + 3;
 
   for (const chart of charts) {
-    const w = 24;
-    const h = 16;
     placements.push({
       widgetId: chart.id,
       type: chart.chartType || chart.type,
-      range: { startCol: START_COL, startRow: currentRow, endCol: START_COL + w - 1, endRow: currentRow + h - 1 }
+      range: { startCol: START_COL, startRow: currentRow, endCol: START_COL + 23, endRow: currentRow + 17 }
     });
-    currentRow += h + 2;
+    currentRow += 20;
   }
 
   for (const table of tables) {
-    const w = 24;
-    const h = 12;
     placements.push({
       widgetId: table.id,
       type: 'table',
-      range: { startCol: START_COL, startRow: currentRow, endCol: START_COL + w - 1, endRow: currentRow + h - 1 }
+      range: { startCol: START_COL, startRow: currentRow, endCol: START_COL + 23, endRow: currentRow + 14 }
     });
-    currentRow += h + 2;
+    currentRow += 17;
   }
 
   for (const other of others) {
-    const w = 12;
-    const h = 6;
     placements.push({
       widgetId: other.id,
       type: other.chartType || other.type,
-      range: { startCol: START_COL, startRow: currentRow, endCol: START_COL + w - 1, endRow: currentRow + h - 1 }
+      range: { startCol: START_COL, startRow: currentRow, endCol: START_COL + 11, endRow: currentRow + 7 }
     });
-    currentRow += h + 2;
+    currentRow += 10;
   }
 
   return placements;

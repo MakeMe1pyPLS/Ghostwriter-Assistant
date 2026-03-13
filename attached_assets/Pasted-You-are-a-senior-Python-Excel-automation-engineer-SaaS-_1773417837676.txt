@@ -1,0 +1,145 @@
+You are a senior Python Excel automation engineer, SaaS product designer, and dashboard UI specialist.
+
+Enhance the existing Excel export system in my app:
+
+“ChainInsideIQ — AI Dashboard Generator Platform”
+
+DO NOT rebuild the whole app from scratch.
+Refactor and improve the current Excel export renderer in-place.
+
+PRIMARY GOAL
+The Excel export already works.
+Now I need the exported Excel dashboard to look much more attractive, polished, and client-ready.
+
+I want the Excel output to feel like a premium executive dashboard, not just a raw spreadsheet with charts.
+
+==================================================
+1) IMPROVE KPI CARD DESIGN
+==================================================
+
+Enhance KPI cards in the exported Excel dashboard.
+
+Each KPI card should include:
+- title
+- metric value
+- delta / trend text if available
+- optional subtitle
+
+Improve styling using:
+- merged cells
+- clean fill colors
+- subtle borders
+- stronger font hierarchy
+- spacing/padding
+- accent color usage
+- premium card layout
+
+Cards should look visually balanced and polished.
+
+==================================================
+2) IMPROVE DASHBOARD LAYOUT
+==================================================
+
+Improve the layout of the Dashboard sheet.
+
+Structure:
+- title/header area
+- KPI card row
+- chart section
+- table section
+- optional AI insights / executive summary block
+
+Ensure:
+- proper spacing between sections
+- no overlap
+- clean alignment
+- balanced use of white space
+- a professional visual hierarchy
+
+==================================================
+3) IMPROVE CHART STYLING
+==================================================
+
+Make exported charts more attractive and readable.
+
+Improve:
+- chart titles
+- axis formatting
+- legends
+- chart spacing
+- chart placement
+- chart colors
+
+Support and improve:
+- line charts
+- bar charts
+- donut charts
+- area charts if present
+
+For donut charts:
+- show labels and values if possible
+- improve chart title
+- make the donut more visually informative
+
+For line and bar charts:
+- reduce clutter
+- use cleaner style
+- keep the theme aligned with the app
+
+==================================================
+4) THEME / BRANDING
+==================================================
+
+Apply a more polished theme to the exported Excel file.
+
+Use a clean corporate dashboard style with:
+- light background
+- subtle borders
+- teal accent
+- strong section headings
+- premium but simple Excel styling
+
+Keep the export visually aligned with the SaaS branding.
+
+==================================================
+5) EXECUTIVE SUMMARY / AI BLOCK
+==================================================
+
+If possible, add or improve an executive summary block in the exported dashboard.
+
+This can include:
+- a short summary text
+- top insights
+- recommended actions
+- forecast note if available
+
+This should look like a dedicated summary section, not plain text dumped onto the sheet.
+
+==================================================
+6) DATA SHEET CLEANUP
+==================================================
+
+Keep the Data sheet organized and readable.
+
+Ensure:
+- headers are styled
+- source data is structured clearly
+- chart source ranges are understandable
+- no messy output
+
+==================================================
+7) ERROR HANDLING
+==================================================
+
+Do not break the current export flow.
+If a chart or section cannot be styled fully, keep the export working and use a clean fallback.
+
+==================================================
+8) DELIVERABLES
+==================================================
+
+1. Inspect the current Excel renderer files first
+2. Identify the styling/layout files or functions to improve
+3. Improve the Excel export visually without breaking the current export logic
+4. Explain file-by-file what changed
+5. Confirm the Excel export now looks more polished and client-ready
