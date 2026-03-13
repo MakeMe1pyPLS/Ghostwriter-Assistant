@@ -9,6 +9,9 @@ import HomePage from "@/pages/home";
 import PricingPage from "@/pages/pricing";
 import FeaturesPage from "@/pages/features";
 import ContactPage from "@/pages/contact";
+import SupportPage from "@/pages/support";
+import PrivacyPage from "@/pages/privacy";
+import TermsPage from "@/pages/terms";
 import CheckoutSuccessPage from "@/pages/checkout-success";
 import CheckoutCancelPage from "@/pages/checkout-cancel";
 import CheckoutStripeMockPage from "@/pages/checkout-stripe-mock";
@@ -27,6 +30,10 @@ function Router() {
       <Route path="/pricing" component={PricingPage} />
       <Route path="/features" component={FeaturesPage} />
       <Route path="/contact" component={ContactPage} />
+      <Route path="/support" component={SupportPage} />
+      <Route path="/privacy" component={PrivacyPage} />
+      <Route path="/terms" component={TermsPage} />
+      <Route path="/request-setup" component={ContactPage} />
       <Route path="/checkout/success" component={CheckoutSuccessPage} />
       <Route path="/checkout/cancel" component={CheckoutCancelPage} />
       <Route path="/checkout/stripe-mock" component={CheckoutStripeMockPage} />

@@ -1,0 +1,327 @@
+You are a senior SaaS product engineer, React + TypeScript frontend engineer, FastAPI backend engineer, and UX designer.
+
+Enhance my existing application:
+
+“ChainInsideIQ — AI Dashboard Generator Platform”
+
+IMPORTANT
+- Do NOT rebuild the entire app from scratch.
+- Refactor and improve the current codebase in-place.
+- Sprint 3 is already completed.
+- Now complete Sprint 4 and also finish the remaining website/support pages and export/API functionality.
+- Preserve the current light + teal corporate theme unless a small polish improvement is needed.
+- Keep the app modular, scalable, and demo-ready.
+
+PRIMARY GOALS
+1) Complete Sprint 4 — AI Supply Chain Analyst
+2) Finish the remaining website pages linked from the footer/nav
+3) Make the Custom API button in the export area functional
+4) Add the right social media links/icons to maximize product credibility and market value
+
+==================================================
+PART 1 — SPRINT 4: AI SUPPLY CHAIN ANALYST
+==================================================
+
+GOAL
+Add the AI insight engine so the platform can analyze dashboards, datasets, and KPIs like a real supply chain analyst.
+
+TASKS
+- AI endpoints
+- chat widget
+- insight generator
+- forecasting generator
+- KPI explanation system
+
+DELIVERABLE
+AI can analyze dashboards and provide meaningful insight.
+
+--------------------------------------------------
+1) BACKEND AI ENDPOINTS
+--------------------------------------------------
+
+Create or improve these backend routes:
+
+POST /api/ai/chat
+POST /api/ai/insights
+POST /api/ai/forecast
+POST /api/ai/recommend-kpis
+
+Use a clean backend structure such as:
+- backend/services/ai/ai_service.py
+- backend/services/ai/insight_engine.py
+- backend/services/ai/forecasting_engine.py
+- backend/api/routes/ai.py
+
+--------------------------------------------------
+2) AI RESPONSE FORMAT
+--------------------------------------------------
+
+AI responses should return structured JSON like:
+
+{
+  "summary": "On-time delivery dropped due to increased late shipments.",
+  "what_changed": [
+    "Late shipments increased by 12%",
+    "Warehouse utilization rose to 84%"
+  ],
+  "why_it_matters": "Delivery performance is degrading and may affect customer satisfaction.",
+  "actions": [
+    "Audit carrier performance",
+    "Increase warehouse staffing during peak windows",
+    "Reallocate overflow shipments"
+  ],
+  "forecast_note": "If the trend continues, on-time delivery may decline another 1.5% over the next 7 days."
+}
+
+--------------------------------------------------
+3) DEMO / RULE-BASED AI ENGINE
+--------------------------------------------------
+
+For now implement a strong demo AI engine using rules and KPI thresholds so the platform feels realistic without needing external AI APIs.
+
+Examples:
+- if late shipments rise -> generate logistics risk insight
+- if revenue drops -> generate performance decline insight
+- if defect rate rises -> generate manufacturing warning
+- if bullwhip index rises -> generate unified supply chain alert
+
+Make responses differ by sector:
+- E-commerce
+- Logistics
+- Manufacturing
+- Unified Supply Chain
+
+--------------------------------------------------
+4) AI CHAT PANEL
+--------------------------------------------------
+
+Improve and connect the AI Supply Chain Analyst panel to the backend.
+
+Requirements:
+- scrollable chat feed
+- user and AI message bubbles
+- clickable suggested prompts
+- loading state
+- typing indicator
+- keyboard submit
+- structured response display
+- responses should reference current dashboard KPIs when possible
+
+Suggested prompts:
+- Why did on-time delivery drop?
+- What KPI needs urgent attention?
+- What should we do next?
+- Forecast the next 14 days
+- Summarize this dashboard for leadership
+
+--------------------------------------------------
+5) AI INSIGHT SUMMARY PANEL
+--------------------------------------------------
+
+Create or improve an insight summary section with cards that display:
+- insight title
+- short explanation
+- why it matters
+- recommended action
+
+--------------------------------------------------
+6) FORECASTING GENERATOR
+--------------------------------------------------
+
+Add or improve forecasting support:
+- 7-day and 14-day outlook
+- confidence label/badge
+- short narrative
+- basic trend projection from available demo data
+
+--------------------------------------------------
+7) KPI EXPLANATION SYSTEM
+--------------------------------------------------
+
+Allow AI to explain KPI meaning when asked, for example:
+- What is Perfect Order Rate?
+- What does Cash-to-Cash Cycle Time mean?
+- What does Bullwhip Effect Index mean?
+
+==================================================
+PART 2 — FINISH WEBSITE / FOOTER / NAV PAGES
+==================================================
+
+GOAL
+Complete the remaining website pages so all footer links and nav links go somewhere real and polished.
+
+Required pages/routes to complete or improve:
+
+/
+Home page
+
+/features
+Features page
+
+/pricing
+Pricing page
+
+/contact
+Contact / Request Setup page
+
+/demo
+Demo entry page or redirect to live demo/app
+
+/support
+Support page
+
+/privacy
+Privacy Policy page
+
+/terms
+Terms of Service page
+
+/request-setup
+Optional dedicated request setup page if not already covered in contact
+
+Make sure all footer links and nav links point to finished pages.
+
+--------------------------------------------------
+1) FOOTER LINKS
+--------------------------------------------------
+
+Ensure these footer links are complete and functional:
+- Product
+- Features
+- Pricing
+- Demo
+- Contact
+- Support
+- Privacy
+- Terms
+
+If pages do not exist, create polished versions.
+
+--------------------------------------------------
+2) SUPPORT PAGE
+--------------------------------------------------
+
+Create a support page with:
+- help overview
+- contact/support email placeholder
+- FAQ style support blocks
+- buttons:
+  - Request Setup
+  - Contact Sales
+  - Back to Demo
+  - Back to Home
+
+--------------------------------------------------
+3) PRIVACY / TERMS
+--------------------------------------------------
+
+Create clean professional placeholder pages for:
+- Privacy Policy
+- Terms of Service
+
+These do not need full legal review text, but should be structured and polished enough for a pre-launch SaaS.
+
+==================================================
+PART 3 — SOCIAL MEDIA / MARKET VALUE LINKS
+==================================================
+
+GOAL
+Add the right social media icons/links to increase trust and market presence.
+
+Include icons/links for:
+- LinkedIn
+- X / Twitter
+- YouTube
+- GitHub
+
+Optional if helpful:
+- Product Hunt
+- Email / contact icon
+
+Place social links in:
+- footer
+- possibly contact page
+- optionally hero or trust section if tasteful
+
+Use placeholder URLs if real URLs are not yet available, but structure it clearly so I can replace them later.
+
+Add a short section or label like:
+“Follow the build”
+or
+“Connect with ChainInsideIQ”
+
+==================================================
+PART 4 — CUSTOM API BUTTON IN EXPORT SECTION
+==================================================
+
+GOAL
+Make the Custom API button in the software export area functional.
+
+Current requirement:
+The user should be able to click a Custom API export/integration button and interact with a real UI flow instead of a dead button.
+
+Implement:
+- a working Custom API button in the export area
+- clicking it opens a modal/drawer/panel
+
+The panel should allow the user to:
+- enter API endpoint URL
+- choose request method (GET / POST)
+- optional API key field
+- choose export payload type
+- preview request body / dashboard spec JSON
+- click “Send Test Request”
+
+The feature can be demo-safe:
+- for now it may simulate success if real request handling is too risky
+- but the flow must be real and functional in the UI
+
+If possible, also add a backend route such as:
+POST /api/export/custom-api
+
+This route can:
+- accept dashboard spec / dataset payload
+- return success/failure
+- be safely structured for future real integration use
+
+The export panel should explain that Custom API allows users to send dashboard data/specs into their own systems.
+
+==================================================
+PART 5 — UX / POLISH
+==================================================
+
+Keep everything polished and consistent.
+
+Add:
+- proper empty states
+- loading states
+- toasts if toast system already exists
+- responsive layouts
+- mobile friendly nav/footer pages
+- readable spacing
+- premium section headers
+
+==================================================
+PART 6 — DELIVERABLES
+==================================================
+
+1) Inspect the current repo structure first
+2) Identify the files needed for:
+   - Sprint 4 AI
+   - website/footer/nav pages
+   - social links
+   - custom API export flow
+3) Implement all of the above in-place
+4) Explain file-by-file what changed
+5) Confirm:
+   - Sprint 4 AI is working in demo mode
+   - all footer links go to finished pages
+   - social icons/links are present
+   - Custom API export button is functional
+   - website feels more complete and market-ready
+
+At the end, print:
+
+✅ Sprint 4 Complete: AI Supply Chain Analyst
+✅ Website Support Pages Complete
+✅ Custom API Export Flow Complete

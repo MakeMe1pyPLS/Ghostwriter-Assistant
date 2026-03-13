@@ -11,6 +11,7 @@ A production-quality supply chain dashboard SaaS with a marketing website and fu
 - **Charts**: Recharts
 - **Grid**: react-grid-layout via `MeasuredGrid` (never `WidthProvider`)
 - **Excel Generation**: exceljs (server-side)
+- **AI Engine**: Rule-based demo engine (server-side, sector-aware)
 
 ## Design System
 - Light + teal scheme (`#0F766E` primary, slate neutrals)
@@ -19,31 +20,44 @@ A production-quality supply chain dashboard SaaS with a marketing website and fu
 - Premium SaaS aesthetic with uppercase tracking-widest labels
 
 ## Sprint Status
-- **Sprint 1** ✅ Dashboard Spec Engine — `dashboard-spec.ts` with Export/Import Spec buttons
-- **Sprint 2** ✅ Renderer Architecture — `client/src/lib/renderers/` with base renderer, layout translator, theme system, Excel skeleton
-- **Sprint 3** ✅ Excel Dashboard Generator — Full server-side Excel workbook generation via `/api/export/excel`
+- **Sprint 1** ✅ Dashboard Spec Engine
+- **Sprint 2** ✅ Renderer Architecture
+- **Sprint 3** ✅ Excel Dashboard Generator
+- **Sprint 4** ✅ AI Supply Chain Analyst + Website Pages + Custom API Export + Social Links
+
+## AI Backend Endpoints
+- `POST /api/ai/insights` — Returns structured insight JSON per sector (summary, what_changed, why_it_matters, actions, forecast_note)
+- `POST /api/ai/chat` — Conversational AI chat with KPI-aware responses, keyword matching, KPI explanations
+- `POST /api/ai/forecast` — 7/14-day projections with confidence levels and data points
+- `POST /api/ai/recommend-kpis` — Sector-specific KPI recommendations with current/target values and explanations
+- `POST /api/export/custom-api` — Simulated external API integration (accepts endpoint, method, apiKey, payload)
+
+## Website Pages (All Routed)
+- `/` Home, `/features`, `/pricing`, `/contact`, `/support`, `/privacy`, `/terms`
+- `/demo` → Builder, `/request-setup` → Contact
+- `/builder`, `/dashboard`, `/insights`, `/hub`, `/connectors`, `/exports`
+- `/checkout/success`, `/checkout/cancel`, `/checkout/stripe-mock`
 
 ## Key Files
 - `client/src/components/visualizations/WidgetRenderer.tsx` — Canonical widget rendering component
-- `client/src/lib/dashboard-spec.ts` — Dashboard spec engine (types, mappers, download utility)
-- `client/src/lib/renderers/` — Client-side renderer architecture (Sprint 2)
-- `client/src/components/ExportDrawer.tsx` — Export UI with JSON, CSV, and Excel options
-- `client/src/pages/builder.tsx` — Dashboard builder page
-- `client/src/pages/dashboard.tsx` — Read-only presentation dashboard
-- `client/src/hooks/use-sector-data.ts` — Demo data provider (metrics, chartData, donutData)
-- `server/routes.ts` — API routes (includes `/api/export/excel`)
-- `server/excel/` — Excel generation modules:
-  - `excel-renderer.ts` — Main orchestrator
-  - `layout-engine.ts` — Grid-to-cell-range translator
-  - `theme-mapper.ts` — Brand-consistent Excel styling
-  - `kpi-renderer.ts` — KPI card merged-cell renderer
-  - `chart-renderer.ts` — Chart data visualization (line, bar, donut)
-  - `table-renderer.ts` — Formatted data table renderer
+- `client/src/lib/dashboard-spec.ts` — Dashboard spec engine
+- `client/src/lib/ai-provider.ts` — AI provider abstraction (BackendAIProvider → server endpoints, DemoAIProvider fallback)
+- `client/src/pages/insights.tsx` — AI Insights page with Chat, Forecast, and KPI Guide tabs
+- `client/src/pages/exports.tsx` — Export Center with Custom API modal
+- `client/src/pages/support.tsx` — Support page with FAQ accordion
+- `client/src/pages/privacy.tsx` — Privacy Policy page
+- `client/src/pages/terms.tsx` — Terms of Service page
+- `client/src/components/layout/MarketingLayout.tsx` — Marketing layout with social links in footer
+- `server/routes.ts` — All API routes (AI + Excel + Custom API)
+- `server/excel/` — Excel generation modules (6 files)
+
+## Social Links (Footer)
+- LinkedIn, X/Twitter, YouTube, GitHub — placeholder URLs ready for replacement
 
 ## Important Notes
 - Use `MeasuredGrid` (never `WidthProvider`) to avoid Vite bundling issues
 - `compactType={null}` prevents layout compaction
-- Widget IDs generated with `Date.now() + Math.random()` suffix
 - Dashboard spec stored in localStorage keys `layout_${sector}` and `widgets_${sector}`
-- `WidgetRenderer` is the canonical rendering component — do NOT add rendering logic back to builder/dashboard pages
+- `WidgetRenderer` is the canonical rendering component
 - wouter v3.3.5 uses `<Link href="...">` and `useLocation()` directly
+- AI provider uses BackendAIProvider with graceful fallback to client-side DemoAIProvider
