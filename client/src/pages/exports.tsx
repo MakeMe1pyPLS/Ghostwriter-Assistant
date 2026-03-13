@@ -2,12 +2,13 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { useSectorData } from "@/hooks/use-sector-data";
+import { useDashboardStore } from "@/hooks/use-dashboard-store";
+import { downloadFromResponse, buildExcelPayload, buildDashboardPayload, exportFilename, sectorLabel, dateRangeLabel } from "@/lib/export-helpers";
 import {
   FileSpreadsheet,
   FileText,
@@ -27,7 +28,10 @@ import {
   CheckCircle2,
   AlertCircle,
   Copy,
-  Eye
+  Eye,
+  Loader2,
+  ArrowDownToLine,
+  Table2
 } from "lucide-react";
 import {
   Dialog,
@@ -37,74 +41,44 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 
-const EXPORT_CATEGORIES = [
-  {
-    title: "Dashboard Files",
-    items: [
-      { id: "excel", title: "Export Excel", desc: "Download a fully formatted Excel dashboard with charts and KPI tables.", icon: FileSpreadsheet, ext: ".xlsx", color: "text-green-600 bg-green-50 border-green-100" },
-      { id: "csv", title: "Export CSV", desc: "Raw data dump of all current KPIs and timeseries data.", icon: FileText, ext: ".csv", color: "text-slate-600 bg-slate-50 border-slate-200" },
-      { id: "gsheets", title: "Export Google Sheets", desc: "Push data directly to a new Google Sheet.", icon: FileSpreadsheet, ext: "Drive", color: "text-emerald-600 bg-emerald-50 border-emerald-100" },
-      { id: "json", title: "Export JSON", desc: "Complete dashboard specification and data payload.", icon: FileJson, ext: ".json", color: "text-yellow-600 bg-yellow-50 border-yellow-100" }
-    ]
-  },
-  {
-    title: "Business Intelligence",
-    items: [
-      { id: "pbix", title: "Export Power BI", desc: "Export as a Power BI template with connected data models.", icon: BarChart, ext: ".pbix", color: "text-amber-600 bg-amber-50 border-amber-100" },
-      { id: "twbx", title: "Export Tableau", desc: "Export as a packaged Tableau workbook.", icon: CloudCog, ext: ".twbx", color: "text-indigo-600 bg-indigo-50 border-indigo-100" }
-    ]
-  },
-  {
-    title: "Integrations",
-    items: [
-      { id: "custom-api", title: "Custom API", desc: "Send dashboard data and specs to your own API endpoint for integration with internal tools.", icon: Plug, ext: "API", color: "text-violet-600 bg-violet-50 border-violet-100" }
-    ]
-  },
-  {
-    title: "Reports",
-    items: [
-      { id: "pdf", title: "Export PDF", desc: "Executive summary report with layout snapshots and insights.", icon: FileText, ext: ".pdf", color: "text-red-600 bg-red-50 border-red-100" },
-      { id: "ppt", title: "Export PowerPoint", desc: "Presentation deck with editable charts and notes.", icon: FileText, ext: ".pptx", color: "text-orange-600 bg-orange-50 border-orange-100" }
-    ]
-  },
-  {
-    title: "Data",
-    items: [
-      { id: "sql", title: "Export SQL", desc: "Generate SQL insert statements for your datasets.", icon: Database, ext: ".sql", color: "text-blue-600 bg-blue-50 border-blue-100" }
-    ]
-  },
-  {
-    title: "Embed",
-    items: [
-      { id: "link", title: "Share Link", desc: "Generate a secure, read-only link to this dashboard.", icon: LinkIcon, ext: "Copy", color: "text-slate-600 bg-slate-50 border-slate-200" },
-      { id: "iframe", title: "Generate Iframe", desc: "Get HTML code to embed this dashboard in your portal.", icon: Code, ext: "Code", color: "text-slate-600 bg-slate-50 border-slate-200" }
-    ]
-  }
-];
+type ExportStatus = 'idle' | 'loading' | 'success' | 'error';
 
-function CustomApiModal({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
+function CustomApiModal({ open, onOpenChange, sector, dateRange, metrics, chartData, donutData }: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  sector: string;
+  dateRange: string;
+  metrics: any[];
+  chartData: any[];
+  donutData: any[];
+}) {
   const { toast } = useToast();
   const [endpoint, setEndpoint] = useState("");
   const [method, setMethod] = useState("POST");
   const [apiKey, setApiKey] = useState("");
-  const [payloadType, setPayloadType] = useState("full");
+  const [payloadType, setPayloadType] = useState("dashboard-spec");
   const [sending, setSending] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [showPreview, setShowPreview] = useState(false);
 
-  const samplePayload = {
-    dashboard: {
-      title: "Supply Chain Dashboard",
-      sector: "ecommerce",
-      generated_at: new Date().toISOString()
-    },
-    metrics: [
-      { label: "Revenue", value: "$124,500", trend: "+12.5%" },
-      { label: "Orders", value: "1,450", trend: "+8.2%" },
-      { label: "On-Time Delivery", value: "94.2%", trend: "-1.3%" }
-    ],
-    chart_data: { points: 10, type: "timeseries" }
+  const buildPayload = () => {
+    if (payloadType === 'dashboard-spec') {
+      return buildDashboardPayload({ sector, dateRange, metrics, chartData, donutData });
+    }
+    if (payloadType === 'dataset') {
+      return { sector, dateRange, metrics, chartData, donutData };
+    }
+    return {
+      sector,
+      dateRange,
+      generated_at: new Date().toISOString(),
+      highlights: metrics.slice(0, 6).map(m => ({
+        kpi: m.label, value: m.value, change: m.trend,
+        status: m.isPositive ? 'strong' : 'watch'
+      }))
+    };
   };
 
   const handleSendTest = async () => {
@@ -119,10 +93,9 @@ function CustomApiModal({ open, onOpenChange }: { open: boolean; onOpenChange: (
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          endpoint,
-          method,
+          endpoint, method,
           apiKey: apiKey || undefined,
-          payload: payloadType === 'full' ? samplePayload : { metrics: samplePayload.metrics }
+          payload: buildPayload()
         })
       });
       const data = await res.json();
@@ -144,7 +117,7 @@ function CustomApiModal({ open, onOpenChange }: { open: boolean; onOpenChange: (
             <Plug className="w-5 h-5 text-violet-600" /> Custom API Export
           </DialogTitle>
           <DialogDescription className="font-medium text-slate-500">
-            Send your dashboard data and specifications to an external API endpoint. Connect ChainInsideIQ to your internal systems.
+            Send your current {sectorLabel(sector)} dashboard data to an external API.
           </DialogDescription>
         </DialogHeader>
 
@@ -159,15 +132,16 @@ function CustomApiModal({ open, onOpenChange }: { open: boolean; onOpenChange: (
               <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Method</Label>
               <select value={method} onChange={(e) => setMethod(e.target.value)} className="w-full h-10 rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/20" data-testid="select-api-method">
                 <option value="POST">POST</option>
-                <option value="GET">GET</option>
                 <option value="PUT">PUT</option>
+                <option value="PATCH">PATCH</option>
               </select>
             </div>
             <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Payload</Label>
+              <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Payload Type</Label>
               <select value={payloadType} onChange={(e) => setPayloadType(e.target.value)} className="w-full h-10 rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/20" data-testid="select-payload-type">
-                <option value="full">Full Dashboard Spec</option>
-                <option value="metrics">Metrics Only</option>
+                <option value="dashboard-spec">Dashboard Spec JSON</option>
+                <option value="dataset">Dataset JSON</option>
+                <option value="metrics-summary">Metrics Summary</option>
               </select>
             </div>
           </div>
@@ -187,9 +161,9 @@ function CustomApiModal({ open, onOpenChange }: { open: boolean; onOpenChange: (
             {showPreview && (
               <div className="relative">
                 <pre className="bg-slate-900 text-slate-300 text-xs p-4 rounded-xl overflow-auto max-h-48 font-mono leading-relaxed">
-                  {JSON.stringify(payloadType === 'full' ? samplePayload : { metrics: samplePayload.metrics }, null, 2)}
+                  {JSON.stringify(buildPayload(), null, 2)}
                 </pre>
-                <button onClick={() => { navigator.clipboard.writeText(JSON.stringify(samplePayload, null, 2)); toast({ title: "Copied", description: "Payload JSON copied to clipboard." }); }} className="absolute top-2 right-2 p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 transition-colors" data-testid="button-copy-payload">
+                <button onClick={() => { navigator.clipboard.writeText(JSON.stringify(buildPayload(), null, 2)); toast({ title: "Copied", description: "Payload copied to clipboard." }); }} className="absolute top-2 right-2 p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 transition-colors" data-testid="button-copy-payload">
                   <Copy className="w-3.5 h-3.5" />
                 </button>
               </div>
@@ -226,9 +200,46 @@ function CustomApiModal({ open, onOpenChange }: { open: boolean; onOpenChange: (
   );
 }
 
+const EXPORT_ITEMS = {
+  dashboardFiles: [
+    { id: "excel", title: "Export Excel", desc: "Fully formatted Excel workbook with KPI cards, charts, and data tables reflecting your current dashboard.", icon: FileSpreadsheet, ext: ".xlsx", color: "text-green-600 bg-green-50 border-green-100", available: true },
+    { id: "csv", title: "Export CSV", desc: "Clean CSV with your current KPIs, trend data, and timeseries values for the selected sector and date range.", icon: Table2, ext: ".csv", color: "text-emerald-600 bg-emerald-50 border-emerald-100", available: true },
+    { id: "json", title: "Export Dashboard JSON", desc: "Portable dashboard blueprint — widgets, layout, theme, and data snapshot in a single JSON file.", icon: FileJson, ext: ".json", color: "text-yellow-600 bg-yellow-50 border-yellow-100", available: true },
+  ],
+  dataExports: [
+    { id: "dataset-json", title: "Export Dataset (JSON)", desc: "Underlying metrics, timeseries, and channel data as structured JSON.", icon: Database, ext: ".json", color: "text-blue-600 bg-blue-50 border-blue-100", available: true },
+    { id: "dataset-csv", title: "Export Dataset (CSV)", desc: "Flat CSV export of all metrics, timeseries, and channel data.", icon: ArrowDownToLine, ext: ".csv", color: "text-sky-600 bg-sky-50 border-sky-100", available: true },
+  ],
+  integrations: [
+    { id: "custom-api", title: "Custom API", desc: "Send dashboard data and specs to your own API endpoint for integration with internal tools.", icon: Plug, ext: "API", color: "text-violet-600 bg-violet-50 border-violet-100", available: true },
+  ],
+  biTools: [
+    { id: "pbix", title: "Export Power BI", desc: "Export as a Power BI template with connected data models.", icon: BarChart, ext: ".pbix", color: "text-amber-600 bg-amber-50 border-amber-100", available: false },
+    { id: "twbx", title: "Export Tableau", desc: "Export as a packaged Tableau workbook.", icon: CloudCog, ext: ".twbx", color: "text-indigo-600 bg-indigo-50 border-indigo-100", available: false },
+  ],
+  reports: [
+    { id: "pdf", title: "Export PDF", desc: "Executive summary report with layout snapshots and insights.", icon: FileText, ext: ".pdf", color: "text-red-600 bg-red-50 border-red-100", available: false },
+  ],
+  embed: [
+    { id: "link", title: "Share Link", desc: "Generate a secure, read-only link to this dashboard.", icon: LinkIcon, ext: "Copy", color: "text-slate-600 bg-slate-50 border-slate-200", available: false },
+    { id: "iframe", title: "Generate Iframe", desc: "Get HTML code to embed this dashboard in your portal.", icon: Code, ext: "Code", color: "text-slate-600 bg-slate-50 border-slate-200", available: false },
+  ]
+};
+
+const CATEGORIES = [
+  { key: 'dashboardFiles', title: 'Dashboard Files', subtitle: 'Export your dashboard' },
+  { key: 'dataExports', title: 'Data Exports', subtitle: 'Export underlying data' },
+  { key: 'integrations', title: 'Integrations', subtitle: 'Connect external systems' },
+  { key: 'biTools', title: 'Business Intelligence', subtitle: 'BI platform exports' },
+  { key: 'reports', title: 'Reports', subtitle: 'Document exports' },
+  { key: 'embed', title: 'Embed & Share', subtitle: 'Distribution options' },
+];
+
 export default function ExportsPage() {
   const { toast } = useToast();
-  const [isExporting, setIsExporting] = useState<string | null>(null);
+  const { metrics, chartData, donutData, allMetrics, sector, dateRange } = useSectorData();
+  const { setSector, setRange } = useDashboardStore();
+  const [exportStatus, setExportStatus] = useState<Record<string, ExportStatus>>({});
   const [customApiOpen, setCustomApiOpen] = useState(false);
   const [settings, setSettings] = useState({
     insights: true,
@@ -237,57 +248,161 @@ export default function ExportsPage() {
     hubNotes: false
   });
 
-  const handleExportCSV = () => {
-    setIsExporting("csv");
-    setTimeout(() => {
-      const headers = ["Date", "Sector", "Perfect Order Rate", "Inventory Level", "Delay Risk"];
-      const rows = [
-        ["2023-10-01", "E-commerce", "98.5%", "12400", "Low"],
-        ["2023-10-01", "Logistics", "92.1%", "N/A", "Medium"],
-        ["2023-10-01", "Manufacturing", "99.2%", "54000", "Low"],
-        ["2023-10-02", "E-commerce", "98.2%", "11800", "Medium"],
-        ["2023-10-02", "Logistics", "88.4%", "N/A", "High"],
-      ];
-      let csvContent = "data:text/csv;charset=utf-8,"
-        + headers.join(",") + "\n"
-        + rows.map(e => e.join(",")).join("\n");
-      const encodedUri = encodeURI(csvContent);
-      const link = document.createElement("a");
-      link.setAttribute("href", encodedUri);
-      link.setAttribute("download", "chain_inside_iq_export.csv");
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      setIsExporting(null);
-      toast({ title: "Export Successful", description: "CSV file has been downloaded." });
-    }, 1500);
+  const setStatus = (key: string, s: ExportStatus) => {
+    setExportStatus(prev => ({ ...prev, [key]: s }));
+    if (s === 'success') setTimeout(() => setExportStatus(prev => ({ ...prev, [key]: 'idle' })), 3000);
   };
 
-  const handleStubExport = (type: string, format: string) => {
-    setIsExporting(type);
-    toast({ title: `Preparing ${type} export...`, description: "Compiling data and formatting document." });
-    setTimeout(() => {
-      setIsExporting(null);
-      if (format === 'Copy' || format === 'Code') {
-        toast({ title: "Copied to Clipboard", description: `The ${type} has been copied to your clipboard.` });
-      } else {
-        toast({ title: "Export Ready", description: `Your ${type} (${format}) is ready for download. (Mocked)` });
-      }
-    }, 2000);
-  };
-
-  const handleExportClick = (item: any) => {
-    if (item.id === 'custom-api') {
-      setCustomApiOpen(true);
-    } else if (item.id === 'csv') {
-      handleExportCSV();
-    } else {
-      handleStubExport(item.title, item.ext);
+  const getWidgetsAndLayout = () => {
+    try {
+      const widgets = JSON.parse(localStorage.getItem(`widgets_${sector}`) || '[]');
+      const layout = JSON.parse(localStorage.getItem(`layout_${sector}`) || '[]');
+      return { widgets, layout };
+    } catch {
+      return { widgets: [], layout: [] };
     }
   };
 
+  const handleExport = useCallback(async (itemId: string) => {
+    const { widgets, layout } = getWidgetsAndLayout();
+
+    if (itemId === 'custom-api') {
+      setCustomApiOpen(true);
+      return;
+    }
+
+    setStatus(itemId, 'loading');
+
+    try {
+      if (itemId === 'excel') {
+        const payload = buildExcelPayload({
+          sector, dateRange, metrics, chartData, donutData, widgets, layouts: { lg: layout }, allMetrics
+        });
+        const response = await fetch('/api/export/excel', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (!response.ok) throw new Error((await response.json().catch(() => ({}))).error || 'Excel export failed');
+        await downloadFromResponse(response, exportFilename('dashboard_excel', sector, 'xlsx'));
+        setStatus(itemId, 'success');
+        toast({ title: "Excel Exported", description: `${sectorLabel(sector)} dashboard workbook downloaded.` });
+
+      } else if (itemId === 'csv') {
+        const response = await fetch('/api/export/csv', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ metrics, chartData, sector, dateRange })
+        });
+        if (!response.ok) throw new Error('CSV export failed');
+        await downloadFromResponse(response, exportFilename('dashboard', sector, 'csv'));
+        setStatus(itemId, 'success');
+        toast({ title: "CSV Exported", description: `${sectorLabel(sector)} dashboard data downloaded.` });
+
+      } else if (itemId === 'json') {
+        const payload = buildDashboardPayload({
+          sector, dateRange, metrics, chartData, donutData, widgets, layouts: { lg: layout }
+        });
+        const response = await fetch('/api/export/json', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (!response.ok) throw new Error('JSON export failed');
+        await downloadFromResponse(response, exportFilename('dashboard_spec', sector, 'json'));
+        setStatus(itemId, 'success');
+        toast({ title: "JSON Exported", description: "Dashboard specification downloaded." });
+
+      } else if (itemId === 'dataset-json') {
+        const response = await fetch('/api/export/dataset', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ metrics, chartData, donutData, sector, dateRange, format: 'json' })
+        });
+        if (!response.ok) throw new Error('Dataset export failed');
+        await downloadFromResponse(response, exportFilename('dataset', sector, 'json'));
+        setStatus(itemId, 'success');
+        toast({ title: "Dataset Exported", description: "Underlying dataset downloaded as JSON." });
+
+      } else if (itemId === 'dataset-csv') {
+        const response = await fetch('/api/export/dataset', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ metrics, chartData, donutData, sector, dateRange, format: 'csv' })
+        });
+        if (!response.ok) throw new Error('Dataset export failed');
+        await downloadFromResponse(response, exportFilename('dataset', sector, 'csv'));
+        setStatus(itemId, 'success');
+        toast({ title: "Dataset Exported", description: "Underlying dataset downloaded as CSV." });
+
+      } else {
+        setStatus(itemId, 'idle');
+        toast({ title: "Coming Soon", description: "This export format is not yet available." });
+      }
+    } catch (err: any) {
+      console.error(`Export ${itemId} error:`, err);
+      setStatus(itemId, 'error');
+      toast({ title: "Export Failed", description: err.message || "Something went wrong.", variant: "destructive" });
+    }
+  }, [sector, dateRange, metrics, chartData, donutData, allMetrics, toast]);
+
   const handleSchedule = () => {
     toast({ title: "Schedule Created", description: "Your automated report has been scheduled successfully." });
+  };
+
+  const renderExportCard = (item: any) => {
+    const status = exportStatus[item.id] || 'idle';
+    return (
+      <Card key={item.id} className={`border-slate-200 shadow-sm hover:shadow-md transition-all group flex flex-col h-full bg-white relative overflow-hidden ${!item.available ? 'opacity-60' : ''}`}>
+        <CardHeader className="pb-3">
+          <div className="flex justify-between items-start mb-2">
+            <div className={`w-12 h-12 rounded-xl flex items-center justify-center border ${item.color}`}>
+              <item.icon className="w-6 h-6" />
+            </div>
+            <div className="flex items-center gap-2">
+              {!item.available && (
+                <Badge variant="secondary" className="bg-slate-100 text-slate-400 font-bold text-[9px] uppercase tracking-wider rounded-lg">
+                  Coming Soon
+                </Badge>
+              )}
+              <Badge variant="secondary" className="bg-slate-100 text-slate-500 font-bold text-[10px] uppercase tracking-wider rounded-lg">
+                {item.ext}
+              </Badge>
+            </div>
+          </div>
+          <CardTitle className="text-base font-black text-slate-900">{item.title}</CardTitle>
+          <CardDescription className="text-xs font-medium text-slate-500 mt-1 leading-relaxed">{item.desc}</CardDescription>
+        </CardHeader>
+        <div className="flex-1" />
+        <CardFooter className="pt-2 pb-4">
+          <Button
+            className={`w-full rounded-xl font-black text-[10px] uppercase tracking-widest shadow-sm transition-all ${
+              status === 'success' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
+              status === 'error' ? 'bg-red-50 text-red-700 border border-red-200' :
+              item.id === 'custom-api' ? 'bg-violet-50 hover:bg-violet-100 text-violet-700 border border-violet-200 hover:border-violet-300' :
+              'bg-slate-50 hover:bg-primary/5 text-slate-700 hover:text-primary border border-slate-200 hover:border-primary/30'
+            }`}
+            disabled={!item.available || status === 'loading'}
+            onClick={() => handleExport(item.id)}
+            data-testid={`button-export-${item.id}`}
+          >
+            {status === 'loading' ? (
+              <><Loader2 className="w-3.5 h-3.5 mr-2 animate-spin" /> Exporting...</>
+            ) : status === 'success' ? (
+              <><CheckCircle2 className="w-3.5 h-3.5 mr-2" /> Downloaded</>
+            ) : status === 'error' ? (
+              <><AlertCircle className="w-3.5 h-3.5 mr-2" /> Failed — Retry</>
+            ) : item.id === 'custom-api' ? (
+              <><Plug className="w-3.5 h-3.5 mr-2" /> Configure API</>
+            ) : !item.available ? (
+              <>Coming Soon</>
+            ) : (
+              <><Download className="w-3.5 h-3.5 mr-2" /> Export</>
+            )}
+          </Button>
+        </CardFooter>
+      </Card>
+    );
   };
 
   return (
@@ -298,7 +413,7 @@ export default function ExportsPage() {
             <div>
               <h1 className="text-3xl font-black text-slate-900 tracking-tight uppercase" data-testid="text-export-title">Export Center</h1>
               <p className="text-slate-500 font-bold text-xs uppercase tracking-widest mt-2">
-                Distribute your insights across formats, platforms, and teams.
+                Exporting {sectorLabel(sector)} · {dateRangeLabel(dateRange)} · {metrics.length} KPIs loaded
               </p>
             </div>
             <Dialog>
@@ -335,9 +450,9 @@ export default function ExportsPage() {
                   <div className="space-y-3">
                     <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Format</label>
                     <select className="w-full h-10 rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/20">
-                      <option>PDF Executive Summary</option>
                       <option>Excel Dashboard Data</option>
-                      <option>PowerPoint Deck</option>
+                      <option>CSV Export</option>
+                      <option>Dashboard JSON Spec</option>
                     </select>
                   </div>
                 </div>
@@ -365,22 +480,50 @@ export default function ExportsPage() {
                 <div className="space-y-6">
                   <div className="space-y-2">
                     <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Sector Focus</Label>
-                    <select className="w-full h-10 rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/20">
-                      <option>All Sectors (Unified)</option>
-                      <option>E-commerce</option>
-                      <option>Logistics</option>
-                      <option>Manufacturing</option>
+                    <select
+                      value={sector}
+                      onChange={(e) => setSector(e.target.value as any)}
+                      className="w-full h-10 rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/20"
+                      data-testid="select-export-sector"
+                    >
+                      <option value="unified">Unified (All Sectors)</option>
+                      <option value="ecommerce">E-commerce</option>
+                      <option value="logistics">Logistics</option>
+                      <option value="manufacturing">Manufacturing</option>
                     </select>
                   </div>
                   <div className="space-y-2">
                     <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Date Range</Label>
-                    <select className="w-full h-10 rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/20">
-                      <option>Last 30 Days</option>
-                      <option>Last 7 Days</option>
-                      <option>This Quarter</option>
-                      <option>Year to Date</option>
+                    <select
+                      value={dateRange}
+                      onChange={(e) => setRange(e.target.value as any)}
+                      className="w-full h-10 rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/20"
+                      data-testid="select-export-range"
+                    >
+                      <option value="7d">Last 7 Days</option>
+                      <option value="30d">Last 30 Days</option>
+                      <option value="90d">Last 90 Days</option>
                     </select>
                   </div>
+
+                  <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                    <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3">Data Summary</h4>
+                    <div className="space-y-2 text-xs">
+                      <div className="flex justify-between">
+                        <span className="text-slate-500 font-medium">KPIs</span>
+                        <span className="font-bold text-slate-700" data-testid="text-kpi-count">{metrics.length}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-500 font-medium">Timeseries Points</span>
+                        <span className="font-bold text-slate-700">{chartData.length}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-500 font-medium">Channels</span>
+                        <span className="font-bold text-slate-700">{donutData.length}</span>
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="pt-4 border-t border-slate-100 space-y-4">
                     <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Include in Export</Label>
                     <div className="flex items-center justify-between">
@@ -405,53 +548,34 @@ export default function ExportsPage() {
             </div>
 
             <div className="flex-1 space-y-10">
-              {EXPORT_CATEGORIES.map((category) => (
-                <div key={category.title} className="space-y-4">
-                  <h2 className="text-lg font-black text-slate-900 tracking-tight flex items-center gap-2 border-b border-slate-200 pb-2">
-                    {category.title}
-                  </h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {category.items.map((item) => (
-                      <Card key={item.id} className="border-slate-200 shadow-sm hover:shadow-md transition-all group flex flex-col h-full bg-white relative overflow-hidden">
-                        <CardHeader className="pb-3">
-                          <div className="flex justify-between items-start mb-2">
-                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center border ${item.color}`}>
-                              <item.icon className="w-6 h-6" />
-                            </div>
-                            <Badge variant="secondary" className="bg-slate-100 text-slate-500 font-bold text-[10px] uppercase tracking-wider rounded-lg">
-                              {item.ext}
-                            </Badge>
-                          </div>
-                          <CardTitle className="text-base font-black text-slate-900">{item.title}</CardTitle>
-                          <CardDescription className="text-xs font-medium text-slate-500 mt-1 leading-relaxed">{item.desc}</CardDescription>
-                        </CardHeader>
-                        <div className="flex-1"></div>
-                        <CardFooter className="pt-2 pb-4">
-                          <Button
-                            className={`w-full rounded-xl font-black text-[10px] uppercase tracking-widest shadow-sm transition-all ${item.id === 'custom-api' ? 'bg-violet-50 hover:bg-violet-100 text-violet-700 border border-violet-200 hover:border-violet-300' : 'bg-slate-50 hover:bg-primary/5 text-slate-700 hover:text-primary border border-slate-200 hover:border-primary/30'}`}
-                            disabled={isExporting !== null}
-                            onClick={() => handleExportClick(item)}
-                            data-testid={`button-export-${item.id}`}
-                          >
-                            {isExporting === item.id ? (
-                              <><div className="w-3.5 h-3.5 border-2 border-slate-400 border-t-transparent rounded-full animate-spin mr-2" /> Processing...</>
-                            ) : item.id === 'custom-api' ? (
-                              <><Plug className="w-3.5 h-3.5 mr-2" /> Configure API</>
-                            ) : (
-                              <><Download className="w-3.5 h-3.5 mr-2" /> {['Copy', 'Code', 'Drive'].includes(item.ext) ? item.ext : `Download ${item.ext}`}</>
-                            )}
-                          </Button>
-                        </CardFooter>
-                      </Card>
-                    ))}
+              {CATEGORIES.map((cat) => {
+                const items = (EXPORT_ITEMS as any)[cat.key];
+                if (!items || items.length === 0) return null;
+                return (
+                  <div key={cat.key} className="space-y-4">
+                    <div className="border-b border-slate-200 pb-2">
+                      <h2 className="text-lg font-black text-slate-900 tracking-tight">{cat.title}</h2>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">{cat.subtitle}</p>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                      {items.map((item: any) => renderExportCard(item))}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
       </div>
-      <CustomApiModal open={customApiOpen} onOpenChange={setCustomApiOpen} />
+      <CustomApiModal
+        open={customApiOpen}
+        onOpenChange={setCustomApiOpen}
+        sector={sector}
+        dateRange={dateRange}
+        metrics={metrics}
+        chartData={chartData}
+        donutData={donutData}
+      />
       <style>{`
         .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }

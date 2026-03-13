@@ -175,9 +175,13 @@ export async function registerRoutes(
     res.json({ kpis: kpis[sector || 'unified'] || kpis.unified });
   });
 
+  function formatExportDate(): string {
+    return new Date().toISOString().slice(0, 10);
+  }
+
   app.post('/api/export/excel', async (req, res) => {
     try {
-      const { spec, data, layouts, widgets } = req.body;
+      const { spec, data, layouts, widgets, sector } = req.body;
       if (!widgets || !Array.isArray(widgets)) return res.status(400).json({ error: 'Missing or invalid widgets array' });
       if (!data || !data.metrics) return res.status(400).json({ error: 'Missing or invalid data payload' });
 
@@ -188,12 +192,198 @@ export async function registerRoutes(
         widgets
       });
 
+      const filename = `chaininsideiq_dashboard_excel_${sector || 'unified'}_${formatExportDate()}.xlsx`;
       res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-      res.setHeader('Content-Disposition', `attachment; filename="dashboard-${Date.now()}.xlsx"`);
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
       res.send(buffer);
     } catch (err: any) {
       console.error('Excel export error:', err);
       res.status(500).json({ error: 'Failed to generate Excel workbook', details: err.message });
+    }
+  });
+
+  app.post('/api/export/csv', (req, res) => {
+    try {
+      const { metrics, chartData, sector, dateRange } = req.body;
+      if (!metrics || !Array.isArray(metrics) || metrics.length === 0) {
+        return res.status(400).json({ error: 'Missing or empty metrics array' });
+      }
+
+      const lines: string[] = [];
+
+      lines.push('Section,Label,Value,Trend,Direction,Help Text');
+      for (const m of metrics) {
+        const direction = m.isPositive ? 'Positive' : 'Negative';
+        lines.push([
+          'KPI',
+          `"${m.label}"`,
+          `"${m.value}"`,
+          `"${m.trend}"`,
+          direction,
+          `"${(m.helpText || '').replace(/"/g, '""')}"`
+        ].join(','));
+      }
+
+      if (chartData && Array.isArray(chartData) && chartData.length > 0) {
+        lines.push('');
+        lines.push('Period,Actual,Forecast,Lower Bound,Upper Bound');
+        for (const d of chartData) {
+          lines.push([
+            `"${d.name}"`,
+            d.value ?? '',
+            d.forecast ?? '',
+            d.lower ?? '',
+            d.upper ?? ''
+          ].join(','));
+        }
+      }
+
+      const csv = lines.join('\n');
+      const filename = `chaininsideiq_dashboard_${sector || 'unified'}_${formatExportDate()}.csv`;
+
+      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.send(csv);
+    } catch (err: any) {
+      console.error('CSV export error:', err);
+      res.status(500).json({ error: 'Failed to generate CSV', details: err.message });
+    }
+  });
+
+  app.post('/api/export/json', (req, res) => {
+    try {
+      const { sector, dateRange, widgets, layouts, metrics, chartData, donutData, theme } = req.body;
+
+      const exportPayload = {
+        meta: {
+          platform: 'ChainInsideIQ',
+          version: '1.0',
+          export_type: 'dashboard_spec',
+          generated_at: new Date().toISOString(),
+          sector: sector || 'unified',
+          date_range: dateRange || '30d'
+        },
+        dashboard: {
+          widgets: (widgets || []).map((w: any) => ({
+            id: w.id,
+            type: w.type,
+            title: w.title || w.type,
+            metricIndex: w.metricIndex,
+            chartType: w.chartType,
+            isAI: ['insights', 'chat', 'forecast', 'summary'].includes(w.type),
+            settings: w.settings || {}
+          })),
+          layout: layouts || {},
+          visualization_types: [...new Set((widgets || []).map((w: any) => w.type))],
+        },
+        data_snapshot: {
+          metrics: metrics || [],
+          chart_data: chartData || [],
+          donut_data: donutData || []
+        },
+        theme: theme || { mode: 'light', primary: '#0F766E' }
+      };
+
+      const json = JSON.stringify(exportPayload, null, 2);
+      const filename = `chaininsideiq_dashboard_spec_${sector || 'unified'}_${formatExportDate()}.json`;
+
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.send(json);
+    } catch (err: any) {
+      console.error('JSON export error:', err);
+      res.status(500).json({ error: 'Failed to generate JSON export', details: err.message });
+    }
+  });
+
+  app.post('/api/export/dataset', (req, res) => {
+    try {
+      const { metrics, chartData, donutData, sector, dateRange, format } = req.body;
+      if (!metrics || !Array.isArray(metrics) || metrics.length === 0) {
+        return res.status(400).json({ error: 'Missing or empty metrics array' });
+      }
+
+      const outputFormat = format || 'json';
+      const dateStr = formatExportDate();
+
+      if (outputFormat === 'csv') {
+        const lines: string[] = [];
+
+        lines.push('Category,Label,Value,Trend,Direction');
+        for (const m of metrics) {
+          lines.push([
+            `"${m.category || sector || 'unified'}"`,
+            `"${m.label}"`,
+            `"${m.value}"`,
+            `"${m.trend}"`,
+            m.isPositive ? 'Up' : 'Down'
+          ].join(','));
+        }
+
+        if (chartData && chartData.length > 0) {
+          lines.push('');
+          lines.push('Period,Actual,Forecast,Lower,Upper');
+          for (const d of chartData) {
+            lines.push([`"${d.name}"`, d.value ?? '', d.forecast ?? '', d.lower ?? '', d.upper ?? ''].join(','));
+          }
+        }
+
+        if (donutData && donutData.length > 0) {
+          lines.push('');
+          lines.push('Channel,Percentage,Absolute Value');
+          for (const d of donutData) {
+            lines.push([`"${d.name}"`, d.value, d.absolute ?? ''].join(','));
+          }
+        }
+
+        const filename = `chaininsideiq_dataset_${sector || 'unified'}_${dateStr}.csv`;
+        res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+        res.send(lines.join('\n'));
+      } else {
+        const dataset = {
+          meta: {
+            platform: 'ChainInsideIQ',
+            export_type: 'dataset',
+            generated_at: new Date().toISOString(),
+            sector: sector || 'unified',
+            date_range: dateRange || '30d',
+            record_counts: {
+              metrics: (metrics || []).length,
+              timeseries: (chartData || []).length,
+              channels: (donutData || []).length
+            }
+          },
+          metrics: (metrics || []).map((m: any) => ({
+            label: m.label,
+            value: m.value,
+            trend: m.trend,
+            direction: m.isPositive ? 'up' : 'down',
+            category: m.category || sector || 'unified',
+            help_text: m.helpText || ''
+          })),
+          timeseries: (chartData || []).map((d: any) => ({
+            period: d.name,
+            actual: d.value,
+            forecast: d.forecast,
+            lower_bound: d.lower,
+            upper_bound: d.upper
+          })),
+          channels: (donutData || []).map((d: any) => ({
+            name: d.name,
+            percentage: d.value,
+            absolute: d.absolute
+          }))
+        };
+
+        const filename = `chaininsideiq_dataset_${sector || 'unified'}_${dateStr}.json`;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+        res.send(JSON.stringify(dataset, null, 2));
+      }
+    } catch (err: any) {
+      console.error('Dataset export error:', err);
+      res.status(500).json({ error: 'Failed to generate dataset export', details: err.message });
     }
   });
 
