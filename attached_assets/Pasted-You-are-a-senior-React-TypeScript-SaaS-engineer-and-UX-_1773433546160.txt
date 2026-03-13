@@ -1,0 +1,158 @@
+You are a senior React + TypeScript SaaS engineer and UX designer.
+
+Enhance the existing “Custom API” feature in my app:
+
+“ChainInsideIQ — AI Dashboard Generator Platform”
+
+DO NOT rebuild the whole app from scratch.
+Refactor and improve the current codebase in-place.
+
+PRIMARY PROBLEM
+The “Custom API” button in the Integration Hub currently looks good but does nothing when clicked.
+
+PRIMARY GOAL
+Make the Custom API feature feel real, interactive, and useful.
+
+==================================================
+1) BUTTON INTERACTION
+==================================================
+
+Fix the “Custom API” button so it performs a real action.
+
+When clicked:
+- open a modal, drawer, or side panel
+- do NOT leave it as a dead button
+
+The interaction should feel premium and responsive.
+
+==================================================
+2) CUSTOM API PANEL UI
+==================================================
+
+Create a clean Custom API integration panel with these fields:
+
+A) Basic Connection Info
+- Integration Name
+- API Endpoint URL
+- Request Method dropdown
+  - GET
+  - POST
+  - PUT
+  - PATCH
+
+B) Authentication
+- API Key field
+- optional Bearer Token toggle
+- optional Headers section
+
+C) Payload / Data Mapping
+- Payload Type selector:
+  - Dashboard Spec JSON
+  - Dataset JSON
+  - Metrics Summary
+  - Custom JSON
+- Payload preview area
+- editable JSON text area if “Custom JSON” is selected
+
+D) Actions
+- Test Connection button
+- Send Test Request button
+- Save Integration button
+- Cancel / Close button
+
+==================================================
+3) FUNCTIONALITY
+==================================================
+
+Make the feature functional in demo-safe mode.
+
+At minimum:
+- opening the panel works
+- form fields work
+- payload preview updates
+- Test Connection button simulates a connection check
+- Send Test Request simulates success/failure
+- Save Integration stores the config in local state or localStorage
+
+If safe and easy, also create a backend endpoint:
+POST /api/export/custom-api
+
+This endpoint can accept:
+- integration config
+- dashboard spec
+- dataset payload
+
+For now it may simulate a response, but the flow must feel real.
+
+==================================================
+4) PAYLOAD PREVIEW
+==================================================
+
+Show a live payload preview using current app data where possible.
+
+Examples:
+- dashboard spec JSON
+- selected dashboard metrics
+- dataset preview
+- export metadata
+
+This is important because the user should understand what the API integration will send.
+
+==================================================
+5) SUCCESS / ERROR FEEDBACK
+==================================================
+
+Add proper user feedback:
+- success toast or success message
+- error state if fields are missing
+- loading state when testing connection
+- saved integration confirmation
+
+Example success text:
+- “Connection test successful”
+- “Custom API integration saved”
+- “Payload sent successfully”
+
+==================================================
+6) RESPONSIVENESS
+==================================================
+
+Ensure the Custom API interaction works well on:
+- desktop
+- tablet
+- mobile
+
+Desktop:
+- side drawer or modal
+
+Mobile:
+- full-screen sheet or drawer
+- touch-friendly fields and buttons
+
+==================================================
+7) VISUAL POLISH
+==================================================
+
+Keep the existing light + teal corporate SaaS style.
+
+Use:
+- rounded cards
+- strong section labels
+- good spacing
+- subtle shadows
+- clean form styling
+- premium empty states
+
+Do not clutter the UI.
+
+==================================================
+8) DELIVERABLES
+==================================================
+
+1. Inspect the current repo structure first
+2. Identify the Integration Hub file and Custom API button code
+3. Make the button functional
+4. Create the Custom API modal/drawer/panel
+5. Add payload preview + test/save interactions
+6. Explain file-by-file what changed
+7. Confirm the Custom API button now opens a real interactive flow
