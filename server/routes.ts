@@ -6,6 +6,12 @@ import { generateCsvExport } from "./services/exports/csv-exporter";
 import { generateJsonExport } from "./services/exports/json-exporter";
 import { generateDatasetExport, generateDatasetCsv } from "./services/exports/dataset-exporter";
 import { exportFilename } from "./services/exports";
+import multer from "multer";
+import { importCsvDataset, parseCsvText } from "./services/data-sources/csv-source";
+import { testSqlConnection, fetchTableSchema, importTableData } from "./services/data-sources/sql-source";
+import { fetchGoogleSheet } from "./services/data-sources/google-sheets-source";
+import { fetchApiData } from "./services/data-sources/api-source";
+import { getAllDatasets, getDataset, deleteDataset, getDatasetRows, inferColumns, registerDataset } from "./services/data-sources/dataset-registry";
 
 interface AIResponse {
   summary: string;
@@ -276,6 +282,126 @@ export async function registerRoutes(
       timestamp: new Date().toISOString(),
       note: 'This is a simulated response. In production, the payload would be forwarded to the specified endpoint.'
     });
+  });
+
+  const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
+
+  app.post('/api/data/upload-csv', upload.single('file'), (req, res) => {
+    try {
+      if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+      const csvText = req.file.buffer.toString('utf-8');
+      const name = req.body.name || req.file.originalname?.replace('.csv', '') || 'CSV Import';
+      const dataset = importCsvDataset(name, csvText);
+      const { rows, ...meta } = dataset;
+      res.json({ success: true, dataset: meta, preview: rows.slice(0, 10) });
+    } catch (err: any) {
+      res.status(500).json({ error: 'Failed to parse CSV', details: err.message });
+    }
+  });
+
+  app.post('/api/data/parse-csv-text', (req, res) => {
+    try {
+      const { text, name } = req.body;
+      if (!text) return res.status(400).json({ error: 'No CSV text provided' });
+      const dataset = importCsvDataset(name || 'CSV Import', text);
+      const { rows, ...meta } = dataset;
+      res.json({ success: true, dataset: meta, preview: rows.slice(0, 10) });
+    } catch (err: any) {
+      res.status(500).json({ error: 'Failed to parse CSV', details: err.message });
+    }
+  });
+
+  app.post('/api/data/sql/test', async (req, res) => {
+    try {
+      const result = await testSqlConnection(req.body);
+      res.json(result);
+    } catch (err: any) {
+      res.status(500).json({ success: false, message: err.message });
+    }
+  });
+
+  app.post('/api/data/sql/schema', async (req, res) => {
+    try {
+      const { config, table } = req.body;
+      const schema = await fetchTableSchema(config, table);
+      res.json({ table, columns: schema });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.post('/api/data/sql/import', async (req, res) => {
+    try {
+      const { config, table } = req.body;
+      const rows = await importTableData(config, table);
+      const columns = inferColumns(rows);
+      const dataset = registerDataset({
+        name: `${config.database}.${table}`,
+        source_type: 'sql',
+        columns,
+        rows,
+        source_meta: { host: config.host, database: config.database, table }
+      });
+      const { rows: _, ...meta } = dataset;
+      res.json({ success: true, dataset: meta, preview: rows.slice(0, 10) });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.post('/api/data/google-sheets', async (req, res) => {
+    try {
+      const { url } = req.body;
+      if (!url) return res.status(400).json({ success: false, error: 'Sheet URL is required' });
+      const result = await fetchGoogleSheet(url);
+      if (result.success && result.data) {
+        const { rows, ...meta } = result.data;
+        res.json({ success: true, dataset: meta, preview: rows.slice(0, 10) });
+      } else {
+        res.json({ success: false, error: result.error });
+      }
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  app.post('/api/data/api-ingest', async (req, res) => {
+    try {
+      const { url, method, headers } = req.body;
+      if (!url) return res.status(400).json({ success: false, error: 'API URL is required' });
+      const result = await fetchApiData(url, method, headers);
+      if (result.success && result.data) {
+        const { rows, ...meta } = result.data;
+        res.json({ success: true, dataset: meta, preview: rows.slice(0, 10) });
+      } else {
+        res.json({ success: false, error: result.error });
+      }
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  app.get('/api/data/datasets', (_req, res) => {
+    res.json({ datasets: getAllDatasets() });
+  });
+
+  app.get('/api/data/datasets/:id', (req, res) => {
+    const ds = getDataset(req.params.id);
+    if (!ds) return res.status(404).json({ error: 'Dataset not found' });
+    const { rows, ...meta } = ds;
+    res.json({ dataset: meta, preview: rows.slice(0, 50) });
+  });
+
+  app.get('/api/data/datasets/:id/rows', (req, res) => {
+    const limit = parseInt(req.query.limit as string) || 100;
+    const offset = parseInt(req.query.offset as string) || 0;
+    const rows = getDatasetRows(req.params.id, limit, offset);
+    res.json({ rows, count: rows.length });
+  });
+
+  app.delete('/api/data/datasets/:id', (req, res) => {
+    const deleted = deleteDataset(req.params.id);
+    res.json({ success: deleted });
   });
 
   return httpServer;

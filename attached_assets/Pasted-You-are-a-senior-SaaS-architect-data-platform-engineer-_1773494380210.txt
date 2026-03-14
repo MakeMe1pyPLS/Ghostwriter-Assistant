@@ -1,0 +1,269 @@
+You are a senior SaaS architect, data platform engineer, FastAPI backend developer, and React TypeScript frontend engineer.
+
+Continue building my SaaS platform:
+
+"ChainInsideIQ — AI Dashboard Generator Platform"
+
+IMPORTANT
+- DO NOT rebuild the app from scratch
+- Sprint 1–6 are already completed
+- Implement Sprint 7 only
+- Preserve existing functionality
+- Keep UI styling consistent with the current light + teal corporate theme
+
+PRIMARY GOAL
+
+Sprint 7 — Data Connectors
+
+Allow users to bring their own data into the platform.
+
+The platform must support importing datasets and connecting external data sources.
+
+This sprint will introduce the data ingestion layer.
+
+--------------------------------------------------
+
+DATA CONNECTORS TO BUILD
+
+1) CSV Import
+2) SQL Database Connector
+3) Google Sheets Connector
+4) API Data Ingestion
+
+--------------------------------------------------
+
+PART 1 — DATA SOURCE ARCHITECTURE
+
+Create a centralized data source system.
+
+Suggested structure:
+
+backend/app/services/data_sources/
+
+data_source_manager.py
+csv_source.py
+sql_source.py
+google_sheets_source.py
+api_source.py
+
+Each source should implement a simple interface pattern.
+
+Suggested methods:
+
+connect()
+fetch_schema()
+fetch_data()
+refresh()
+
+These do not need to support every feature yet but should establish the architecture.
+
+--------------------------------------------------
+
+PART 2 — CSV IMPORT
+
+Allow users to upload CSV files.
+
+Requirements:
+
+- Upload CSV file
+- Parse headers
+- Detect columns and types
+- Store dataset in memory or temp dataset store
+- Convert into platform dataset format
+- Make dataset available to dashboard widgets
+
+Frontend requirements:
+
+Create a simple CSV upload UI.
+
+Allow the user to:
+
+Upload file  
+Preview dataset  
+Confirm import  
+
+After import, the dataset should be available for:
+
+Dashboard widgets  
+KPI binding  
+AI analysis
+
+--------------------------------------------------
+
+PART 3 — SQL CONNECTOR
+
+Create a SQL database connection system.
+
+Support basic connection configuration.
+
+User should be able to enter:
+
+host  
+port  
+database  
+username  
+password  
+
+Supported database types initially:
+
+PostgreSQL  
+MySQL (optional)
+
+Backend should:
+
+Test connection  
+Fetch table list  
+Fetch schema  
+Allow dataset import from selected table
+
+Security:
+
+Do not store raw passwords permanently in this sprint.
+
+Use temporary in-memory configuration for demo purposes.
+
+--------------------------------------------------
+
+PART 4 — GOOGLE SHEETS CONNECTOR
+
+Create a lightweight Google Sheets integration scaffold.
+
+Requirements:
+
+User can provide a Google Sheet URL.
+
+Backend should:
+
+Extract sheet ID  
+Attempt to fetch public sheet data (for demo)  
+
+Use Google Sheets CSV export endpoint if necessary.
+
+Example:
+
+https://docs.google.com/spreadsheets/d/{sheetId}/export?format=csv
+
+Convert sheet data into platform dataset format.
+
+--------------------------------------------------
+
+PART 5 — API DATA INGESTION
+
+Allow users to import datasets from external APIs.
+
+Requirements:
+
+User can enter:
+
+API URL  
+HTTP method (GET)  
+Optional headers  
+
+System fetches JSON response.
+
+Convert JSON response into dataset format.
+
+Flatten simple JSON structures into table format.
+
+--------------------------------------------------
+
+PART 6 — DATASET MANAGEMENT
+
+Create a simple dataset registry.
+
+Suggested backend structure:
+
+backend/app/services/datasets/
+
+dataset_registry.py
+
+Datasets should include:
+
+dataset_id  
+dataset_name  
+source_type  
+columns  
+rows  
+
+Datasets should be accessible to:
+
+Dashboard widgets  
+AI analysis  
+Export system
+
+--------------------------------------------------
+
+PART 7 — DATA CONNECTOR UI
+
+Add a new section in the UI:
+
+"Data Sources" or "Connect Data"
+
+Allow users to:
+
+Upload CSV  
+Connect SQL database  
+Connect Google Sheets  
+Connect API  
+
+Display connected datasets.
+
+Allow users to select a dataset for dashboard widgets.
+
+--------------------------------------------------
+
+PART 8 — DATASET PREVIEW
+
+Add a dataset preview panel.
+
+User should see:
+
+table preview  
+columns  
+row samples  
+
+This helps users confirm data import worked.
+
+--------------------------------------------------
+
+PART 9 — CONNECTOR SAFETY
+
+If connection fails:
+
+Show a clean error message.
+
+Do not crash the UI.
+
+Handle invalid CSV, invalid API response, or connection failures gracefully.
+
+--------------------------------------------------
+
+PART 10 — INTEGRATION WITH DASHBOARD BUILDER
+
+After a dataset is imported:
+
+Widgets must be able to bind to:
+
+dataset columns  
+dataset metrics  
+
+Ensure dataset binding works with:
+
+KPI cards  
+charts  
+tables
+
+--------------------------------------------------
+
+DELIVERABLES
+
+1) Inspect the current repo structure
+2) Implement Sprint 7 in-place
+3) Add backend data connector services
+4) Add frontend connector UI
+5) Ensure imported datasets are usable by widgets
+6) Explain file-by-file what changed
+
+At the end print:
+
+✅ Sprint 7 Complete: Data Connectors

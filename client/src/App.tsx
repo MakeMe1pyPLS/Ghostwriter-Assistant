@@ -22,6 +22,7 @@ import InsightsPage from "@/pages/insights";
 import HubPage from "@/pages/hub";
 import ConnectorsPage from "@/pages/connectors";
 import ExportsPage from "@/pages/exports";
+import DataSourcesPage from "@/pages/data-sources";
 
 function Router() {
   return (
@@ -45,6 +46,7 @@ function Router() {
       <Route path="/hub" component={HubPage} />
       <Route path="/connectors" component={ConnectorsPage} />
       <Route path="/exports" component={ExportsPage} />
+      <Route path="/data" component={DataSourcesPage} />
       <Route component={NotFound} />
     </Switch>
   );

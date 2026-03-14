@@ -26,6 +26,7 @@ A production-quality supply chain dashboard SaaS with a marketing website and fu
 - **Sprint 4** ✅ AI Supply Chain Analyst + Website Pages + Custom API Export + Social Links
 - **Sprint 5** ✅ Integration Hub Custom API Drawer
 - **Sprint 6** ✅ Export System (CSV, JSON, Dataset, Excel improvements, Export Center wired to live data)
+- **Sprint 7** ✅ Data Connectors (CSV upload, SQL connector, Google Sheets import, API ingestion, dataset management)
 
 ## Export System (Sprint 6)
 ### Backend Routes
@@ -77,6 +78,36 @@ Examples: `chaininsideiq_dashboard_excel_ecommerce_2026-03-13.xlsx`, `chaininsid
 - Uses backend routes for Excel, CSV, JSON, and Dataset exports
 - Shows loading, success, and error states per export type
 
+## Data Connectors (Sprint 7)
+### Backend Data Source Services (`server/services/data-sources/`)
+- `dataset-registry.ts` — In-memory dataset store with column type inference
+- `csv-source.ts` — CSV parser (supports quoted fields) and import
+- `sql-source.ts` — SQL connector with test connection, schema inspection, table import (simulated)
+- `google-sheets-source.ts` — Fetches public Google Sheets via CSV export URL
+- `api-source.ts` — JSON API ingestion with automatic row flattening
+
+### Data API Routes
+- `POST /api/data/upload-csv` — Multipart CSV file upload (multer, max 10MB)
+- `POST /api/data/parse-csv-text` — Parse raw CSV text
+- `POST /api/data/sql/test` — Test SQL database connection
+- `POST /api/data/sql/schema` — Fetch table schema
+- `POST /api/data/sql/import` — Import table data as dataset
+- `POST /api/data/google-sheets` — Import from public Google Sheet URL
+- `POST /api/data/api-ingest` — Fetch and import JSON API data
+- `GET /api/data/datasets` — List all imported datasets (metadata only)
+- `GET /api/data/datasets/:id` — Get dataset metadata + preview (50 rows)
+- `GET /api/data/datasets/:id/rows` — Paginated row access (?limit=100&offset=0)
+- `DELETE /api/data/datasets/:id` — Remove dataset
+
+### Frontend Data Sources Page (`/data`)
+- Tab-based UI: CSV Upload, SQL Database, Google Sheets, API Endpoint
+- Drag-and-drop CSV upload with file type validation
+- SQL connector with host/port/db/user/pass fields, test connection, table browser, import
+- Google Sheets URL input with public sheet validation
+- API endpoint with GET/POST method, custom headers, JSON auto-flattening
+- Dataset list with expand/collapse preview, delete, column schema badges
+- All imports wire into `useDashboardStore.setImportedData` and set sector to `custom`
+
 ## AI Backend Endpoints
 - `POST /api/ai/insights` — Structured insight JSON per sector
 - `POST /api/ai/chat` — Conversational AI chat with KPI-aware responses
@@ -86,7 +117,7 @@ Examples: `chaininsideiq_dashboard_excel_ecommerce_2026-03-13.xlsx`, `chaininsid
 ## Website Pages (All Routed)
 - `/` Home, `/features`, `/pricing`, `/contact`, `/support`, `/privacy`, `/terms`
 - `/demo` → Builder, `/request-setup` → Contact
-- `/builder`, `/dashboard`, `/insights`, `/hub`, `/connectors`, `/exports`
+- `/builder`, `/dashboard`, `/insights`, `/hub`, `/data`, `/connectors`, `/exports`
 - `/checkout/success`, `/checkout/cancel`, `/checkout/stripe-mock`
 
 ## Key Files

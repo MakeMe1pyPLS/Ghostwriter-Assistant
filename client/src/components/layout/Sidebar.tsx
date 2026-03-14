@@ -9,7 +9,8 @@ import {
   BrainCircuit,
   Wrench,
   ChevronRight,
-  ArrowLeft
+  ArrowLeft,
+  Database
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
@@ -19,6 +20,7 @@ const navItems = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard, description: "Live Monitoring" },
   { name: "AI Insights", href: "/insights", icon: BrainCircuit, description: "Smart Analysis" },
   { name: "Hub", href: "/hub", icon: MessageSquare, description: "Internal Comms" },
+  { name: "Data Sources", href: "/data", icon: Database, description: "Import & Connect" },
   { name: "Connectors", href: "/connectors", icon: Plug, description: "ERP Sync" },
   { name: "Exports", href: "/exports", icon: Download, description: "Report Engine" },
 ];
