@@ -1,0 +1,308 @@
+You are a senior React + TypeScript SaaS frontend engineer and product UX consistency specialist.
+
+Refactor and improve the pricing system across my existing app:
+
+“ChainInsideIQ — AI Dashboard Generator Platform”
+
+DO NOT rebuild the whole site/app from scratch.
+Refactor and improve the current codebase in-place.
+
+PRIMARY GOAL
+Fix pricing inconsistency across the site and update the Pricing page so it uses the correct tier-based pricing with the same general layout but improved organization, consistency, and polish.
+
+CURRENT PROBLEM
+The support/FAQ page shows pricing that does not match the Pricing page.
+Some pages still use outdated pricing references.
+
+I want the pricing to reflect the correct tier-based structure consistently across:
+- Pricing page
+- Support page
+- FAQ
+- CTA sections
+- Footer references if any
+- Marketing copy if any
+
+==================================================
+1) OFFICIAL PRICING TO USE
+==================================================
+
+Use this pricing structure as the official source of truth:
+
+Starter
+- $79/month
+- 14-day free trial
+
+Professional
+- $149/month
+- 14-day free trial
+
+Business
+- $299/month
+- 14-day free trial
+
+Enterprise
+- Custom pricing
+- Contact Sales
+
+Use these exact plan names and pricing values unless a small text polish is needed.
+
+==================================================
+2) TIER FEATURE SETS
+==================================================
+
+Use this feature structure:
+
+Starter — $79/month
+Best for small teams and early-stage operations
+
+Include:
+- Dashboard Builder
+- KPI cards
+- charts
+- tables
+- forecasting widgets
+- E-commerce KPI library
+- Manufacturing KPI library
+- Logistics KPI library
+- CSV upload
+- Excel upload
+- manual dataset import
+- Excel export
+- CSV export
+- JSON export
+- AI Supply Chain Analyst (basic)
+- KPI explanations
+- dashboard summary
+- anomaly hints
+- 3 dashboards
+- 3 datasets
+- 1 user
+- 14-day free trial
+
+Professional — $149/month
+Best for growing companies and analytics teams
+
+Everything in Starter, plus:
+- Advanced AI Analyst
+- anomaly detection
+- trend insights
+- AI dashboard summaries
+- operational recommendations
+- forecast explanations
+- unlimited dashboards
+- unlimited widgets
+- Google Sheets connector
+- SQL database connection
+- API ingestion
+- formatted PDF reports
+- scheduled exports
+- weekly AI reports
+- up to 5 users
+- 14-day free trial
+
+Business — $299/month
+Best for operations teams running multiple data systems
+
+Everything in Professional, plus:
+- Unified Supply Chain Mode
+- Bridge KPIs
+- Perfect Order Rate
+- Cash-to-Cash Cycle Time
+- Available-to-Promise Accuracy
+- Bullwhip Effect Index
+- multi-dataset linking
+- sector data normalization
+- metric calculation engine
+- 30-day forecasting
+- scenario simulation
+- comments on dashboards
+- team notifications
+- shared workspaces
+- AI root-cause analysis
+- KPI prioritization
+- up to 15 users
+- 14-day free trial
+
+Enterprise — Custom
+For large companies and supply chain networks
+
+Everything in Business, plus:
+- Power BI integration
+- Tableau integration
+- ERP integrations
+- custom API pipelines
+- AI operational simulation
+- predictive demand modeling
+- supply chain optimization insights
+- SSO
+- audit logs
+- role-based access
+- dedicated environment
+- onboarding assistance
+- custom KPI engineering
+- direct support
+- Contact Sales CTA
+
+==================================================
+3) MAKE PRICING CONSISTENT ACROSS THE SITE
+==================================================
+
+Audit the entire frontend for pricing references.
+
+Search for:
+- $49
+- $79
+- $99
+- $149
+- $299
+- Starter
+- Professional
+- Business
+- Enterprise
+- old FAQ pricing text
+- support page pricing copy
+- CTA copy mentioning old prices or plan names
+
+Remove outdated pricing references and replace them with the official pricing structure above.
+
+==================================================
+4) CREATE A SINGLE PRICING SOURCE OF TRUTH
+==================================================
+
+Refactor the frontend so pricing content is not hardcoded in multiple places.
+
+Create a shared pricing config/constants file such as:
+- src/config/pricing.ts
+or
+- src/lib/pricing.ts
+
+This config should store:
+- plan name
+- monthly price
+- billing period
+- trial length
+- plan description
+- included features
+- CTA label
+- optional badge (most popular, recommended, custom)
+
+Then update all relevant pages/components to use this shared config.
+
+This should eliminate mismatches between:
+- pricing page
+- support page
+- FAQ
+- CTA sections
+- marketing copy
+
+==================================================
+5) FIX SUPPORT / FAQ PAGE
+==================================================
+
+Update the support/FAQ content to match the new pricing system.
+
+Example FAQ answer:
+
+“How does the pricing work?”
+ChainInsideIQ offers four plans: Starter ($79/month), Professional ($149/month), Business ($299/month), and Enterprise (custom pricing). Starter, Professional, and Business include a 14-day free trial. Each tier unlocks more AI capability, integrations, exports, collaboration, and supply chain intelligence features.
+
+Make the wording premium, clear, and accurate.
+
+==================================================
+6) UPDATE THE PRICING PAGE
+==================================================
+
+Update the Pricing page to use the correct tier pricing above.
+
+IMPORTANT:
+- Keep the same general pricing page layout and design direction
+- Do NOT redesign the whole section from scratch
+- Improve the current layout so it feels more organized, polished, and premium
+- Preserve the existing visual style where possible, just make it better
+
+Pricing page requirements:
+- show all 4 tiers clearly
+- make cards consistent in height and spacing
+- improve badge placement if needed
+- improve button hierarchy
+- improve feature list readability
+- improve card alignment and responsiveness
+- improve comparison clarity between tiers
+- keep the current light + teal SaaS aesthetic
+
+Each pricing card should include:
+- plan name
+- monthly price
+- short description
+- trial mention if applicable
+- CTA button
+- feature list
+
+Suggested CTAs:
+- Starter: Start Starter
+- Professional: Start Professional
+- Business: Start Business
+- Enterprise: Contact Sales
+
+If appropriate, mark one tier as:
+- Most Popular
+or
+- Recommended
+
+==================================================
+7) KEEP THE SAME LAYOUT, JUST BETTER
+==================================================
+
+The pricing page should keep the same overall layout structure it already has, but improve:
+- visual balance
+- card organization
+- spacing
+- feature list hierarchy
+- badge placement
+- typography consistency
+- responsiveness on tablet/mobile
+
+Do not radically change the layout unless necessary to fix broken alignment or overflow issues.
+
+==================================================
+8) UPDATE CTA / SUPPORTING COPY
+==================================================
+
+Make sure CTA and support copy reflects the correct tier pricing.
+
+Examples:
+- Start Your 14-Day Free Trial
+- Choose the plan that fits your team
+- Start with Starter at $79/month
+- Scale to Professional or Business as your operations grow
+- Need enterprise integrations? Contact Sales
+
+Keep messaging trustworthy and clean.
+
+==================================================
+9) RESPONSIVENESS
+==================================================
+
+Ensure the pricing section and pricing cards work well on:
+- desktop
+- tablet
+- mobile
+
+Requirements:
+- cards stack cleanly on smaller screens
+- no clipped badges
+- no broken spacing
+- CTA buttons remain readable and aligned
+
+==================================================
+10) DELIVERABLES
+==================================================
+
+1. Inspect the current repo structure first
+2. Find all outdated pricing references
+3. Create a shared pricing config/source of truth
+4. Update the Pricing page using the correct tier pricing
+5. Update the Support/FAQ page to match
+6. Keep the same pricing layout direction but improve it visually
+7. Explain file-by-file what changed
+8. Confirm pricing is now consistent across the site and pricing page

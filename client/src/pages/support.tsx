@@ -3,16 +3,17 @@ import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { Mail, MessageCircle, BookOpen, Headphones, ArrowRight, ChevronDown, ChevronUp, HelpCircle, Zap } from "lucide-react";
 import { useState } from "react";
+import { getPricingSummary } from "@/lib/pricing";
 
 const faqs = [
   { q: "How do I get started with ChainInsideIQ?", a: "Start by signing up for a 14-day free trial. You can immediately access the Dashboard Builder, import your data, and begin generating insights. No credit card required." },
-  { q: "Can I import my own datasets?", a: "Yes. You can upload CSV files, paste JSON data, or connect to supported data sources. The platform will automatically detect column types and map them to the appropriate KPIs." },
-  { q: "What export formats are supported?", a: "ChainInsideIQ supports Excel (.xlsx), CSV, JSON, Power BI, Tableau, PDF reports, and PowerPoint presentations. You can also use our Custom API to push data to your own systems." },
+  { q: "Can I import my own datasets?", a: "Yes. You can upload CSV files, connect to SQL databases, import from Google Sheets, or ingest data from external APIs. The platform will automatically detect column types and map them to the appropriate KPIs." },
+  { q: "What export formats are supported?", a: "ChainInsideIQ supports Excel (.xlsx), CSV, JSON, formatted PDF reports, and scheduled exports. Professional plans and above also support Google Sheets, SQL, and API integrations. Enterprise plans add Power BI and Tableau connectors." },
   { q: "Is the AI analysis powered by real machine learning?", a: "The current demo uses a sophisticated rule-based engine calibrated against real supply chain benchmarks. Our production tier integrates with advanced AI models for deeper predictive analytics." },
-  { q: "How does the pricing work?", a: "We offer three tiers: Starter ($49/mo), Professional ($99/mo), and Enterprise (custom). All plans include a 14-day free trial. See our Pricing page for full details." },
-  { q: "Can multiple team members use the same account?", a: "Yes. Professional plans include up to 10 users, and Enterprise plans support unlimited team members with role-based access controls." },
-  { q: "Do you offer onboarding or setup assistance?", a: "Absolutely. We offer guided onboarding sessions for Professional and Enterprise customers. You can also request a custom setup through our Contact page." },
-  { q: "Is my data secure?", a: "Yes. All data is encrypted in transit and at rest. We follow SOC 2 Type II compliance standards and never share your data with third parties. See our Privacy Policy for details." }
+  { q: "How does the pricing work?", a: getPricingSummary() },
+  { q: "Can multiple team members use the same account?", a: "Yes. Starter includes 1 user, Professional supports up to 5 users, Business supports up to 15 users, and Enterprise plans support unlimited team members with role-based access controls, SSO, and audit logs." },
+  { q: "Do you offer onboarding or setup assistance?", a: "Absolutely. We offer guided onboarding sessions for Business and Enterprise customers. Enterprise plans include dedicated onboarding assistance, custom KPI engineering, and direct support. You can also request a custom setup through our Contact page." },
+  { q: "Is my data secure?", a: "Yes. All data is encrypted in transit and at rest. We follow SOC 2 Type II compliance standards and never share your data with third parties. Enterprise plans include dedicated environments and audit logs. See our Privacy Policy for details." }
 ];
 
 function FAQItem({ q, a }: { q: string; a: string }) {

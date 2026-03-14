@@ -3,10 +3,13 @@ import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, Lock, ShieldCheck, Zap } from "lucide-react";
+import { getTierByName } from "@/lib/pricing";
 
 export default function CheckoutStripeMockPage() {
   const [, setLocation] = useLocation();
   const [isProcessing, setIsProcessing] = useState(false);
+  const tier = getTierByName('Professional')!;
+  const priceFormatted = `$${tier.price!.toFixed(2)}`;
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,21 +33,21 @@ export default function CheckoutStripeMockPage() {
             </div>
             
             <h2 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-3">Subscribe to</h2>
-            <h1 className="text-3xl font-black mb-8 tracking-tight">ChainInsideIQ Pro</h1>
+            <h1 className="text-3xl font-black mb-8 tracking-tight">ChainInsideIQ {tier.name}</h1>
             
             <div className="flex items-baseline gap-2 mb-8 pb-8 border-b border-slate-800">
-              <span className="text-5xl font-black tracking-tighter">$79.00</span>
+              <span className="text-5xl font-black tracking-tighter">{priceFormatted}</span>
               <span className="text-sm font-bold text-slate-400">/ month</span>
             </div>
             
             <ul className="space-y-4 text-sm font-medium text-slate-300">
               <li className="flex justify-between">
-                <span>ChainInsideIQ Pro</span>
-                <span className="text-white font-bold">$79.00</span>
+                <span>ChainInsideIQ {tier.name}</span>
+                <span className="text-white font-bold">{priceFormatted}</span>
               </li>
               <li className="flex justify-between font-bold text-emerald-400">
                 <span>14-day free trial</span>
-                <span>-$79.00</span>
+                <span>-{priceFormatted}</span>
               </li>
               <li className="flex justify-between border-t border-slate-800 pt-4 mt-4 text-white text-base font-black tracking-tight">
                 <span>Due today</span>
