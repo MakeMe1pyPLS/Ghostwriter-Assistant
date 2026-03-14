@@ -1,0 +1,352 @@
+You are a senior SaaS architect, FastAPI backend engineer, React + TypeScript frontend engineer, and export/integration system designer.
+
+Continue building my SaaS platform:
+
+“ChainInsideIQ — AI Dashboard Generator Platform”
+
+IMPORTANT
+- Do NOT rebuild the whole app from scratch.
+- Refactor and improve the existing codebase in-place.
+- Sprint 5 is already completed.
+- Now complete Sprint 6 and also scaffold the future integrations architecture.
+- Do not jump ahead to Sprint 7 implementation details beyond scaffolding.
+- Preserve existing working functionality unless needed for this sprint.
+- Keep the current light + teal corporate style unless a small polish improvement is needed.
+
+PRIMARY GOALS
+1) Complete Sprint 6 — Export System
+2) Scaffold a clean integrations folder structure for future tool integrations
+3) Make sure export logic and integration logic fit together cleanly
+4) Keep the current app stable and organized
+
+==================================================
+SPRINT 6 — EXPORT SYSTEM
+==================================================
+
+GOAL
+Export dashboards to multiple tools and formats.
+
+TASKS
+- Excel export
+- CSV export
+- JSON export
+- dataset export
+
+DELIVERABLE
+Dashboards and datasets can be exported in usable formats, with current builder/dashboard state reflected correctly.
+
+==================================================
+PART 1 — EXPORT ARCHITECTURE CLEANUP
+==================================================
+
+Audit and improve the current export architecture.
+
+Requirements:
+- ensure exports are modular
+- ensure the current dashboard spec is the source of truth
+- ensure current selected sector, date range, widgets, layout, and metrics are reflected in exports
+- keep export services/backend routes organized and reusable
+
+Suggested backend/export organization:
+- backend/app/services/exports/
+  - excel_exporter.py
+  - csv_exporter.py
+  - json_exporter.py
+  - dataset_exporter.py
+- backend/app/api/routes/exports.py
+
+If the export architecture already exists, improve and organize it cleanly rather than rebuilding it.
+
+==================================================
+PART 2 — EXCEL EXPORT
+==================================================
+
+Refine and confirm the Excel export path.
+
+Requirements:
+- export current dashboard state
+- use the current DashboardSpec
+- use current data/metrics
+- generate downloadable .xlsx file
+- preserve KPI cards, charts, tables, and dashboard structure
+- keep Data sheet generation working
+- maintain styling improvements already added in Sprint 3 / export polish if present
+
+Make sure the Excel export is connected to the export UI cleanly.
+
+==================================================
+PART 3 — CSV EXPORT
+==================================================
+
+Create or refine CSV export so it works cleanly.
+
+Requirements:
+- export current relevant dataset or metric data
+- include headers
+- format values cleanly
+- ensure the export is meaningful and not random debug output
+- respect sector/date range where possible
+
+Use current dashboard/dataset context where applicable.
+
+==================================================
+PART 4 — JSON EXPORT
+==================================================
+
+Create or refine JSON export.
+
+Requirements:
+- export current DashboardSpec as JSON
+- also support exporting current dataset/metric context as JSON if useful
+- include:
+  - dashboard metadata
+  - selected sector
+  - date range
+  - widgets
+  - layout
+  - visualization types
+  - widget settings
+  - theme config
+  - metric bindings if available
+
+This should be a real portable dashboard blueprint and export artifact.
+
+==================================================
+PART 5 — DATASET EXPORT
+==================================================
+
+Add or improve dataset export functionality.
+
+Requirements:
+- user can export the underlying dataset used for the dashboard
+- support JSON or CSV format
+- clearly distinguish between:
+  - dashboard export
+  - dataset export
+
+The product should let users understand:
+- “Export Dashboard”
+vs
+- “Export Data”
+
+==================================================
+PART 6 — EXPORT UI IMPROVEMENT
+==================================================
+
+Improve the export experience in the frontend.
+
+Requirements:
+- export options should feel organized and professional
+- export panel / drawer / modal should clearly separate export types
+- include cards, buttons, or grouped actions such as:
+  - Export Excel
+  - Export CSV
+  - Export Dashboard JSON
+  - Export Dataset
+  - Custom API
+- add export descriptions where useful
+- add loading states
+- add success/error feedback
+- add disabled/fallback states if an export type is not yet available
+
+If useful, improve the existing export drawer/panel.
+
+==================================================
+PART 7 — CUSTOM API EXPORT INTEGRATION
+==================================================
+
+Connect the export system to the Custom API flow where possible.
+
+Requirements:
+- Custom API export should be treated as part of the export ecosystem
+- user should be able to choose a payload type:
+  - Dashboard Spec JSON
+  - Dataset JSON
+  - Metrics Summary
+- if backend route exists, wire it properly
+- if demo-safe simulated request is being used, keep it functional and clean
+
+==================================================
+PART 8 — EXPORT METADATA / FILE NAMING
+==================================================
+
+Improve file naming and metadata.
+
+Examples:
+- chaininsideiq_dashboard_excel_2026-03-13.xlsx
+- chaininsideiq_dashboard_spec_2026-03-13.json
+- chaininsideiq_dataset_logistics_2026-03-13.csv
+
+Make the export output feel polished and intentional.
+
+==================================================
+PART 9 — EXPORT RELIABILITY / FALLBACKS
+==================================================
+
+Ensure the export system fails gracefully.
+
+If export type is unavailable or a payload is incomplete:
+- do not crash the UI
+- show a useful fallback message
+- show a clean error or warning state
+- keep other export types working
+
+==================================================
+PART 10 — FRONTEND + BACKEND ROUTES
+==================================================
+
+Create or refine backend routes such as:
+- POST /api/export/excel
+- POST /api/export/csv
+- POST /api/export/json
+- POST /api/export/dataset
+- POST /api/export/custom-api
+
+Ensure the frontend calls these routes correctly and triggers downloads or response handling cleanly.
+
+==================================================
+PART 11 — INTEGRATIONS STRUCTURE SCAFFOLD
+==================================================
+
+PRIMARY GOAL
+Scaffold a clean integrations folder structure so future tool integrations are easy to build and maintain.
+
+I am NOT asking to fully implement all integrations yet.
+I want the project organized properly now so Excel, Google Sheets, Power BI, Tableau, and Custom API integrations can be added cleanly later.
+
+Create a dedicated integrations structure in both frontend and backend.
+
+FRONTEND
+Create a folder structure like:
+
+/src/integrations/excel/
+/src/integrations/google-sheets/
+/src/integrations/powerbi/
+/src/integrations/tableau/
+/src/integrations/custom-api/
+
+Each folder can include placeholder files or starter components such as:
+- integration panel
+- settings component
+- config form
+- placeholder hooks if helpful
+
+BACKEND
+Create a folder structure like:
+
+/backend/app/services/integrations/excel/
+/backend/app/services/integrations/google_sheets/
+/backend/app/services/integrations/powerbi/
+/backend/app/services/integrations/tableau/
+/backend/app/services/integrations/custom_api/
+
+Each backend integration folder should include starter files such as:
+- __init__.py
+- adapter.py
+
+==================================================
+PART 12 — BASE INTEGRATION PATTERN
+==================================================
+
+Add a clean base integration structure or interface pattern so future integrations are easier.
+
+Suggested methods:
+- test_connection()
+- format_payload()
+- send_payload()
+- get_status()
+
+Do not fully implement all logic yet.
+Just scaffold the architecture cleanly.
+
+Suggested shared file:
+- backend/app/services/integrations/base_adapter.py
+
+==================================================
+PART 13 — CONNECT TO EXISTING APP STRUCTURE
+==================================================
+
+Make sure this new integrations structure fits with the current app.
+
+Do not break:
+- Integration Hub page
+- Custom API button/panel
+- export system
+- dashboard builder
+- AI system
+
+If useful, lightly refactor current Custom API code so it fits into the new integrations structure.
+
+==================================================
+PART 14 — OPTIONAL FRONTEND PLACEHOLDERS
+==================================================
+
+Create lightweight placeholder components/pages/panels for:
+- Excel integration
+- Google Sheets integration
+- Power BI integration
+- Tableau integration
+- Custom API integration
+
+These can be simple and say things like:
+- configuration coming soon
+- adapter scaffold ready
+- integration settings panel
+
+But keep them professional and organized.
+
+==================================================
+PART 15 — UX / POLISH
+==================================================
+
+Keep the export system premium and easy to use.
+
+Add or improve:
+- loading spinners
+- progress indicators where reasonable
+- success states
+- toasts/messages if toast system already exists
+- clean mobile/tablet responsiveness
+- touch-friendly export controls
+- polished placeholder integration panels
+
+==================================================
+PART 16 — CODE / ARCHITECTURE REQUIREMENTS
+==================================================
+
+Keep the implementation modular and reusable.
+
+Avoid:
+- hardcoded one-off export logic scattered in UI files
+- exporting stale dashboard state
+- duplicated export formatting logic
+- mixing future integration logic into unrelated files
+
+Prefer:
+- shared export helpers
+- reusable payload builders
+- clear separation between frontend export UI and backend export services
+- clear separation between export system and future integration adapters
+
+==================================================
+PART 17 — DELIVERABLES
+==================================================
+
+1) Inspect the current repo structure first
+2) Identify the files needed for Sprint 6 and integration scaffolding
+3) Implement Sprint 6 in-place
+4) Scaffold the integrations folder structure in-place
+5) Explain file-by-file what changed
+6) Confirm:
+   - Excel export works from current dashboard state
+   - CSV export works cleanly
+   - JSON export works cleanly
+   - dataset export works cleanly
+   - export UI feels more complete and professional
+   - Custom API fits into the export ecosystem
+   - the project is now scaffolded for future tool integrations
+
+At the end, print:
+
+✅ Sprint 6 Complete: Export System
+✅ Integration Architecture Scaffolded

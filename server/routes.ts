@@ -2,6 +2,10 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { generateExcelDashboard } from "./excel/excel-renderer";
+import { generateCsvExport } from "./services/exports/csv-exporter";
+import { generateJsonExport } from "./services/exports/json-exporter";
+import { generateDatasetExport, generateDatasetCsv } from "./services/exports/dataset-exporter";
+import { exportFilename } from "./services/exports";
 
 interface AIResponse {
   summary: string;
@@ -175,10 +179,6 @@ export async function registerRoutes(
     res.json({ kpis: kpis[sector || 'unified'] || kpis.unified });
   });
 
-  function formatExportDate(): string {
-    return new Date().toISOString().slice(0, 10);
-  }
-
   app.post('/api/export/excel', async (req, res) => {
     try {
       const { spec, data, layouts, widgets, sector } = req.body;
@@ -192,7 +192,7 @@ export async function registerRoutes(
         widgets
       });
 
-      const filename = `chaininsideiq_dashboard_excel_${sector || 'unified'}_${formatExportDate()}.xlsx`;
+      const filename = exportFilename('dashboard_excel', sector || 'unified', 'xlsx');
       res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
       res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
       res.send(buffer);
@@ -209,37 +209,8 @@ export async function registerRoutes(
         return res.status(400).json({ error: 'Missing or empty metrics array' });
       }
 
-      const lines: string[] = [];
-
-      lines.push('Section,Label,Value,Trend,Direction,Help Text');
-      for (const m of metrics) {
-        const direction = m.isPositive ? 'Positive' : 'Negative';
-        lines.push([
-          'KPI',
-          `"${m.label}"`,
-          `"${m.value}"`,
-          `"${m.trend}"`,
-          direction,
-          `"${(m.helpText || '').replace(/"/g, '""')}"`
-        ].join(','));
-      }
-
-      if (chartData && Array.isArray(chartData) && chartData.length > 0) {
-        lines.push('');
-        lines.push('Period,Actual,Forecast,Lower Bound,Upper Bound');
-        for (const d of chartData) {
-          lines.push([
-            `"${d.name}"`,
-            d.value ?? '',
-            d.forecast ?? '',
-            d.lower ?? '',
-            d.upper ?? ''
-          ].join(','));
-        }
-      }
-
-      const csv = lines.join('\n');
-      const filename = `chaininsideiq_dashboard_${sector || 'unified'}_${formatExportDate()}.csv`;
+      const csv = generateCsvExport({ metrics, chartData, sector, dateRange });
+      const filename = exportFilename('dashboard', sector || 'unified', 'csv');
 
       res.setHeader('Content-Type', 'text/csv; charset=utf-8');
       res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
@@ -252,40 +223,10 @@ export async function registerRoutes(
 
   app.post('/api/export/json', (req, res) => {
     try {
-      const { sector, dateRange, widgets, layouts, metrics, chartData, donutData, theme } = req.body;
-
-      const exportPayload = {
-        meta: {
-          platform: 'ChainInsideIQ',
-          version: '1.0',
-          export_type: 'dashboard_spec',
-          generated_at: new Date().toISOString(),
-          sector: sector || 'unified',
-          date_range: dateRange || '30d'
-        },
-        dashboard: {
-          widgets: (widgets || []).map((w: any) => ({
-            id: w.id,
-            type: w.type,
-            title: w.title || w.type,
-            metricIndex: w.metricIndex,
-            chartType: w.chartType,
-            isAI: ['insights', 'chat', 'forecast', 'summary'].includes(w.type),
-            settings: w.settings || {}
-          })),
-          layout: layouts || {},
-          visualization_types: [...new Set((widgets || []).map((w: any) => w.type))],
-        },
-        data_snapshot: {
-          metrics: metrics || [],
-          chart_data: chartData || [],
-          donut_data: donutData || []
-        },
-        theme: theme || { mode: 'light', primary: '#0F766E' }
-      };
-
+      const body = req.body;
+      const exportPayload = generateJsonExport(body);
       const json = JSON.stringify(exportPayload, null, 2);
-      const filename = `chaininsideiq_dashboard_spec_${sector || 'unified'}_${formatExportDate()}.json`;
+      const filename = exportFilename('dashboard_spec', body.sector || 'unified', 'json');
 
       res.setHeader('Content-Type', 'application/json; charset=utf-8');
       res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
@@ -304,79 +245,16 @@ export async function registerRoutes(
       }
 
       const outputFormat = format || 'json';
-      const dateStr = formatExportDate();
 
       if (outputFormat === 'csv') {
-        const lines: string[] = [];
-
-        lines.push('Category,Label,Value,Trend,Direction');
-        for (const m of metrics) {
-          lines.push([
-            `"${m.category || sector || 'unified'}"`,
-            `"${m.label}"`,
-            `"${m.value}"`,
-            `"${m.trend}"`,
-            m.isPositive ? 'Up' : 'Down'
-          ].join(','));
-        }
-
-        if (chartData && chartData.length > 0) {
-          lines.push('');
-          lines.push('Period,Actual,Forecast,Lower,Upper');
-          for (const d of chartData) {
-            lines.push([`"${d.name}"`, d.value ?? '', d.forecast ?? '', d.lower ?? '', d.upper ?? ''].join(','));
-          }
-        }
-
-        if (donutData && donutData.length > 0) {
-          lines.push('');
-          lines.push('Channel,Percentage,Absolute Value');
-          for (const d of donutData) {
-            lines.push([`"${d.name}"`, d.value, d.absolute ?? ''].join(','));
-          }
-        }
-
-        const filename = `chaininsideiq_dataset_${sector || 'unified'}_${dateStr}.csv`;
+        const csv = generateDatasetCsv({ metrics, chartData, donutData, sector, dateRange });
+        const filename = exportFilename('dataset', sector || 'unified', 'csv');
         res.setHeader('Content-Type', 'text/csv; charset=utf-8');
         res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-        res.send(lines.join('\n'));
+        res.send(csv);
       } else {
-        const dataset = {
-          meta: {
-            platform: 'ChainInsideIQ',
-            export_type: 'dataset',
-            generated_at: new Date().toISOString(),
-            sector: sector || 'unified',
-            date_range: dateRange || '30d',
-            record_counts: {
-              metrics: (metrics || []).length,
-              timeseries: (chartData || []).length,
-              channels: (donutData || []).length
-            }
-          },
-          metrics: (metrics || []).map((m: any) => ({
-            label: m.label,
-            value: m.value,
-            trend: m.trend,
-            direction: m.isPositive ? 'up' : 'down',
-            category: m.category || sector || 'unified',
-            help_text: m.helpText || ''
-          })),
-          timeseries: (chartData || []).map((d: any) => ({
-            period: d.name,
-            actual: d.value,
-            forecast: d.forecast,
-            lower_bound: d.lower,
-            upper_bound: d.upper
-          })),
-          channels: (donutData || []).map((d: any) => ({
-            name: d.name,
-            percentage: d.value,
-            absolute: d.absolute
-          }))
-        };
-
-        const filename = `chaininsideiq_dataset_${sector || 'unified'}_${dateStr}.json`;
+        const dataset = generateDatasetExport({ metrics, chartData, donutData, sector, dateRange });
+        const filename = exportFilename('dataset', sector || 'unified', 'json');
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
         res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
         res.send(JSON.stringify(dataset, null, 2));

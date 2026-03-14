@@ -39,8 +39,33 @@ A production-quality supply chain dashboard SaaS with a marketing website and fu
 `chaininsideiq_{type}_{sector}_{YYYY-MM-DD}.{ext}`
 Examples: `chaininsideiq_dashboard_excel_ecommerce_2026-03-13.xlsx`, `chaininsideiq_dataset_logistics_2026-03-13.csv`
 
-### Shared Export Helpers
+### Modular Export Services (Backend)
+- `server/services/exports/csv-exporter.ts` — CSV generation logic
+- `server/services/exports/json-exporter.ts` — JSON dashboard spec generation
+- `server/services/exports/dataset-exporter.ts` — Dataset export (JSON + CSV)
+- `server/services/exports/index.ts` — Shared file naming utilities
+
+### Shared Export Helpers (Frontend)
 - `client/src/lib/export-helpers.ts` — Shared utilities for file naming, payload building, blob downloads
+
+## Integration Architecture (Scaffolded)
+### Backend Adapters (`server/services/integrations/`)
+- `base-adapter.ts` — Abstract base class with `testConnection()`, `formatPayload()`, `sendPayload()`, `getStatus()`
+- `excel/adapter.ts` — Excel integration (active)
+- `google-sheets/adapter.ts` — Google Sheets (coming soon, OAuth required)
+- `powerbi/adapter.ts` — Power BI (coming soon, Azure AD required)
+- `tableau/adapter.ts` — Tableau (coming soon, server auth required)
+- `custom-api/adapter.ts` — Custom API (active)
+- `index.ts` — Integration registry and barrel exports
+
+### Frontend Panels (`client/src/integrations/`)
+- `types.ts` — Integration metadata and registry
+- `excel/ExcelPanel.tsx` — Excel integration status panel
+- `google-sheets/GoogleSheetsPanel.tsx` — Google Sheets placeholder panel
+- `powerbi/PowerBIPanel.tsx` — Power BI placeholder panel
+- `tableau/TableauPanel.tsx` — Tableau placeholder panel
+- `custom-api/CustomApiPanel.tsx` — Custom API integration panel
+- `index.ts` — Barrel exports
 
 ### Export Center (exports.tsx)
 - Wired to `useSectorData` — exports reflect current sector, date range, and live KPI data
