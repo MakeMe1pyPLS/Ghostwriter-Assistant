@@ -32,7 +32,7 @@ export function generateJsonExport(input: JsonExportInput): object {
         settings: w.settings || {}
       })),
       layout: layouts || {},
-      visualization_types: [...new Set((widgets || []).map((w: any) => w.type))],
+      visualization_types: Array.from(new Set((widgets || []).map((w: any) => w.type))),
     },
     data_snapshot: {
       metrics: metrics || [],

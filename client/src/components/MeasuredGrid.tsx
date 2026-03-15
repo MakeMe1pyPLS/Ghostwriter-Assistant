@@ -18,6 +18,7 @@ type Props = {
   isResizable?: boolean;
   draggableHandle?: string;
   margin?: [number, number];
+  compactType?: 'horizontal' | 'vertical' | null;
 };
 
 export default function MeasuredGrid({

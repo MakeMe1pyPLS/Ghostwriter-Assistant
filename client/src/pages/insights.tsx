@@ -117,9 +117,6 @@ export default function InsightsPage() {
                     </div>
                   </div>
                 </div>
-                <Badge variant="secondary" className="bg-slate-100 text-slate-500 text-[9px] font-black uppercase tracking-widest hidden sm:flex">
-                  Sprint 4 — Demo Engine
-                </Badge>
               </div>
 
               {initialInsights ? (

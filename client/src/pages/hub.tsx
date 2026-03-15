@@ -19,7 +19,7 @@ import {
   ArrowRight
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-import { Sector } from "@/hooks/use-sector-data";
+import { Sector } from "@/hooks/use-dashboard-store";
 import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { Input } from "@/components/ui/input";
@@ -62,11 +62,12 @@ const STATUS_CONFIG = {
   Resolved: 'bg-emerald-50 text-emerald-700',
 };
 
-const SECTOR_CONFIG = {
+const SECTOR_CONFIG: Record<Sector, { icon: typeof Building2; color: string; label: string }> = {
   manufacturing: { icon: Building2, color: 'text-blue-600 bg-blue-50 border-blue-100', label: 'Manufacturing' },
   logistics: { icon: Truck, color: 'text-orange-600 bg-orange-50 border-orange-100', label: 'Logistics' },
   ecommerce: { icon: ShoppingCart, color: 'text-purple-600 bg-purple-50 border-purple-100', label: 'E-commerce' },
   unified: { icon: Layers, color: 'text-slate-600 bg-slate-50 border-slate-100', label: 'Unified' },
+  custom: { icon: Layers, color: 'text-teal-600 bg-teal-50 border-teal-100', label: 'Custom' },
 };
 
 const MOCK_ITEMS: HubItem[] = [

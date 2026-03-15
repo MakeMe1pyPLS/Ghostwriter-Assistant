@@ -1,0 +1,319 @@
+You are a senior SaaS QA engineer, React + TypeScript frontend engineer, FastAPI backend engineer, and launch-readiness reviewer.
+
+Audit and harden my existing SaaS platform before launch:
+
+“ChainInsideIQ — AI Dashboard Generator Platform”
+
+IMPORTANT
+- Do NOT rebuild the whole app from scratch.
+- Do NOT redesign everything.
+- Refactor and improve the current codebase in-place.
+- Your goal is to take precautionary measures and verify launch-readiness.
+- Focus on stability, consistency, and the complete user journey.
+
+PRIMARY GOAL
+Run a full pre-launch audit of the product and fix the most important issues so the platform is safe to launch in a soft-launch state.
+
+The platform should be checked like a real user would experience it.
+
+==================================================
+PART 1 — FULL USER JOURNEY QA
+==================================================
+
+Audit the full end-to-end user flow.
+
+Check whether a user can successfully do this:
+
+1. Land on the website
+2. Understand the product
+3. Click Demo
+4. Enter the demo/app
+5. Import or use a dataset
+6. Build or edit a dashboard
+7. Use widgets and visualizations
+8. Ask the AI Supply Chain Analyst questions
+9. Export a dashboard or dataset
+10. Navigate to pricing/support/contact
+11. Understand the value of the product
+
+Identify and fix any breakpoints in this journey.
+
+==================================================
+PART 2 — WEBSITE / NAVIGATION / PAGE CONSISTENCY
+==================================================
+
+Audit the website and all public pages.
+
+Check:
+- home page
+- pricing page
+- features page
+- support page
+- contact page
+- privacy page
+- terms page
+- demo route
+- footer links
+- navbar links
+
+Requirements:
+- all nav links work
+- all footer links work
+- no dead pages
+- no missing pages
+- no broken routes
+- CTA buttons go to correct places
+- support/pricing/FAQ content is consistent
+
+Fix inconsistencies where needed.
+
+==================================================
+PART 3 — PRICING CONSISTENCY
+==================================================
+
+Audit all pricing references across the app.
+
+Make sure pricing is consistent across:
+- pricing page
+- support/FAQ page
+- CTA sections
+- footer references
+- marketing copy
+
+Use the current pricing structure consistently.
+
+If a shared pricing config/source-of-truth file does not exist, create one and refactor pricing references to use it.
+
+==================================================
+PART 4 — DASHBOARD BUILDER QA
+==================================================
+
+Audit the builder thoroughly.
+
+Check:
+- add widget
+- remove widget
+- duplicate widget
+- move widget
+- resize widget
+- change metric
+- change visualization
+- switch sector
+- save builder state
+- reload builder state
+- load saved spec
+- export spec JSON
+
+Requirements:
+- no widget jitter
+- no broken edit mode
+- no visualization mismatch
+- manual visualization choice should not be overridden after selection
+- builder should remain usable on desktop/tablet/mobile where already supported
+
+Fix any critical builder issues.
+
+==================================================
+PART 5 — WIDGET / VISUALIZATION QA
+==================================================
+
+Audit visualization behavior.
+
+Check:
+- KPI cards
+- line charts
+- area charts
+- bar charts
+- donut charts
+- tables
+- forecast widgets
+- AI widgets
+
+Critical requirement:
+If the user chooses a visualization (example: donut), that exact visualization must render.
+Do not allow fallback to the wrong chart type unless the selected type is truly unsupported.
+
+Check labels, values, tooltips, and readability.
+
+==================================================
+PART 6 — DATA IMPORT / CONNECTOR QA
+==================================================
+
+Audit data input paths.
+
+Check:
+- CSV import
+- sample/demo data flow
+- dataset preview
+- sector assignment
+- dataset selection/binding
+
+If Sprint 7 connectors or scaffolds already exist, check:
+- SQL connector UI state
+- Google Sheets connector UI state
+- API ingestion UI state
+- Custom API panel
+
+Requirements:
+- no crashes on import
+- invalid inputs fail gracefully
+- imported data becomes usable by widgets and AI
+- one-dataset-per-demo-session logic remains stable if already implemented
+
+==================================================
+PART 7 — AI SUPPLY CHAIN ANALYST QA
+==================================================
+
+Audit the AI system and improve weak points if needed.
+
+Check:
+- AI chat panel loads
+- suggested prompts work
+- AI responses appear
+- AI summary cards render
+- chat formatting is readable
+- AI responds differently by sector if already supported
+- KPI explanations work
+- forecast note appears when appropriate
+
+Requirements:
+- no dead AI buttons
+- no blank responses
+- no broken scroll behavior
+- no obviously fake placeholder text left in critical UI
+- improve structure of responses if needed for readability
+
+If needed, improve:
+- response formatting
+- loading state
+- typing indicator
+- section hierarchy in AI responses
+
+==================================================
+PART 8 — EXPORT SYSTEM QA
+==================================================
+
+Audit the full export flow.
+
+Check:
+- Excel export
+- CSV export
+- JSON export
+- dataset export
+- Custom API export flow
+
+Requirements:
+- exports should use current dashboard state
+- generated file names should be meaningful
+- export actions should not crash the app
+- success/error feedback should be visible
+- unavailable export types should fail gracefully
+
+If Excel export exists:
+- verify dashboard sheet is generated
+- verify data sheet is generated
+- verify charts / KPI cards / tables appear as expected
+
+==================================================
+PART 9 — INTEGRATION HUB / CUSTOM API QA
+==================================================
+
+Audit the integration area.
+
+Check:
+- Integration Hub route loads
+- Custom API button opens a real panel
+- payload preview works
+- save/test actions work or simulate cleanly
+- placeholder integration panels do not feel broken
+
+Requirements:
+- no dead buttons
+- no runtime errors
+- placeholders should clearly indicate future integration readiness if not fully implemented
+
+==================================================
+PART 10 — RESPONSIVENESS QA
+==================================================
+
+Check the core experience on:
+- desktop
+- tablet
+- mobile
+
+Focus on:
+- navbar
+- pricing cards
+- builder
+- AI panel
+- export panel
+- widget inspector
+- integration hub
+- support/contact pages
+
+Requirements:
+- no major clipping
+- no hidden CTA buttons
+- no broken layouts
+- no unusable forms
+- critical actions remain accessible
+
+==================================================
+PART 11 — RUNTIME / ERROR / CONSOLE QA
+==================================================
+
+Audit the app for:
+- missing imports
+- undefined components
+- dead hooks
+- broken references
+- runtime overlay errors
+- TypeScript issues if visible
+- route errors
+- export function errors
+
+Fix any critical runtime issues.
+
+Examples of things to inspect:
+- useToast
+- ExportDrawer
+- missing components
+- incorrect imports
+- dead button handlers
+
+==================================================
+PART 12 — UX / TRUST POLISH
+==================================================
+
+Add small launch-readiness improvements where needed:
+
+- empty states
+- loading states
+- success/error messages
+- clearer helper text
+- premium section labels
+- cleaner CTA hierarchy
+- more trustworthy support/contact wording
+
+Do not over-polish everything.
+Only improve what makes the product feel more complete and trustworthy before launch.
+
+==================================================
+PART 13 — DELIVERABLES
+==================================================
+
+1) Inspect the current repo structure first
+2) Audit the product using the sections above
+3) Fix critical launch blockers in-place
+4) Improve weak/unfinished areas only where necessary
+5) Explain file-by-file what changed
+6) Clearly list:
+   - what is now launch-ready
+   - what is still acceptable for soft launch
+   - what should be improved after launch
+
+At the end, print:
+
+✅ Pre-Launch QA Audit Complete
+✅ Core User Journey Verified
+✅ Soft Launch Precautions Applied

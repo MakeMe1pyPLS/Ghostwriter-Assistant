@@ -237,7 +237,7 @@ function renderExecutiveSummary(ws: ExcelJS.Worksheet, range: any, widget: any, 
     currentRow++;
   }
 
-  posMetrics.slice(0, 3).forEach(m => {
+  posMetrics.slice(0, 3).forEach((m: any) => {
     if (currentRow > endRow) return;
     ws.mergeCells(currentRow, startCol, currentRow, endCol);
     ws.getCell(currentRow, startCol).value = `    ✓  ${m.label}: ${m.value} (${m.trend})`;
@@ -254,7 +254,7 @@ function renderExecutiveSummary(ws: ExcelJS.Worksheet, range: any, widget: any, 
     ws.getRow(currentRow).height = 18;
     currentRow++;
 
-    negMetrics.slice(0, 2).forEach(m => {
+    negMetrics.slice(0, 2).forEach((m: any) => {
       if (currentRow > endRow) return;
       ws.mergeCells(currentRow, startCol, currentRow, endCol);
       ws.getCell(currentRow, startCol).value = `    ⚠  ${m.label}: ${m.value} (${m.trend})`;
