@@ -346,18 +346,23 @@ export function WidgetInspector({
               <div className="space-y-2">
                 <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Card Style Preset</Label>
                 <Select 
-                  value={widget.stylePreset || "soft"} 
-                  onValueChange={(val) => handleUpdate({ stylePreset: val })}
+                  value={widget.cardPreset || widget.stylePreset || "clean-corporate"} 
+                  onValueChange={(val) => handleUpdate({ cardPreset: val, stylePreset: val })}
                 >
                   <SelectTrigger className="h-9 text-xs rounded-xl shadow-sm border-slate-200 bg-white">
                     <SelectValue placeholder="Select preset" />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl z-[105]">
-                    <SelectItem value="soft" className="text-xs">Soft Modern (Default)</SelectItem>
-                    <SelectItem value="corporate" className="text-xs">Clean Corporate</SelectItem>
-                    <SelectItem value="elevated" className="text-xs">Elevated Insight</SelectItem>
-                    <SelectItem value="executive" className="text-xs">Executive Tile (Dark)</SelectItem>
-                    <SelectItem value="compact" className="text-xs">Compact Dense</SelectItem>
+                    <SelectItem value="clean-corporate" className="text-xs">Clean Corporate</SelectItem>
+                    <SelectItem value="executive-tile" className="text-xs">Executive Tile</SelectItem>
+                    <SelectItem value="modern-analytics" className="text-xs">Modern Analytics</SelectItem>
+                    <SelectItem value="compact-grid" className="text-xs">Compact Grid</SelectItem>
+                    <SelectItem value="ops-scorecard" className="text-xs">Ops Scorecard</SelectItem>
+                    <SelectItem value="minimal-readout" className="text-xs">Minimal Readout</SelectItem>
+                    <SelectItem value="insight-kpi" className="text-xs">Insight KPI Card</SelectItem>
+                    <SelectItem value="comparative-kpi" className="text-xs">Comparative KPI Card</SelectItem>
+                    <SelectItem value="soft" className="text-xs">Soft Modern (Legacy)</SelectItem>
+                    <SelectItem value="elevated" className="text-xs">Elevated Insight (Legacy)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

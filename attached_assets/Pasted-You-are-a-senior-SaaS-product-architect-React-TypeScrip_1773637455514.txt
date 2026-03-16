@@ -1,0 +1,485 @@
+You are a senior SaaS product architect, React + TypeScript frontend engineer, FastAPI backend engineer, UX strategist, and AI workflow designer.
+
+Enhance my existing application:
+
+“ChainInsideIQ — AI Dashboard Generator Platform”
+
+IMPORTANT
+- Do NOT rebuild the whole app from scratch.
+- Refactor and improve the current codebase in-place.
+- Preserve existing working functionality.
+- Keep the current light + teal corporate SaaS style unless a small polish improvement is needed.
+- No animation-heavy design work for now. Focus on static design quality, layout, readability, and tool compatibility.
+- The goal is to make dashboard generation smarter, more dynamic, easier to use, and more tailored to the destination tool.
+
+PRIMARY GOALS
+1) Add a powerful “Generate For Me” dashboard generation flow
+2) Add an “Enhance My Dashboard” flow for users who already have a dashboard they want improved
+3) Make dashboard generation tool-aware so the layout, KPI cards, and visual styles fit the target tool’s capabilities
+4) Expand KPI card styling and dashboard generation logic so outputs are easier to read and more professional
+5) Make the system sector-aware and able to generate different dashboards for:
+   - E-commerce
+   - Logistics
+   - Manufacturing
+   - Unified Supply Chain
+   - Custom
+6) Add an AI provider abstraction so the platform can be powered by:
+   - a primary AI provider for v1
+   - a future provider/orchestration layer later
+   - fallback demo/rule-based logic if needed
+
+==================================================
+PART 1 — PRODUCT MODES
+==================================================
+
+The product should support 3 core creation modes:
+
+1) Build Manually
+- existing builder mode
+- user adds and edits widgets manually
+
+2) Generate For Me
+- user answers a series of guided questions
+- system generates a dashboard automatically
+- user can edit the result afterward
+
+3) Enhance My Dashboard
+- user has an existing dashboard or dashboard concept
+- user answers guided questions and optionally uploads data / schema / screenshots / structure
+- system improves layout, KPI choices, card styles, visual hierarchy, and readability
+- user can edit the result afterward
+
+These modes should feel distinct but connected.
+
+==================================================
+PART 2 — TOOL-AWARE DASHBOARD GENERATION
+==================================================
+
+Make dashboard generation aware of the destination tool.
+
+Supported target tools:
+- Web App
+- Excel
+- Google Sheets
+- Power BI
+- Tableau
+- JSON Spec / Custom API output
+
+The generated dashboard should adapt its design logic to the selected tool.
+
+A) EXCEL-AWARE OUTPUT
+Prioritize:
+- readable KPI cards
+- merged-cell-friendly card layouts
+- strong spacing
+- simple chart structures
+- chart types Excel handles well
+- executive summary blocks
+- no animation assumptions
+
+B) GOOGLE SHEETS-AWARE OUTPUT
+Prioritize:
+- cleaner spreadsheet-compatible sections
+- simpler KPI card blocks
+- practical chart layouts
+- easy-to-read data summaries
+
+C) POWER BI-AWARE OUTPUT
+Prioritize:
+- stronger KPI tiles
+- comparison visuals
+- richer layout hierarchy
+- visual groupings that resemble BI reporting style
+
+D) TABLEAU-AWARE OUTPUT
+Prioritize:
+- analysis-friendly visual structure
+- comparative cards
+- KPI + trend pairings
+- insight panels
+
+E) WEB APP MODE
+Allow the richest layout and best native in-app experience.
+
+Each target tool should have its own:
+- compatible KPI card presets
+- recommended chart families
+- section layout rules
+- readability guidelines
+
+==================================================
+PART 3 — KPI CARD DESIGN SYSTEM
+==================================================
+
+Build a more advanced KPI card design system.
+
+Users should be able to choose KPI card styles that are static, polished, and compatible with the destination tool.
+
+Create multiple KPI card presets such as:
+- Clean Corporate
+- Executive Tile
+- Modern Analytics
+- Compact Grid
+- Ops Scorecard
+- Minimal Readout
+- Insight KPI Card
+- Comparative KPI Card
+
+Each KPI card preset can control:
+- title placement
+- subtitle placement
+- value emphasis
+- delta position
+- icon on/off
+- border style
+- background style
+- accent strip
+- metric formatting
+- mini sparkline on/off if supported
+- benchmark / target display
+- comparison label
+- status badge
+
+Allow users to customize:
+- card preset
+- title
+- subtitle
+- icon
+- badge
+- number formatting
+- colors
+- border radius
+- shadow intensity
+- density
+- alignment
+- compact vs expanded
+- light vs dark card style if easy
+
+No animation. Focus on readable, premium, professional static design.
+
+==================================================
+PART 4 — KPI / VISUALIZATION LIBRARY EXPANSION
+==================================================
+
+Expand the KPI and visualization generation logic so the system can intelligently choose strong defaults.
+
+A) E-COMMERCE KPI LIBRARY
+Examples:
+- Revenue
+- Orders
+- Average Order Value
+- Conversion Rate
+- ROAS
+- Returns Rate
+- Repeat Purchase Rate
+- Cart Abandonment
+- Sales by Channel
+- Product Performance
+
+B) LOGISTICS KPI LIBRARY
+Examples:
+- On-Time Delivery
+- Late Shipments
+- Shipment Volume
+- Transit Time
+- Warehouse Utilization
+- Cost per Shipment
+- Delivery Exceptions
+- Carrier Performance
+- Fulfillment Cycle Time
+
+C) MANUFACTURING KPI LIBRARY
+Examples:
+- Units Produced
+- Throughput
+- Downtime
+- Defect Rate
+- Yield
+- Capacity Utilization
+- Lead Time
+- Scrap Rate
+- Batch Performance
+
+D) UNIFIED SUPPLY CHAIN KPI LIBRARY
+Examples:
+- Perfect Order Rate
+- Cash-to-Cash Cycle Time
+- Available-to-Promise Accuracy
+- Bullwhip Effect Index
+- Inventory-to-Demand Risk
+- Cross-Sector Delay Impact
+
+E) CUSTOM MODE
+Allow mixed KPIs from any category.
+
+For each KPI, maintain:
+- label
+- description
+- formatting type
+- suggested visualizations
+- suggested card presets
+- sector compatibility
+- tool compatibility hints
+
+==================================================
+PART 5 — GENERATE FOR ME WIZARD
+==================================================
+
+Create a guided multi-step generation flow.
+
+When the user clicks “Generate For Me”, open a full-screen wizard, modal, or step flow.
+
+The wizard should ask smart questions such as:
+
+STEP 1 — BUSINESS CONTEXT
+- What type of business do you run?
+  - E-commerce
+  - Logistics
+  - Manufacturing
+  - Multi-sector / Unified
+  - Other / Custom
+
+STEP 2 — PRIMARY GOAL
+- What are you trying to track?
+  - Sales performance
+  - Fulfillment performance
+  - Operational efficiency
+  - Executive summary
+  - Forecasting
+  - End-to-end supply chain visibility
+  - Other
+
+STEP 3 — DESTINATION TOOL
+- Where will this dashboard mainly be used?
+  - In the ChainInsideIQ app
+  - Excel
+  - Google Sheets
+  - Power BI
+  - Tableau
+  - Unsure
+
+STEP 4 — DASHBOARD STYLE
+- Which layout feels best?
+  - Executive overview
+  - Operational dashboard
+  - Deep analytics
+  - Clean minimal
+  - Board-ready report
+  - Auto recommend
+
+STEP 5 — KPI PRIORITIES
+- Which KPI groups matter most?
+  - Revenue / growth
+  - Delivery / fulfillment
+  - Production / efficiency
+  - Cost / margin
+  - Forecasting
+  - AI recommendations
+  - Let AI choose
+
+STEP 6 — DATA CONTEXT
+- Do you have data already?
+  - Yes, upload / connect data
+  - No, generate a starter dashboard template
+  - Use demo data
+
+STEP 7 — DASHBOARD DENSITY
+- Light
+- Standard
+- Dense
+- Executive concise
+
+STEP 8 — AI HELP LEVEL
+- Auto-generate with AI suggestions
+- Use recommended structure only
+- Full AI-driven generation
+
+The system should use the answers to generate:
+- recommended KPI set
+- recommended layout
+- recommended KPI card styles
+- recommended visualizations
+- recommended section arrangement
+- recommended AI widgets
+- recommended export/tool styling rules
+
+After generation, the user lands in the builder with the dashboard already created and editable.
+
+==================================================
+PART 6 — ENHANCE MY DASHBOARD FLOW
+==================================================
+
+Create an “Enhance My Dashboard” option.
+
+This should help users who:
+- already have a dashboard idea
+- already use another tool
+- want to recreate what they already have, but better
+- want readability and KPI design improvements
+
+The flow should ask:
+- What tool are you using now?
+- What do you want to improve?
+  - readability
+  - KPI card design
+  - chart clarity
+  - executive storytelling
+  - operational visibility
+  - consistency
+- Do you want to keep the same KPI set?
+- Do you want AI to recommend better KPIs?
+- Do you want the design to look more like:
+  - executive
+  - operations center
+  - clean corporate
+  - BI style
+  - spreadsheet-friendly
+
+If the user already has:
+- a dashboard structure
+- exported schema
+- a screenshot reference
+- a manual description
+
+the system should let them use that as context and generate an improved version.
+
+The result should:
+- preserve business intent
+- improve readability
+- improve KPI card dynamics
+- improve chart choices
+- improve visual hierarchy
+- improve tool-compatibility
+
+==================================================
+PART 7 — AI-POWERED GENERATION LOGIC
+==================================================
+
+Use AI to power dashboard generation and enhancement.
+
+The AI should help with:
+- choosing KPI groups
+- choosing dashboard layout
+- choosing card presets
+- choosing chart types
+- generating executive summary blocks
+- recommending sections
+- prioritizing the most important KPIs
+- improving readability for the target tool
+
+Create a provider abstraction so the app can support:
+- PrimaryProvider
+- SecondaryProvider
+- DemoProvider / FallbackProvider
+
+The architecture should allow:
+- one primary AI provider for v1
+- swapping providers later
+- fallback to rule-based generation if API is unavailable
+
+Suggested backend organization:
+- backend/app/services/ai/providers/base_provider.py
+- backend/app/services/ai/providers/primary_provider.py
+- backend/app/services/ai/providers/secondary_provider.py
+- backend/app/services/ai/providers/demo_provider.py
+- backend/app/services/ai/dashboard_generation_service.py
+- backend/app/services/ai/dashboard_enhancement_service.py
+
+IMPORTANT:
+Keep the provider architecture modular.
+Do NOT hardcode generation logic into frontend-only files.
+
+==================================================
+PART 8 — DASHBOARD GENERATION OUTPUT
+==================================================
+
+When a dashboard is generated, it should include:
+- dashboard title
+- subtitle/context
+- selected sector
+- selected tool target
+- recommended KPI cards
+- recommended charts
+- recommended tables
+- AI summary or insight block if appropriate
+- export/tool-aware design presets
+- editable layout
+
+Generated dashboards should be fully editable after creation.
+
+==================================================
+PART 9 — RESPONSIVE EDITING
+==================================================
+
+Users must be able to:
+- generate dashboards
+- enhance dashboards
+- edit KPI card styles
+- edit visualization choices
+- update section layout
+
+on:
+- desktop
+- tablet
+- phone
+
+Requirements:
+- wizard works on mobile
+- KPI card style settings work on mobile
+- builder remains usable after generation
+- no clipping or broken forms
+- settings panel becomes drawer/bottom sheet on small screens if needed
+
+==================================================
+PART 10 — UX / POLISH
+==================================================
+
+Make the generation flow feel premium.
+
+Add:
+- clean step progress
+- helper text
+- smart defaults
+- “AI recommended” labels
+- preview summaries before generation
+- post-generation confirmation
+- empty states
+- loading states
+- polished section titles
+- strong readability
+
+The “Generate For Me” and “Enhance My Dashboard” flows should feel like major product features, not side add-ons.
+
+==================================================
+PART 11 — DO NOT BREAK EXISTING FUNCTIONALITY
+==================================================
+
+Keep these working:
+- manual builder flow
+- widget library
+- sector switching
+- exports
+- AI panel
+- integration hub
+- current dashboard editing
+
+==================================================
+PART 12 — DELIVERABLES
+==================================================
+
+1) Inspect the current repo structure first
+2) Identify the files to update for:
+   - tool-aware dashboard generation
+   - KPI card design system
+   - Generate For Me wizard
+   - Enhance My Dashboard flow
+   - AI provider abstraction
+3) Implement all of the above in-place
+4) Explain file-by-file what changed
+5) Confirm that:
+   - the user can generate a dashboard automatically
+   - the user can enhance an existing dashboard concept
+   - the system adapts KPI card style and layout to the target tool
+   - generated dashboards remain editable
+   - KPI card styles are more dynamic and readable
+   - the AI generation architecture is modular and future-friendly

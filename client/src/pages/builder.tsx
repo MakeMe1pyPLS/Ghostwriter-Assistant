@@ -52,6 +52,8 @@ import { WidgetLibraryContent, WidgetLibraryMobile, widgetCategories } from "@/c
 import { WidgetRenderer } from "@/components/visualizations/WidgetRenderer";
 import { useToast } from "@/hooks/use-toast";
 import { buildSpecFromState, buildStateFromSpec, downloadSpecJson } from "@/lib/dashboard-spec";
+import { Link } from "wouter";
+import { Sparkles, Wand2 } from "lucide-react";
 
 
 function InsightsWidgetContent({ sector, title }: { sector: string, title?: string }) {
@@ -296,6 +298,20 @@ export default function BuilderPage() {
               <p className="text-slate-500 font-bold text-[10px] md:text-xs uppercase tracking-widest mt-1">Configure your supply chain command center.</p>
             </div>
             <div className="flex flex-row flex-wrap items-center gap-2 w-full md:w-auto mt-2 md:mt-0 bg-white md:bg-transparent p-2 md:p-0 rounded-xl md:rounded-none border md:border-none border-slate-100 shadow-sm md:shadow-none">
+               {!editMode && (
+                 <div className="flex gap-1.5">
+                   <Link href="/generate">
+                     <Button variant="outline" className="rounded-xl shadow-sm font-bold text-[10px] md:text-xs uppercase tracking-wider h-9 md:h-10 border-slate-200 bg-white px-3 md:px-4" data-testid="button-header-generate">
+                       <Sparkles className="w-3.5 h-3.5 mr-1.5 text-primary" /> Generate
+                     </Button>
+                   </Link>
+                   <Link href="/enhance">
+                     <Button variant="outline" className="rounded-xl shadow-sm font-bold text-[10px] md:text-xs uppercase tracking-wider h-9 md:h-10 border-slate-200 bg-white px-3 md:px-4" data-testid="button-header-enhance">
+                       <Wand2 className="w-3.5 h-3.5 mr-1.5 text-indigo-500" /> Enhance
+                     </Button>
+                   </Link>
+                 </div>
+               )}
                {editMode && (
                  <Button variant="outline" onClick={() => resetLayout(true)} className="flex-1 md:flex-none rounded-xl shadow-sm font-bold text-[10px] md:text-xs uppercase tracking-wider h-9 md:h-10 border-slate-200 bg-white px-3 md:px-4">
                    Reset
@@ -378,9 +394,32 @@ export default function BuilderPage() {
                     <LayoutTemplate className="w-12 h-12 text-slate-300" />
                   </div>
                   <h3 className="text-2xl font-black text-slate-900 tracking-tight">Start your Command Center</h3>
-                  <p className="text-slate-500 font-medium max-w-sm mt-3 mb-8">Drag widgets from the library on the right to build your custom operational view.</p>
-                  {editMode && (
-                     <Button size="lg" className="rounded-xl font-bold shadow-md hover:shadow-lg transition-all" onClick={() => addWidget(widgetCategories[0].items[0])}>Add First Widget</Button>
+                  <p className="text-slate-500 font-medium max-w-sm mt-3 mb-8">Choose how you want to create your dashboard.</p>
+                  <div className="flex flex-col sm:flex-row gap-3 w-full max-w-lg">
+                    <Link href="/generate" className="flex-1">
+                      <Button size="lg" className="w-full rounded-xl font-black shadow-lg shadow-primary/20 hover:shadow-xl transition-all text-xs uppercase tracking-widest h-12" data-testid="button-generate-for-me">
+                        <Sparkles className="w-4 h-4 mr-2" /> Generate For Me
+                      </Button>
+                    </Link>
+                    <Link href="/enhance" className="flex-1">
+                      <Button size="lg" variant="outline" className="w-full rounded-xl font-black shadow-sm hover:shadow-md transition-all text-xs uppercase tracking-widest h-12 border-slate-200" data-testid="button-enhance-dashboard">
+                        <Wand2 className="w-4 h-4 mr-2" /> Enhance Dashboard
+                      </Button>
+                    </Link>
+                  </div>
+                  <div className="flex items-center gap-3 mt-4">
+                    <div className="h-px bg-slate-200 w-12" />
+                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">or build manually</span>
+                    <div className="h-px bg-slate-200 w-12" />
+                  </div>
+                  {editMode ? (
+                     <Button size="lg" variant="outline" className="rounded-xl font-bold shadow-sm mt-4 border-slate-200" onClick={() => addWidget(widgetCategories[0].items[0])}>
+                       <Plus className="w-4 h-4 mr-2" /> Add First Widget
+                     </Button>
+                  ) : (
+                     <Button size="lg" variant="outline" className="rounded-xl font-bold shadow-sm mt-4 border-slate-200" onClick={() => setEditMode(true)}>
+                       <Edit3 className="w-4 h-4 mr-2" /> Enter Edit Mode
+                     </Button>
                   )}
                 </div>
               ) : (

@@ -23,6 +23,8 @@ import HubPage from "@/pages/hub";
 import ConnectorsPage from "@/pages/connectors";
 import ExportsPage from "@/pages/exports";
 import DataSourcesPage from "@/pages/data-sources";
+import GeneratePage from "@/pages/generate";
+import EnhancePage from "@/pages/enhance";
 
 function Router() {
   return (
@@ -40,6 +42,8 @@ function Router() {
       <Route path="/checkout/stripe-mock" component={CheckoutStripeMockPage} />
       <Route path="/demo" component={BuilderPage} />
 
+      <Route path="/generate" component={GeneratePage} />
+      <Route path="/enhance" component={EnhancePage} />
       <Route path="/builder" component={BuilderPage} />
       <Route path="/dashboard" component={DashboardPage} />
       <Route path="/insights" component={InsightsPage} />

@@ -1,7 +1,7 @@
 import { MarketingLayout } from "@/components/layout/MarketingLayout";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import { ArrowRight, LayoutDashboard, BrainCircuit, TrendingUp, Download, Plug, BarChart3, CheckCircle2, Zap } from "lucide-react";
+import { ArrowRight, LayoutDashboard, BrainCircuit, TrendingUp, Download, Plug, BarChart3, CheckCircle2, Zap, Sparkles, Wand2, Wrench } from "lucide-react";
 
 export default function HomePage() {
   return (
@@ -56,6 +56,53 @@ export default function HomePage() {
             <span className="text-xl font-black tracking-tighter">LOGISTICS</span>
             <span className="text-xl font-black tracking-tighter">MANUFACTURING</span>
             <span className="text-xl font-black tracking-tighter">OPERATIONS</span>
+          </div>
+        </div>
+      </section>
+
+      {/* 3 CREATION MODES */}
+      <section className="py-24 md:py-32 px-4 md:px-6 bg-white">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center max-w-2xl mx-auto mb-16">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-widest mb-6">
+              <Sparkles className="w-3.5 h-3.5" /> 3 Ways to Create
+            </div>
+            <h2 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tighter mb-4">Choose Your Creation Mode</h2>
+            <p className="text-slate-500 text-lg">Build manually, let AI generate for you, or enhance an existing dashboard.</p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            {[
+              {
+                icon: Wrench, title: 'Build Manually', href: '/builder',
+                desc: 'Full creative control. Drag-and-drop widgets, customize KPI cards, arrange your layout precisely.',
+                badge: 'Full Control', color: 'bg-slate-900 text-white',
+              },
+              {
+                icon: Sparkles, title: 'Generate For Me', href: '/generate',
+                desc: 'Answer guided questions about your business, goals, and tools. AI builds the perfect dashboard.',
+                badge: 'AI-Powered', color: 'bg-primary text-white',
+              },
+              {
+                icon: Wand2, title: 'Enhance My Dashboard', href: '/enhance',
+                desc: 'Already have a dashboard? Let AI improve readability, KPI design, and tool compatibility.',
+                badge: 'Smart Upgrade', color: 'bg-indigo-600 text-white',
+              },
+            ].map((mode, i) => (
+              <Link key={i} href={mode.href}>
+                <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer group h-full" data-testid={`card-mode-${i}`}>
+                  <div className={`w-14 h-14 rounded-2xl ${mode.color} flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform`}>
+                    <mode.icon className="w-7 h-7" />
+                  </div>
+                  <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full ${mode.color}`}>{mode.badge}</span>
+                  <h3 className="text-xl font-black text-slate-900 tracking-tight mt-3 mb-2">{mode.title}</h3>
+                  <p className="text-slate-500 text-sm leading-relaxed">{mode.desc}</p>
+                  <div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-widest mt-4 group-hover:gap-3 transition-all">
+                    Get Started <ArrowRight className="w-4 h-4" />
+                  </div>
+                </div>
+              </Link>
+            ))}
           </div>
         </div>
       </section>

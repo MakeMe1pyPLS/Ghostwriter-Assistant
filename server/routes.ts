@@ -12,6 +12,7 @@ import { testSqlConnection, fetchTableSchema, importTableData } from "./services
 import { fetchGoogleSheet } from "./services/data-sources/google-sheets-source";
 import { fetchApiData } from "./services/data-sources/api-source";
 import { getAllDatasets, getDataset, deleteDataset, getDatasetRows, inferColumns, registerDataset } from "./services/data-sources/dataset-registry";
+import { DemoAIProvider } from "./services/ai/demo-provider";
 
 interface AIResponse {
   summary: string;
@@ -402,6 +403,28 @@ export async function registerRoutes(
   app.delete('/api/data/datasets/:id', (req, res) => {
     const deleted = deleteDataset(req.params.id);
     res.json({ success: deleted });
+  });
+
+  const dashboardAI = new DemoAIProvider();
+
+  app.post('/api/ai/generate-dashboard', async (req, res) => {
+    try {
+      const result = await dashboardAI.generateDashboard(req.body);
+      res.json(result);
+    } catch (err: any) {
+      console.error('Dashboard generation error:', err);
+      res.status(500).json({ error: 'Failed to generate dashboard', details: err.message });
+    }
+  });
+
+  app.post('/api/ai/enhance-dashboard', async (req, res) => {
+    try {
+      const result = await dashboardAI.enhanceDashboard(req.body);
+      res.json(result);
+    } catch (err: any) {
+      console.error('Dashboard enhancement error:', err);
+      res.status(500).json({ error: 'Failed to enhance dashboard', details: err.message });
+    }
   });
 
   return httpServer;

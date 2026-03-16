@@ -10,13 +10,17 @@ import {
   Wrench,
   ChevronRight,
   ArrowLeft,
-  Database
+  Database,
+  Sparkles,
+  Wand2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 
 const navItems = [
   { name: "Builder", href: "/builder", icon: Wrench, description: "Command Center" },
+  { name: "Generate", href: "/generate", icon: Sparkles, description: "Generate For Me" },
+  { name: "Enhance", href: "/enhance", icon: Wand2, description: "Enhance Dashboard" },
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard, description: "Live Monitoring" },
   { name: "AI Insights", href: "/insights", icon: BrainCircuit, description: "Smart Analysis" },
   { name: "Hub", href: "/hub", icon: MessageSquare, description: "Internal Comms" },

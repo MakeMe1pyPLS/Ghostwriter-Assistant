@@ -1,4 +1,4 @@
-import { BrainCircuit, ChevronUp, ChevronDown, Info, Bot, Table as TableIcon } from "lucide-react";
+import { BrainCircuit, ChevronUp, ChevronDown, Info, Bot, Table as TableIcon, Target, TrendingUp, TrendingDown } from "lucide-react";
 import {
   AreaChart, Area, XAxis, Tooltip as RechartsTooltip, ResponsiveContainer,
   BarChart, Bar, LineChart, Line, PieChart as RechartsPieChart, Pie, Cell,
@@ -7,6 +7,7 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useEffect, useState } from "react";
 import { getAllMetrics } from "@/hooks/use-sector-data";
+import { CARD_PRESETS, type CardPresetId } from "@/lib/kpi-card-presets";
 
 function InsightsWidgetContent({ sector, title }: { sector: string, title?: string }) {
   const [insights, setInsights] = useState<any>(null);
@@ -103,31 +104,72 @@ export function WidgetRenderer({ widget, data, sector, loading, presentationMode
   const containerPadding = presentationMode ? "" : "p-1";
 
   switch (actualType) {
-    case 'kpi':
+    case 'kpi': {
+      const presetId = (widget.cardPreset || 'clean-corporate') as CardPresetId;
+      const preset = CARD_PRESETS[presetId] || CARD_PRESETS['clean-corporate'];
+      const isExecutive = presetId === 'executive-tile' || presetId === 'minimal-readout';
+      const isOps = presetId === 'ops-scorecard' || presetId === 'comparative-kpi';
+      const isInsight = presetId === 'insight-kpi';
+      const isCompact = presetId === 'compact-grid';
+
+      const valueSizeClass = preset.valueEmphasis === 'xl' ? (presentationMode ? 'text-5xl' : 'text-3xl')
+        : preset.valueEmphasis === 'lg' ? (presentationMode ? 'text-4xl' : 'text-2xl')
+        : preset.valueEmphasis === 'md' ? (presentationMode ? 'text-3xl' : 'text-xl')
+        : (presentationMode ? 'text-2xl' : 'text-lg');
+
+      const accentColor = metric?.isPositive ? 'rgb(16, 185, 129)' : 'rgb(244, 63, 94)';
+
       return (
-        <div className={`flex flex-col h-full justify-between ${containerPadding}`}>
-          <div className="flex items-center justify-between">
+        <div className={`flex flex-col h-full justify-between ${containerPadding} relative ${preset.alignment === 'center' ? 'items-center text-center' : ''}`}>
+          {preset.accentStrip && preset.accentPosition === 'left' && (
+            <div className="absolute left-0 top-0 bottom-0 w-1 rounded-l-lg" style={{ backgroundColor: accentColor }} />
+          )}
+          {preset.accentStrip && preset.accentPosition === 'top' && (
+            <div className="absolute top-0 left-0 right-0 h-1 rounded-t-lg" style={{ backgroundColor: accentColor }} />
+          )}
+
+          <div className={`flex items-center justify-between ${preset.accentStrip && preset.accentPosition === 'left' ? 'pl-2' : ''}`}>
             <div className="flex flex-col">
-              <span className={`${presentationMode ? 'text-[11px]' : 'text-xs'} font-bold text-slate-400 uppercase tracking-wider`}>{widget.title || metric?.label || 'Metric'}</span>
-              {widget.description && <span className="text-[10px] text-slate-400 font-medium mt-0.5">{widget.description}</span>}
+              <span className={`${isCompact ? 'text-[10px]' : presentationMode ? 'text-[11px]' : 'text-xs'} font-bold text-slate-400 uppercase tracking-wider`}>{widget.title || metric?.label || 'Metric'}</span>
+              {preset.subtitlePlacement !== 'hidden' && widget.description && (
+                <span className="text-[10px] text-slate-400 font-medium mt-0.5">{widget.description}</span>
+              )}
             </div>
-            <Tooltip>
-              <TooltipTrigger>
-                <Info className="w-3.5 h-3.5 text-slate-300 hover:text-primary transition-colors" />
-              </TooltipTrigger>
-              <TooltipContent>{metric?.helpText || 'Key Performance Indicator'}</TooltipContent>
-            </Tooltip>
+            <div className="flex items-center gap-1.5">
+              {preset.statusBadgeVisible && metric?.isPositive !== undefined && (
+                <div className={`px-1.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider ${metric.isPositive ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
+                  {metric.isPositive ? 'On Track' : 'At Risk'}
+                </div>
+              )}
+              {preset.iconVisible && preset.iconPosition === 'top-right' && (
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Info className="w-3.5 h-3.5 text-slate-300 hover:text-primary transition-colors" />
+                  </TooltipTrigger>
+                  <TooltipContent>{metric?.helpText || 'Key Performance Indicator'}</TooltipContent>
+                </Tooltip>
+              )}
+            </div>
           </div>
-          <div className="mt-2 flex-1 flex flex-col justify-center">
-            <h3 className={`${presentationMode ? 'text-4xl' : 'text-2xl'} font-bold text-slate-900 tracking-tight`}>{metric?.value || '0'}</h3>
-            {widget.showDelta !== false && metric?.trend && (
-              <div className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold mt-1 w-fit ${metric.isPositive ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
-                {metric.isPositive ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+
+          <div className={`${isCompact ? 'mt-1' : 'mt-2'} flex-1 flex flex-col justify-center ${preset.accentStrip && preset.accentPosition === 'left' ? 'pl-2' : ''}`}>
+            <h3 className={`${valueSizeClass} font-bold text-slate-900 tracking-tight`}>{metric?.value || '0'}</h3>
+            {(widget.showDelta !== false || preset.deltaPosition !== 'hidden') && metric?.trend && (
+              <div className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold ${isCompact ? 'mt-0.5' : 'mt-1'} w-fit ${metric.isPositive ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
+                {metric.isPositive ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
                 {metric.trend}
+                {preset.comparisonLabelVisible && <span className="text-slate-400 ml-1">vs prev</span>}
+              </div>
+            )}
+            {preset.benchmarkVisible && widget.showTarget && (
+              <div className="flex items-center gap-1.5 mt-1.5 text-[10px] text-slate-400 font-medium">
+                <Target className="w-3 h-3" />
+                <span>Target: {metric?.value || '—'}</span>
               </div>
             )}
           </div>
-          {widget.showSparkline !== false && (
+
+          {(widget.showSparkline !== false && preset.sparklineVisible) && (
             <div className={`w-full mt-2 opacity-40 relative shrink-0 ${presentationMode ? 'h-12' : 'h-8'}`}>
                {widget.showTarget && (
                  <div className="absolute top-1/2 left-0 right-0 border-t border-dashed border-slate-400 z-10" />
@@ -141,6 +183,7 @@ export function WidgetRenderer({ widget, data, sector, loading, presentationMode
           )}
         </div>
       );
+    }
     
     case 'progress': {
       const value = parseInt((metric?.value || '0').replace(/[^0-9]/g, '')) % 100 || 75;
