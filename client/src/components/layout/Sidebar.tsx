@@ -12,10 +12,16 @@ import {
   ArrowLeft,
   Database,
   Sparkles,
-  Wand2
+  Wand2,
+  ShoppingCart,
+  Truck,
+  Building2,
+  Layers,
+  Puzzle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
+import { useDashboardStore, type Sector, type SectorMode } from "@/hooks/use-dashboard-store";
 
 const navItems = [
   { name: "Builder", href: "/builder", icon: Wrench, description: "Command Center" },
@@ -29,8 +35,16 @@ const navItems = [
   { name: "Exports", href: "/exports", icon: Download, description: "Report Engine" },
 ];
 
+const SECTOR_OPTIONS: { value: Sector; label: string; icon: any }[] = [
+  { value: 'ecommerce', label: 'E-commerce', icon: ShoppingCart },
+  { value: 'logistics', label: 'Logistics', icon: Truck },
+  { value: 'manufacturing', label: 'Manufacturing', icon: Building2 },
+  { value: 'custom', label: 'Custom', icon: Puzzle },
+];
+
 export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const [location] = useLocation();
+  const { selectedSector, sectorMode, setSector, setSectorMode } = useDashboardStore();
 
   return (
     <div className="w-full lg:w-72 border-r border-slate-200 bg-white flex flex-col h-full relative z-[60] shadow-[1px_0_10px_rgb(0,0,0,0.02)]">
@@ -45,8 +59,8 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
           </div>
         </div>
       </div>
-      
-      <div className="px-4 lg:px-6 pt-6 shrink-0 mb-2">
+
+      <div className="px-4 lg:px-6 pt-4 shrink-0">
         <Link 
           href="/"
           onClick={onNavigate}
@@ -56,8 +70,59 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
           Back to Home
         </Link>
       </div>
+
+      <div className="px-4 lg:px-6 pt-4 shrink-0">
+        <div className="bg-slate-50 rounded-xl border border-slate-200 p-3 space-y-2.5">
+          <div className="flex items-center justify-between">
+            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Sector Mode</span>
+          </div>
+          <div className="grid grid-cols-2 gap-1 bg-slate-100 p-0.5 rounded-lg">
+            <button
+              onClick={() => setSectorMode('single')}
+              className={cn("text-[10px] py-1.5 rounded-md font-bold transition-all",
+                sectorMode === 'single' ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
+              )}
+              data-testid="mode-single"
+            >
+              Single
+            </button>
+            <button
+              onClick={() => setSectorMode('unified')}
+              className={cn("text-[10px] py-1.5 rounded-md font-bold transition-all",
+                sectorMode === 'unified' ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
+              )}
+              data-testid="mode-unified"
+            >
+              Unified
+            </button>
+          </div>
+
+          {sectorMode === 'single' ? (
+            <div className="grid grid-cols-2 gap-1">
+              {SECTOR_OPTIONS.map(opt => (
+                <button
+                  key={opt.value}
+                  onClick={() => setSector(opt.value)}
+                  className={cn("flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[10px] font-bold transition-all",
+                    selectedSector === opt.value ? "bg-primary/10 text-primary border border-primary/20" : "text-slate-500 hover:bg-slate-100 border border-transparent"
+                  )}
+                  data-testid={`sector-${opt.value}`}
+                >
+                  <opt.icon className="w-3 h-3" />
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-primary/10 border border-primary/20">
+              <Layers className="w-3 h-3 text-primary" />
+              <span className="text-[10px] font-bold text-primary">3-Sector Unified View</span>
+            </div>
+          )}
+        </div>
+      </div>
       
-      <div className="flex-1 py-4 lg:py-6 px-4 lg:px-6 space-y-1.5 overflow-y-auto custom-scrollbar">
+      <div className="flex-1 py-4 lg:py-4 px-4 lg:px-6 space-y-1.5 overflow-y-auto custom-scrollbar overscroll-contain">
         {navItems.map((item) => {
           const isActive = location === item.href || (location === "/" && item.href === "/builder");
           return (

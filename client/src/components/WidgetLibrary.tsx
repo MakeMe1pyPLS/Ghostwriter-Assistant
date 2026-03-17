@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Search, LayoutTemplate, LineChart as LineChartIcon, BarChart3, PieChart, Table as TableIcon, BrainCircuit, Bot, MessageSquareQuote, TrendingUp, Sparkles } from "lucide-react";
+import { Plus, Search, LayoutTemplate, LineChart as LineChartIcon, BarChart3, PieChart, Table as TableIcon, BrainCircuit, Bot, MessageSquareQuote, TrendingUp, Sparkles, AlertTriangle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -27,6 +27,7 @@ export const widgetCategories = [
       { id: 'chat', name: 'AI Chat', icon: Bot, w: 4, h: 4, desc: "Conversational assistant", alwaysAvailable: true },
       { id: 'forecast', name: 'Demand Forecast', icon: TrendingUp, w: 8, h: 4, desc: "Predictive modeling", alwaysAvailable: true },
       { id: 'summary', name: 'Executive Summary', icon: MessageSquareQuote, w: 12, h: 2, desc: "Text-based overview", alwaysAvailable: true },
+      { id: 'opportunity-risk', name: 'Opportunity & Risk', icon: AlertTriangle, w: 6, h: 4, desc: "Real-time risk/opportunity highlights", alwaysAvailable: true },
     ]
   }
 ];

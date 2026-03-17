@@ -14,21 +14,19 @@ export function AppLayout({ children }: AppLayoutProps) {
 
   return (
     <div className="flex h-[100dvh] bg-background text-foreground overflow-hidden">
-      {/* Desktop Sidebar */}
-      <div className="hidden lg:block">
+      <div className="hidden lg:block shrink-0">
         <Sidebar />
       </div>
 
       <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
-        {/* Mobile Header */}
-        <div className="lg:hidden flex items-center h-16 px-4 border-b border-border bg-white/80 backdrop-blur-md sticky top-0 z-50">
+        <div className="lg:hidden flex items-center h-14 px-4 border-b border-border bg-white/80 backdrop-blur-md sticky top-0 z-50 shrink-0">
            <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
              <SheetTrigger asChild>
-               <Button variant="ghost" size="icon" className="mr-2">
+               <Button variant="ghost" size="icon" className="mr-2 touch-manipulation">
                  <Menu className="w-5 h-5" />
                </Button>
              </SheetTrigger>
-             <SheetContent side="left" className="p-0 w-72">
+             <SheetContent side="left" className="p-0 w-72 overflow-y-auto overscroll-contain">
                <Sidebar onNavigate={() => setSidebarOpen(false)} />
              </SheetContent>
            </Sheet>
@@ -40,12 +38,11 @@ export function AppLayout({ children }: AppLayoutProps) {
            </div>
         </div>
 
-        {/* Desktop TopBar */}
-        <div className="hidden lg:block">
+        <div className="hidden lg:block shrink-0">
            <TopBar />
         </div>
 
-        <main className="flex-1 overflow-y-auto bg-[#F4F7FA] relative">
+        <main className="flex-1 overflow-y-auto bg-[#F4F7FA] relative overscroll-contain" style={{ WebkitOverflowScrolling: 'touch' }}>
           {children}
         </main>
       </div>

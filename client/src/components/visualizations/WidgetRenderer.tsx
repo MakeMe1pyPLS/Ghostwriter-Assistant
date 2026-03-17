@@ -1,4 +1,4 @@
-import { BrainCircuit, ChevronUp, ChevronDown, Info, Bot, Table as TableIcon, Target, TrendingUp, TrendingDown } from "lucide-react";
+import { BrainCircuit, ChevronUp, ChevronDown, Info, Bot, Table as TableIcon, Target, TrendingUp, TrendingDown, AlertTriangle, Zap, ArrowUpRight } from "lucide-react";
 import {
   AreaChart, Area, XAxis, Tooltip as RechartsTooltip, ResponsiveContainer,
   BarChart, Bar, LineChart, Line, PieChart as RechartsPieChart, Pie, Cell,
@@ -8,6 +8,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { useEffect, useState } from "react";
 import { getAllMetrics } from "@/hooks/use-sector-data";
 import { CARD_PRESETS, type CardPresetId } from "@/lib/kpi-card-presets";
+import { getHighlights, type OpportunityRiskHighlight } from "@/lib/opportunity-risk-engine";
 
 function InsightsWidgetContent({ sector, title }: { sector: string, title?: string }) {
   const [insights, setInsights] = useState<any>(null);
@@ -63,6 +64,51 @@ function InsightsWidgetContent({ sector, title }: { sector: string, title?: stri
   );
 }
 
+const SEVERITY_STYLES: Record<string, { bg: string; border: string; icon: string }> = {
+  risk: { bg: 'bg-rose-50', border: 'border-rose-200', icon: 'text-rose-600' },
+  opportunity: { bg: 'bg-emerald-50', border: 'border-emerald-200', icon: 'text-emerald-600' },
+  urgent: { bg: 'bg-amber-50', border: 'border-amber-200', icon: 'text-amber-600' },
+  action: { bg: 'bg-blue-50', border: 'border-blue-200', icon: 'text-blue-600' },
+  forecast: { bg: 'bg-indigo-50', border: 'border-indigo-200', icon: 'text-indigo-600' },
+};
+
+function OpportunityRiskWidget({ sector, title, presentationMode }: { sector: string; title?: string; presentationMode: boolean }) {
+  const highlights = getHighlights(sector);
+
+  return (
+    <div className="h-full flex flex-col p-1">
+      <div className="flex items-center gap-2 mb-3 shrink-0">
+        <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-amber-500 to-rose-500 flex items-center justify-center">
+          <AlertTriangle className="w-3.5 h-3.5 text-white" />
+        </div>
+        <h3 className={`${presentationMode ? 'text-xs' : 'text-[11px]'} font-black text-slate-900 uppercase tracking-widest`}>{title || 'Opportunity & Risk Highlights'}</h3>
+      </div>
+      <div className="flex-1 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
+        {highlights.map((h, i) => {
+          const style = SEVERITY_STYLES[h.type] || SEVERITY_STYLES.risk;
+          return (
+            <div key={i} className={`${style.bg} ${style.border} border rounded-xl p-3 transition-all hover:shadow-sm`} data-testid={`highlight-${h.type}-${i}`}>
+              <div className="flex items-start gap-2.5">
+                <span className="text-base leading-none mt-0.5 shrink-0">{h.icon}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <span className={`text-[10px] font-black uppercase tracking-widest ${style.icon}`}>{h.type}</span>
+                    {h.severity === 'high' && (
+                      <span className="text-[8px] font-black uppercase tracking-wider bg-rose-100 text-rose-600 px-1.5 py-0.5 rounded-full">High</span>
+                    )}
+                  </div>
+                  <p className="text-xs font-bold text-slate-800 mb-0.5">{h.title}</p>
+                  <p className="text-[11px] text-slate-600 leading-relaxed">{h.description}</p>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 const getBadgeColors = (color: string) => {
   switch(color) {
     case 'teal': return 'bg-teal-50 border-teal-200 text-teal-700';
@@ -83,6 +129,24 @@ const getChartColor = (color: string) => {
   }
 };
 
+const BORDER_RADIUS_MAP: Record<string, string> = {
+  'none': 'rounded-none',
+  'sm': 'rounded',
+  'md': 'rounded-lg',
+  'lg': 'rounded-xl',
+  'xl': 'rounded-2xl',
+  '2xl': 'rounded-3xl',
+  'full': 'rounded-[2rem]',
+};
+
+const SHADOW_MAP: Record<string, string> = {
+  'none': 'shadow-none',
+  'sm': 'shadow-sm',
+  'md': 'shadow',
+  'lg': 'shadow-lg',
+  'xl': 'shadow-xl',
+};
+
 export function WidgetRenderer({ widget, data, sector, loading, presentationMode = false }: { widget: any, data: any, sector: string, loading: boolean, presentationMode?: boolean }) {
   if (loading) return <div className="h-full w-full bg-slate-50 animate-pulse rounded-lg" />;
 
@@ -94,23 +158,19 @@ export function WidgetRenderer({ widget, data, sector, loading, presentationMode
      if (found) metric = found;
   }
 
-  // Determine actual chart type taking user override into account
   const actualType = widget.chartType && ['line', 'area', 'bar', 'donut', 'pie', 'progress'].includes(widget.chartType) 
     ? widget.chartType 
     : widget.type;
 
   const chartColor = getChartColor(widget.badgeColor);
-
   const containerPadding = presentationMode ? "" : "p-1";
 
   switch (actualType) {
     case 'kpi': {
       const presetId = (widget.cardPreset || 'clean-corporate') as CardPresetId;
       const preset = CARD_PRESETS[presetId] || CARD_PRESETS['clean-corporate'];
-      const isExecutive = presetId === 'executive-tile' || presetId === 'minimal-readout';
-      const isOps = presetId === 'ops-scorecard' || presetId === 'comparative-kpi';
-      const isInsight = presetId === 'insight-kpi';
       const isCompact = presetId === 'compact-grid';
+      const dataDensity = widget.dataDensity || 'standard';
 
       const valueSizeClass = preset.valueEmphasis === 'xl' ? (presentationMode ? 'text-5xl' : 'text-3xl')
         : preset.valueEmphasis === 'lg' ? (presentationMode ? 'text-4xl' : 'text-2xl')
@@ -118,9 +178,12 @@ export function WidgetRenderer({ widget, data, sector, loading, presentationMode
         : (presentationMode ? 'text-2xl' : 'text-lg');
 
       const accentColor = metric?.isPositive ? 'rgb(16, 185, 129)' : 'rgb(244, 63, 94)';
+      const borderRadius = BORDER_RADIUS_MAP[widget.borderRadius || 'lg'] || '';
+      const shadow = SHADOW_MAP[widget.shadowIntensity || 'none'] || '';
+      const customPadding = widget.cardPadding === 'compact' ? 'p-2' : widget.cardPadding === 'spacious' ? 'p-6' : '';
 
       return (
-        <div className={`flex flex-col h-full justify-between ${containerPadding} relative ${preset.alignment === 'center' ? 'items-center text-center' : ''}`}>
+        <div className={`flex flex-col h-full justify-between ${containerPadding} ${borderRadius} ${shadow} ${customPadding} relative ${preset.alignment === 'center' ? 'items-center text-center' : ''}`}>
           {preset.accentStrip && preset.accentPosition === 'left' && (
             <div className="absolute left-0 top-0 bottom-0 w-1 rounded-l-lg" style={{ backgroundColor: accentColor }} />
           )}
@@ -129,19 +192,19 @@ export function WidgetRenderer({ widget, data, sector, loading, presentationMode
           )}
 
           <div className={`flex items-center justify-between ${preset.accentStrip && preset.accentPosition === 'left' ? 'pl-2' : ''}`}>
-            <div className="flex flex-col">
-              <span className={`${isCompact ? 'text-[10px]' : presentationMode ? 'text-[11px]' : 'text-xs'} font-bold text-slate-400 uppercase tracking-wider`}>{widget.title || metric?.label || 'Metric'}</span>
+            <div className="flex flex-col min-w-0">
+              <span className={`${isCompact ? 'text-[10px]' : presentationMode ? 'text-[11px]' : 'text-xs'} font-bold text-slate-400 uppercase tracking-wider truncate`}>{widget.title || metric?.label || 'Metric'}</span>
               {preset.subtitlePlacement !== 'hidden' && widget.description && (
-                <span className="text-[10px] text-slate-400 font-medium mt-0.5">{widget.description}</span>
+                <span className="text-[10px] text-slate-400 font-medium mt-0.5 truncate">{widget.description}</span>
               )}
             </div>
-            <div className="flex items-center gap-1.5">
-              {preset.statusBadgeVisible && metric?.isPositive !== undefined && (
+            <div className="flex items-center gap-1.5 shrink-0">
+              {preset.statusBadgeVisible && widget.showBadge !== false && metric?.isPositive !== undefined && (
                 <div className={`px-1.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider ${metric.isPositive ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
                   {metric.isPositive ? 'On Track' : 'At Risk'}
                 </div>
               )}
-              {preset.iconVisible && preset.iconPosition === 'top-right' && (
+              {(widget.showIcon !== false) && preset.iconVisible && preset.iconPosition === 'top-right' && (
                 <Tooltip>
                   <TooltipTrigger>
                     <Info className="w-3.5 h-3.5 text-slate-300 hover:text-primary transition-colors" />
@@ -158,13 +221,47 @@ export function WidgetRenderer({ widget, data, sector, loading, presentationMode
               <div className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold ${isCompact ? 'mt-0.5' : 'mt-1'} w-fit ${metric.isPositive ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
                 {metric.isPositive ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
                 {metric.trend}
-                {preset.comparisonLabelVisible && <span className="text-slate-400 ml-1">vs prev</span>}
+                {preset.comparisonLabelVisible && widget.showComparison !== false && <span className="text-slate-400 ml-1">vs prev</span>}
               </div>
             )}
             {preset.benchmarkVisible && widget.showTarget && (
               <div className="flex items-center gap-1.5 mt-1.5 text-[10px] text-slate-400 font-medium">
                 <Target className="w-3 h-3" />
                 <span>Target: {metric?.value || '—'}</span>
+              </div>
+            )}
+
+            {dataDensity === 'detailed' && (
+              <div className="mt-2 pt-2 border-t border-slate-100 space-y-1">
+                <div className="flex justify-between text-[10px]">
+                  <span className="text-slate-400 font-medium">Previous</span>
+                  <span className="text-slate-600 font-bold">{metric?.value || '—'}</span>
+                </div>
+                <div className="flex justify-between text-[10px]">
+                  <span className="text-slate-400 font-medium">Benchmark</span>
+                  <span className="text-slate-600 font-bold">{metric?.value || '—'}</span>
+                </div>
+              </div>
+            )}
+
+            {dataDensity === 'grid' && (
+              <div className="mt-2 pt-2 border-t border-slate-100 grid grid-cols-2 gap-x-3 gap-y-1.5">
+                <div className="text-[10px]">
+                  <span className="text-slate-400 font-medium block">Target</span>
+                  <span className="text-slate-700 font-bold">{metric?.value || '—'}</span>
+                </div>
+                <div className="text-[10px]">
+                  <span className="text-slate-400 font-medium block">Prev Period</span>
+                  <span className="text-slate-700 font-bold">{metric?.value || '—'}</span>
+                </div>
+                <div className="text-[10px]">
+                  <span className="text-slate-400 font-medium block">Benchmark</span>
+                  <span className="text-slate-700 font-bold">{metric?.value || '—'}</span>
+                </div>
+                <div className="text-[10px]">
+                  <span className="text-slate-400 font-medium block">Status</span>
+                  <span className={`font-bold ${metric?.isPositive ? 'text-emerald-600' : 'text-rose-600'}`}>{metric?.isPositive ? 'On Track' : 'At Risk'}</span>
+                </div>
               </div>
             )}
           </div>
@@ -412,6 +509,9 @@ export function WidgetRenderer({ widget, data, sector, loading, presentationMode
       
     case 'insights':
       return <InsightsWidgetContent sector={sector} title={widget.title} />;
+      
+    case 'opportunity-risk':
+      return <OpportunityRiskWidget sector={sector} title={widget.title} presentationMode={presentationMode} />;
       
     default: return (
       <div className="h-full flex flex-col">

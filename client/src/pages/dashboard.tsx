@@ -3,18 +3,8 @@ import { useState, useEffect } from "react";
 import MeasuredGrid from "@/components/MeasuredGrid";
 import { BrainCircuit, ChevronUp, ChevronDown, Info, Share2, ArrowLeft } from "lucide-react";
 import {
-  AreaChart,
-  Area,
-  XAxis,
-  Tooltip as RechartsTooltip,
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  LineChart,
-  Line,
-  PieChart as RechartsPieChart,
-  Pie,
-  Cell
+  AreaChart, Area, XAxis, Tooltip as RechartsTooltip, ResponsiveContainer,
+  BarChart, Bar, LineChart, Line, PieChart as RechartsPieChart, Pie, Cell
 } from 'recharts';
 import { useSectorData, getAllMetrics } from "@/hooks/use-sector-data";
 import { useDashboardStore } from "@/hooks/use-dashboard-store";
@@ -87,20 +77,25 @@ export default function DashboardPage() {
   const [widgets, setWidgets] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // We load the read-only state from local storage.
-  // The layout on the Dashboard page should never be edited.
   useEffect(() => {
     setLoading(true);
     const savedLayout = localStorage.getItem(`layout_${sector}`);
     const savedWidgets = localStorage.getItem(`widgets_${sector}`);
     
     if (savedLayout && savedWidgets) {
-      const parsedLayout = JSON.parse(savedLayout).map((l: any) => ({ ...l, static: true }));
-      setLayout(parsedLayout);
-      setLayouts({ lg: parsedLayout, md: parsedLayout, sm: parsedLayout });
+      const parsed = JSON.parse(savedLayout);
+      const staticLayout = parsed.map((l: any) => ({
+        ...l,
+        static: true,
+        minW: l.w,
+        minH: l.h,
+        maxW: l.w,
+        maxH: l.h,
+      }));
+      setLayout(staticLayout);
+      setLayouts({ lg: staticLayout, md: staticLayout, sm: staticLayout, xs: staticLayout, xxs: staticLayout });
       setWidgets(JSON.parse(savedWidgets));
     } else {
-      // Default fallback if no builder setup exists yet
       const defaultLayout = [
         { i: 'kpi-0', x: 0, y: 0, w: 3, h: 2, static: true },
         { i: 'kpi-1', x: 3, y: 0, w: 3, h: 2, static: true },
@@ -125,10 +120,12 @@ export default function DashboardPage() {
     return <WidgetRenderer widget={widget} data={{ metrics, chartData, donutData, allMetrics: getAllMetrics(1) }} sector={sector} loading={loading} presentationMode={true} />;
   };
 
+  const sectorLabel = sector === 'ecommerce' ? 'E-Commerce' : sector === 'logistics' ? 'Logistics' : sector === 'manufacturing' ? 'Manufacturing' : sector === 'unified' ? 'Unified Supply Chain' : 'Custom';
+
   return (
     <AppLayout>
-      <div className="p-6 md:p-10 max-w-[1600px] mx-auto min-h-screen flex flex-col">
-        <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 md:mb-10">
+      <div className="p-4 sm:p-6 md:p-10 max-w-[1600px] mx-auto min-h-0 flex flex-col">
+        <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 md:mb-10 shrink-0">
           <div className="flex items-center gap-4">
             <Link href="/builder">
               <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full bg-white shadow-sm border border-slate-200 text-slate-500 hover:text-slate-900 shrink-0">
@@ -136,10 +133,10 @@ export default function DashboardPage() {
               </Button>
             </Link>
             <div>
-              <h1 className="text-2xl md:text-4xl font-black text-slate-900 tracking-tighter uppercase">Operations Center</h1>
+              <h1 className="text-xl sm:text-2xl md:text-4xl font-black text-slate-900 tracking-tighter uppercase">Operations Center</h1>
               <p className="text-slate-500 font-bold text-[10px] md:text-xs uppercase tracking-widest mt-1.5 flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                Live Sector Analysis: {sector}
+                Live: {sectorLabel}
               </p>
             </div>
           </div>
@@ -151,7 +148,7 @@ export default function DashboardPage() {
           </div>
         </header>
 
-        <div className="bg-transparent flex-1 relative">
+        <div className="bg-transparent flex-1 relative min-h-0">
           {widgets.length === 0 && !loading ? (
              <div className="h-64 flex flex-col items-center justify-center text-center bg-white rounded-3xl border border-slate-200 border-dashed">
                <h3 className="text-lg font-bold text-slate-900 mb-2">No Widgets Configured</h3>
@@ -173,7 +170,7 @@ export default function DashboardPage() {
             >
               {widgets.map((w) => {
                 return (
-                  <div key={w.id} className={"flex flex-col overflow-hidden transition-all duration-300 " + (w.stylePreset === 'corporate' ? "bg-white rounded-lg border border-slate-300 shadow-sm p-6" : w.stylePreset === 'executive' ? "bg-gradient-to-b from-slate-900 to-slate-800 text-white rounded-xl border border-slate-700 shadow-lg p-6" : w.stylePreset === 'elevated' ? "bg-white rounded-2xl border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.08)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.12)] p-6" : w.stylePreset === 'compact' ? "bg-white rounded-md border border-slate-200 shadow-sm p-4" : "bg-white rounded-3xl border border-slate-100 shadow-[0_10px_40px_rgb(0,0,0,0.04)] p-6 md:p-8 hover:shadow-[0_10px_40px_rgb(0,0,0,0.08)]")}>
+                  <div key={w.id} className={"flex flex-col overflow-hidden transition-all duration-300 " + (w.stylePreset === 'corporate' ? "bg-white rounded-lg border border-slate-300 shadow-sm p-4 sm:p-6" : w.stylePreset === 'executive' ? "bg-gradient-to-b from-slate-900 to-slate-800 text-white rounded-xl border border-slate-700 shadow-lg p-4 sm:p-6" : w.stylePreset === 'elevated' ? "bg-white rounded-2xl border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.08)] p-4 sm:p-6" : w.stylePreset === 'compact' ? "bg-white rounded-md border border-slate-200 shadow-sm p-3 sm:p-4" : "bg-white rounded-3xl border border-slate-100 shadow-[0_10px_40px_rgb(0,0,0,0.04)] p-4 sm:p-6 md:p-8")}>
                     {renderWidgetContent(w)}
                   </div>
                 );
@@ -183,9 +180,8 @@ export default function DashboardPage() {
         </div>
       </div>
       <style>{`
-        /* Presentation mode specific overrides */
         .presentation-mode .react-grid-item {
-          transition: none !important; /* Disable jumpy transitions in presentation */
+          transition: none !important;
         }
         .presentation-mode .react-grid-item.cssTransforms {
           transition: transform 0ms ease !important;

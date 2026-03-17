@@ -1,7 +1,10 @@
 import { MarketingLayout } from "@/components/layout/MarketingLayout";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import { Mail, MessageCircle, BookOpen, Headphones, ArrowRight, ChevronDown, ChevronUp, HelpCircle, Zap } from "lucide-react";
+import { 
+  Mail, MessageCircle, BookOpen, Headphones, ArrowRight, ChevronDown, ChevronUp, HelpCircle, Zap,
+  LayoutDashboard, Wand2, Sparkles, Database, Download, Plug, BrainCircuit, Shield, Users, CreditCard
+} from "lucide-react";
 import { useState } from "react";
 import { getPricingSummary } from "@/lib/pricing";
 
@@ -13,7 +16,112 @@ const faqs = [
   { q: "How does the pricing work?", a: getPricingSummary() },
   { q: "Can multiple team members use the same account?", a: "Yes. Starter includes 1 user, Professional supports up to 5 users, Business supports up to 15 users, and Enterprise plans support unlimited team members with role-based access controls, SSO, and audit logs." },
   { q: "Do you offer onboarding or setup assistance?", a: "Absolutely. We offer guided onboarding sessions for Business and Enterprise customers. Enterprise plans include dedicated onboarding assistance, custom KPI engineering, and direct support. You can also request a custom setup through our Contact page." },
-  { q: "Is my data secure?", a: "Yes. All data is encrypted in transit and at rest. We follow SOC 2 Type II compliance standards and never share your data with third parties. Enterprise plans include dedicated environments and audit logs. See our Privacy Policy for details." }
+  { q: "Is my data secure?", a: "Yes. All data is encrypted in transit and at rest. We follow SOC 2 Type II compliance standards and never share your data with third parties. Enterprise plans include dedicated environments and audit logs. See our Privacy Policy for details." },
+  { q: "What is the difference between Single and Unified sector mode?", a: "Single mode focuses your dashboard on one sector (e.g. E-commerce only). Unified mode displays cross-sector KPIs that bridge manufacturing, logistics, and e-commerce together, showing end-to-end supply chain health." },
+  { q: "Can I customize the look of individual KPI cards?", a: "Yes. Each KPI card supports 8 style presets, 4 data density modes (minimal, standard, detailed, grid), adjustable border radius, shadow intensity, padding, and toggles for sparklines, badges, icons, and comparison labels." },
+];
+
+const docSections = [
+  {
+    icon: LayoutDashboard,
+    title: "Dashboard Builder",
+    color: "text-primary bg-primary/10 border-primary/20",
+    content: [
+      "The Dashboard Builder is your primary workspace. It uses a drag-and-drop grid layout where you can add, position, and resize any of the 12+ widget types.",
+      "Key features: Free-form canvas with 12-column grid. Drag widgets from the Widget Library panel on the right. Click any widget to open the Widget Inspector for deep customization. Duplicate or delete widgets with one click.",
+      "Layout changes are auto-saved to your browser. When you navigate to the Dashboard page, it loads the exact same layout in read-only presentation mode.",
+    ]
+  },
+  {
+    icon: Sparkles,
+    title: "Generate For Me (AI Wizard)",
+    color: "text-indigo-600 bg-indigo-50 border-indigo-100",
+    content: [
+      "The 8-step Generate For Me wizard creates a complete dashboard from scratch using AI. It asks you about your sector, priorities, KPI preferences, visual style, and layout density.",
+      "Steps: (1) Sector Selection, (2) Priority KPIs, (3) Visualization Preferences, (4) Layout Density, (5) Style Preset, (6) AI Features, (7) Date Range, (8) Review & Generate.",
+      "After generation, the dashboard is loaded into the Builder where you can refine it further before viewing it in the Dashboard page.",
+    ]
+  },
+  {
+    icon: Wand2,
+    title: "Enhance My Dashboard",
+    color: "text-violet-600 bg-violet-50 border-violet-100",
+    content: [
+      "The 5-step Enhance flow takes your existing dashboard and improves it. It analyzes your current widget layout and suggests additions, reorganizations, and AI-powered upgrades.",
+      "Enhancement options include: adding missing KPI coverage, upgrading chart types, inserting AI widgets (insights, forecasts, chat), and optimizing layout density.",
+      "Your original widgets are preserved — enhancements are additive. You can undo any changes in the Builder afterwards.",
+    ]
+  },
+  {
+    icon: BrainCircuit,
+    title: "AI & Insights Widgets",
+    color: "text-teal-600 bg-teal-50 border-teal-100",
+    content: [
+      "ChainInsideIQ includes 5 AI-powered widget types: AI Insights (automated anomaly detection and recommendations), AI Chat (conversational data assistant), Demand Forecast (predictive trend lines), Executive Summary (natural language overview), and Opportunity & Risk Highlights (sector-specific alerts).",
+      "AI widgets are 'always active' — they work across all sectors and date ranges without manual metric binding. They adapt their output based on the sector context selected in the sidebar.",
+      "The Opportunity & Risk widget surfaces real-time alerts categorized as Risk, Opportunity, Urgent, Action, or Forecast, each with severity levels and color-coded indicators.",
+    ]
+  },
+  {
+    icon: Database,
+    title: "Data Sources & KPI Library",
+    color: "text-blue-600 bg-blue-50 border-blue-100",
+    content: [
+      "ChainInsideIQ includes a 36-metric KPI library spanning 4 categories: E-commerce (Revenue, AOV, Conversion Rate, Cart Abandonment, ROAS, etc.), Manufacturing (Throughput, Defect Rate, OEE, Yield, etc.), Logistics (On-Time Delivery, Shipment Volume, Transit Time, etc.), and Unified (Perfect Order Rate, Cash-to-Cash Cycle, Inventory Turnover, etc.).",
+      "Each KPI includes a recommended visualization type (KPI card, trend, bar, etc.), a help tooltip, and an AI-suggested chart type. You can override any of these in the Widget Inspector.",
+      "Demo data is sector-aware and changes automatically when you switch sectors. You can also import your own CSV files or connect external APIs through the Data Sources page.",
+    ]
+  },
+  {
+    icon: Download,
+    title: "Export & Reporting",
+    color: "text-amber-600 bg-amber-50 border-amber-100",
+    content: [
+      "Export your dashboards in multiple formats: Excel (.xlsx) with formatted sheets, CSV for raw data, JSON for developer integrations, and PDF for executive reporting.",
+      "Exports include all visible widget data, chart configurations, and AI-generated insights. Scheduled exports are available on Professional plans and above.",
+      "The Export drawer is accessible from both the Builder and Dashboard pages via the export icon in the top toolbar.",
+    ]
+  },
+  {
+    icon: Plug,
+    title: "Connectors & Integrations",
+    color: "text-emerald-600 bg-emerald-50 border-emerald-100",
+    content: [
+      "Connect ChainInsideIQ to your existing systems: ERP platforms (SAP, Oracle, NetSuite), WMS (Manhattan, Blue Yonder), TMS (Oracle TMS, MercuryGate), and e-commerce platforms (Shopify, WooCommerce, Magento).",
+      "API-first architecture supports REST and webhook integrations. Professional plans and above include Google Sheets and SQL database connectors. Enterprise plans add Power BI, Tableau, and custom API endpoints.",
+      "All connections are managed through the Connectors page in the sidebar. Data sync frequency depends on your plan tier.",
+    ]
+  },
+  {
+    icon: Users,
+    title: "Team & Collaboration",
+    color: "text-rose-600 bg-rose-50 border-rose-100",
+    content: [
+      "Invite team members to collaborate on dashboards. Each member can have a role: Viewer (read-only access), Editor (can modify dashboards), or Admin (full access including settings and billing).",
+      "The Hub page provides internal communication features for discussing dashboard insights, flagging anomalies, and sharing views with stakeholders.",
+      "Enterprise plans include SSO (SAML 2.0), audit logs, and granular permission controls for dashboard-level access.",
+    ]
+  },
+  {
+    icon: Shield,
+    title: "Security & Compliance",
+    color: "text-slate-600 bg-slate-50 border-slate-200",
+    content: [
+      "All data is encrypted in transit (TLS 1.3) and at rest (AES-256). We maintain SOC 2 Type II compliance and undergo annual third-party security audits.",
+      "Enterprise deployments include dedicated environments, custom data retention policies, IP allowlisting, and comprehensive audit logging.",
+      "We never share customer data with third parties. Our AI processing happens within your data boundary — no data leaves your environment for model training.",
+    ]
+  },
+  {
+    icon: CreditCard,
+    title: "Plans & Billing",
+    color: "text-orange-600 bg-orange-50 border-orange-100",
+    content: [
+      "Four plans are available: Starter ($79/mo, 1 user, 5 dashboards), Professional ($149/mo, 5 users, unlimited dashboards, AI features), Business ($299/mo, 15 users, API access, priority support), and Enterprise (custom pricing, unlimited users, dedicated support).",
+      "All plans include a 14-day free trial. No credit card is required to start. Annual billing provides a 20% discount on all tiers.",
+      "Upgrades and downgrades take effect immediately. Prorated charges are applied automatically. Enterprise customers receive custom invoicing.",
+    ]
+  },
 ];
 
 function FAQItem({ q, a }: { q: string; a: string }) {
@@ -33,6 +141,31 @@ function FAQItem({ q, a }: { q: string; a: string }) {
   );
 }
 
+function DocSection({ icon: Icon, title, color, content }: typeof docSections[0]) {
+  const [expanded, setExpanded] = useState(false);
+  return (
+    <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+      <button onClick={() => setExpanded(!expanded)} className="w-full flex items-center gap-4 p-6 text-left hover:bg-slate-50/50 transition-colors" data-testid={`doc-section-${title.slice(0, 15)}`}>
+        <div className={`w-12 h-12 rounded-xl flex items-center justify-center border shrink-0 ${color}`}>
+          <Icon className="w-5 h-5" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <h3 className="text-base font-black text-slate-900 tracking-tight">{title}</h3>
+          <p className="text-xs text-slate-500 mt-0.5 truncate">{content[0].slice(0, 80)}...</p>
+        </div>
+        {expanded ? <ChevronUp className="w-5 h-5 text-slate-400 shrink-0" /> : <ChevronDown className="w-5 h-5 text-slate-400 shrink-0" />}
+      </button>
+      {expanded && (
+        <div className="px-6 pb-6 border-t border-slate-100 pt-4 space-y-3">
+          {content.map((p, i) => (
+            <p key={i} className="text-sm text-slate-600 leading-relaxed">{p}</p>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function SupportPage() {
   return (
     <MarketingLayout>
@@ -45,7 +178,7 @@ export default function SupportPage() {
             </div>
             <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tighter mb-6">How can we help?</h1>
             <p className="text-lg text-slate-500 max-w-2xl mx-auto leading-relaxed">
-              Get answers to common questions, reach our support team, or request a personalized setup for your organization.
+              Get answers to common questions, browse our platform documentation, or reach our support team for personalized assistance.
             </p>
           </div>
         </section>
@@ -55,7 +188,7 @@ export default function SupportPage() {
             {[
               { icon: Mail, title: "Email Support", desc: "Reach our team directly for technical questions or account issues.", action: "support@chaininsideiq.com", color: "text-primary bg-primary/10 border-primary/20" },
               { icon: MessageCircle, title: "Live Chat", desc: "Chat with our AI assistant or connect with a human agent during business hours.", action: "Available 9am-6pm EST", color: "text-indigo-600 bg-indigo-50 border-indigo-100" },
-              { icon: BookOpen, title: "Documentation", desc: "Browse our guides, API docs, and video tutorials to get the most out of the platform.", action: "Coming Soon", color: "text-amber-600 bg-amber-50 border-amber-100" }
+              { icon: BookOpen, title: "Documentation", desc: "Browse our guides, API docs, and video tutorials to get the most out of the platform.", action: "10 Sections Below", color: "text-amber-600 bg-amber-50 border-amber-100" }
             ].map((item, i) => (
               <div key={i} className="bg-white rounded-2xl border border-slate-200 p-8 text-center shadow-sm hover:shadow-md transition-shadow">
                 <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-5 border ${item.color}`}>
@@ -70,6 +203,18 @@ export default function SupportPage() {
         </section>
 
         <section className="py-20 px-4 md:px-6">
+          <div className="max-w-4xl mx-auto">
+            <div className="flex items-center gap-3 mb-8">
+              <BookOpen className="w-5 h-5 text-primary" />
+              <h2 className="text-2xl font-black text-slate-900 tracking-tight">Platform Documentation</h2>
+            </div>
+            <div className="space-y-3">
+              {docSections.map((section, i) => <DocSection key={i} {...section} />)}
+            </div>
+          </div>
+        </section>
+
+        <section className="py-20 px-4 md:px-6 bg-[#F4F7FA]">
           <div className="max-w-3xl mx-auto">
             <div className="flex items-center gap-3 mb-8">
               <HelpCircle className="w-5 h-5 text-primary" />

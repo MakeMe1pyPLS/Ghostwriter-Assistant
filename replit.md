@@ -20,6 +20,13 @@ A production-quality supply chain dashboard SaaS with a marketing website and fu
 - Marketing pages: `bg-white` / `bg-[#F4F7FA]`
 - Premium SaaS aesthetic with uppercase tracking-widest labels
 
+## Sector Mode System
+- **Single Mode**: Focuses dashboard on one sector (E-commerce, Logistics, Manufacturing, Custom)
+- **Unified Mode**: Cross-sector bridge KPIs spanning all supply chain stages
+- Selector in sidebar with visual toggle between Single/Unified
+- Store: `useDashboardStore` has `sectorMode` ('single' | 'unified'), `setSectorMode()`
+- Switching to Single auto-selects E-commerce; switching to Unified sets sector to 'unified'
+
 ## 3 Creation Modes
 ### 1. Build Manually (`/builder`)
 - Drag-and-drop widget builder
@@ -49,6 +56,20 @@ Supported target tools with distinct profiles:
 
 Tool profiles defined in `client/src/lib/tool-profiles.ts`
 
+## Widget Types (13 total)
+- **kpi** — KPI cards with 8 presets, 4 data density modes
+- **trend** — Area/line time-series
+- **bar** — Bar comparison charts
+- **donut** — Donut/ring distribution
+- **pie** — Pie charts
+- **progress** — Radial progress ring
+- **table** — Data table
+- **chat** — AI conversational assistant
+- **summary** — Executive summary text
+- **forecast** — Demand forecast with prediction lines
+- **insights** — AI-powered anomaly detection and recommendations
+- **opportunity-risk** — Sector-specific risk/opportunity highlights with severity indicators
+
 ## KPI Card Design System
 8 card presets (`client/src/lib/kpi-card-presets.ts`):
 - **Clean Corporate** — Professional, balanced layout
@@ -61,6 +82,24 @@ Tool profiles defined in `client/src/lib/tool-profiles.ts`
 - **Comparative KPI Card** — Side-by-side target vs actual
 
 Each preset controls: title/subtitle placement, value emphasis, delta position, icon, border style, background, accent strip, sparkline, benchmark, comparison label, status badge, shadow, border radius, density, alignment.
+
+### KPI Card Customization Properties
+- **dataDensity**: minimal | standard | detailed (prev+benchmark rows) | grid (2x2 mini-table)
+- **borderRadius**: none | sm | md | lg | xl | 2xl | full
+- **shadowIntensity**: none | sm | md | lg | xl
+- **cardPadding**: compact | default | spacious
+- **showBadge**: Toggle status badge visibility
+- **showIcon**: Toggle info icon visibility
+- **showComparison**: Toggle "vs prev" comparison label
+- **showDelta**: Toggle period delta indicator
+- **showSparkline**: Toggle sparkline chart
+- **showTarget**: Toggle target line/benchmark
+
+## Opportunity & Risk Engine (`client/src/lib/opportunity-risk-engine.ts`)
+- Sector-specific highlights for: ecommerce, logistics, manufacturing, unified
+- 5 highlight types: risk, opportunity, urgent, action, forecast
+- Each highlight has: icon, title, description, severity (high/medium/low), color
+- Rendered by OpportunityRiskWidget in WidgetRenderer
 
 ## KPI Library (`client/src/lib/kpi-library.ts`)
 36+ KPI definitions across 5 categories:
@@ -123,6 +162,12 @@ Each KPI has: label, description, format type, suggested visualizations, suggest
 ### Frontend Panels (`client/src/integrations/`)
 - Excel, Google Sheets, Power BI, Tableau, Custom API panels
 
+## Layout Sync System
+- Builder saves to `localStorage['layout_${sector}']` and `localStorage['widgets_${sector}']`
+- Dashboard page loads from same keys in read-only presentation mode
+- Generate and Enhance flows write to same keys after generation
+- All pages share sector context via `useDashboardStore`
+
 ## Website Pages
 - `/` Home, `/features`, `/pricing`, `/contact`, `/support`, `/privacy`, `/terms`
 - `/generate` — Generate For Me wizard
@@ -130,19 +175,30 @@ Each KPI has: label, description, format type, suggested visualizations, suggest
 - `/builder`, `/dashboard`, `/insights`, `/hub`, `/data`, `/connectors`, `/exports`
 - `/checkout/success`, `/checkout/cancel`, `/checkout/stripe-mock`
 
+## Support Page
+- 3 support channels (Email, Live Chat, Documentation)
+- 10 documentation sections covering: Dashboard Builder, Generate For Me, Enhance Dashboard, AI & Insights Widgets, Data Sources & KPI Library, Export & Reporting, Connectors & Integrations, Team & Collaboration, Security & Compliance, Plans & Billing
+- 10 FAQ items with expandable accordion UI
+
 ## Pricing Tiers (Source: `client/src/lib/pricing.ts`)
 - Starter $79, Professional $149 (Most Popular), Business $299, Enterprise Custom
 
 ## Key Files
-- `client/src/components/visualizations/WidgetRenderer.tsx` — Canonical widget rendering (card-preset-aware KPIs)
+- `client/src/components/visualizations/WidgetRenderer.tsx` — Canonical widget rendering (card-preset-aware KPIs, opportunity-risk widget)
 - `client/src/lib/dashboard-spec.ts` — Dashboard spec engine
 - `client/src/lib/kpi-library.ts` — Comprehensive KPI definitions
 - `client/src/lib/kpi-card-presets.ts` — 8 KPI card style presets
 - `client/src/lib/tool-profiles.ts` — Tool-aware generation profiles
 - `client/src/lib/ai-provider.ts` — AI provider abstraction
 - `client/src/lib/pricing.ts` — Pricing tier source of truth
+- `client/src/lib/opportunity-risk-engine.ts` — Sector-specific opportunity/risk highlights
+- `client/src/hooks/use-dashboard-store.ts` — Zustand store with sector mode
 - `client/src/components/GenerateWizard.tsx` — 8-step generation wizard
 - `client/src/components/EnhanceWizard.tsx` — 5-step enhancement flow
+- `client/src/components/WidgetInspector.tsx` — Widget configuration panel
+- `client/src/components/WidgetLibrary.tsx` — Widget type catalog (13 types)
+- `client/src/components/layout/Sidebar.tsx` — Navigation + sector mode selector
+- `client/src/components/layout/AppLayout.tsx` — App shell with scroll fixes
 - `server/services/ai/base-provider.ts` — AI provider interface
 - `server/services/ai/demo-provider.ts` — Rule-based generation engine
 - `server/routes.ts` — All API routes
@@ -157,4 +213,6 @@ Each KPI has: label, description, format type, suggested visualizations, suggest
 - Export Center pulls live data from `useSectorData` hook
 - Data sources page at `/data`; dataset registry is in-memory (resets on server restart)
 - `useSectorData` exports `donutData`, `metrics`, `chartData`, `allMetrics`, `sector`, `dateRange`, `hasImportedData`
-- `useDashboardStore` has `importedData`, `setImportedData`, `selectedSector`, `setSector`
+- `useDashboardStore` has `importedData`, `setImportedData`, `selectedSector`, `setSector`, `sectorMode`, `setSectorMode`
+- Social links in footer are placeholder URLs
+- Sidebar sector mode selector uses 'single'/'unified' toggle with per-sector buttons in single mode

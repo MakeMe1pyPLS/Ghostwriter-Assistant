@@ -1,0 +1,320 @@
+You are a senior SaaS product architect, React + TypeScript frontend engineer, FastAPI backend engineer, and UX systems designer.
+
+Enhance my existing app:
+
+“ChainInsideIQ — AI Dashboard Generator Platform”
+
+DO NOT rebuild the whole app from scratch.
+Refactor and improve the existing codebase in-place.
+
+PRIMARY GOALS
+1) Make the platform work smoothly for both single-sector businesses and unified companies using up to 3 sectors
+2) Improve KPI card customization and data density
+3) Fix builder/dashboard layout mismatch so generated and edited layouts stay consistent
+4) Fix scrolling issues across phone, tablet, and desktop
+5) Add a highly attractive feature for logistics and e-commerce users immediately after launch
+6) Improve support/documentation page structure and completeness
+
+IMPORTANT PRODUCT RULES
+- Unified mode should support a maximum of 3 linked sectors:
+  - E-commerce
+  - Logistics
+  - Manufacturing
+- Single-sector businesses must also be able to use the platform fully without unified logic being forced
+- No heavy animation work right now
+- Focus on usability, readability, compatibility, and premium static design
+
+==================================================
+PART 1 — SINGLE-SECTOR + UNIFIED MODE SUPPORT
+==================================================
+
+Update the product logic so it clearly supports:
+
+A) Single-Sector Mode
+- E-commerce only
+- Logistics only
+- Manufacturing only
+- Custom only
+
+B) Unified Mode
+- supports up to 3 linked sectors:
+  - E-commerce
+  - Logistics
+  - Manufacturing
+
+Requirements:
+- Add or improve a sector mode selector
+- Users should be able to choose whether they are:
+  - a single-sector business
+  - a multi-sector/unified business
+- Unified mode should unlock bridge KPIs
+- Single-sector mode should show only sector-specific KPIs and visuals
+- Keep the app easy to understand for both types of users
+
+Update:
+- widget library
+- KPI library
+- dashboard generator logic
+- AI context
+- dashboard labels
+- hub context if applicable
+
+==================================================
+PART 2 — FEATURE TO MAKE THE SAAS EXTREMELY ATTRACTIVE
+==================================================
+
+Add a highly attractive launch feature for logistics and e-commerce users:
+
+“Operational Opportunity & Risk Highlights”
+
+This feature should automatically generate a visible summary block or widget that highlights:
+- biggest risk right now
+- biggest opportunity right now
+- KPI needing urgent attention
+- top recommended action
+- short forecast implication
+
+This should work especially well for:
+- E-commerce
+- Logistics
+- Unified mode
+
+Examples:
+- “Late shipments increased 12% — risk to on-time delivery”
+- “Conversion improved while returns stayed flat — growth opportunity”
+- “Warehouse utilization is above safe threshold”
+- “Top action: shift overflow to backup carrier”
+- “Forecast: if delays continue, delivery performance may drop another 1.5%”
+
+This feature should be visible in:
+- generated dashboards
+- AI summary cards
+- executive-style views
+
+Make it feel like a premium product differentiator.
+
+==================================================
+PART 3 — KPI CARD CUSTOMIZATION IMPROVEMENTS
+==================================================
+
+Enhance KPI card customization in the builder.
+
+Requirements:
+- Make border radius/radius controls better and more adjustable
+- Radius customization should work properly on:
+  - desktop
+  - tablet
+  - phone
+- Add more card density options
+- Add more data display options
+- Make KPI cards feel more flexible and premium
+
+Add or improve settings for:
+- border radius
+- shadow intensity
+- padding
+- card density
+- card size
+- number size
+- title/subtitle spacing
+- icon on/off
+- badge on/off
+- comparison display
+- compact vs expanded layout
+
+==================================================
+PART 4 — KPI CARD DATA DENSITY / GRID MODE
+==================================================
+
+Add richer KPI card data options.
+
+I want KPI cards to support:
+- more numbers
+- more data points
+- a grid option
+- additional numeric display rows if needed
+
+Examples:
+A KPI card could optionally show:
+- main value
+- delta
+- target
+- benchmark
+- previous period
+- small 2x2 metric grid
+- status label
+
+Add a “data density” or “card content mode” option with examples like:
+- Minimal
+- Standard
+- Detailed
+- Grid
+
+Grid mode should allow users to show multiple related values cleanly inside one KPI card or card block.
+
+==================================================
+PART 5 — BUILDER / DASHBOARD LAYOUT MATCHING
+==================================================
+
+CURRENT PROBLEM
+Sometimes the layout in the builder does not match the layout shown in the Dashboard view.
+
+Fix this.
+
+Requirements:
+- Builder layout and Dashboard layout must stay in sync
+- If a user arranges widgets in the builder, the Dashboard view should reflect that same layout faithfully
+- Avoid widget jumping, resizing mismatch, or position drift
+- Make sure the saved layout snapshot used by Dashboard view is reliable
+
+Audit and fix:
+- layout persistence
+- responsive layout mapping
+- read-only dashboard rendering
+- widget size/position mapping
+
+==================================================
+PART 6 — SCROLLING FIXES ACROSS DEVICES
+==================================================
+
+CURRENT PROBLEM
+Scrolling through the app/software on phones is not functioning correctly.
+Tablet behavior is unclear and must be checked too.
+
+Fix scrolling across:
+- mobile phones
+- tablets
+- desktops
+
+Requirements:
+- pages should scroll normally
+- no locked screen states
+- no hidden overflow issues
+- modals/drawers should scroll properly if content is long
+- builder, dashboard, support page, pricing page, and AI panel should all remain usable
+- check for overflow-hidden or container height issues causing scroll lock
+
+==================================================
+PART 7 — GENERATE FOR ME / ENHANCE MY DASHBOARD IMPROVEMENTS
+==================================================
+
+If these flows already exist, improve them.
+
+Requirements:
+- Generate For Me should create dashboards based on:
+  - business type
+  - sector mode
+  - target tool
+  - KPI priorities
+  - dashboard density
+  - executive vs operational preference
+- Enhance My Dashboard should allow improving:
+  - readability
+  - KPI card style
+  - chart choices
+  - layout
+  - sector fit
+  - tool compatibility
+
+Both flows should produce dashboards that remain fully editable afterward.
+
+==================================================
+PART 8 — TOOL-AWARE KPI / DASHBOARD DESIGN
+==================================================
+
+Make sure generated dashboards and KPI cards can adapt their design rules depending on the target tool:
+
+- Web App
+- Excel
+- Google Sheets
+- Power BI
+- Tableau
+
+Requirements:
+- tool-aware KPI card presets
+- tool-aware chart recommendations
+- tool-aware spacing/readability rules
+- no animation assumptions
+- static, premium, readable design
+
+==================================================
+PART 9 — SUPPORT PAGE / DOCUMENTATION IMPROVEMENT
+==================================================
+
+Improve the support page so it includes real documentation sections.
+
+Required sections:
+1. Getting Started
+2. Dashboard Builder Guide
+3. Sector Modes
+4. AI Supply Chain Analyst
+5. Data Import / Connectors
+6. Exports
+7. Pricing / Plans
+8. Troubleshooting
+9. Contact / Request Help
+10. FAQ
+
+Make the support page:
+- structured
+- easy to skim
+- premium and professional
+- useful for real users
+
+Add helpful examples where possible.
+
+==================================================
+PART 10 — RESPONSIVENESS / TOUCH-FRIENDLY UX
+==================================================
+
+Make sure the improved features work across:
+- desktop
+- tablet
+- phone
+
+Requirements:
+- radius controls usable on touch devices
+- card settings usable on touch devices
+- builder and dashboard scroll correctly
+- no clipped controls
+- KPI cards remain readable on smaller screens
+
+==================================================
+PART 11 — CODE / ARCHITECTURE REQUIREMENTS
+==================================================
+
+Keep implementation modular.
+
+If needed, create or improve files/components/services related to:
+- sector mode registry
+- unified mode config
+- KPI card style presets
+- data density modes
+- layout sync manager
+- support page content config
+- opportunity/risk highlight widget
+
+Do not scatter logic across random files.
+
+==================================================
+PART 12 — DELIVERABLES
+==================================================
+
+1) Inspect the current repo structure first
+2) Identify files needed for:
+   - single-sector + unified mode refinement
+   - KPI card improvements
+   - builder/dashboard layout sync
+   - scroll fixes
+   - support page documentation
+   - opportunity/risk highlight feature
+3) Implement all of the above in-place
+4) Explain file-by-file what changed
+5) Confirm:
+   - single-sector businesses can use the platform fully
+   - unified mode supports up to 3 sectors
+   - KPI cards are more customizable and data-rich
+   - builder and dashboard layouts match better
+   - scrolling works across devices
+   - support page documentation is more complete
+   - the new opportunity/risk feature is visible and valuable
