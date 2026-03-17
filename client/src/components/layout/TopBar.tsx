@@ -84,15 +84,6 @@ export function TopBar() {
           <span className="hidden sm:inline">Refresh</span>
         </Button>
       </div>
-      <style>{`
-        .no-scrollbar-on-mobile::-webkit-scrollbar {
-          display: none;
-        }
-        .no-scrollbar-on-mobile {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-      `}</style>
     </div>
   );
 }

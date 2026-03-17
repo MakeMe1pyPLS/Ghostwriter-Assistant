@@ -84,3 +84,37 @@
 .animate-pulse-slow {
   animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.custom-scrollbar-hidden::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar-hidden::-webkit-scrollbar-thumb {
+  background: transparent;
+}
+.custom-scrollbar-hidden:hover::-webkit-scrollbar-thumb {
+  background: #f1f5f9;
+  border-radius: 10px;
+}
+
+.no-scrollbar-on-mobile::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar-on-mobile {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

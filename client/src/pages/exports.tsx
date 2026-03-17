@@ -576,11 +576,6 @@ export default function ExportsPage() {
         chartData={chartData}
         donutData={donutData}
       />
-      <style>{`
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-      `}</style>
     </AppLayout>
   );
 }

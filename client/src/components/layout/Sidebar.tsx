@@ -122,7 +122,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         </div>
       </div>
       
-      <div className="flex-1 py-4 lg:py-4 px-4 lg:px-6 space-y-1.5 overflow-y-auto custom-scrollbar overscroll-contain">
+      <div className="flex-1 py-4 lg:py-4 px-4 lg:px-6 space-y-1.5 overflow-y-auto custom-scrollbar-hidden overscroll-contain">
         {navItems.map((item) => {
           const isActive = location === item.href || (location === "/" && item.href === "/builder");
           return (
@@ -167,11 +167,6 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
           <span className="text-xs font-bold uppercase tracking-widest">Settings</span>
         </Link>
       </div>
-      <style>{`
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: transparent; }
-        .custom-scrollbar:hover::-webkit-scrollbar-thumb { background: #f1f5f9; border-radius: 10px; }
-      `}</style>
     </div>
   );
 }
