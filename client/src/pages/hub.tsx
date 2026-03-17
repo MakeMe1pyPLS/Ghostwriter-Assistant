@@ -16,13 +16,16 @@ import {
   CheckCircle2,
   Activity,
   Search,
-  ArrowRight
+  ArrowRight,
+  Settings,
+  MessageSquareOff
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-import { Sector } from "@/hooks/use-dashboard-store";
+import { useDashboardStore, Sector } from "@/hooks/use-dashboard-store";
 import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { Input } from "@/components/ui/input";
+import { Link } from "wouter";
 
 type Urgency = 'Low' | 'Medium' | 'High' | 'Critical';
 type Status = 'Open' | 'In Progress' | 'Resolved';
@@ -122,8 +125,31 @@ const MOCK_ITEMS: HubItem[] = [
   }
 ];
 
+function HubDisabledState() {
+  return (
+    <div className="flex flex-col items-center justify-center h-full bg-[#F4F7FA] px-4">
+      <div className="max-w-md text-center">
+        <div className="w-20 h-20 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-6">
+          <MessageSquareOff className="w-10 h-10 text-slate-300" />
+        </div>
+        <h2 className="text-2xl font-black text-slate-900 tracking-tight mb-3 uppercase">Hub is Disabled</h2>
+        <p className="text-sm text-slate-500 leading-relaxed mb-6">
+          The Ops Hub is currently turned off. Hub communication is most useful for businesses with multiple sectors or partnered operations. Enable it in Settings to start receiving cross-sector alerts, AI insights, and operational updates.
+        </p>
+        <Link href="/settings">
+          <Button className="h-12 px-6 rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-primary/20">
+            <Settings className="w-4 h-4 mr-2" />
+            Go to Settings
+          </Button>
+        </Link>
+      </div>
+    </div>
+  );
+}
+
 export default function HubPage() {
   const { toast } = useToast();
+  const { hubEnabled, businessStructure, connectedSectors } = useDashboardStore();
   const [items, setItems] = useState<HubItem[]>(MOCK_ITEMS);
   const [newMessage, setNewMessage] = useState("");
   const [newTitle, setNewTitle] = useState("");
@@ -132,6 +158,14 @@ export default function HubPage() {
   
   const [activeTab, setActiveTab] = useState<TabType>('all');
   const [searchQuery, setSearchQuery] = useState("");
+
+  const availableSectors = useMemo(() => {
+    const base: Sector[] = [...connectedSectors];
+    if (businessStructure !== 'single' && !base.includes('unified')) {
+      base.push('unified');
+    }
+    return base;
+  }, [connectedSectors, businessStructure]);
 
   const handlePost = () => {
     if (!newMessage.trim()) return;
@@ -167,6 +201,10 @@ export default function HubPage() {
 
   const filteredItems = useMemo(() => {
     let result = items;
+
+    if (businessStructure === 'single') {
+      result = result.filter(i => connectedSectors.includes(i.sector) || i.sector === 'unified');
+    }
     
     if (activeTab === 'alerts') result = result.filter(i => i.type === 'alert');
     if (activeTab === 'notifications') result = result.filter(i => i.type === 'notification');
@@ -183,7 +221,7 @@ export default function HubPage() {
     }
     
     return result;
-  }, [items, activeTab, searchQuery]);
+  }, [items, activeTab, searchQuery, businessStructure, connectedSectors]);
 
   const stats = useMemo(() => {
     return {
@@ -193,13 +231,27 @@ export default function HubPage() {
     };
   }, [items]);
 
+  if (!hubEnabled) {
+    return (
+      <AppLayout>
+        <HubDisabledState />
+      </AppLayout>
+    );
+  }
+
   return (
     <AppLayout>
       <div className="flex flex-col h-full bg-[#F4F7FA]">
-        {/* Top Summary Bar */}
         <div className="bg-white border-b border-slate-200 px-4 md:px-8 py-5 flex flex-col md:flex-row md:items-center justify-between gap-6 shrink-0 shadow-sm z-10 relative">
           <div className="flex flex-col md:flex-row md:items-center gap-6">
-            <h1 className="text-2xl font-black text-slate-900 tracking-tight uppercase">Ops Hub</h1>
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl font-black text-slate-900 tracking-tight uppercase">Ops Hub</h1>
+              {businessStructure !== 'single' && (
+                <Badge variant="outline" className="text-[9px] font-black uppercase tracking-widest rounded-lg border-primary/20 bg-primary/5 text-primary">
+                  {businessStructure === 'partnered' ? 'Partnered' : 'Unified Chain'}
+                </Badge>
+              )}
+            </div>
             <div className="h-8 w-px bg-slate-200 hidden md:block"></div>
             <div className="flex flex-wrap gap-6">
               <div className="flex items-center gap-3">
@@ -243,10 +295,7 @@ export default function HubPage() {
         </div>
 
         <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
-          
-          {/* Main Feed Column */}
           <div className="flex-1 flex flex-col min-w-0 border-r border-slate-200 bg-[#F4F7FA]">
-            {/* Tabs */}
             <div className="px-4 md:px-8 py-4 bg-white border-b border-slate-200 flex gap-2 overflow-x-auto custom-scrollbar shrink-0 shadow-sm">
                {[
                  { id: 'all', label: 'All Updates' },
@@ -265,7 +314,6 @@ export default function HubPage() {
                ))}
             </div>
 
-            {/* Feed List */}
             <div className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar relative">
               <AnimatePresence initial={false}>
                 {filteredItems.length === 0 ? (
@@ -365,7 +413,6 @@ export default function HubPage() {
             </div>
           </div>
 
-          {/* Composer Sidebar */}
           <aside className="w-full lg:w-[420px] xl:w-[480px] bg-white flex flex-col shrink-0 border-l border-slate-200 z-10 shadow-[-10px_0_40px_rgb(0,0,0,0.03)] h-[50vh] lg:h-auto">
             <div className="p-6 border-b border-slate-100 bg-slate-50 flex items-center justify-between shrink-0">
                <div>
@@ -381,15 +428,17 @@ export default function HubPage() {
                  <div className="space-y-3">
                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Target Sector</label>
                    <div className="grid grid-cols-2 gap-3">
-                     {Object.entries(SECTOR_CONFIG).map(([key, config]) => {
-                       const Icon = config.icon;
+                     {availableSectors.map(key => {
+                       const config = SECTOR_CONFIG[key];
+                       if (!config) return null;
+                       const SectorIcon = config.icon;
                        return (
                          <button 
                            key={key} 
-                           onClick={() => setPostSector(key as Sector)} 
+                           onClick={() => setPostSector(key)} 
                            className={`flex items-center gap-2.5 p-3 rounded-xl border text-xs font-bold transition-all shadow-sm ${postSector === key ? 'border-primary ring-1 ring-primary bg-primary/5 text-primary' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'}`}
                          >
-                           <Icon className="w-4 h-4" /> {config.label}
+                           <SectorIcon className="w-4 h-4" /> {config.label}
                          </button>
                        )
                      })}

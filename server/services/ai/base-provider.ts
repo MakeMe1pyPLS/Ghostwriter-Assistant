@@ -7,6 +7,9 @@ export interface GenerationRequest {
   dataContext: string;
   density: string;
   aiHelpLevel: string;
+  businessStructure?: string;
+  sectors?: string[];
+  dataSharing?: boolean;
 }
 
 export interface EnhancementRequest {

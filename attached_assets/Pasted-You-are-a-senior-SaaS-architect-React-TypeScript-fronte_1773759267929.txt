@@ -1,0 +1,304 @@
+You are a senior SaaS architect, React + TypeScript frontend engineer, and FastAPI backend engineer.
+
+Enhance my existing application:
+
+"ChainInsideIQ — AI Dashboard Generator Platform"
+
+IMPORTANT
+Do NOT rebuild the application.
+Refactor and extend the current codebase in-place.
+
+The platform already has:
+- dashboard builder
+- AI supply chain analyst
+- export system
+- integrations scaffolding
+- widget library
+- dashboard generator wizard
+
+We are FINALIZING the product for launch.
+
+PRIMARY GOAL
+Add a proper business structure system so the software supports:
+
+1) Single Business
+2) Partnered Business (2 Sectors / Co-Op)
+3) Unified Supply Chain (3 Sectors)
+
+The platform must behave differently depending on the structure selected.
+
+The system must remain simple for single businesses and more powerful for partnered/unified companies.
+
+--------------------------------------------------
+
+PART 1 — ADD BUSINESS STRUCTURE WIZARD STEP
+
+In the dashboard generator wizard (Generate For Me flow), add a new step:
+
+Step Title:
+Business Structure
+
+Options:
+
+1️⃣ Single Business
+Description:
+One company operating in one sector.
+
+Examples:
+• E-commerce brand
+• Logistics warehouse
+• Manufacturing company
+
+2️⃣ Partnered Business (2 Sectors)
+Description:
+Two sectors working together or sharing operational data.
+
+Examples:
+• E-commerce + Logistics
+• Manufacturer + Logistics
+• Brand + 3PL partner
+
+This mode supports co-op businesses and partnerships.
+
+3️⃣ Unified Supply Chain (3 Sectors)
+Description:
+Three sectors connected in a full supply chain.
+
+Example:
+Manufacturer → E-commerce → Logistics
+
+This unlocks cross-sector dashboards and supply chain intelligence.
+
+--------------------------------------------------
+
+PART 2 — SECTOR SELECTION LOGIC
+
+After selecting business structure, the wizard should request sectors.
+
+IF Single Business:
+Allow selecting ONE sector:
+• E-commerce
+• Logistics
+• Manufacturing
+• Custom
+
+IF Partnered Business (2 sectors):
+Allow selecting TWO sectors.
+
+Examples:
+• E-commerce + Logistics
+• Manufacturing + Logistics
+• E-commerce + Manufacturing
+
+IF Unified Supply Chain:
+Allow selecting up to THREE sectors.
+
+Maximum sectors allowed: 3
+
+--------------------------------------------------
+
+PART 3 — DATA SHARING SETTINGS
+
+After sector selection, ask:
+
+"Do you want to allow sectors to share operational data?"
+
+Options:
+
+✔ Enable Data Sharing
+❌ Keep Sectors Independent
+
+Explain in helper text:
+
+Enabling data sharing allows sectors to exchange metrics, demand signals, fulfillment data, and performance indicators.
+
+This unlocks cross-sector insights and AI intelligence.
+
+--------------------------------------------------
+
+PART 4 — REQUEST TO SHARE DATA FEATURE
+
+Add a new feature called:
+
+"Request to Share Data with Sector"
+
+Create a button visible in:
+
+• Sector settings
+• Dashboard settings
+• Data management area
+
+When clicked:
+
+Open a modal where the user can:
+
+Select sector to share with
+
+Select dataset to share
+
+Example datasets:
+• Orders
+• Demand
+• Inventory
+• Fulfillment
+• Shipping performance
+• Custom dataset
+
+Add optional message field.
+
+Example:
+"Sharing order demand data so logistics can forecast fulfillment volume."
+
+Add submit button.
+
+--------------------------------------------------
+
+PART 5 — REQUEST STATUS SYSTEM
+
+Add basic request status tracking:
+
+Statuses:
+
+Pending
+Approved
+Rejected
+
+Display request status inside a new panel:
+
+Shared Data Requests
+
+For launch version, this can be stored in local state or simple backend records.
+
+Full enterprise permission systems are not required yet.
+
+--------------------------------------------------
+
+PART 6 — HUB LOGIC BASED ON BUSINESS STRUCTURE
+
+The operational hub should behave differently depending on the business structure.
+
+Single Business
+Hub optional.
+Only internal alerts or AI insights.
+
+Partnered Business
+Hub optional but recommended.
+Used for sector communication and shared metrics.
+
+Unified Supply Chain
+Hub enabled.
+Supports:
+• sector alerts
+• shared KPIs
+• AI insights
+• operational updates
+
+The UI should adapt accordingly.
+
+--------------------------------------------------
+
+PART 7 — DASHBOARD GENERATION LOGIC
+
+Update dashboard generator logic to adapt to structure.
+
+Single Business
+Generate one sector dashboard.
+
+Partnered Business
+Generate two dashboards or a split layout with both sectors.
+
+Unified Supply Chain
+Generate supply chain overview dashboard including:
+• sector summaries
+• bridge KPIs
+• cross-sector metrics
+
+--------------------------------------------------
+
+PART 8 — AI CONTEXT IMPROVEMENT
+
+The AI Supply Chain Analyst must understand the business structure.
+
+Single Business
+AI analyzes only one sector.
+
+Partnered Business
+AI can analyze relationships between the two sectors.
+
+Unified Supply Chain
+AI can analyze the entire supply chain and cross-sector dependencies.
+
+--------------------------------------------------
+
+PART 9 — SETTINGS PAGE UPDATE
+
+Add a new settings section:
+
+Business Structure Settings
+
+Display:
+
+Business Type:
+Single / Partnered / Unified
+
+Connected Sectors
+
+Data Sharing Status
+
+Hub Enabled / Disabled
+
+Allow user to modify these settings later.
+
+--------------------------------------------------
+
+PART 10 — SUPPORT DOCUMENTATION UPDATE
+
+Update support page to include sections explaining:
+
+Single Business Mode
+Partnered Business Mode
+Unified Supply Chain Mode
+Data Sharing
+Request to Share Data
+Hub Communication
+
+--------------------------------------------------
+
+PART 11 — UI DESIGN REQUIREMENTS
+
+Keep design consistent with current UI.
+
+Use:
+
+Tailwind
+existing UI components
+clean spacing
+responsive layouts
+
+Ensure functionality works on:
+
+Desktop
+Tablet
+Mobile
+
+--------------------------------------------------
+
+PART 12 — DELIVERABLES
+
+1) Inspect the current repo structure
+2) Identify files related to the wizard and sector logic
+3) Add the Business Structure step
+4) Implement sector selection rules
+5) Implement data sharing request feature
+6) Implement request status tracking
+7) Update hub behavior logic
+8) Update dashboard generation logic
+9) Update AI context
+10) Update support page documentation
+
+After implementation explain:
+
+• files modified
+• new components created
+• new backend endpoints if applicable
+• how the system now supports co-op businesses and unified supply chains

@@ -131,6 +131,23 @@ function buildLayout(widgets: GeneratedWidget[], tool: string, density: string):
   return layout;
 }
 
+function getMultiSectorKpis(sectors: string[]): { id: string; type: string; title: string; chartType?: string }[] {
+  const seen = new Set<string>();
+  const combined: { id: string; type: string; title: string; chartType?: string }[] = [];
+
+  for (const sector of sectors) {
+    const sectorKpis = SECTOR_KPI_MAP[sector] || [];
+    for (const kpi of sectorKpis) {
+      if (!seen.has(kpi.id)) {
+        seen.add(kpi.id);
+        combined.push({ ...kpi, title: `${kpi.title}` });
+      }
+    }
+  }
+
+  return combined;
+}
+
 function selectWidgets(
   sector: string,
   goal: string,
@@ -138,9 +155,26 @@ function selectWidgets(
   density: string,
   kpiPriorities: string[],
   aiHelpLevel: string,
-  style: string
+  style: string,
+  businessStructure?: string,
+  sectors?: string[],
+  dataSharing?: boolean
 ): GeneratedWidget[] {
-  const sectorKpis = SECTOR_KPI_MAP[sector] || SECTOR_KPI_MAP['unified'];
+  let sectorKpis: { id: string; type: string; title: string; chartType?: string }[];
+
+  if (businessStructure === 'unified-chain' && sectors && sectors.length >= 2) {
+    sectorKpis = [
+      ...SECTOR_KPI_MAP['unified'] || [],
+      ...getMultiSectorKpis(sectors).filter(k => k.type !== 'kpi').slice(0, 2),
+    ];
+  } else if (businessStructure === 'partnered' && sectors && sectors.length === 2 && sector === 'unified') {
+    const partnerKpis = getMultiSectorKpis(sectors);
+    const bridgeKpis = (SECTOR_KPI_MAP['unified'] || []).filter(k => k.type === 'kpi').slice(0, 2);
+    sectorKpis = [...bridgeKpis, ...partnerKpis.filter(k => k.type === 'kpi').slice(0, 4), ...partnerKpis.filter(k => k.type !== 'kpi').slice(0, 2)];
+  } else {
+    sectorKpis = SECTOR_KPI_MAP[sector] || SECTOR_KPI_MAP['unified'];
+  }
+
   const limits = TOOL_LIMITS[tool] || TOOL_LIMITS['webapp'];
   const goalPriorities = GOAL_KPI_PRIORITIES[goal] || [];
 
@@ -202,6 +236,16 @@ function selectWidgets(
     });
   }
 
+  if (dataSharing && businessStructure !== 'single' && (aiHelpLevel === 'full' || aiHelpLevel === 'auto')) {
+    widgets.push({
+      id: `gen-opportunity-risk-${ts}`,
+      type: 'opportunity-risk',
+      title: 'Cross-Sector Alerts',
+      metricIndex: 0,
+      description: 'Shared intelligence from connected sectors',
+    });
+  }
+
   return widgets;
 }
 
@@ -215,10 +259,13 @@ export class DemoAIProvider implements AIProviderBase {
       kpiPriorities = [],
       density = 'standard',
       aiHelpLevel = 'auto',
+      businessStructure,
+      sectors,
+      dataSharing,
     } = request;
 
     const stylePreset = STYLE_PRESETS[style] || STYLE_PRESETS['auto'];
-    const widgets = selectWidgets(sector, goal, tool, density, kpiPriorities, aiHelpLevel, style);
+    const widgets = selectWidgets(sector, goal, tool, density, kpiPriorities, aiHelpLevel, style, businessStructure, sectors, dataSharing);
     const layout = buildLayout(widgets, tool, density);
 
     const sectorLabels: Record<string, string> = {
@@ -231,6 +278,24 @@ export class DemoAIProvider implements AIProviderBase {
       forecasting: 'Forecasting & Planning', visibility: 'End-to-End Visibility',
     };
 
+    const structureLabels: Record<string, string> = {
+      'single': 'Single Business',
+      'partnered': 'Partnered Business',
+      'unified-chain': 'Unified Supply Chain',
+    };
+
+    const structureLabel = businessStructure ? structureLabels[businessStructure] || '' : '';
+    const sectorsList = sectors && sectors.length > 0 ? sectors.map(s => sectorLabels[s] || s).join(' + ') : '';
+
+    let aiSummary = `This dashboard was generated based on your ${sectorLabels[sector] || ''} business context, optimized for ${goalLabels[goal] || 'general'} tracking. It includes ${widgets.filter(w => w.type === 'kpi').length} KPI cards and ${widgets.filter(w => w.type !== 'kpi').length} visualizations, styled for ${tool === 'webapp' ? 'the ChainInsideIQ platform' : tool}.`;
+
+    if (businessStructure && businessStructure !== 'single') {
+      aiSummary += ` Business structure: ${structureLabel}${sectorsList ? ` (${sectorsList})` : ''}.`;
+    }
+    if (dataSharing) {
+      aiSummary += ' Cross-sector data sharing is enabled for enhanced intelligence.';
+    }
+
     return {
       title: `${sectorLabels[sector] || 'Supply Chain'} ${goalLabels[goal] || 'Dashboard'}`,
       subtitle: `Auto-generated for ${TOOL_LIMITS[tool] ? tool.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Web App'} · ${new Date().toLocaleDateString()}`,
@@ -238,7 +303,7 @@ export class DemoAIProvider implements AIProviderBase {
       toolTarget: tool,
       widgets,
       layout,
-      aiSummary: `This dashboard was generated based on your ${sectorLabels[sector] || ''} business context, optimized for ${goalLabels[goal] || 'general'} tracking. It includes ${widgets.filter(w => w.type === 'kpi').length} KPI cards and ${widgets.filter(w => w.type !== 'kpi').length} visualizations, styled for ${tool === 'webapp' ? 'the ChainInsideIQ platform' : tool}.`,
+      aiSummary,
       cardPreset: stylePreset.cardPreset,
       style,
     };

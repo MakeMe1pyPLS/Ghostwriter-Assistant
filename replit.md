@@ -20,6 +20,26 @@ A production-quality supply chain dashboard SaaS with a marketing website and fu
 - Marketing pages: `bg-white` / `bg-[#F4F7FA]`
 - Premium SaaS aesthetic with uppercase tracking-widest labels
 
+## Business Structure System
+Three business structure types drive sector selection, hub behavior, AI generation, and data sharing:
+- **Single Business**: One company, one sector. Hub optional. No data sharing by default.
+- **Partnered Business**: Two sectors working together (e.g. E-commerce + Logistics). Hub enabled by default.
+- **Unified Supply Chain**: Three sectors connected end-to-end. Unlocks unified sector mode, cross-sector dashboards, shared KPIs.
+
+Store: `useDashboardStore` has `businessStructure` ('single'|'partnered'|'unified-chain'), `connectedSectors` (Sector[]), `dataSharingEnabled`, `hubEnabled`, `dataShareRequests` (DataShareRequest[]).
+
+## Data Sharing System
+- Sectors exchange metrics, demand signals, fulfillment data via request workflow
+- `DataShareRequest`: fromSector → toSector, dataset, message, status (pending/approved/rejected)
+- Managed in Settings page; `DataShareModal` for creating requests, `DataShareRequestsPanel` for viewing/approving/rejecting
+- Components: `client/src/components/DataShareModal.tsx`
+
+## Hub Behavior
+- Hub adapts based on `hubEnabled` and `businessStructure`
+- Disabled state: Shows "Hub is Disabled" with link to Settings
+- Single: Only shows alerts from connected sector
+- Partnered/Unified: Full cross-sector communication, all sectors in composer
+
 ## Sector Mode System
 - **Single Mode**: Focuses dashboard on one sector (E-commerce, Logistics, Manufacturing, Custom)
 - **Unified Mode**: Cross-sector bridge KPIs spanning all supply chain stages
@@ -34,9 +54,11 @@ A production-quality supply chain dashboard SaaS with a marketing website and fu
 - Edit mode with widget inspector, library, templates
 
 ### 2. Generate For Me (`/generate`)
-- 8-step guided wizard
-- Steps: Business Context → Primary Goal → Destination Tool → Dashboard Style → KPI Priorities → Data Context → Density → AI Help Level
+- 10-step guided wizard
+- Steps: Business Structure → Sector Selection → Data Sharing → Primary Goal → Destination Tool → Dashboard Style → KPI Priorities → Data Context → Density → AI Help Level
+- Business structure determines sector count (1/2/3) and AI generation context
 - AI generates recommended KPI set, layout, card styles, visualizations
+- For multi-sector structures, generates dashboards for each connected sector
 - Generated dashboards are fully editable in the builder
 
 ### 3. Enhance My Dashboard (`/enhance`)
@@ -170,15 +192,23 @@ Each KPI has: label, description, format type, suggested visualizations, suggest
 
 ## Website Pages
 - `/` Home, `/features`, `/pricing`, `/contact`, `/support`, `/privacy`, `/terms`
-- `/generate` — Generate For Me wizard
+- `/generate` — Generate For Me wizard (10-step with business structure)
 - `/enhance` — Enhance My Dashboard flow
+- `/settings` — Business Structure, Sectors, Data Sharing, Hub settings
 - `/builder`, `/dashboard`, `/insights`, `/hub`, `/data`, `/connectors`, `/exports`
 - `/checkout/success`, `/checkout/cancel`, `/checkout/stripe-mock`
 
+## Settings Page (`/settings`)
+- Business Structure picker (Single/Partnered/Unified-Chain)
+- Connected Sectors toggles (1-3 based on structure)
+- Data Sharing toggle + Request to Share Data modal + requests panel
+- Hub Communication toggle
+- Component: `client/src/pages/settings.tsx`
+
 ## Support Page
 - 3 support channels (Email, Live Chat, Documentation)
-- 10 documentation sections covering: Dashboard Builder, Generate For Me, Enhance Dashboard, AI & Insights Widgets, Data Sources & KPI Library, Export & Reporting, Connectors & Integrations, Team & Collaboration, Security & Compliance, Plans & Billing
-- 10 FAQ items with expandable accordion UI
+- 13 documentation sections covering: Dashboard Builder, Generate For Me, Enhance Dashboard, AI & Insights Widgets, Data Sources & KPI Library, Export & Reporting, Connectors & Integrations, Team & Collaboration, Security & Compliance, Business Structure, Data Sharing & Requests, Hub Settings & Communication, Plans & Billing
+- 13 FAQ items with expandable accordion UI
 
 ## Pricing Tiers (Source: `client/src/lib/pricing.ts`)
 - Starter $79, Professional $149 (Most Popular), Business $299, Enterprise Custom
@@ -192,8 +222,10 @@ Each KPI has: label, description, format type, suggested visualizations, suggest
 - `client/src/lib/ai-provider.ts` — AI provider abstraction
 - `client/src/lib/pricing.ts` — Pricing tier source of truth
 - `client/src/lib/opportunity-risk-engine.ts` — Sector-specific opportunity/risk highlights
-- `client/src/hooks/use-dashboard-store.ts` — Zustand store with sector mode
-- `client/src/components/GenerateWizard.tsx` — 8-step generation wizard
+- `client/src/hooks/use-dashboard-store.ts` — Zustand store with business structure, sector mode, data sharing, hub
+- `client/src/components/GenerateWizard.tsx` — 10-step generation wizard with business structure
+- `client/src/components/DataShareModal.tsx` — Data share request modal + requests panel
+- `client/src/pages/settings.tsx` — Settings page (structure, sectors, sharing, hub)
 - `client/src/components/EnhanceWizard.tsx` — 5-step enhancement flow
 - `client/src/components/WidgetInspector.tsx` — Widget configuration panel
 - `client/src/components/WidgetLibrary.tsx` — Widget type catalog (13 types)
@@ -213,6 +245,6 @@ Each KPI has: label, description, format type, suggested visualizations, suggest
 - Export Center pulls live data from `useSectorData` hook
 - Data sources page at `/data`; dataset registry is in-memory (resets on server restart)
 - `useSectorData` exports `donutData`, `metrics`, `chartData`, `allMetrics`, `sector`, `dateRange`, `hasImportedData`
-- `useDashboardStore` has `importedData`, `setImportedData`, `selectedSector`, `setSector`, `sectorMode`, `setSectorMode`
+- `useDashboardStore` has `importedData`, `setImportedData`, `selectedSector`, `setSector`, `sectorMode`, `setSectorMode`, `businessStructure`, `setBusinessStructure`, `connectedSectors`, `setConnectedSectors`, `dataSharingEnabled`, `setDataSharingEnabled`, `hubEnabled`, `setHubEnabled`, `dataShareRequests`, `addDataShareRequest`, `updateDataShareRequestStatus`
 - Social links in footer are placeholder URLs
 - Sidebar sector mode selector uses 'single'/'unified' toggle with per-sector buttons in single mode

@@ -25,6 +25,7 @@ import ExportsPage from "@/pages/exports";
 import DataSourcesPage from "@/pages/data-sources";
 import GeneratePage from "@/pages/generate";
 import EnhancePage from "@/pages/enhance";
+import SettingsPage from "@/pages/settings";
 
 function Router() {
   return (
@@ -51,6 +52,7 @@ function Router() {
       <Route path="/connectors" component={ConnectorsPage} />
       <Route path="/exports" component={ExportsPage} />
       <Route path="/data" component={DataSourcesPage} />
+      <Route path="/settings" component={SettingsPage} />
       <Route component={NotFound} />
     </Switch>
   );

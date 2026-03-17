@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { 
   Mail, MessageCircle, BookOpen, Headphones, ArrowRight, ChevronDown, ChevronUp, HelpCircle, Zap,
-  LayoutDashboard, Wand2, Sparkles, Database, Download, Plug, BrainCircuit, Shield, Users, CreditCard
+  LayoutDashboard, Wand2, Sparkles, Database, Download, Plug, BrainCircuit, Shield, Users, CreditCard,
+  Building, Share2, MessageSquare
 } from "lucide-react";
 import { useState } from "react";
 import { getPricingSummary } from "@/lib/pricing";
@@ -19,6 +20,9 @@ const faqs = [
   { q: "Is my data secure?", a: "Yes. All data is encrypted in transit and at rest. We follow SOC 2 Type II compliance standards and never share your data with third parties. Enterprise plans include dedicated environments and audit logs. See our Privacy Policy for details." },
   { q: "What is the difference between Single and Unified sector mode?", a: "Single mode focuses your dashboard on one sector (e.g. E-commerce only). Unified mode displays cross-sector KPIs that bridge manufacturing, logistics, and e-commerce together, showing end-to-end supply chain health." },
   { q: "Can I customize the look of individual KPI cards?", a: "Yes. Each KPI card supports 8 style presets, 4 data density modes (minimal, standard, detailed, grid), adjustable border radius, shadow intensity, padding, and toggles for sparklines, badges, icons, and comparison labels." },
+  { q: "What are the three business structure types?", a: "Single Business: one company operating in one sector. Partnered Business: two sectors working together (e.g. E-commerce + Logistics), with Hub and data sharing enabled by default. Unified Supply Chain: three sectors connected end-to-end (e.g. Manufacturing → E-commerce → Logistics), unlocking cross-sector dashboards, shared intelligence, and the unified sector mode." },
+  { q: "How does cross-sector data sharing work?", a: "Enable data sharing in Settings, then use 'Request to Share Data' to send a data exchange request to another sector. Each request specifies a dataset (Orders, Demand, Inventory, etc.) and can include a message. Requests go through a pending → approved/rejected workflow. Approved requests unlock shared metrics in your dashboards and AI analysis." },
+  { q: "Can I disable the Ops Hub?", a: "Yes. The Hub can be toggled on or off in Settings under Hub Communication. When disabled, the Hub page shows a disabled state with a link to re-enable it. Hub is optional for single businesses but recommended for partnered and unified-chain structures." },
 ];
 
 const docSections = [
@@ -37,9 +41,9 @@ const docSections = [
     title: "Generate For Me (AI Wizard)",
     color: "text-indigo-600 bg-indigo-50 border-indigo-100",
     content: [
-      "The 8-step Generate For Me wizard creates a complete dashboard from scratch using AI. It asks you about your sector, priorities, KPI preferences, visual style, and layout density.",
-      "Steps: (1) Sector Selection, (2) Priority KPIs, (3) Visualization Preferences, (4) Layout Density, (5) Style Preset, (6) AI Features, (7) Date Range, (8) Review & Generate.",
-      "After generation, the dashboard is loaded into the Builder where you can refine it further before viewing it in the Dashboard page.",
+      "The 10-step Generate For Me wizard creates a complete dashboard from scratch using AI. It starts by asking about your business structure and sectors, then covers priorities, KPI preferences, visual style, and layout density.",
+      "Steps: (1) Business Structure (Single/Partnered/Unified), (2) Sector Selection (1-3 sectors based on structure), (3) Data Sharing preference, (4) Primary Goal, (5) Destination Tool, (6) Dashboard Style, (7) KPI Priorities, (8) Data Context, (9) Dashboard Density, (10) AI Help Level.",
+      "For Partnered and Unified structures, the wizard generates dashboards for each connected sector. After generation, dashboards are loaded into the Builder where you can refine them before viewing in the Dashboard page.",
     ]
   },
   {
@@ -110,6 +114,39 @@ const docSections = [
       "All data is encrypted in transit (TLS 1.3) and at rest (AES-256). We maintain SOC 2 Type II compliance and undergo annual third-party security audits.",
       "Enterprise deployments include dedicated environments, custom data retention policies, IP allowlisting, and comprehensive audit logging.",
       "We never share customer data with third parties. Our AI processing happens within your data boundary — no data leaves your environment for model training.",
+    ]
+  },
+  {
+    icon: Building,
+    title: "Business Structure",
+    color: "text-cyan-600 bg-cyan-50 border-cyan-100",
+    content: [
+      "ChainInsideIQ supports three business structure types: Single Business (one sector), Partnered Business (two sectors working together), and Unified Supply Chain (three sectors connected end-to-end).",
+      "Your structure choice affects how dashboards are generated, which sectors appear in the sidebar, whether the Ops Hub is enabled, and how AI analysis provides cross-sector intelligence.",
+      "Single Business: Operates in one sector (e.g. E-commerce only). Hub is optional. Best for focused, single-domain operations. Partnered Business: Two sectors (e.g. E-commerce + Logistics). Hub is enabled by default for inter-sector communication. Unified Supply Chain: Three sectors connected (Manufacturing → E-commerce → Logistics). Unlocks unified sector mode, cross-sector dashboards, and shared KPIs like Perfect Order Rate and Cash-to-Cash Cycle.",
+      "Change your business structure at any time in the Settings page. The Generate wizard also asks about your structure as the first step."
+    ]
+  },
+  {
+    icon: Share2,
+    title: "Data Sharing & Requests",
+    color: "text-pink-600 bg-pink-50 border-pink-100",
+    content: [
+      "Data sharing allows sectors to exchange metrics, demand signals, fulfillment data, and performance indicators. This is the foundation for cross-sector AI intelligence.",
+      "To share data: Enable Data Sharing in Settings, then click 'Request to Share Data'. Select the target sector, choose a dataset (Orders, Demand, Inventory, Fulfillment, Shipping Performance, or Custom), and optionally add a message explaining the purpose.",
+      "Requests follow a workflow: Pending → Approved or Rejected. Approved requests unlock shared metrics in dashboards and AI analysis. You can view and manage all requests in the Settings page under the Data Sharing section.",
+      "Data sharing is most useful with 2+ sectors and is automatically recommended for Partnered and Unified Supply Chain business structures."
+    ]
+  },
+  {
+    icon: MessageSquare,
+    title: "Hub Settings & Communication",
+    color: "text-fuchsia-600 bg-fuchsia-50 border-fuchsia-100",
+    content: [
+      "The Ops Hub is a centralized command center for real-time alerts, messages, and notifications across your connected sectors. It supports broadcasting updates, tracking issue resolution, and AI-generated insights.",
+      "Hub behavior adapts based on your business structure: For Single businesses, only alerts from your sector are shown. For Partnered and Unified structures, the Hub shows cross-sector alerts and supports broadcasting to all connected sectors.",
+      "The Hub can be toggled on or off in Settings under Hub Communication. When disabled, the Hub page shows a friendly disabled state with a link to re-enable it in Settings.",
+      "The composer sidebar allows you to post updates targeting specific sectors with urgency levels (Low, Medium, High, Critical). Posts are attributed to your role and appear at the top of the feed."
     ]
   },
   {
@@ -188,7 +225,7 @@ export default function SupportPage() {
             {[
               { icon: Mail, title: "Email Support", desc: "Reach our team directly for technical questions or account issues.", action: "support@chaininsideiq.com", color: "text-primary bg-primary/10 border-primary/20" },
               { icon: MessageCircle, title: "Live Chat", desc: "Chat with our AI assistant or connect with a human agent during business hours.", action: "Available 9am-6pm EST", color: "text-indigo-600 bg-indigo-50 border-indigo-100" },
-              { icon: BookOpen, title: "Documentation", desc: "Browse our guides, API docs, and video tutorials to get the most out of the platform.", action: "10 Sections Below", color: "text-amber-600 bg-amber-50 border-amber-100" }
+              { icon: BookOpen, title: "Documentation", desc: "Browse our guides, API docs, and video tutorials to get the most out of the platform.", action: "13 Sections Below", color: "text-amber-600 bg-amber-50 border-amber-100" }
             ].map((item, i) => (
               <div key={i} className="bg-white rounded-2xl border border-slate-200 p-8 text-center shadow-sm hover:shadow-md transition-shadow">
                 <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-5 border ${item.color}`}>

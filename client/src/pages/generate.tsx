@@ -7,12 +7,23 @@ import { useToast } from "@/hooks/use-toast";
 export default function GeneratePage() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
-  const { setSector } = useDashboardStore();
+  const { setSector, setBusinessStructure, setConnectedSectors, setDataSharingEnabled, setHubEnabled } = useDashboardStore();
   const [loading, setLoading] = useState(false);
 
   const handleComplete = async (answers: WizardAnswers) => {
     setLoading(true);
     try {
+      if (answers.businessStructure) {
+        setBusinessStructure(answers.businessStructure as any);
+      }
+      if (answers.sectors?.length > 0) {
+        setConnectedSectors(answers.sectors as any[]);
+      }
+      setDataSharingEnabled(answers.dataSharing);
+      if (answers.businessStructure !== 'single') {
+        setHubEnabled(true);
+      }
+
       const res = await fetch('/api/ai/generate-dashboard', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -33,7 +44,26 @@ export default function GeneratePage() {
         cardPreset: result.cardPreset,
         style: result.style,
         aiSummary: result.aiSummary,
+        businessStructure: answers.businessStructure,
+        connectedSectors: answers.sectors,
       }));
+
+      if (answers.businessStructure === 'partnered' && answers.sectors?.length === 2) {
+        for (const s of answers.sectors) {
+          if (s !== sector) {
+            const sectorRes = await fetch('/api/ai/generate-dashboard', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ ...answers, sector: s }),
+            });
+            if (sectorRes.ok) {
+              const sectorResult = await sectorRes.json();
+              localStorage.setItem(`widgets_${s}`, JSON.stringify(sectorResult.widgets));
+              localStorage.setItem(`layout_${s}`, JSON.stringify(sectorResult.layout));
+            }
+          }
+        }
+      }
 
       toast({
         title: "Dashboard Generated",
