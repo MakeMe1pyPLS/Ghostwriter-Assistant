@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Settings, Building, Users, Share2, MessageSquare, ShoppingCart, Truck, Building2,
-  Layers, CheckCircle2, Puzzle, ArrowRight
+  Layers, CheckCircle2, Puzzle, ArrowRight, AlertCircle
 } from "lucide-react";
 import { useDashboardStore, type BusinessStructure, type Sector } from "@/hooks/use-dashboard-store";
 import { DataShareRequestsPanel, DataShareModal } from "@/components/DataShareModal";
@@ -30,6 +30,7 @@ export default function SettingsPage() {
   const {
     businessStructure, connectedSectors, dataSharingEnabled, hubEnabled,
     setBusinessStructure, setConnectedSectors, setDataSharingEnabled, setHubEnabled,
+    setupComplete, completeSetup,
   } = useDashboardStore();
   const { toast } = useToast();
   const [shareModalOpen, setShareModalOpen] = useState(false);
@@ -55,8 +56,23 @@ export default function SettingsPage() {
               <Settings className="w-5 h-5" />
             </div>
             <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tighter uppercase">Settings</h1>
+            {setupComplete && (
+              <span className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-50 border border-emerald-100 px-3 py-1.5 rounded-full">
+                <CheckCircle2 className="w-3 h-3" /> Setup Complete
+              </span>
+            )}
           </div>
           <p className="text-slate-500 text-sm font-medium">Configure your business structure, sectors, and data sharing preferences.</p>
+
+          {!setupComplete && (
+            <div className="mt-4 flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-2xl p-4">
+              <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-bold text-amber-800">Business structure not configured</p>
+                <p className="text-xs text-amber-700 font-medium mt-0.5">Select your business type below to enable accurate AI analysis, dashboard generation, and sector-specific features.</p>
+              </div>
+            </div>
+          )}
         </header>
 
         <div className="space-y-8">
@@ -73,6 +89,7 @@ export default function SettingsPage() {
                     key={opt.value}
                     onClick={() => {
                       setBusinessStructure(opt.value);
+                      completeSetup();
                       toast({ title: "Structure Updated", description: `Switched to ${opt.label} mode.` });
                     }}
                     className={`p-4 rounded-xl border-2 text-left transition-all ${

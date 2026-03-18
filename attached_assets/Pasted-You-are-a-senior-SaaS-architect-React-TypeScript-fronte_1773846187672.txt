@@ -1,0 +1,202 @@
+You are a senior SaaS architect, React + TypeScript frontend engineer, and FastAPI backend engineer.
+
+Enhance my existing application:
+
+"ChainInsideIQ — AI Dashboard Generator Platform"
+
+IMPORTANT
+Do NOT rebuild the app.
+Refactor and fix issues in-place.
+
+We are preparing for LAUNCH. Focus on UX clarity and critical bug fixes.
+
+--------------------------------------------------
+
+PRIMARY GOALS
+
+1) Add onboarding notification requiring business structure setup
+2) Ensure users configure Single / Partnered / Unified correctly
+3) Fix navigation bar sector selection to include Partnered mode
+4) Fix pricing page bug where plan selection routes to wrong price
+5) Improve overall UX clarity for first-time users
+
+--------------------------------------------------
+
+PART 1 — ONBOARDING NOTIFICATION (REQUIRED SETUP)
+
+When a user enters the app for the first time:
+
+Show a modal or notification window:
+
+Title:
+"Set Up Your Business Structure"
+
+Message:
+"To generate accurate dashboards and insights, please configure your business type and sectors."
+
+Actions:
+• Go to Settings (PRIMARY CTA)
+• Remind Me Later (SECONDARY)
+
+Behavior:
+- If user has NOT selected a business structure:
+  - show this modal on login or first dashboard load
+- Store completion state (local storage or backend)
+- Do NOT repeatedly spam user once completed
+
+Optional enhancement:
+- Highlight the Settings page with a badge or indicator until completed
+
+--------------------------------------------------
+
+PART 2 — ENFORCE BUSINESS STRUCTURE CONFIG
+
+In Settings page:
+
+Require user to configure:
+
+• Business Type:
+  - Single Business
+  - Partnered Business (2 Sectors)
+  - Unified Supply Chain (3 Sectors)
+
+• Sector Selection (based on type)
+
+Validation rules:
+
+- Single → exactly 1 sector
+- Partnered → exactly 2 sectors
+- Unified → up to 3 sectors
+
+Prevent:
+- dashboard generation without valid setup (soft warning is fine)
+
+--------------------------------------------------
+
+PART 3 — NAVBAR SECTOR MODE FIX
+
+In the navigation bar:
+
+If there is a "Sector Mode" or similar selector:
+
+Update options to include:
+
+• Single Business
+• Partnered Business (NEW — must be visible here)
+• Unified Supply Chain
+
+Behavior:
+- Selecting a mode updates dashboard context
+- Sync with Settings configuration
+- Do NOT create conflicting states between nav and settings
+
+If needed:
+- show current mode as a badge in navbar
+  Example:
+  "Mode: Partnered (E-commerce + Logistics)"
+
+--------------------------------------------------
+
+PART 4 — PRICING PAGE BUG FIX (CRITICAL)
+
+CURRENT ISSUE:
+Clicking different pricing plans routes to incorrect pricing ($149 always)
+
+Fix:
+
+Each pricing plan button must correctly pass its plan ID and price.
+
+Example plans:
+
+Starter → $79/month  
+Growth → $149/month  
+Pro → $299/month  
+
+Fix routing / state issue so that:
+
+- Clicking $79 → checkout reflects $79
+- Clicking $149 → checkout reflects $149
+- Clicking $299 → checkout reflects $299
+
+Check for issues in:
+
+- onClick handlers
+- route parameters
+- state management
+- Stripe (or payment handler) integration
+- plan ID mapping
+
+Ensure:
+
+- plan name
+- plan price
+- billing interval
+
+are all correctly passed to checkout.
+
+--------------------------------------------------
+
+PART 5 — ADD PLAN CONFIRMATION STEP
+
+Before checkout, show confirmation screen:
+
+"Confirm Your Plan"
+
+Display:
+
+• Plan Name
+• Monthly Price
+• Features included
+
+Example:
+
+Plan: Growth  
+Price: $149/month  
+
+[Confirm & Continue]
+
+This prevents wrong plan purchases and builds trust.
+
+--------------------------------------------------
+
+PART 6 — OPTIONAL UX IMPROVEMENTS
+
+Add small but impactful UX details:
+
+• Highlight active plan on pricing page
+• Add hover state clarity for pricing cards
+• Add "Recommended" badge to Growth plan
+• Add loading state on checkout button
+
+--------------------------------------------------
+
+PART 7 — TESTING REQUIREMENTS
+
+Verify:
+
+1) First login triggers onboarding modal
+2) Settings correctly saves business structure
+3) Navbar reflects correct mode (including Partnered)
+4) Dashboard adapts to selected mode
+5) Pricing buttons route correctly to selected plan
+6) Checkout shows correct price every time
+
+--------------------------------------------------
+
+PART 8 — DELIVERABLES
+
+1) Identify affected files:
+   - onboarding modal
+   - settings page
+   - navbar
+   - pricing page
+   - checkout/payment logic
+
+2) Fix and implement all features above
+
+3) Explain:
+   - what was broken (pricing bug)
+   - how it was fixed
+   - how onboarding flow works
+   - how business structure is enforced
+   - how navbar + settings stay in sync

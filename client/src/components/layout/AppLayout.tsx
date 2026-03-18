@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { OnboardingModal } from "@/components/OnboardingModal";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -46,6 +47,8 @@ export function AppLayout({ children }: AppLayoutProps) {
           {children}
         </main>
       </div>
+
+      <OnboardingModal />
     </div>
   );
 }

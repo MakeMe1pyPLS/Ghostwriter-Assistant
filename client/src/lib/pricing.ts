@@ -112,3 +112,7 @@ export function getPricingSummary(): string {
 export function getTierByName(name: string): PricingTier | undefined {
   return PRICING_TIERS.find(t => t.name.toLowerCase() === name.toLowerCase());
 }
+
+export function getTierById(id: string): PricingTier | undefined {
+  return PRICING_TIERS.find(t => t.id === id);
+}

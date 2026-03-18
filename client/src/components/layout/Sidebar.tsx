@@ -17,11 +17,14 @@ import {
   Truck,
   Building2,
   Layers,
-  Puzzle
+  Puzzle,
+  Users,
+  Building,
+  AlertCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
-import { useDashboardStore, type Sector, type SectorMode } from "@/hooks/use-dashboard-store";
+import { useDashboardStore, type Sector, type SectorMode, type BusinessStructure } from "@/hooks/use-dashboard-store";
 
 const navItems = [
   { name: "Builder", href: "/builder", icon: Wrench, description: "Command Center" },
@@ -42,9 +45,35 @@ const SECTOR_OPTIONS: { value: Sector; label: string; icon: any }[] = [
   { value: 'custom', label: 'Custom', icon: Puzzle },
 ];
 
+const MODE_OPTIONS: { value: BusinessStructure; label: string; short: string; icon: any }[] = [
+  { value: 'single', label: 'Single Business', short: 'Single', icon: Building },
+  { value: 'partnered', label: 'Partnered', short: 'Partnered', icon: Users },
+  { value: 'unified-chain', label: 'Unified Chain', short: 'Unified', icon: Layers },
+];
+
+function getSectorLabel(sector: Sector): string {
+  const map: Record<Sector, string> = {
+    ecommerce: 'E-comm',
+    logistics: 'Logistics',
+    manufacturing: 'Mfg',
+    unified: 'Unified',
+    custom: 'Custom',
+  };
+  return map[sector] ?? sector;
+}
+
 export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const [location] = useLocation();
-  const { selectedSector, sectorMode, setSector, setSectorMode } = useDashboardStore();
+  const {
+    selectedSector, sectorMode, setSector, setSectorMode,
+    businessStructure, setBusinessStructure, connectedSectors, setupComplete,
+  } = useDashboardStore();
+
+  const handleModeChange = (mode: BusinessStructure) => {
+    setBusinessStructure(mode);
+  };
+
+  const activeModeSectors = connectedSectors.filter(s => s !== 'unified' && s !== 'custom');
 
   return (
     <div className="w-full lg:w-72 border-r border-slate-200 bg-white flex flex-col h-full relative z-[60] shadow-[1px_0_10px_rgb(0,0,0,0.02)]">
@@ -61,7 +90,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
       </div>
 
       <div className="px-4 lg:px-6 pt-4 shrink-0">
-        <Link 
+        <Link
           href="/"
           onClick={onNavigate}
           className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors text-[10px] font-bold uppercase tracking-widest shadow-sm"
@@ -74,37 +103,45 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
       <div className="px-4 lg:px-6 pt-4 shrink-0">
         <div className="bg-slate-50 rounded-xl border border-slate-200 p-3 space-y-2.5">
           <div className="flex items-center justify-between">
-            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Sector Mode</span>
-          </div>
-          <div className="grid grid-cols-2 gap-1 bg-slate-100 p-0.5 rounded-lg">
-            <button
-              onClick={() => setSectorMode('single')}
-              className={cn("text-[10px] py-1.5 rounded-md font-bold transition-all",
-                sectorMode === 'single' ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
-              )}
-              data-testid="mode-single"
-            >
-              Single
-            </button>
-            <button
-              onClick={() => setSectorMode('unified')}
-              className={cn("text-[10px] py-1.5 rounded-md font-bold transition-all",
-                sectorMode === 'unified' ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
-              )}
-              data-testid="mode-unified"
-            >
-              Unified
-            </button>
+            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Business Mode</span>
+            {businessStructure === 'partnered' && activeModeSectors.length >= 2 && (
+              <span className="text-[8px] font-black text-violet-600 bg-violet-50 border border-violet-100 px-2 py-0.5 rounded-full uppercase tracking-widest">
+                {getSectorLabel(activeModeSectors[0])} + {getSectorLabel(activeModeSectors[1])}
+              </span>
+            )}
           </div>
 
-          {sectorMode === 'single' ? (
+          <div className="grid grid-cols-3 gap-1 bg-slate-100 p-0.5 rounded-lg">
+            {MODE_OPTIONS.map(opt => (
+              <button
+                key={opt.value}
+                onClick={() => handleModeChange(opt.value)}
+                className={cn(
+                  "flex flex-col items-center gap-0.5 py-2 rounded-md transition-all",
+                  businessStructure === opt.value
+                    ? "bg-white text-slate-900 shadow-sm"
+                    : "text-slate-500 hover:text-slate-700"
+                )}
+                data-testid={`mode-${opt.value}`}
+                title={opt.label}
+              >
+                <opt.icon className="w-3 h-3" />
+                <span className="text-[9px] font-bold leading-none">{opt.short}</span>
+              </button>
+            ))}
+          </div>
+
+          {businessStructure === 'single' && (
             <div className="grid grid-cols-2 gap-1">
               {SECTOR_OPTIONS.map(opt => (
                 <button
                   key={opt.value}
                   onClick={() => setSector(opt.value)}
-                  className={cn("flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[10px] font-bold transition-all",
-                    selectedSector === opt.value ? "bg-primary/10 text-primary border border-primary/20" : "text-slate-500 hover:bg-slate-100 border border-transparent"
+                  className={cn(
+                    "flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[10px] font-bold transition-all",
+                    selectedSector === opt.value
+                      ? "bg-primary/10 text-primary border border-primary/20"
+                      : "text-slate-500 hover:bg-slate-100 border border-transparent"
                   )}
                   data-testid={`sector-${opt.value}`}
                 >
@@ -113,7 +150,34 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
                 </button>
               ))}
             </div>
-          ) : (
+          )}
+
+          {businessStructure === 'partnered' && (
+            <div className="flex flex-wrap gap-1">
+              {activeModeSectors.length >= 2 ? (
+                activeModeSectors.slice(0, 2).map(s => {
+                  const opt = SECTOR_OPTIONS.find(o => o.value === s);
+                  if (!opt) return null;
+                  return (
+                    <div
+                      key={s}
+                      className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[10px] font-bold bg-violet-50 text-violet-700 border border-violet-100"
+                    >
+                      <opt.icon className="w-3 h-3" />
+                      {opt.label}
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[10px] font-bold text-amber-600 bg-amber-50 border border-amber-100 w-full">
+                  <AlertCircle className="w-3 h-3" />
+                  Configure sectors in Settings
+                </div>
+              )}
+            </div>
+          )}
+
+          {businessStructure === 'unified-chain' && (
             <div className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-primary/10 border border-primary/20">
               <Layers className="w-3 h-3 text-primary" />
               <span className="text-[10px] font-bold text-primary">3-Sector Unified View</span>
@@ -121,19 +185,19 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
           )}
         </div>
       </div>
-      
+
       <div className="flex-1 py-4 lg:py-4 px-4 lg:px-6 space-y-1.5 overflow-y-auto custom-scrollbar-hidden overscroll-contain">
         {navItems.map((item) => {
           const isActive = location === item.href || (location === "/" && item.href === "/builder");
           return (
-            <Link 
-              key={item.name} 
+            <Link
+              key={item.name}
               href={item.href}
               onClick={onNavigate}
               className={cn(
                 "flex items-center group relative px-4 py-3.5 rounded-2xl transition-all duration-200",
-                isActive 
-                  ? "bg-slate-900 text-white shadow-[0_8px_20px_rgb(0,0,0,0.12)]" 
+                isActive
+                  ? "bg-slate-900 text-white shadow-[0_8px_20px_rgb(0,0,0,0.12)]"
                   : "text-slate-400 hover:text-slate-900 hover:bg-slate-50"
               )}
             >
@@ -148,9 +212,9 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
                 <span className={cn("text-[10px] font-medium opacity-60 truncate", isActive ? "text-slate-300" : "text-slate-400")}>{item.description}</span>
               </div>
               {isActive && (
-                 <motion.div layoutId="activeNav" className="absolute right-4 hidden lg:block">
-                   <ChevronRight className="w-4 h-4 text-primary" />
-                 </motion.div>
+                <motion.div layoutId="activeNav" className="absolute right-4 hidden lg:block">
+                  <ChevronRight className="w-4 h-4 text-primary" />
+                </motion.div>
               )}
             </Link>
           );
@@ -158,13 +222,19 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
       </div>
 
       <div className="p-6 lg:p-8 border-t border-slate-50 shrink-0">
-        <Link 
+        <Link
           href="/settings"
-          onClick={onNavigate} 
-          className="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-400 hover:text-slate-900 hover:bg-slate-50 transition-all group"
+          onClick={onNavigate}
+          className="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-400 hover:text-slate-900 hover:bg-slate-50 transition-all group relative"
         >
           <Settings className="w-5 h-5 group-hover:rotate-45 transition-transform" />
           <span className="text-xs font-bold uppercase tracking-widest">Settings</span>
+          {!setupComplete && (
+            <span className="ml-auto flex items-center gap-1 text-[8px] font-black uppercase tracking-widest bg-amber-100 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full">
+              <AlertCircle className="w-2.5 h-2.5" />
+              Setup
+            </span>
+          )}
         </Link>
       </div>
     </div>

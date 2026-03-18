@@ -29,6 +29,7 @@ interface DashboardState {
   dataSharingEnabled: boolean;
   hubEnabled: boolean;
   dataShareRequests: DataShareRequest[];
+  setupComplete: boolean;
 
   setSector: (sector: Sector) => void;
   setSectorMode: (mode: SectorMode) => void;
@@ -42,6 +43,8 @@ interface DashboardState {
   setHubEnabled: (enabled: boolean) => void;
   addDataShareRequest: (request: Omit<DataShareRequest, 'id' | 'createdAt' | 'status'>) => void;
   updateDataShareRequestStatus: (id: string, status: DataShareStatus) => void;
+  completeSetup: () => void;
+  dismissSetup: () => void;
 }
 
 export const useDashboardStore = create<DashboardState>()(
@@ -58,6 +61,7 @@ export const useDashboardStore = create<DashboardState>()(
       dataSharingEnabled: false,
       hubEnabled: false,
       dataShareRequests: [],
+      setupComplete: false,
 
       setSector: (sector) => set({ selectedSector: sector }),
       setSectorMode: (mode) => set({ 
@@ -101,6 +105,8 @@ export const useDashboardStore = create<DashboardState>()(
       updateDataShareRequestStatus: (id, status) => set(state => ({
         dataShareRequests: state.dataShareRequests.map(r => r.id === id ? { ...r, status } : r),
       })),
+      completeSetup: () => set({ setupComplete: true }),
+      dismissSetup: () => set({ setupComplete: true }),
     }),
     {
       name: 'chaininsideiq-storage',

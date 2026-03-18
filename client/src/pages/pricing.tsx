@@ -112,7 +112,7 @@ export default function PricingPage() {
     setIsCheckoutLoading(true);
     setLoadingTier(tierId);
     await new Promise(resolve => setTimeout(resolve, 800));
-    setLocation("/checkout/stripe-mock");
+    setLocation(`/checkout/stripe-mock?plan=${tierId}`);
   };
 
   return (

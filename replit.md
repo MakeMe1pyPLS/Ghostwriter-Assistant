@@ -245,6 +245,12 @@ Each KPI has: label, description, format type, suggested visualizations, suggest
 - Export Center pulls live data from `useSectorData` hook
 - Data sources page at `/data`; dataset registry is in-memory (resets on server restart)
 - `useSectorData` exports `donutData`, `metrics`, `chartData`, `allMetrics`, `sector`, `dateRange`, `hasImportedData`
-- `useDashboardStore` has `importedData`, `setImportedData`, `selectedSector`, `setSector`, `sectorMode`, `setSectorMode`, `businessStructure`, `setBusinessStructure`, `connectedSectors`, `setConnectedSectors`, `dataSharingEnabled`, `setDataSharingEnabled`, `hubEnabled`, `setHubEnabled`, `dataShareRequests`, `addDataShareRequest`, `updateDataShareRequestStatus`
+- `useDashboardStore` has `importedData`, `setImportedData`, `selectedSector`, `setSector`, `sectorMode`, `setSectorMode`, `businessStructure`, `setBusinessStructure`, `connectedSectors`, `setConnectedSectors`, `dataSharingEnabled`, `setDataSharingEnabled`, `hubEnabled`, `setHubEnabled`, `dataShareRequests`, `addDataShareRequest`, `updateDataShareRequestStatus`, `setupComplete`, `completeSetup`, `dismissSetup`
 - Social links in footer are placeholder URLs
-- Sidebar sector mode selector uses 'single'/'unified' toggle with per-sector buttons in single mode
+- Sidebar sector mode selector is a 3-way toggle: Single / Partnered / Unified Chain (synced with businessStructure)
+- Onboarding modal (OnboardingModal.tsx) shows on first app load until user completes business structure setup
+- Settings page shows amber warning banner + "Setup Complete" badge based on setupComplete flag
+- Settings link in sidebar shows amber "Setup" badge when structure not yet configured
+- Pricing bug fixed: plan ID passed via URL param (?plan=tierId) from pricing.tsx to checkout-stripe-mock.tsx
+- Checkout page reads plan from URL, shows correct price; getTierById() added to pricing.ts
+- Checkout has 2-step flow: Plan Confirmation screen → Payment Details form
