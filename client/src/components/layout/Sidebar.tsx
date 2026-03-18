@@ -1,6 +1,8 @@
 import { Link, useLocation } from "wouter";
 import {
   LayoutDashboard,
+  BarChart3,
+  MessageSquare,
   Plug,
   Download,
   Settings,
@@ -15,6 +17,7 @@ import {
   Truck,
   Building2,
   Layers,
+  Puzzle,
   Users,
   Building,
   AlertCircle
@@ -24,11 +27,12 @@ import { motion } from "framer-motion";
 import { useDashboardStore, type Sector, type SectorMode, type BusinessStructure } from "@/hooks/use-dashboard-store";
 
 const navItems = [
-  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard, description: "Live Monitoring" },
-  { name: "Generate", href: "/generate", icon: Sparkles, description: "Generate For Me" },
   { name: "Builder", href: "/builder", icon: Wrench, description: "Command Center" },
+  { name: "Generate", href: "/generate", icon: Sparkles, description: "Generate For Me" },
   { name: "Enhance", href: "/enhance", icon: Wand2, description: "Enhance Dashboard" },
+  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard, description: "Live Monitoring" },
   { name: "AI Insights", href: "/insights", icon: BrainCircuit, description: "Smart Analysis" },
+  { name: "Hub", href: "/hub", icon: MessageSquare, description: "Internal Comms" },
   { name: "Data Sources", href: "/data", icon: Database, description: "Import & Connect" },
   { name: "Connectors", href: "/connectors", icon: Plug, description: "ERP Sync" },
   { name: "Exports", href: "/exports", icon: Download, description: "Report Engine" },
@@ -38,6 +42,7 @@ const SECTOR_OPTIONS: { value: Sector; label: string; icon: any }[] = [
   { value: 'ecommerce', label: 'E-commerce', icon: ShoppingCart },
   { value: 'logistics', label: 'Logistics', icon: Truck },
   { value: 'manufacturing', label: 'Manufacturing', icon: Building2 },
+  { value: 'custom', label: 'Custom', icon: Puzzle },
 ];
 
 const MODE_OPTIONS: { value: BusinessStructure; label: string; short: string; icon: any }[] = [
