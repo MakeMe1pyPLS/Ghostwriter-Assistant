@@ -11,6 +11,7 @@ import { ExportDrawer } from "@/components/ExportDrawer";
 import { Link } from "wouter";
 import { AnalystPanel } from "@/components/analyst/AnalystPanel";
 import { AIAnalystPanel } from "@/components/analyst/AIAnalystPanel";
+import { DashboardInsightBanner } from "@/components/analyst/DashboardInsightBanner";
 
 export default function DashboardPage() {
   const sectorData = useSectorData();
@@ -154,6 +155,8 @@ export default function DashboardPage() {
             </div>
           </div>
         )}
+
+        <DashboardInsightBanner sector={sector} />
 
         <div className="bg-transparent flex-1 relative min-h-0">
           {widgets.length === 0 && !loading ? (

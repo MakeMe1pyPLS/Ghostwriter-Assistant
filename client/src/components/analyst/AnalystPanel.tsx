@@ -1,8 +1,48 @@
 import { useState, useMemo, useCallback } from "react";
-import { TrendingUp, TrendingDown, AlertTriangle, CheckCircle2, ChevronUp, ChevronDown, ChevronsUpDown, Target, Users, MapPin, Package } from "lucide-react";
-import { useSectorData } from "@/hooks/use-sector-data";
+import {
+  TrendingUp, TrendingDown, AlertTriangle, CheckCircle2,
+  ChevronUp, ChevronDown, ChevronsUpDown, Target, Users, MapPin, Package,
+  BarChart3, Globe, Layers, ShieldAlert, Zap
+} from "lucide-react";
 
 type SortDir = 'asc' | 'desc' | null;
+
+const SECTOR_AI_INSIGHTS: Record<string, {
+  kpi: string;
+  product: string;
+  region: string;
+  heatmap: string;
+  pivot: string;
+}> = {
+  ecommerce: {
+    kpi: "Revenue is up 18.4% — Electronics and Paid Search are the primary growth drivers. Cart abandonment remains a high-priority risk, particularly on mobile.",
+    product: "Electronics leads in score and revenue, but Accessories shows the lowest performance with high returns. Consider category-specific retention strategies.",
+    region: "North East outperforms all regions in conversion rate and LTV. International revenue grew 41% and merits further investment.",
+    heatmap: "Accessories scores below 60 across multiple KPIs. Apparel's return rate is the worst performing metric — a targeted intervention is recommended.",
+    pivot: "Social channel is the fastest growing with Apparel up 38%. Direct Electronics channel remains the highest absolute revenue contributor.",
+  },
+  logistics: {
+    kpi: "On-time delivery improved 1.8% this period. However, Cost per Shipment rose $1.20 from fuel surcharges, and damaged goods increased — both require attention.",
+    product: "LA→NY route leads across all metrics. DEN→PHX shows the lowest score at 68 — on-time rate and cost per unit both need improvement.",
+    region: "Express Hub is the standout performer (A+ rating) despite highest utilization at 96%. South Hub has the most incidents and lowest on-time rate.",
+    heatmap: "Express Hub scores highest across all 5 KPIs. South Hub's capacity utilization and cost efficiency are the weakest areas in the network.",
+    pivot: "Ground Standard shipments dominate volume. Air Priority is growing fastest at +18%. FTL freight declined 8% — review contract terms.",
+  },
+  manufacturing: {
+    kpi: "Production exceeded target by 8.4%, led by Line B. OEE decline on Line C is the primary risk — 8.6 hours of downtime requires root cause investigation.",
+    product: "Line A and Line B are top performers. Line C is underperforming significantly with only 69.2% OEE and a 1.42% defect rate — immediate action required.",
+    region: "Main Plant has the highest grade (A) and best labor efficiency. South Plant is running at 92% utilization — capacity risk if demand increases.",
+    heatmap: "Line C shows red across Quality, OEE, and Efficiency columns. All other lines score well on Yield and Safety. Focus maintenance resources on Line C.",
+    pivot: "Morning shift outperforms other shifts in Product A output. Night shift shows declining Product C production — investigate shift-specific issues.",
+  },
+  unified: {
+    kpi: "Perfect Order Rate at 98.4% is above target. Inventory turns declined due to slow-moving Specialty SKUs. Supply chain cost increases are driven by logistics.",
+    product: "Electronics has the strongest fill rate and shortest inventory days. Specialty and Industrial segments are underperforming and carry excess inventory.",
+    region: "North America leads in all key metrics. Latin America has the highest supply chain cost at 16.2% and the most improvement opportunity.",
+    heatmap: "North America consistently outperforms. Asia Pacific and Latin America show weakness in Cost Efficiency and satisfaction. Investment in regional infrastructure recommended.",
+    pivot: "Labor is the largest cost driver in Operations. Last-mile logistics costs grew 18% — the highest growth rate across all cost categories.",
+  },
+};
 
 const SECTOR_TABLES: Record<string, {
   advanced_kpis: Array<{ label: string; value: string; change: string; positive: boolean; comparison: string; contributor: string; risk: 'low' | 'medium' | 'high' }>;
@@ -177,7 +217,6 @@ function getScoreTextColor(score: number) {
 function getPercentCellStyle(value: string) {
   const num = parseFloat(value);
   if (isNaN(num)) return '';
-  if (value.includes('Defect') || value.includes('Returns') || value.includes('Abandonment')) return '';
   if (num >= 95) return 'bg-emerald-50 text-emerald-700';
   if (num >= 85) return 'bg-teal-50 text-teal-700';
   if (num >= 70) return 'bg-amber-50 text-amber-700';
@@ -191,47 +230,72 @@ function SortIcon({ col, sortCol, sortDir }: { col: string; sortCol: string; sor
   return <ChevronDown className="w-3 h-3 text-primary ml-1 shrink-0" />;
 }
 
+function SectionHeader({ icon: Icon, title, subtitle, color = 'text-primary' }: {
+  icon: any; title: string; subtitle: string; color?: string;
+}) {
+  return (
+    <div className="flex items-center gap-3 mb-4">
+      <div className="w-8 h-8 rounded-xl bg-slate-900 flex items-center justify-center shrink-0">
+        <Icon className={`w-4 h-4 ${color}`} />
+      </div>
+      <div>
+        <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">{title}</h3>
+        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{subtitle}</p>
+      </div>
+    </div>
+  );
+}
+
+function AIInsightBlurb({ text }: { text: string }) {
+  return (
+    <div className="flex items-start gap-3 px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl mb-4">
+      <div className="w-6 h-6 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+        <Zap className="w-3 h-3 text-primary" />
+      </div>
+      <p className="text-[11px] font-medium text-slate-600 leading-relaxed">{text}</p>
+    </div>
+  );
+}
+
+function SectionDivider() {
+  return <div className="h-px bg-slate-100 my-8" />;
+}
+
 function AdvancedKPISection({ kpis }: { kpis: typeof SECTOR_TABLES['ecommerce']['advanced_kpis'] }) {
   return (
-    <div>
-      <div className="flex items-center gap-2 mb-4">
-        <Target className="w-4 h-4 text-primary" />
-        <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-500">Advanced KPI Breakdown</h3>
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        {kpis.map((kpi) => {
-          const rs = getRiskStyle(kpi.risk);
-          return (
-            <div key={kpi.label} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex flex-col gap-3">
-              <div className="flex items-start justify-between">
-                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{kpi.label}</p>
-                <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border ${rs.badge}`}>
-                  {rs.label}
-                </span>
-              </div>
+    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      {kpis.map((kpi) => {
+        const rs = getRiskStyle(kpi.risk);
+        return (
+          <div key={kpi.label} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex flex-col gap-3" data-testid={`analyst-kpi-${kpi.label.toLowerCase().replace(/\s/g, '-')}`}>
+            <div className="flex items-start justify-between">
+              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{kpi.label}</p>
+              <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border ${rs.badge}`}>
+                {rs.label}
+              </span>
+            </div>
 
-              <div className="flex items-end gap-3">
-                <span className="text-3xl font-black text-slate-900 tracking-tight leading-none">{kpi.value}</span>
-                <span className={`flex items-center gap-0.5 text-xs font-bold mb-0.5 ${kpi.positive ? 'text-emerald-600' : 'text-rose-500'}`}>
-                  {kpi.positive ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
-                  {kpi.change}
-                </span>
-              </div>
+            <div className="flex items-end gap-3">
+              <span className="text-3xl font-black text-slate-900 tracking-tight leading-none">{kpi.value}</span>
+              <span className={`flex items-center gap-0.5 text-xs font-bold mb-0.5 ${kpi.positive ? 'text-emerald-600' : 'text-rose-500'}`}>
+                {kpi.positive ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
+                {kpi.change}
+              </span>
+            </div>
 
-              <div className="pt-3 border-t border-slate-100 space-y-1.5">
-                <div className="flex items-center gap-1.5 text-[10px] text-slate-500">
-                  <span className="text-slate-300">vs</span>
-                  <span className="font-medium text-slate-600">{kpi.comparison}</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <Users className="w-3 h-3 text-primary shrink-0" />
-                  <span className="text-[10px] text-slate-500">Top contributor: <span className="font-bold text-slate-700">{kpi.contributor}</span></span>
-                </div>
+            <div className="pt-3 border-t border-slate-100 space-y-1.5">
+              <div className="flex items-center gap-1.5 text-[10px] text-slate-500">
+                <span className="text-slate-300">vs</span>
+                <span className="font-medium text-slate-600">{kpi.comparison}</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Users className="w-3 h-3 text-primary shrink-0" />
+                <span className="text-[10px] text-slate-500">Top: <span className="font-bold text-slate-700">{kpi.contributor}</span></span>
               </div>
             </div>
-          );
-        })}
-      </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -266,7 +330,6 @@ function AnalysisTable({ title, icon: Icon, columns, rows }: {
     });
   }, [rows, sortCol, sortDir]);
 
-  const lastCol = columns[columns.length - 1];
   const isScoreCol = (c: string) => c === 'Score' || c === 'Rating' || c === 'Grade' || c === 'Index';
 
   return (
@@ -274,7 +337,7 @@ function AnalysisTable({ title, icon: Icon, columns, rows }: {
       <div className="flex items-center gap-2 px-5 py-4 border-b border-slate-100">
         <Icon className="w-4 h-4 text-primary" />
         <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-700">{title}</h4>
-        <span className="ml-auto text-[9px] font-bold text-slate-400 uppercase tracking-wider">{rows.length} entries · click column to sort</span>
+        <span className="ml-auto text-[9px] font-bold text-slate-400 uppercase tracking-wider">{rows.length} entries · sortable</span>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-xs">
@@ -303,6 +366,7 @@ function AnalysisTable({ title, icon: Icon, columns, rows }: {
                   const isScore = isScoreCol(col);
                   const scoreVal = isScore ? (typeof row[col] === 'number' ? row[col] : 0) : 0;
                   const pctStyle = val.endsWith('%') ? getPercentCellStyle(val) : '';
+                  const isFirst = col === columns[0];
 
                   return (
                     <td key={col} className="px-4 py-2.5 font-medium text-slate-700">
@@ -316,7 +380,7 @@ function AnalysisTable({ title, icon: Icon, columns, rows }: {
                       ) : pctStyle ? (
                         <span className={`px-1.5 py-0.5 rounded text-[11px] font-bold ${pctStyle}`}>{val}</span>
                       ) : (
-                        <span className="text-[11px]">{val}</span>
+                        <span className={`text-[11px] ${isFirst ? 'font-bold text-slate-800' : ''}`}>{val}</span>
                       )}
                     </td>
                   );
@@ -397,16 +461,16 @@ function HeatmapGrid({ sector }: { sector: string }) {
         </div>
         <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-700 ml-1">Performance Heatmap</h4>
         <div className="ml-auto flex items-center gap-3 text-[9px] font-bold text-slate-400 uppercase tracking-wider">
-          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-rose-400 inline-block"></span>Low</span>
-          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-amber-400 inline-block"></span>Mid</span>
-          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-emerald-500 inline-block"></span>High</span>
+          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-rose-400 inline-block" />Low</span>
+          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-amber-400 inline-block" />Mid</span>
+          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-emerald-500 inline-block" />High</span>
         </div>
       </div>
       <div className="overflow-x-auto p-4">
         <table className="w-full text-[11px]">
           <thead>
             <tr>
-              <th className="pb-3 pr-3 text-left text-[10px] font-black uppercase tracking-wider text-slate-400 w-28"></th>
+              <th className="pb-3 pr-3 text-left text-[10px] font-black uppercase tracking-wider text-slate-400 w-28" />
               {config.cols.map((c) => (
                 <th key={c} className="pb-3 px-1 text-center text-[10px] font-black uppercase tracking-wider text-slate-500 min-w-[70px]">{c}</th>
               ))}
@@ -477,29 +541,59 @@ function PivotSection({ pivot }: { pivot: typeof SECTOR_TABLES['ecommerce']['piv
 export function AnalystPanel({ sector }: { sector: string }) {
   const key = ['ecommerce', 'logistics', 'manufacturing', 'unified'].includes(sector) ? sector : 'unified';
   const data = SECTOR_TABLES[key];
+  const insights = SECTOR_AI_INSIGHTS[key];
 
-  const productIcon = sector === 'logistics' ? MapPin : sector === 'manufacturing' ? Package : Package;
+  const productIcon = sector === 'logistics' ? MapPin : Package;
   const productTitle = sector === 'logistics' ? 'Route Performance Analysis' : sector === 'manufacturing' ? 'Production Line Analysis' : 'Product Performance Table';
   const regionTitle = sector === 'logistics' ? 'Hub Performance Breakdown' : sector === 'manufacturing' ? 'Plant Performance Matrix' : 'Regional Performance Breakdown';
 
   return (
-    <div className="space-y-6 mt-6">
-      <div className="flex items-center gap-3 mb-2">
+    <div className="mt-6">
+      <div className="flex items-center gap-3 mb-8">
         <div className="flex-1 h-px bg-slate-200" />
-        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-2 bg-transparent">Analyst Deep-Dive</span>
+        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-2">Analyst Deep-Dive</span>
         <div className="flex-1 h-px bg-slate-200" />
       </div>
 
-      <AdvancedKPISection kpis={data.advanced_kpis} />
+      <section aria-label="Performance Overview">
+        <SectionHeader icon={BarChart3} title="Performance Overview" subtitle="Key indicators vs. prior period with risk assessment" />
+        <AIInsightBlurb text={insights.kpi} />
+        <AdvancedKPISection kpis={data.advanced_kpis} />
+      </section>
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+      <SectionDivider />
+
+      <section aria-label="Operations Analysis">
+        <SectionHeader icon={Layers} title="Operations Analysis" subtitle="Detailed breakdown by product, route, or production line" color="text-indigo-400" />
+        <AIInsightBlurb text={insights.product} />
         <AnalysisTable title={productTitle} icon={productIcon} columns={data.product_table.columns} rows={data.product_table.rows} />
+      </section>
+
+      <SectionDivider />
+
+      <section aria-label="Regional Distribution">
+        <SectionHeader icon={Globe} title="Regional Distribution" subtitle="Performance by geography, hub, or plant" color="text-teal-400" />
+        <AIInsightBlurb text={insights.region} />
         <AnalysisTable title={regionTitle} icon={MapPin} columns={data.region_table.columns} rows={data.region_table.rows} />
-      </div>
+      </section>
 
-      <HeatmapGrid sector={key} />
+      <SectionDivider />
 
-      <PivotSection pivot={data.pivot} />
+      <section aria-label="Risk and Performance Matrix">
+        <SectionHeader icon={ShieldAlert} title="Risk & Performance Matrix" subtitle="Multi-dimensional heatmap across key performance dimensions" color="text-rose-400" />
+        <AIInsightBlurb text={insights.heatmap} />
+        <HeatmapGrid sector={key} />
+      </section>
+
+      <SectionDivider />
+
+      <section aria-label="Category Breakdown">
+        <SectionHeader icon={Package} title="Category Breakdown" subtitle="Grouped aggregation by channel, mode, or shift" color="text-amber-400" />
+        <AIInsightBlurb text={insights.pivot} />
+        <PivotSection pivot={data.pivot} />
+      </section>
+
+      <div className="h-12" />
     </div>
   );
 }

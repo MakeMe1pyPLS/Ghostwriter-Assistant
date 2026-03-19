@@ -147,6 +147,50 @@ const SHADOW_MAP: Record<string, string> = {
   'xl': 'shadow-xl',
 };
 
+const SECTOR_KPI_INTEL: Record<string, Record<string, { comparison: string; contributor: string; risk: 'low' | 'medium' | 'high' }>> = {
+  ecommerce: {
+    'Revenue':          { comparison: 'vs $110.5K prior period', contributor: 'Electronics', risk: 'low' },
+    'Orders':           { comparison: 'vs 1,340 prior period', contributor: 'Mobile channel', risk: 'low' },
+    'AOV':              { comparison: 'vs $86.10 prior period', contributor: 'Accessories', risk: 'medium' },
+    'Conversion Rate':  { comparison: 'vs 2.8% prior period', contributor: 'Email channel', risk: 'low' },
+    'ROAS':             { comparison: 'vs 4.3x prior period', contributor: 'Paid Search', risk: 'low' },
+    'Returns Rate':     { comparison: 'vs 4.6% prior period', contributor: 'Apparel', risk: 'medium' },
+  },
+  logistics: {
+    'On-Time Delivery':      { comparison: 'vs 92.4% prior period', contributor: 'West Hub', risk: 'low' },
+    'Late Shipments':        { comparison: 'vs 55 prior period', contributor: 'South route', risk: 'medium' },
+    'Cost per Shipment':     { comparison: 'vs $13.20 prior period', contributor: 'Fuel costs', risk: 'medium' },
+    'Transit Time':          { comparison: 'vs 2.6d prior period', contributor: 'Air freight', risk: 'low' },
+    'Warehouse Utilization': { comparison: 'vs 86% prior period', contributor: 'Central hub', risk: 'medium' },
+    'Shipment Volume':       { comparison: 'vs 8,010 prior period', contributor: 'Express lane', risk: 'low' },
+  },
+  manufacturing: {
+    'Units Produced':        { comparison: 'vs 38,720 prior period', contributor: 'Line B', risk: 'low' },
+    'Throughput':            { comparison: 'vs 1,705/day prior period', contributor: 'Morning shift', risk: 'low' },
+    'Defect Rate':           { comparison: 'vs 1.0% prior period', contributor: 'Line C issues', risk: 'high' },
+    'Downtime':              { comparison: 'vs 18h prior period', contributor: 'Line C', risk: 'medium' },
+    'Yield':                 { comparison: 'vs 97.7% prior period', contributor: 'Material quality', risk: 'low' },
+    'Capacity Utilization':  { comparison: 'vs 80.5% prior period', contributor: 'Night shift', risk: 'low' },
+  },
+  unified: {
+    'Perfect Order Rate':  { comparison: 'vs 97.2% prior period', contributor: 'East region', risk: 'low' },
+    'Cash-to-Cash Cycle':  { comparison: 'vs 16d prior period', contributor: 'Payables opt.', risk: 'low' },
+    'ATP Accuracy':        { comparison: 'vs 93.4% prior period', contributor: 'Forecast model', risk: 'low' },
+    'Bullwhip Index':      { comparison: 'vs 1.17 prior period', contributor: 'Demand smoothing', risk: 'low' },
+  },
+};
+
+function getRiskBadge(risk: 'low' | 'medium' | 'high') {
+  if (risk === 'high') return 'bg-rose-50 text-rose-600 border border-rose-200';
+  if (risk === 'medium') return 'bg-amber-50 text-amber-600 border border-amber-200';
+  return 'bg-emerald-50 text-emerald-600 border border-emerald-200';
+}
+function getRiskLabel(risk: 'low' | 'medium' | 'high') {
+  if (risk === 'high') return 'High Risk';
+  if (risk === 'medium') return 'Watch';
+  return 'On Track';
+}
+
 function WidgetRendererInner({ widget, data, sector, loading, presentationMode = false }: { widget: any, data: any, sector: string, loading: boolean, presentationMode?: boolean }) {
   if (loading) return <div className="h-full w-full bg-slate-50 animate-pulse rounded-lg" />;
 
@@ -224,6 +268,24 @@ function WidgetRendererInner({ widget, data, sector, loading, presentationMode =
                 {preset.comparisonLabelVisible && widget.showComparison !== false && <span className="text-slate-400 ml-1">vs prev</span>}
               </div>
             )}
+            {presentationMode && !isCompact && (() => {
+              const intel = SECTOR_KPI_INTEL[sector]?.[metric?.label || ''];
+              if (!intel) return null;
+              return (
+                <div className="mt-2 pt-2 border-t border-slate-50 space-y-1">
+                  <p className="text-[10px] text-slate-400 font-medium leading-snug">{intel.comparison}</p>
+                  <div className="flex items-center justify-between gap-1">
+                    <div className="flex items-center gap-1 min-w-0">
+                      <ArrowUpRight className="w-3 h-3 text-primary shrink-0" />
+                      <span className="text-[10px] text-slate-500 truncate">Top: <span className="font-bold text-slate-700">{intel.contributor}</span></span>
+                    </div>
+                    <span className={`text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full shrink-0 ${getRiskBadge(intel.risk)}`}>
+                      {getRiskLabel(intel.risk)}
+                    </span>
+                  </div>
+                </div>
+              );
+            })()}
             {preset.benchmarkVisible && widget.showTarget && (
               <div className="flex items-center gap-1.5 mt-1.5 text-[10px] text-slate-400 font-medium">
                 <Target className="w-3 h-3" />

@@ -1,0 +1,150 @@
+You are a senior data analytics product designer and React + TypeScript SaaS engineer.
+
+Enhance my existing application:
+
+"ChainInsideIQ — AI Dashboard Generator Platform"
+
+IMPORTANT:
+Do NOT rebuild the app.
+Refactor and enhance in-place.
+
+PRIMARY GOAL:
+Make dashboards feel slightly more complex, but meaningful and professional, like they were built by a real data analyst.
+
+Do NOT overwhelm the UI.
+Focus on structured intelligence, not clutter.
+
+--------------------------------------------------
+
+PART 1 — KPI INTELLIGENCE UPGRADE
+
+Enhance all KPI cards to include:
+
+- primary metric
+- percentage change (trend)
+- comparison (previous period or benchmark)
+- top contributor (product, region, etc.)
+- optional risk indicator
+
+Ensure all KPI cards tell a story, not just display numbers.
+
+--------------------------------------------------
+
+PART 2 — DASHBOARD SECTION STRUCTURE
+
+Organize dashboards into clear sections:
+
+- Performance Overview
+- Operations
+- Fulfillment / Logistics
+- Risks & Alerts
+
+Each section should:
+- group related widgets
+- have clear titles
+- be visually separated
+
+--------------------------------------------------
+
+PART 3 — ANALYSIS TABLES (REALISM BOOST)
+
+Add at least 1–2 tables per dashboard:
+
+Examples:
+- Product Performance Table
+- Region Breakdown Table
+- Logistics Performance Table
+
+Include:
+- sorting (if already supported)
+- clean layout
+- highlighted values (top performers)
+
+--------------------------------------------------
+
+PART 4 — SIMPLE BREAKDOWNS
+
+Add lightweight breakdown sections:
+
+Examples:
+- Revenue by Region
+- Orders by Product
+- Fulfillment by Warehouse
+
+These should simulate analyst-style grouping (no need for full pivot logic yet).
+
+--------------------------------------------------
+
+PART 5 — CONDITIONAL FORMATTING
+
+Improve readability with:
+
+- green for positive trends
+- red for negative trends
+- subtle gradient backgrounds for performance
+
+Do NOT overuse colors.
+
+--------------------------------------------------
+
+PART 6 — AI INSIGHT TEXT
+
+For each major section, add a short AI insight:
+
+Example:
+
+"Revenue increased due to strong performance in the East region and higher conversion rates."
+
+Keep insights short and meaningful.
+
+--------------------------------------------------
+
+PART 7 — ENHANCE DASHBOARD BUTTON
+
+Ensure "Enhance My Dashboard" does:
+
+- adds missing KPIs
+- improves layout
+- adds tables if missing
+- adds insight text
+
+--------------------------------------------------
+
+PART 8 — CLEAN COMPLEXITY RULE
+
+IMPORTANT:
+
+- Do NOT overcrowd the dashboard
+- Limit widgets per section
+- Prioritize clarity over quantity
+
+Goal:
+"Professional, slightly complex, but easy to understand"
+
+--------------------------------------------------
+
+PART 9 — RESPONSIVENESS
+
+Ensure all enhancements work on:
+
+- Desktop
+- Tablet
+- Mobile
+
+Fix:
+- scrolling issues
+- overflow issues
+- layout stacking
+
+--------------------------------------------------
+
+PART 10 — DELIVERABLES
+
+1) Improve KPI intelligence
+2) Add structured sections
+3) Add tables for realism
+4) Add breakdowns
+5) Add AI insight text
+6) Keep UI clean and readable
+
+Explain what was enhanced and why it improves realism.
