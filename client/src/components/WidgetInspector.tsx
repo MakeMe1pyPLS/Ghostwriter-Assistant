@@ -8,7 +8,7 @@ import { Slider } from "@/components/ui/slider";
 import { Trash2, Sparkles, Type, Database, Palette, Settings, Copy, CheckCircle2, Layers } from "lucide-react";
 import { useSectorData } from "@/hooks/use-sector-data";
 import { getRecommendedVisualization } from "@/lib/visualization-map";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 
 export function WidgetInspector({ 
   widget, 
@@ -45,17 +45,26 @@ export function WidgetInspector({
     setTimeout(() => setSaveStatus('saved'), 600);
   };
 
+  const metricsByCategory = useMemo(
+    () => allMetrics.reduce((acc, m) => {
+      if (!acc[m.category]) acc[m.category] = [];
+      acc[m.category].push(m);
+      return acc;
+    }, {} as Record<string, typeof allMetrics>),
+    [allMetrics]
+  );
+
+  const isAIWidget = useMemo(
+    () => ['summary', 'insights', 'chat', 'forecast', 'opportunity-risk'].includes(widget?.type),
+    [widget?.type]
+  );
+  const isChartWidget = useMemo(
+    () => ['trend', 'bar', 'donut', 'kpi', 'table', 'progress'].includes(widget?.type),
+    [widget?.type]
+  );
+  const isKPI = widget?.type === 'kpi';
+
   if (!widget) return null;
-
-  const metricsByCategory = allMetrics.reduce((acc, m) => {
-    if (!acc[m.category]) acc[m.category] = [];
-    acc[m.category].push(m);
-    return acc;
-  }, {} as Record<string, typeof allMetrics>);
-
-  const isAIWidget = ['summary', 'insights', 'chat', 'forecast', 'opportunity-risk'].includes(widget.type);
-  const isChartWidget = ['trend', 'bar', 'donut', 'kpi', 'table', 'progress'].includes(widget.type);
-  const isKPI = widget.type === 'kpi';
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>

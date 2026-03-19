@@ -1,0 +1,155 @@
+You are a senior SaaS performance engineer, React + TypeScript frontend architect, and FastAPI backend optimizer.
+
+Enhance my existing application:
+
+"ChainInsideIQ — AI Dashboard Generator Platform"
+
+IMPORTANT:
+Do NOT rebuild the app.
+Refactor, optimize, and polish the existing codebase.
+
+PRIMARY GOAL:
+Make the application:
+- smoother
+- faster
+- cleaner
+- more professional
+- fully responsive across desktop, tablet, and mobile
+
+Also remove unnecessary complexity and improve UX consistency.
+
+--------------------------------------------------
+
+PART 1 — PERFORMANCE OPTIMIZATION
+
+Improve performance across the app:
+
+- Reduce unnecessary re-renders in React
+- Use memoization where appropriate (React.memo, useMemo, useCallback)
+- Lazy load heavy components (charts, dashboards)
+- Optimize large datasets rendering (virtualization if needed)
+- Debounce user inputs where applicable
+- Ensure charts do not re-render unnecessarily
+
+--------------------------------------------------
+
+PART 2 — UI CLEANUP & PROFESSIONAL POLISH
+
+Make the UI feel premium and consistent:
+
+- Standardize spacing (padding, margin)
+- Align all cards and sections consistently
+- Normalize font sizes and hierarchy
+- Ensure consistent border radius across KPI cards
+- Improve contrast and readability
+- Remove cluttered or redundant UI elements
+
+KPI Cards:
+- Improve layout consistency
+- Ensure numbers are clearly readable
+- Support grid-based data display inside cards
+- Improve responsiveness of card resizing
+
+--------------------------------------------------
+
+PART 3 — RESPONSIVENESS (CRITICAL)
+
+Fix all responsiveness issues across:
+
+Desktop
+Tablet
+Mobile
+
+Requirements:
+
+- Ensure full vertical scrolling works on mobile
+- Fix any overflow or cut-off UI sections
+- Use responsive grid layouts
+- Ensure dashboards match builder layout visually
+- Optimize touch interactions (drag, scroll, tap)
+
+--------------------------------------------------
+
+PART 4 — REMOVE UNNECESSARY LOGIC
+
+Refactor the codebase:
+
+- Remove unused components
+- Remove dead state variables
+- Remove duplicate logic
+- Simplify overly complex functions
+- Consolidate repeated patterns into reusable components
+
+--------------------------------------------------
+
+PART 5 — DASHBOARD CONSISTENCY FIX
+
+Fix mismatch between:
+
+Dashboard Builder layout
+AND
+Rendered Dashboard
+
+Ensure:
+- same grid system
+- same spacing rules
+- same widget sizing
+
+--------------------------------------------------
+
+PART 6 — UX FLOW IMPROVEMENTS
+
+Improve usability:
+
+- Add loading states where missing
+- Add empty states (no data, no dashboards)
+- Improve button clarity (clear labels)
+- Ensure navigation feels smooth and intuitive
+
+--------------------------------------------------
+
+PART 7 — ERROR HANDLING
+
+Add safe fallbacks:
+
+- Handle failed API calls gracefully
+- Prevent crashes from undefined data
+- Add user-friendly error messages
+
+--------------------------------------------------
+
+PART 8 — MOBILE-FIRST ENHANCEMENTS
+
+- Optimize scrolling performance
+- Ensure touch-friendly buttons
+- Fix any gesture issues
+- Ensure dashboards are readable without zooming
+
+--------------------------------------------------
+
+PART 9 — CODE ORGANIZATION
+
+Improve structure:
+
+- Group related components
+- Create reusable UI components
+- Ensure clear file naming
+- Maintain separation of concerns
+
+--------------------------------------------------
+
+PART 10 — DELIVERABLES
+
+1) Inspect current repo
+2) Optimize performance
+3) Improve UI consistency
+4) Fix responsiveness across all devices
+5) Clean up unnecessary code
+6) Improve UX flow
+7) Ensure stability
+
+Explain:
+- what was optimized
+- what was removed
+- what was improved
+- how performance and UX improved

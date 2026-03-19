@@ -5,12 +5,12 @@ import {
   RadialBarChart, RadialBar, PolarAngleAxis
 } from 'recharts';
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { useEffect, useState } from "react";
+import { useEffect, useState, memo } from "react";
 import { getAllMetrics } from "@/hooks/use-sector-data";
 import { CARD_PRESETS, type CardPresetId } from "@/lib/kpi-card-presets";
 import { getHighlights, type OpportunityRiskHighlight } from "@/lib/opportunity-risk-engine";
 
-function InsightsWidgetContent({ sector, title }: { sector: string, title?: string }) {
+const InsightsWidgetContent = memo(function InsightsWidgetContent({ sector, title }: { sector: string, title?: string }) {
   const [insights, setInsights] = useState<any>(null);
   
   useEffect(() => {
@@ -62,7 +62,7 @@ function InsightsWidgetContent({ sector, title }: { sector: string, title?: stri
       </div>
     </div>
   );
-}
+});
 
 const SEVERITY_STYLES: Record<string, { bg: string; border: string; icon: string }> = {
   risk: { bg: 'bg-rose-50', border: 'border-rose-200', icon: 'text-rose-600' },
@@ -147,7 +147,7 @@ const SHADOW_MAP: Record<string, string> = {
   'xl': 'shadow-xl',
 };
 
-export function WidgetRenderer({ widget, data, sector, loading, presentationMode = false }: { widget: any, data: any, sector: string, loading: boolean, presentationMode?: boolean }) {
+function WidgetRendererInner({ widget, data, sector, loading, presentationMode = false }: { widget: any, data: any, sector: string, loading: boolean, presentationMode?: boolean }) {
   if (loading) return <div className="h-full w-full bg-slate-50 animate-pulse rounded-lg" />;
 
   const { metrics, chartData, donutData, allMetrics } = data;
@@ -523,3 +523,5 @@ export function WidgetRenderer({ widget, data, sector, loading, presentationMode
     );
   }
 }
+
+export const WidgetRenderer = memo(WidgetRendererInner);

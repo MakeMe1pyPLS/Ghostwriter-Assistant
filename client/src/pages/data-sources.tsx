@@ -556,7 +556,15 @@ function DatasetList() {
     api: Globe
   };
 
-  if (datasets.length === 0 && !loading) return null;
+  if (datasets.length === 0 && !loading) return (
+    <div className="flex flex-col items-center justify-center py-12 text-center bg-white rounded-2xl border border-dashed border-slate-200">
+      <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-4">
+        <Database className="w-5 h-5 text-slate-400" />
+      </div>
+      <p className="text-sm font-bold text-slate-700 mb-1">No datasets imported yet</p>
+      <p className="text-xs text-slate-400">Upload a CSV or connect a data source above to get started.</p>
+    </div>
+  );
 
   return (
     <div className="space-y-4">

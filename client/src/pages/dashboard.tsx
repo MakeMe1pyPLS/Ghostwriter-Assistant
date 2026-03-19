@@ -1,76 +1,17 @@
 import { AppLayout } from "@/components/layout/AppLayout";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import MeasuredGrid from "@/components/MeasuredGrid";
-import { BrainCircuit, ChevronUp, ChevronDown, Info, Share2, ArrowLeft } from "lucide-react";
-import {
-  AreaChart, Area, XAxis, Tooltip as RechartsTooltip, ResponsiveContainer,
-  BarChart, Bar, LineChart, Line, PieChart as RechartsPieChart, Pie, Cell
-} from 'recharts';
-import { useSectorData, getAllMetrics } from "@/hooks/use-sector-data";
-import { useDashboardStore } from "@/hooks/use-dashboard-store";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Share2, ArrowLeft } from "lucide-react";
+import { useSectorData } from "@/hooks/use-sector-data";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { WidgetRenderer } from "@/components/visualizations/WidgetRenderer";
 import { ExportDrawer } from "@/components/ExportDrawer";
 import { Link } from "wouter";
 
-function InsightsWidgetContent({ sector, title }: { sector: string, title?: string }) {
-  const [insights, setInsights] = useState<any>(null);
-  
-  useEffect(() => {
-    import('@/lib/ai-provider').then(({ ai }) => {
-      ai.generateInsights(sector, {}).then(setInsights);
-    });
-  }, [sector]);
-
-  if (!insights) {
-    return (
-      <div className="h-full flex flex-col animate-pulse">
-        <div className="flex items-center gap-2 mb-4">
-          <BrainCircuit className="w-4 h-4 text-primary opacity-50" />
-          <div className="h-4 w-32 bg-slate-200 rounded"></div>
-        </div>
-        <div className="flex-1 space-y-3">
-          <div className="h-20 bg-slate-100 rounded-xl"></div>
-          <div className="h-20 bg-slate-100 rounded-xl"></div>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="h-full flex flex-col">
-      <div className="flex items-center gap-2 mb-4 shrink-0">
-        <BrainCircuit className="w-4 h-4 text-primary" />
-        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{title || 'AI Recommendations'}</h3>
-      </div>
-      <div className="space-y-4 overflow-y-auto flex-1 pr-1 custom-scrollbar">
-        <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-          <p className="text-xs font-bold text-slate-700 mb-2 uppercase tracking-wider">Impact Assessment</p>
-          <ul className="text-xs text-slate-500 leading-relaxed list-disc pl-4 space-y-1.5 font-medium">
-            {insights.what_changed?.map((c: string, i: number) => <li key={i}>{c}</li>)}
-          </ul>
-        </div>
-        <div className="p-4 bg-teal-50/50 rounded-xl border border-teal-100">
-          <p className="text-xs font-bold text-teal-700 mb-2 uppercase tracking-wider">Recommended Actions</p>
-          <ul className="text-xs text-teal-700/80 leading-relaxed list-disc pl-4 space-y-1.5 font-medium">
-            {insights.actions?.slice(0, 2).map((a: string, i: number) => <li key={i}>{a}</li>)}
-          </ul>
-        </div>
-        {insights.forecast_note && (
-          <div className="p-4 bg-indigo-50/50 rounded-xl border border-indigo-100">
-            <p className="text-[10px] font-black text-indigo-700 mb-1.5 uppercase tracking-widest">Forecast Note</p>
-            <p className="text-xs text-indigo-700/80 leading-relaxed font-medium">{insights.forecast_note}</p>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
 export default function DashboardPage() {
-  const { metrics, chartData, donutData, sector, dateRange, allMetrics } = useSectorData();
+  const sectorData = useSectorData();
+  const { metrics, chartData, donutData, sector, dateRange, allMetrics } = sectorData;
   const { toast } = useToast();
   const [layout, setLayout] = useState<any[]>([]);
   const [layouts, setLayouts] = useState<any>({});
@@ -81,7 +22,7 @@ export default function DashboardPage() {
     setLoading(true);
     const savedLayout = localStorage.getItem(`layout_${sector}`);
     const savedWidgets = localStorage.getItem(`widgets_${sector}`);
-    
+
     if (savedLayout && savedWidgets) {
       const parsed = JSON.parse(savedLayout);
       const staticLayout = parsed.map((l: any) => ({
@@ -116,11 +57,33 @@ export default function DashboardPage() {
     setTimeout(() => setLoading(false), 400);
   }, [sector]);
 
-  const renderWidgetContent = (widget: any) => {
-    return <WidgetRenderer widget={widget} data={{ metrics, chartData, donutData, allMetrics: getAllMetrics(1) }} sector={sector} loading={loading} presentationMode={true} />;
-  };
+  const widgetData = useMemo(
+    () => ({ metrics, chartData, donutData, allMetrics }),
+    [metrics, chartData, donutData, allMetrics]
+  );
 
-  const sectorLabel = sector === 'ecommerce' ? 'E-Commerce' : sector === 'logistics' ? 'Logistics' : sector === 'manufacturing' ? 'Manufacturing' : sector === 'unified' ? 'Unified Supply Chain' : 'Custom';
+  const renderWidgetContent = useCallback(
+    (widget: any) => (
+      <WidgetRenderer
+        widget={widget}
+        data={widgetData}
+        sector={sector}
+        loading={loading}
+        presentationMode={true}
+      />
+    ),
+    [widgetData, sector, loading]
+  );
+
+  const sectorLabel = useMemo(() => {
+    const labels: Record<string, string> = {
+      ecommerce: 'E-Commerce',
+      logistics: 'Logistics',
+      manufacturing: 'Manufacturing',
+      unified: 'Unified Supply Chain',
+    };
+    return labels[sector] ?? 'Custom';
+  }, [sector]);
 
   return (
     <AppLayout>
@@ -135,28 +98,28 @@ export default function DashboardPage() {
             <div>
               <h1 className="text-xl sm:text-2xl md:text-4xl font-black text-slate-900 tracking-tighter uppercase">Operations Center</h1>
               <p className="text-slate-500 font-bold text-[10px] md:text-xs uppercase tracking-widest mt-1.5 flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                 Live: {sectorLabel}
               </p>
             </div>
           </div>
           <div className="flex gap-2 md:gap-4 flex-wrap">
-             <ExportDrawer layout={layout} widgets={widgets} sector={sector} dateRange={dateRange} metrics={metrics} chartData={chartData} donutData={donutData} allMetrics={allMetrics} />
-             <Button variant="outline" className="rounded-xl font-black text-[10px] uppercase tracking-widest h-9 md:h-12 px-4 md:px-6 shadow-sm border-slate-200">
-               <Share2 className="w-4 h-4 md:mr-2" /> <span className="hidden md:inline">Share View</span>
-             </Button>
+            <ExportDrawer layout={layout} widgets={widgets} sector={sector} dateRange={dateRange} metrics={metrics} chartData={chartData} donutData={donutData} allMetrics={allMetrics} />
+            <Button variant="outline" className="rounded-xl font-black text-[10px] uppercase tracking-widest h-9 md:h-12 px-4 md:px-6 shadow-sm border-slate-200">
+              <Share2 className="w-4 h-4 md:mr-2" /> <span className="hidden md:inline">Share View</span>
+            </Button>
           </div>
         </header>
 
         <div className="bg-transparent flex-1 relative min-h-0">
           {widgets.length === 0 && !loading ? (
-             <div className="h-64 flex flex-col items-center justify-center text-center bg-white rounded-3xl border border-slate-200 border-dashed">
-               <h3 className="text-lg font-bold text-slate-900 mb-2">No Widgets Configured</h3>
-               <p className="text-slate-500 text-sm mb-6">Build your dashboard first to see it here in presentation mode.</p>
-               <Link href="/builder">
-                 <Button>Go to Builder</Button>
-               </Link>
-             </div>
+            <div className="h-64 flex flex-col items-center justify-center text-center bg-white rounded-3xl border border-slate-200 border-dashed">
+              <h3 className="text-lg font-bold text-slate-900 mb-2">No Widgets Configured</h3>
+              <p className="text-slate-500 text-sm mb-6">Build your dashboard first to see it here in presentation mode.</p>
+              <Link href="/builder">
+                <Button>Go to Builder</Button>
+              </Link>
+            </div>
           ) : (
             <MeasuredGrid
               className="layout presentation-mode"
@@ -168,13 +131,25 @@ export default function DashboardPage() {
               isResizable={false}
               compactType={null}
             >
-              {widgets.map((w) => {
-                return (
-                  <div key={w.id} className={"flex flex-col overflow-hidden transition-all duration-300 " + (w.stylePreset === 'corporate' ? "bg-white rounded-lg border border-slate-300 shadow-sm p-4 sm:p-6" : w.stylePreset === 'executive' ? "bg-gradient-to-b from-slate-900 to-slate-800 text-white rounded-xl border border-slate-700 shadow-lg p-4 sm:p-6" : w.stylePreset === 'elevated' ? "bg-white rounded-2xl border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.08)] p-4 sm:p-6" : w.stylePreset === 'compact' ? "bg-white rounded-md border border-slate-200 shadow-sm p-3 sm:p-4" : "bg-white rounded-3xl border border-slate-100 shadow-[0_10px_40px_rgb(0,0,0,0.04)] p-4 sm:p-6 md:p-8")}>
-                    {renderWidgetContent(w)}
-                  </div>
-                );
-              })}
+              {widgets.map((w) => (
+                <div
+                  key={w.id}
+                  className={
+                    "flex flex-col overflow-hidden transition-all duration-300 " +
+                    (w.stylePreset === 'corporate'
+                      ? "bg-white rounded-lg border border-slate-300 shadow-sm p-4 sm:p-6"
+                      : w.stylePreset === 'executive'
+                      ? "bg-gradient-to-b from-slate-900 to-slate-800 text-white rounded-xl border border-slate-700 shadow-lg p-4 sm:p-6"
+                      : w.stylePreset === 'elevated'
+                      ? "bg-white rounded-2xl border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.08)] p-4 sm:p-6"
+                      : w.stylePreset === 'compact'
+                      ? "bg-white rounded-md border border-slate-200 shadow-sm p-3 sm:p-4"
+                      : "bg-white rounded-3xl border border-slate-100 shadow-[0_10px_40px_rgb(0,0,0,0.04)] p-4 sm:p-6 md:p-8")
+                  }
+                >
+                  {renderWidgetContent(w)}
+                </div>
+              ))}
             </MeasuredGrid>
           )}
         </div>

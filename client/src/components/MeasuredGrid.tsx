@@ -35,6 +35,7 @@ export default function MeasuredGrid({
   isResizable = true,
   draggableHandle = ".drag-handle",
   margin = [12, 12],
+  compactType = null,
 }: Props) {
   const ref = React.useRef<HTMLDivElement | null>(null);
   const [width, setWidth] = React.useState<number>(1200);
@@ -73,7 +74,7 @@ export default function MeasuredGrid({
         onBreakpointChange={onBreakpointChange}
         // @ts-ignore - react-grid-layout types don't correctly extend base props
         preventCollision={false}
-        compactType={null}
+        compactType={compactType}
         useCSSTransforms={true}
         draggableHandle={draggableHandle}
         isDraggable={isDraggable}

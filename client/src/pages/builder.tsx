@@ -10,7 +10,6 @@ import {
   Table as TableIcon, 
   LayoutTemplate,
   MessageSquareQuote,
-  BrainCircuit,
   Trash2,
   Info,
   ChevronUp,
@@ -25,21 +24,7 @@ import {
   Bot,
   Download
 } from "lucide-react";
-import {
-  AreaChart,
-  Area,
-  XAxis,
-  Tooltip as RechartsTooltip,
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  LineChart,
-  Line,
-  PieChart as RechartsPieChart,
-  Pie,
-  Cell
-} from 'recharts';
-import { useSectorData, getAllMetrics } from "@/hooks/use-sector-data";
+import { useSectorData } from "@/hooks/use-sector-data";
 import { useDashboardStore } from "@/hooks/use-dashboard-store";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { motion, AnimatePresence } from "framer-motion";
@@ -55,63 +40,8 @@ import { buildSpecFromState, buildStateFromSpec, downloadSpecJson } from "@/lib/
 import { Link } from "wouter";
 import { Sparkles, Wand2 } from "lucide-react";
 
-
-function InsightsWidgetContent({ sector, title }: { sector: string, title?: string }) {
-  const [insights, setInsights] = useState<any>(null);
-  
-  useEffect(() => {
-    import('@/lib/ai-provider').then(({ ai }) => {
-      ai.generateInsights(sector, {}).then(setInsights);
-    });
-  }, [sector]);
-
-  if (!insights) {
-    return (
-      <div className="h-full flex flex-col p-1 animate-pulse">
-        <div className="flex items-center gap-2 mb-4">
-          <BrainCircuit className="w-4 h-4 text-primary opacity-50" />
-          <div className="h-4 w-32 bg-slate-200 rounded"></div>
-        </div>
-        <div className="flex-1 space-y-3">
-          <div className="h-20 bg-slate-100 rounded-lg"></div>
-          <div className="h-20 bg-slate-100 rounded-lg"></div>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="h-full flex flex-col p-1">
-      <div className="flex items-center gap-2 mb-4 shrink-0">
-        <BrainCircuit className="w-4 h-4 text-primary" />
-        <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">{title || 'AI Recommendations'}</h3>
-      </div>
-      <div className="space-y-3 overflow-y-auto flex-1 pr-1 custom-scrollbar">
-        <div className="p-3 bg-slate-50 rounded-lg border border-slate-100">
-          <p className="text-xs font-bold text-slate-700 mb-2">Impact Assessment</p>
-          <ul className="text-[11px] text-slate-500 leading-relaxed list-disc pl-3 space-y-1">
-            {insights.what_changed?.map((c: string, i: number) => <li key={i}>{c}</li>)}
-          </ul>
-        </div>
-        <div className="p-3 bg-teal-50/50 rounded-lg border border-teal-100">
-          <p className="text-xs font-bold text-teal-700 mb-2">Recommended Actions</p>
-          <ul className="text-[11px] text-teal-700/80 leading-relaxed list-disc pl-3 space-y-1">
-            {insights.actions?.slice(0, 2).map((a: string, i: number) => <li key={i}>{a}</li>)}
-          </ul>
-        </div>
-        {insights.forecast_note && (
-          <div className="p-3 bg-indigo-50/50 rounded-lg border border-indigo-100">
-            <p className="text-xs font-bold text-indigo-700 mb-1">Forecast Note</p>
-            <p className="text-[11px] text-indigo-700/80 leading-relaxed">{insights.forecast_note}</p>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
 export default function BuilderPage() {
-  const { metrics, chartData, donutData, sector, dateRange } = useSectorData();
+  const { metrics, chartData, donutData, sector, dateRange, allMetrics } = useSectorData();
   const { lastRefreshed } = useDashboardStore();
   const { toast } = useToast();
   
@@ -119,7 +49,6 @@ export default function BuilderPage() {
   const [layouts, setLayouts] = useState<any>({});
   const [widgets, setWidgets] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [currentBreakpoint, setCurrentBreakpoint] = useState("lg");
   const [editMode, setEditMode] = useState(false);
   const [inspectedWidgetId, setInspectedWidgetId] = useState<string | null>(null);
 
@@ -144,10 +73,6 @@ export default function BuilderPage() {
     setLayouts(allLayouts);
     localStorage.setItem(`layout_${sector}`, JSON.stringify(newLayout));
     localStorage.setItem(`widgets_${sector}`, JSON.stringify(widgets));
-  };
-
-  const onBreakpointChange = (newBreakpoint: string) => {
-    setCurrentBreakpoint(newBreakpoint);
   };
 
   const addWidget = (widgetInfo: any) => {
@@ -286,7 +211,7 @@ export default function BuilderPage() {
   };
 
   const renderWidgetContent = (widget: any) => {
-    return <WidgetRenderer widget={widget} data={{ metrics, chartData, donutData, allMetrics: getAllMetrics(1) }} sector={sector} loading={loading} />;
+    return <WidgetRenderer widget={widget} data={{ metrics, chartData, donutData, allMetrics }} sector={sector} loading={loading} />;
   };
 
     return (
@@ -429,7 +354,6 @@ export default function BuilderPage() {
                   cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
                   rowHeight={80}
                   onLayoutChange={onLayoutChange}
-                  onBreakpointChange={onBreakpointChange}
                   draggableHandle=".widget-handle"
                   margin={[16, 16]}
                   isDraggable={editMode}
