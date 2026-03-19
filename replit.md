@@ -254,3 +254,8 @@ Each KPI has: label, description, format type, suggested visualizations, suggest
 - Pricing bug fixed: plan ID passed via URL param (?plan=tierId) from pricing.tsx to checkout-stripe-mock.tsx
 - Checkout page reads plan from URL, shows correct price; getTierById() added to pricing.ts
 - Checkout has 2-step flow: Plan Confirmation screen → Payment Details form
+- **Analyst Mode**: `analystMode` boolean in store; toggle in dashboard header switches Standard ↔ Analyst mode
+- **AnalystPanel** (`client/src/components/analyst/AnalystPanel.tsx`): Advanced KPI cards (primary metric + % change + comparison + top contributor + risk badge), sortable analysis tables (product/region/logistics), heatmap grid (conditional color formatting), pivot-style category breakdowns; sector-specific data for all 4 sectors
+- **AIAnalystPanel** (`client/src/components/analyst/AIAnalystPanel.tsx`): Slide-in chat panel using `/api/ai/chat`; suggested questions per sector; animated messages; typing indicator
+- **Dashboard**: Analyst Mode toggle (Standard/Analyst), AI Analyst panel button; AnalystPanel renders below widget grid when analystMode is on
+- **Builder**: "Enhance Dashboard" button in header and empty state links to `/enhance` wizard

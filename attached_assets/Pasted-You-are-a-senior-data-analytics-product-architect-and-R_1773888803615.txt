@@ -1,0 +1,112 @@
+You are a senior data analytics product architect and React + TypeScript engineer.
+
+Enhance my SaaS:
+
+"ChainInsideIQ — AI Dashboard Generator Platform"
+
+GOAL:
+Upgrade the dashboard system to simulate real-world data analyst techniques and advanced visualization patterns.
+
+DO NOT rebuild the app.
+
+--------------------------------------------
+
+PART 1 — ANALYST MODE
+
+Add a toggle:
+- Standard Mode
+- Analyst Mode
+
+Analyst Mode should:
+- increase dashboard density
+- include more data breakdowns
+- include advanced KPI cards
+- include analysis tables
+
+--------------------------------------------
+
+PART 2 — ADVANCED KPI CARDS
+
+Enhance KPI cards to include:
+
+- primary metric
+- percentage change
+- comparison value
+- top contributor (product/region/etc.)
+- risk indicator
+
+--------------------------------------------
+
+PART 3 — ANALYSIS TABLES
+
+Create table widgets:
+
+- product performance table
+- region breakdown table
+- logistics performance table
+
+Include:
+- sorting
+- grouping (visual)
+- highlight conditions
+
+--------------------------------------------
+
+PART 4 — HEATMAP / CONDITIONAL FORMATTING
+
+Add:
+- color intensity cells
+- green/red indicators
+- gradient backgrounds for performance
+
+--------------------------------------------
+
+PART 5 — PIVOT-STYLE SECTIONS
+
+Simulate pivot tables:
+
+- grouped summaries
+- category breakdowns
+- multi-level aggregation (visual only)
+
+--------------------------------------------
+
+PART 6 — AI ANALYST PANEL
+
+Add AI panel inside dashboard:
+
+- chat interface
+- ask questions about data
+- generate insights
+- explain KPIs
+
+--------------------------------------------
+
+PART 7 — ENHANCE DASHBOARD BUTTON
+
+Add button:
+"Enhance My Dashboard"
+
+When clicked:
+- improve layout
+- add missing KPIs
+- add analysis sections
+- suggest better visuals
+
+--------------------------------------------
+
+PART 8 — DESIGN IMPROVEMENTS
+
+- maintain color scheme
+- improve spacing
+- group data visually
+- make dashboards feel more structured and analytical
+
+--------------------------------------------
+
+PART 9 — DELIVERABLES
+
+- improved dashboard realism
+- analyst-style layouts
+- AI insight integration
+- enhanced KPI system
