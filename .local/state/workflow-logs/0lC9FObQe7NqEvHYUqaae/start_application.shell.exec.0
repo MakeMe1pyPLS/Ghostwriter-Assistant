@@ -1,0 +1,5 @@
+[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K
+> rest-express@1.0.0 dev
+> NODE_ENV=development tsx server/index.ts
+
+[1G[0K⠼[1G[0K1:14:03 PM [express] serving on port 5000
