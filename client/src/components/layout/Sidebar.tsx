@@ -23,6 +23,7 @@ import {
   AlertCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { AccountDropdown } from "@/components/AccountDropdown";
 import { motion } from "framer-motion";
 import { useDashboardStore, type Sector, type SectorMode, type BusinessStructure } from "@/hooks/use-dashboard-store";
 
@@ -221,14 +222,15 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         })}
       </div>
 
-      <div className="p-6 lg:p-8 border-t border-slate-50 shrink-0">
+      <div className="p-4 lg:p-5 border-t border-slate-50 shrink-0 space-y-2">
         <Link
           href="/settings"
           onClick={onNavigate}
-          className="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-400 hover:text-slate-900 hover:bg-slate-50 transition-all group relative"
+          className="flex items-center gap-3 px-3 py-2 rounded-xl text-slate-400 hover:text-slate-900 hover:bg-slate-50 transition-all group relative"
+          data-testid="link-settings-sidebar"
         >
-          <Settings className="w-5 h-5 group-hover:rotate-45 transition-transform" />
-          <span className="text-xs font-bold uppercase tracking-widest">Settings</span>
+          <Settings className="w-4 h-4 group-hover:rotate-45 transition-transform" />
+          <span className="text-[11px] font-bold uppercase tracking-widest">Settings</span>
           {!setupComplete && (
             <span className="ml-auto flex items-center gap-1 text-[8px] font-black uppercase tracking-widest bg-amber-100 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full">
               <AlertCircle className="w-2.5 h-2.5" />
@@ -236,6 +238,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
             </span>
           )}
         </Link>
+        <AccountDropdown />
       </div>
     </div>
   );

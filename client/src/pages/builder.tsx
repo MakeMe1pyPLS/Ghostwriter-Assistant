@@ -303,6 +303,15 @@ export default function BuilderPage() {
             </div>
           </header>
 
+          {editMode && (
+            <div className="md:hidden flex items-start gap-2 p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 shrink-0" data-testid="builder-mobile-hint">
+              <Info className="w-4 h-4 mt-0.5 shrink-0" />
+              <p className="text-[11px] font-bold leading-relaxed">
+                Editing layouts works best on a larger screen. Tap a widget to configure it, or use the <span className="uppercase tracking-widest font-black">+</span> button to add new widgets.
+              </p>
+            </div>
+          )}
+
         <div className="flex-1 flex flex-col lg:flex-row gap-6 md:gap-8 overflow-hidden min-h-0 relative">
           <div className={`flex-1 bg-white rounded-2xl border ${editMode ? 'border-primary/20 ring-4 ring-primary/5' : 'border-slate-200'} shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-y-auto p-2 md:p-4 custom-scrollbar relative transition-all`}>
             <AnimatePresence mode="wait">

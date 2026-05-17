@@ -6,12 +6,14 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Settings, Building, Users, Share2, MessageSquare, ShoppingCart, Truck, Building2,
-  Layers, CheckCircle2, Puzzle, ArrowRight, AlertCircle
+  Layers, CheckCircle2, Puzzle, ArrowRight, AlertCircle, User, LogOut, ShieldCheck,
+  Mail, Sparkles, CreditCard
 } from "lucide-react";
-import { useDashboardStore, type BusinessStructure, type Sector } from "@/hooks/use-dashboard-store";
+import { useDashboardStore, getTrialStatus, type BusinessStructure, type Sector } from "@/hooks/use-dashboard-store";
 import { DataShareRequestsPanel, DataShareModal } from "@/components/DataShareModal";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { Link, useLocation } from "wouter";
 
 const STRUCTURE_OPTIONS: { value: BusinessStructure; label: string; desc: string; icon: any }[] = [
   { value: 'single', label: 'Single Business', desc: 'One company, one sector', icon: Building },
@@ -30,10 +32,12 @@ export default function SettingsPage() {
   const {
     businessStructure, connectedSectors, dataSharingEnabled, hubEnabled,
     setBusinessStructure, setConnectedSectors, setDataSharingEnabled, setHubEnabled,
-    setupComplete, completeSetup,
+    setupComplete, completeSetup, currentUser, signOut,
   } = useDashboardStore();
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   const [shareModalOpen, setShareModalOpen] = useState(false);
+  const trial = getTrialStatus(currentUser);
 
   const maxSectors = businessStructure === 'single' ? 1 : businessStructure === 'partnered' ? 2 : 3;
 
@@ -76,6 +80,119 @@ export default function SettingsPage() {
         </header>
 
         <div className="space-y-8">
+          {/* ACCOUNT SECTION */}
+          <section className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden" data-testid="section-account">
+            <div className="px-6 py-4 bg-slate-50 border-b border-slate-100 flex items-center gap-2">
+              <User className="w-4 h-4 text-slate-400" />
+              <h2 className="text-sm font-black text-slate-700 uppercase tracking-widest">Account</h2>
+            </div>
+            {currentUser ? (
+              <div className="p-6 space-y-5">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-2xl bg-slate-900 text-primary flex items-center justify-center font-black text-lg uppercase tracking-tighter">
+                    {currentUser.fullName.split(/\s+/).slice(0, 2).map(p => p[0]?.toUpperCase()).join('')}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="text-base font-black text-slate-900" data-testid="text-account-fullname">{currentUser.fullName}</p>
+                      {currentUser.emailVerified ? (
+                        <span className="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-widest text-emerald-700 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full">
+                          <ShieldCheck className="w-3 h-3" /> Verified
+                        </span>
+                      ) : (
+                        <Link href="/verify-email" className="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-widest text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full hover:bg-amber-100" data-testid="link-verify-email-settings">
+                          <Mail className="w-3 h-3" /> Verify Email
+                        </Link>
+                      )}
+                    </div>
+                    <p className="text-xs text-slate-500 font-medium mt-0.5">{currentUser.email}</p>
+                  </div>
+                </div>
+
+                <div className="grid sm:grid-cols-2 gap-3">
+                  <div className="rounded-xl border border-slate-200 p-4">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Current Plan</p>
+                    <p className="text-sm font-black text-slate-900 capitalize" data-testid="text-account-plan">
+                      {currentUser.plan === 'trial' ? 'Free Trial' : currentUser.plan}
+                    </p>
+                  </div>
+                  <div className="rounded-xl border border-slate-200 p-4">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Trial Status</p>
+                    {trial.active ? (
+                      <p className="text-sm font-black text-amber-700" data-testid="text-trial-status">
+                        {trial.daysRemaining} of {trial.totalDays} days left
+                      </p>
+                    ) : currentUser.plan === 'trial' ? (
+                      <p className="text-sm font-black text-rose-600">Trial ended</p>
+                    ) : (
+                      <p className="text-sm font-black text-emerald-700">On paid plan</p>
+                    )}
+                  </div>
+                </div>
+
+                {trial.active && (
+                  <div className="rounded-xl border border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-black uppercase tracking-widest text-amber-700">Trial Progress</span>
+                      <span className="text-xs font-black text-amber-700">{trial.daysRemaining} days left</span>
+                    </div>
+                    <div className="h-2 bg-amber-200/50 rounded-full overflow-hidden mb-3">
+                      <div
+                        className="h-full bg-gradient-to-r from-amber-500 to-orange-500 rounded-full transition-all"
+                        style={{ width: `${(trial.daysRemaining / trial.totalDays) * 100}%` }}
+                      />
+                    </div>
+                    <Link href="/pricing">
+                      <Button className="w-full font-black uppercase tracking-widest text-xs h-10 rounded-lg" data-testid="button-upgrade-plan">
+                        <Sparkles className="w-3.5 h-3.5 mr-2" /> Upgrade to a Paid Plan
+                      </Button>
+                    </Link>
+                  </div>
+                )}
+
+                <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100">
+                  <Link href="/pricing">
+                    <Button variant="outline" size="sm" className="font-bold uppercase tracking-widest text-[10px] rounded-lg" data-testid="button-billing">
+                      <CreditCard className="w-3.5 h-3.5 mr-2" /> Billing & Plan
+                    </Button>
+                  </Link>
+                  <Link href="/welcome">
+                    <Button variant="outline" size="sm" className="font-bold uppercase tracking-widest text-[10px] rounded-lg" data-testid="button-restart-tour">
+                      <Sparkles className="w-3.5 h-3.5 mr-2" /> Restart Tutorial
+                    </Button>
+                  </Link>
+                  <div className="flex-1" />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => { signOut(); toast({ title: "Signed out", description: "You've been signed out of your account." }); setLocation('/'); }}
+                    className="font-bold uppercase tracking-widest text-[10px] rounded-lg text-rose-600 border-rose-200 hover:bg-rose-50 hover:text-rose-700"
+                    data-testid="button-sign-out"
+                  >
+                    <LogOut className="w-3.5 h-3.5 mr-2" /> Sign Out
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4 justify-between">
+                <div>
+                  <p className="text-sm font-bold text-slate-900">You're not signed in</p>
+                  <p className="text-xs text-slate-500 mt-1">Create an account to save your dashboards and start your free trial.</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Link href="/sign-in">
+                    <Button variant="outline" size="sm" className="font-bold uppercase tracking-widest text-[10px] rounded-lg" data-testid="button-settings-sign-in">Sign In</Button>
+                  </Link>
+                  <Link href="/sign-up">
+                    <Button size="sm" className="font-bold uppercase tracking-widest text-[10px] rounded-lg" data-testid="button-settings-sign-up">
+                      Get Started <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            )}
+          </section>
+
           <section className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
             <div className="px-6 py-4 bg-slate-50 border-b border-slate-100 flex items-center gap-2">
               <Building className="w-4 h-4 text-slate-400" />

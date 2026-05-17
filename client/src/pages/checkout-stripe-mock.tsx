@@ -4,6 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, Lock, ShieldCheck, Zap, Check, ArrowRight, ArrowLeft } from "lucide-react";
 import { getTierById, getTierByName } from "@/lib/pricing";
+import { useDashboardStore, type PlanTier } from "@/hooks/use-dashboard-store";
+
+const VALID_PAID_PLANS: PlanTier[] = ['starter', 'professional', 'business', 'enterprise'];
 
 export default function CheckoutStripeMockPage() {
   const [, setLocation] = useLocation();
@@ -14,13 +17,30 @@ export default function CheckoutStripeMockPage() {
   const tier = getTierById(planId) ?? getTierByName("Professional")!;
   const priceFormatted = `$${tier.price!.toFixed(2)}`;
 
+  const currentUser = useDashboardStore(s => s.currentUser);
+  const signUp = useDashboardStore(s => s.signUp);
+  const setPlan = useDashboardStore(s => s.setPlan);
+
   const [step, setStep] = useState<"confirm" | "payment">("confirm");
   const [isProcessing, setIsProcessing] = useState(false);
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
     setIsProcessing(true);
+    const planToApply: PlanTier = (VALID_PAID_PLANS.includes(planId as PlanTier)
+      ? (planId as PlanTier)
+      : 'professional');
     setTimeout(() => {
+      // Ensure a user record exists (mock guest checkout creates a placeholder account).
+      if (!currentUser) {
+        const form = e.target as HTMLFormElement;
+        const emailField = form.elements.namedItem('email') as HTMLInputElement | null;
+        const nameField = form.elements.namedItem('cardholderName') as HTMLInputElement | null;
+        const email = emailField?.value?.trim() || `guest-${Date.now()}@chaininsideiq.com`;
+        const fullName = nameField?.value?.trim() || email.split('@')[0];
+        signUp({ fullName, email, password: 'mock' });
+      }
+      setPlan(planToApply);
       setLocation("/checkout/success");
     }, 1500);
   };
@@ -166,7 +186,7 @@ export default function CheckoutStripeMockPage() {
               <div className="space-y-5">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Email</label>
-                  <Input required type="email" placeholder="you@company.com" className="h-12 rounded-xl border-slate-200" defaultValue="test@example.com" />
+                  <Input required name="email" type="email" placeholder="you@company.com" className="h-12 rounded-xl border-slate-200" defaultValue="test@example.com" />
                 </div>
 
                 <div>
@@ -182,7 +202,7 @@ export default function CheckoutStripeMockPage() {
 
                 <div>
                   <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Name on card</label>
-                  <Input required placeholder="Full name" className="h-12 rounded-xl border-slate-200" defaultValue="Jane Doe" />
+                  <Input required name="cardholderName" placeholder="Full name" className="h-12 rounded-xl border-slate-200" defaultValue="Jane Doe" />
                 </div>
               </div>
 

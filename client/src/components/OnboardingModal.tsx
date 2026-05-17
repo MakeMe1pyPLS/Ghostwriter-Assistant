@@ -1,4 +1,4 @@
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Settings, Building, Users, Layers, X, Sparkles } from "lucide-react";
 import { useDashboardStore } from "@/hooks/use-dashboard-store";
@@ -22,13 +22,16 @@ export function OnboardingModal() {
   return (
     <Dialog open={!setupComplete} onOpenChange={() => {}}>
       <DialogContent
-        className="sm:max-w-lg rounded-3xl border-slate-200 p-0 overflow-hidden gap-0 shadow-2xl shadow-slate-900/20"
+        className="w-[calc(100vw-2rem)] sm:max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl border-slate-200 p-0 gap-0 shadow-2xl shadow-slate-900/20"
         onPointerDownOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
         <DialogTitle className="sr-only">Set Up Your Business Structure</DialogTitle>
+        <DialogDescription className="sr-only">
+          Configure your business type and sectors so ChainInsideIQ can generate accurate dashboards and insights.
+        </DialogDescription>
 
-        <div className="bg-slate-900 px-8 pt-10 pb-8 relative overflow-hidden">
+        <div className="bg-slate-900 px-6 sm:px-8 pt-8 sm:pt-10 pb-6 sm:pb-8 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-48 h-48 bg-primary/20 blur-[80px] rounded-full translate-x-1/2 -translate-y-1/2 pointer-events-none" />
           <div className="relative z-10">
             <div className="w-14 h-14 rounded-2xl bg-primary/20 border border-primary/30 flex items-center justify-center mb-5">
@@ -41,7 +44,7 @@ export function OnboardingModal() {
           </div>
         </div>
 
-        <div className="px-8 py-6 space-y-4 bg-white">
+        <div className="px-6 sm:px-8 py-6 space-y-4 bg-white">
           <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">Choose your structure type</p>
 
           <div className="grid gap-3">

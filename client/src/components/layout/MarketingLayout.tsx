@@ -1,8 +1,9 @@
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Zap, Menu, X, ArrowRight } from "lucide-react";
+import { Zap, Menu, X, ArrowRight, LayoutDashboard } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useDashboardStore } from "@/hooks/use-dashboard-store";
 
 function LinkedInIcon({ className }: { className?: string }) {
   return (
@@ -38,11 +39,12 @@ const socialLinks = [
 export function MarketingLayout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const currentUser = useDashboardStore(s => s.currentUser);
+  const isAuthed = !!currentUser;
 
   const navLinks = [
     { name: "Features", href: "/features" },
     { name: "Pricing", href: "/pricing" },
-    { name: "Contact", href: "/contact" },
   ];
 
   return (
@@ -91,27 +93,31 @@ export function MarketingLayout({ children }: { children: React.ReactNode }) {
 
           <nav className="hidden md:flex items-center gap-8">
             {navLinks.map(link => (
-              <Link key={link.name} href={link.href} className={`text-sm font-bold uppercase tracking-wider transition-colors ${location === link.href ? 'text-primary' : 'text-slate-500 hover:text-slate-900'}`}>
+              <Link key={link.name} href={link.href} className={`text-sm font-bold uppercase tracking-wider transition-colors ${location === link.href ? 'text-primary' : 'text-slate-500 hover:text-slate-900'}`} data-testid={`nav-${link.name.toLowerCase()}`}>
                 {link.name}
               </Link>
             ))}
-            <Link href="/support" className={`text-sm font-bold uppercase tracking-wider transition-colors ${location === '/support' ? 'text-primary' : 'text-slate-500 hover:text-slate-900'}`}>
-              Support
-            </Link>
-            <Link href="/builder" className="text-sm font-bold uppercase tracking-wider text-slate-500 hover:text-slate-900">
-              Live Demo
-            </Link>
           </nav>
 
-          <div className="hidden md:flex items-center gap-4">
-            <Link href="/builder">
-              <Button variant="ghost" className="font-bold uppercase tracking-wider text-xs">Interactive Demo</Button>
-            </Link>
-            <Link href="/pricing">
-              <Button className="font-bold uppercase tracking-widest text-xs h-11 px-6 rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:-translate-y-0.5 transition-all">
-                Start 14-Day Free Trial <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            </Link>
+          <div className="hidden md:flex items-center gap-3">
+            {isAuthed ? (
+              <Link href="/dashboard">
+                <Button className="font-bold uppercase tracking-widest text-xs h-11 px-6 rounded-xl shadow-lg shadow-primary/20" data-testid="button-go-to-dashboard">
+                  <LayoutDashboard className="w-4 h-4 mr-2" /> My Dashboard
+                </Button>
+              </Link>
+            ) : (
+              <>
+                <Link href="/sign-in">
+                  <Button variant="ghost" className="font-bold uppercase tracking-wider text-xs" data-testid="button-sign-in">Sign In</Button>
+                </Link>
+                <Link href="/sign-up">
+                  <Button className="font-bold uppercase tracking-widest text-xs h-11 px-6 rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:-translate-y-0.5 transition-all" data-testid="button-get-started">
+                    Get Started <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
 
           <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
@@ -133,21 +139,25 @@ export function MarketingLayout({ children }: { children: React.ReactNode }) {
                     {link.name}
                   </Link>
                 ))}
-                <Link href="/support" onClick={() => setMobileMenuOpen(false)} className="text-sm font-bold uppercase tracking-wider text-slate-700 py-2 border-b border-slate-50">
-                  Support
-                </Link>
-                <Link href="/builder" onClick={() => setMobileMenuOpen(false)} className="text-sm font-bold uppercase tracking-wider text-slate-700 py-2 border-b border-slate-50">
-                  Live Demo
-                </Link>
                 <div className="flex flex-col gap-3 pt-2">
-                  <Link href="/builder" onClick={() => setMobileMenuOpen(false)}>
-                    <Button variant="outline" className="w-full font-bold uppercase tracking-wider h-11 rounded-xl">Interactive Demo</Button>
-                  </Link>
-                  <Link href="/pricing" onClick={() => setMobileMenuOpen(false)}>
-                    <Button className="w-full font-bold uppercase tracking-widest h-11 rounded-xl shadow-lg shadow-primary/20">
-                      Start 14-Day Free Trial <ArrowRight className="w-4 h-4 ml-2" />
-                    </Button>
-                  </Link>
+                  {isAuthed ? (
+                    <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)}>
+                      <Button className="w-full font-bold uppercase tracking-widest h-11 rounded-xl shadow-lg shadow-primary/20">
+                        <LayoutDashboard className="w-4 h-4 mr-2" /> My Dashboard
+                      </Button>
+                    </Link>
+                  ) : (
+                    <>
+                      <Link href="/sign-in" onClick={() => setMobileMenuOpen(false)}>
+                        <Button variant="outline" className="w-full font-bold uppercase tracking-wider h-11 rounded-xl">Sign In</Button>
+                      </Link>
+                      <Link href="/sign-up" onClick={() => setMobileMenuOpen(false)}>
+                        <Button className="w-full font-bold uppercase tracking-widest h-11 rounded-xl shadow-lg shadow-primary/20">
+                          Get Started <ArrowRight className="w-4 h-4 ml-2" />
+                        </Button>
+                      </Link>
+                    </>
+                  )}
                 </div>
               </div>
             </motion.div>
@@ -177,14 +187,14 @@ export function MarketingLayout({ children }: { children: React.ReactNode }) {
               <p className="text-slate-400 text-sm leading-relaxed max-w-sm mb-8">
                 The AI-powered dashboard generator platform that helps businesses create operational analytics and render them into Excel, Power BI, Google Sheets, and beyond.
               </p>
-              <div className="flex gap-4 mb-8">
-                <Link href="/builder">
-                  <Button className="font-black uppercase tracking-widest text-[10px] h-10 px-5 rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/30">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-8">
+                <Link href="/builder" className="w-full sm:w-auto">
+                  <Button className="w-full sm:w-auto font-black uppercase tracking-widest text-[10px] h-10 px-5 rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/30">
                     Try Demo
                   </Button>
                 </Link>
-                <Link href="/pricing">
-                  <Button variant="outline" className="font-black uppercase tracking-widest text-[10px] h-10 px-5 rounded-xl border-slate-700 text-white hover:bg-slate-800 hover:text-white">
+                <Link href="/pricing" className="w-full sm:w-auto">
+                  <Button variant="outline" className="w-full sm:w-auto font-black uppercase tracking-widest text-[10px] h-10 px-5 rounded-xl border-slate-700 text-white hover:bg-slate-800 hover:text-white">
                     Start Your 14-Day Free Trial
                   </Button>
                 </Link>

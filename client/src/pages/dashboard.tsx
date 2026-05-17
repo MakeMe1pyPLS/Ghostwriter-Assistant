@@ -12,6 +12,7 @@ import { Link } from "wouter";
 import { AnalystPanel } from "@/components/analyst/AnalystPanel";
 import { AIAnalystPanel } from "@/components/analyst/AIAnalystPanel";
 import { DashboardInsightBanner } from "@/components/analyst/DashboardInsightBanner";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function DashboardPage() {
   const sectorData = useSectorData();
@@ -23,6 +24,7 @@ export default function DashboardPage() {
   const [widgets, setWidgets] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [aiPanelOpen, setAiPanelOpen] = useState(false);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     setLoading(true);
@@ -166,6 +168,36 @@ export default function DashboardPage() {
               <Link href="/builder">
                 <Button>Go to Builder</Button>
               </Link>
+            </div>
+          ) : isMobile ? (
+            // Mobile: stacked vertical layout — saved grid widths assume 12 cols, which don't fit narrow screens
+            <div className="flex flex-col gap-4">
+              {widgets.map((w) => {
+                const layoutItem = layout.find((l: any) => l.i === w.id);
+                const widgetH = layoutItem?.h ?? 4;
+                const minHeight = Math.max(160, widgetH * 60);
+                return (
+                  <div
+                    key={w.id}
+                    style={{ minHeight }}
+                    className={
+                      "flex flex-col overflow-hidden transition-all duration-300 " +
+                      (w.stylePreset === 'corporate'
+                        ? "bg-white rounded-lg border border-slate-300 shadow-sm p-4"
+                        : w.stylePreset === 'executive'
+                        ? "bg-gradient-to-b from-slate-900 to-slate-800 text-white rounded-xl border border-slate-700 shadow-lg p-4"
+                        : w.stylePreset === 'elevated'
+                        ? "bg-white rounded-2xl border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.08)] p-4"
+                        : w.stylePreset === 'compact'
+                        ? "bg-white rounded-md border border-slate-200 shadow-sm p-3"
+                        : "bg-white rounded-3xl border border-slate-100 shadow-[0_10px_40px_rgb(0,0,0,0.04)] p-4")
+                    }
+                    data-testid={`mobile-widget-${w.id}`}
+                  >
+                    {renderWidgetContent(w)}
+                  </div>
+                );
+              })}
             </div>
           ) : (
             <MeasuredGrid
