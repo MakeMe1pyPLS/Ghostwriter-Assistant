@@ -1,4 +1,5 @@
 import type { Express } from "express";
+import { z } from "zod";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { generateExcelDashboard } from "./excel/excel-renderer";
@@ -13,6 +14,7 @@ import { fetchGoogleSheet } from "./services/data-sources/google-sheets-source";
 import { fetchApiData } from "./services/data-sources/api-source";
 import { getAllDatasets, getDataset, deleteDataset, getDatasetRows, inferColumns, registerDataset } from "./services/data-sources/dataset-registry";
 import { DemoAIProvider } from "./services/ai/demo-provider";
+import { getIntelligenceProvider } from "./services/ai/intelligence-router";
 
 interface AIResponse {
   summary: string;
@@ -184,6 +186,67 @@ export async function registerRoutes(
       ]
     };
     res.json({ kpis: kpis[sector || 'unified'] || kpis.unified });
+  });
+
+  // Shared schema + normalizer for the operations intelligence endpoints.
+  const operationsIntelSchema = z.object({
+    sector: z.string().trim().max(60).optional(),
+    businessStructure: z.string().trim().max(60).optional(),
+    metrics: z
+      .array(
+        z.object({
+          label: z.string().trim().max(120),
+          value: z.union([z.string().max(60), z.number()]).optional(),
+          trend: z.string().max(60).optional(),
+          isPositive: z.boolean().optional(),
+        })
+      )
+      .max(50)
+      .default([]),
+  });
+
+  type OperationsIntelInput = z.infer<typeof operationsIntelSchema>;
+  const normalizeIntelRequest = (data: OperationsIntelInput) => ({
+    sector: data.sector || 'unified',
+    metrics: data.metrics.map((m) => ({
+      label: m.label,
+      value: m.value === undefined ? '' : String(m.value),
+      trend: m.trend ?? '',
+      isPositive: m.isPositive ?? true,
+    })),
+    businessStructure: data.businessStructure,
+  });
+
+  app.post('/api/ai/command-center', async (req, res) => {
+    const parsed = operationsIntelSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ error: 'Invalid command center payload', details: parsed.error.flatten() });
+    }
+
+    try {
+      const provider = getIntelligenceProvider();
+      const result = await provider.generateCommandCenter(normalizeIntelRequest(parsed.data));
+      res.json(result);
+    } catch (err) {
+      console.error('[command-center] error:', err);
+      res.status(500).json({ error: 'Failed to generate command center briefing' });
+    }
+  });
+
+  app.post('/api/ai/operations-intel', async (req, res) => {
+    const parsed = operationsIntelSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ error: 'Invalid operations intel payload', details: parsed.error.flatten() });
+    }
+
+    try {
+      const provider = getIntelligenceProvider();
+      const result = await provider.generateOperationsIntel(normalizeIntelRequest(parsed.data));
+      res.json(result);
+    } catch (err) {
+      console.error('[operations-intel] error:', err);
+      res.status(500).json({ error: 'Failed to generate operations intelligence' });
+    }
   });
 
   app.post('/api/export/excel', async (req, res) => {

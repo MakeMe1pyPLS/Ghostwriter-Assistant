@@ -20,12 +20,17 @@ import {
   Puzzle,
   Users,
   Building,
-  AlertCircle
+  AlertCircle,
+  AlertOctagon,
+  Lightbulb,
+  Workflow,
+  Lock
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AccountDropdown } from "@/components/AccountDropdown";
 import { motion } from "framer-motion";
 import { useDashboardStore, type Sector, type SectorMode, type BusinessStructure } from "@/hooks/use-dashboard-store";
+import { hasPlan, getFeatureRequirement, type FeatureKey } from "@/lib/pricing";
 
 const navItems = [
   { name: "Builder", href: "/builder", icon: Wrench, description: "Command Center" },
@@ -33,6 +38,9 @@ const navItems = [
   { name: "Enhance", href: "/enhance", icon: Wand2, description: "Enhance Dashboard" },
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard, description: "Live Monitoring" },
   { name: "AI Insights", href: "/insights", icon: BrainCircuit, description: "Smart Analysis" },
+  { name: "Bottlenecks", href: "/bottlenecks", icon: AlertOctagon, description: "Constraint Detection", feature: "bottlenecks" as FeatureKey },
+  { name: "Recommendations", href: "/recommendations", icon: Lightbulb, description: "Action Plans", feature: "recommendations" as FeatureKey },
+  { name: "Pipeline", href: "/pipeline", icon: Workflow, description: "Signal to Resolution", feature: "pipeline" as FeatureKey },
   { name: "Hub", href: "/hub", icon: MessageSquare, description: "Internal Comms" },
   { name: "Data Sources", href: "/data", icon: Database, description: "Import & Connect" },
   { name: "Connectors", href: "/connectors", icon: Plug, description: "ERP Sync" },
@@ -69,6 +77,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
     selectedSector, sectorMode, setSector, setSectorMode,
     businessStructure, setBusinessStructure, connectedSectors, setupComplete,
   } = useDashboardStore();
+  const currentUser = useDashboardStore((s) => s.currentUser);
 
   const handleModeChange = (mode: BusinessStructure) => {
     setBusinessStructure(mode);
@@ -212,6 +221,15 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
                 <span className="text-sm font-black uppercase tracking-widest truncate">{item.name}</span>
                 <span className={cn("text-[10px] font-medium opacity-60 truncate", isActive ? "text-slate-300" : "text-slate-400")}>{item.description}</span>
               </div>
+              {!isActive && "feature" in item && item.feature && !hasPlan(currentUser?.plan, item.feature) && (
+                <span
+                  className="ml-auto flex items-center gap-1 text-[8px] font-black uppercase tracking-widest bg-amber-100 text-amber-700 border border-amber-200 px-1.5 py-0.5 rounded-full shrink-0"
+                  data-testid={`lock-nav-${item.feature}`}
+                >
+                  <Lock className="w-2.5 h-2.5" />
+                  {getFeatureRequirement(item.feature).label.slice(0, 3)}
+                </span>
+              )}
               {isActive && (
                 <motion.div layoutId="activeNav" className="absolute right-4 hidden lg:block">
                   <ChevronRight className="w-4 h-4 text-primary" />

@@ -1,22 +1,32 @@
 import { MarketingLayout } from "@/components/layout/MarketingLayout";
 import { Button } from "@/components/ui/button";
-import { Link, useLocation } from "wouter";
+import { Link, useLocation, useSearch } from "wouter";
 import { Check, ArrowRight, Sparkles, Loader2, Mail } from "lucide-react";
 import { useState } from "react";
 import { PRICING_TIERS, type PricingTier } from "@/lib/pricing";
 import { cn } from "@/lib/utils";
 
-function PricingCard({ tier, onCheckout, checkoutLoading }: { tier: PricingTier; onCheckout: () => void; checkoutLoading: boolean }) {
+function PricingCard({ tier, onCheckout, checkoutLoading, recommended }: { tier: PricingTier; onCheckout: () => void; checkoutLoading: boolean; recommended?: boolean }) {
   const isEnterprise = tier.id === 'enterprise';
 
   return (
-    <div className={cn(
-      "relative flex flex-col rounded-[1.5rem] p-7 md:p-8 border-2 transition-all duration-300 group",
-      tier.highlighted
-        ? "bg-white border-primary shadow-2xl shadow-primary/10 scale-[1.02] z-10"
-        : "bg-white border-slate-200 shadow-sm hover:shadow-lg hover:border-slate-300"
-    )}>
-      {tier.badge && (
+    <div
+      className={cn(
+        "relative flex flex-col rounded-[1.5rem] p-7 md:p-8 border-2 transition-all duration-300 group",
+        recommended
+          ? "bg-white border-amber-400 shadow-2xl shadow-amber-200/40 scale-[1.02] z-10 ring-2 ring-amber-300/60"
+          : tier.highlighted
+            ? "bg-white border-primary shadow-2xl shadow-primary/10 scale-[1.02] z-10"
+            : "bg-white border-slate-200 shadow-sm hover:shadow-lg hover:border-slate-300"
+      )}
+      data-testid={`pricing-card-${tier.id}`}
+    >
+      {recommended ? (
+        <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-amber-500 text-white px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 shadow-lg shadow-amber-400/40 z-20 border-2 border-white whitespace-nowrap">
+          <Sparkles className="w-3 h-3" />
+          Recommended for you
+        </div>
+      ) : tier.badge && (
         <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-primary text-white px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 shadow-lg shadow-primary/30 z-20 border-2 border-white whitespace-nowrap">
           <Sparkles className="w-3 h-3" />
           {tier.badge}
@@ -105,6 +115,8 @@ function PricingCard({ tier, onCheckout, checkoutLoading }: { tier: PricingTier;
 
 export default function PricingPage() {
   const [, setLocation] = useLocation();
+  const search = useSearch();
+  const recommendedPlan = new URLSearchParams(search).get('plan');
   const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
   const [loadingTier, setLoadingTier] = useState<string | null>(null);
 
@@ -134,6 +146,7 @@ export default function PricingPage() {
               tier={tier}
               onCheckout={() => handleCheckout(tier.id)}
               checkoutLoading={isCheckoutLoading && loadingTier === tier.id}
+              recommended={recommendedPlan === tier.id}
             />
           ))}
         </div>

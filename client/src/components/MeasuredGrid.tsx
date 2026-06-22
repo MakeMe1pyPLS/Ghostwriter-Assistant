@@ -49,14 +49,26 @@ export default function MeasuredGrid({
     const rect = el.getBoundingClientRect();
     if (rect.width > 0) setWidth(Math.floor(rect.width));
 
-    // ResizeObserver
+    // ResizeObserver — defer to the next animation frame and coalesce
+    // bursts so the synchronous observe→setState→layout→observe cycle can't
+    // re-enter (which React flags as "Maximum update depth exceeded"). The
+    // equality guard makes React bail out when the measured width is stable.
+    let frame = 0;
     const ro = new ResizeObserver((entries) => {
       const w = entries[0]?.contentRect?.width ?? 0;
-      if (w > 0) setWidth(Math.floor(w));
+      if (w <= 0) return;
+      const next = Math.floor(w);
+      cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(() => {
+        setWidth((prev) => (prev !== next ? next : prev));
+      });
     });
     ro.observe(el);
 
-    return () => ro.disconnect();
+    return () => {
+      cancelAnimationFrame(frame);
+      ro.disconnect();
+    };
   }, []);
 
   return (

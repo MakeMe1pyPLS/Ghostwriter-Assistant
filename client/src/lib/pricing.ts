@@ -116,3 +116,48 @@ export function getTierByName(name: string): PricingTier | undefined {
 export function getTierById(id: string): PricingTier | undefined {
   return PRICING_TIERS.find(t => t.id === id);
 }
+
+// ---- Feature gating (frontend-only, cosmetic upsell) ----
+
+export type PlanId = 'trial' | 'starter' | 'professional' | 'business' | 'enterprise';
+
+// Higher rank = more access. Trial unlocks everything during the trial window.
+export const PLAN_RANK: Record<PlanId, number> = {
+  starter: 1,
+  professional: 2,
+  business: 3,
+  enterprise: 4,
+  trial: 99,
+};
+
+export type FeatureKey =
+  | 'bottlenecks'
+  | 'recommendations'
+  | 'pipeline'
+  | 'advanced-ai'
+  | 'unified-mode';
+
+// Each premium feature → the lowest plan that unlocks it.
+export const FEATURE_PLANS: Record<FeatureKey, { plan: PlanId; label: string }> = {
+  'bottlenecks':     { plan: 'professional', label: 'Professional' },
+  'recommendations': { plan: 'professional', label: 'Professional' },
+  'pipeline':        { plan: 'business',     label: 'Business' },
+  'advanced-ai':     { plan: 'professional', label: 'Professional' },
+  'unified-mode':    { plan: 'business',     label: 'Business' },
+};
+
+export function getFeatureRequirement(feature: FeatureKey) {
+  return FEATURE_PLANS[feature];
+}
+
+/**
+ * Cosmetic gating check. Returns true (full access) when there is no signed-in
+ * plan yet (demo / browsing) or during trial, so the demo stays unobstructed.
+ * Signed-in paid users below the required tier get a soft upgrade nudge.
+ */
+export function hasPlan(userPlan: PlanId | null | undefined, feature: FeatureKey): boolean {
+  if (!userPlan) return true;
+  const req = FEATURE_PLANS[feature];
+  if (!req) return true;
+  return (PLAN_RANK[userPlan] ?? 0) >= PLAN_RANK[req.plan];
+}

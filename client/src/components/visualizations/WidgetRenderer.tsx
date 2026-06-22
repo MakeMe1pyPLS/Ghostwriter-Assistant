@@ -5,6 +5,7 @@ import {
   RadialBarChart, RadialBar, PolarAngleAxis
 } from 'recharts';
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useEffect, useState, memo } from "react";
 import { getAllMetrics } from "@/hooks/use-sector-data";
 import { CARD_PRESETS, type CardPresetId } from "@/lib/kpi-card-presets";
@@ -147,36 +148,46 @@ const SHADOW_MAP: Record<string, string> = {
   'xl': 'shadow-xl',
 };
 
-const SECTOR_KPI_INTEL: Record<string, Record<string, { comparison: string; contributor: string; risk: 'low' | 'medium' | 'high' }>> = {
+type KpiIntel = {
+  comparison: string;
+  contributor: string;
+  risk: 'low' | 'medium' | 'high';
+  whatChanged: string;
+  why: string;
+  impact: string;
+  action: string;
+};
+
+const SECTOR_KPI_INTEL: Record<string, Record<string, KpiIntel>> = {
   ecommerce: {
-    'Revenue':          { comparison: 'vs $110.5K prior period', contributor: 'Electronics', risk: 'low' },
-    'Orders':           { comparison: 'vs 1,340 prior period', contributor: 'Mobile channel', risk: 'low' },
-    'AOV':              { comparison: 'vs $86.10 prior period', contributor: 'Accessories', risk: 'medium' },
-    'Conversion Rate':  { comparison: 'vs 2.8% prior period', contributor: 'Email channel', risk: 'low' },
-    'ROAS':             { comparison: 'vs 4.3x prior period', contributor: 'Paid Search', risk: 'low' },
-    'Returns Rate':     { comparison: 'vs 4.6% prior period', contributor: 'Apparel', risk: 'medium' },
+    'Revenue':          { comparison: 'vs $110.5K prior period', contributor: 'Electronics', risk: 'low', whatChanged: 'Revenue grew 12.5%, led by Electronics and a stronger mobile mix.', why: 'A successful paid-search push and higher repeat-purchase rate lifted topline.', impact: 'On pace to beat the quarterly target if momentum holds two more weeks.', action: 'Reallocate budget toward Electronics campaigns while ROAS stays above 4x.' },
+    'Orders':           { comparison: 'vs 1,340 prior period', contributor: 'Mobile channel', risk: 'low', whatChanged: 'Order count rose 8.2% with mobile now the leading channel.', why: 'Checkout friction dropped after the mobile flow was simplified.', impact: 'Higher volume increases fulfillment load on peak afternoon windows.', action: 'Confirm warehouse staffing can absorb the added afternoon order surge.' },
+    'AOV':              { comparison: 'vs $86.10 prior period', contributor: 'Accessories', risk: 'medium', whatChanged: 'Average order value slipped 2.1% as low-priced accessories grew.', why: 'Promotions skewed the basket toward cheaper add-on items.', impact: 'Margin per order compresses even as order count climbs.', action: 'Introduce bundle offers to lift basket value without deep discounts.' },
+    'Conversion Rate':  { comparison: 'vs 2.8% prior period', contributor: 'Email channel', risk: 'low', whatChanged: 'Conversion improved 0.4pts, strongest on email-sourced traffic.', why: 'Segmented email flows are landing more purchase-ready visitors.', impact: 'Email is now the most efficient channel by conversion.', action: 'Expand the highest-converting email segments before scaling paid spend.' },
+    'ROAS':             { comparison: 'vs 4.3x prior period', contributor: 'Paid Search', risk: 'low', whatChanged: 'Return on ad spend rose to 4.5x, led by paid search.', why: 'Tighter keyword targeting cut wasted spend.', impact: 'Each ad dollar is returning more, leaving room to scale.', action: 'Increase paid-search budget incrementally while monitoring ROAS weekly.' },
+    'Returns Rate':     { comparison: 'vs 4.6% prior period', contributor: 'Apparel', risk: 'medium', whatChanged: 'Returns fell to 4.1% but apparel remains the top driver.', why: 'Sizing inconsistency in apparel continues to generate returns.', impact: 'Apparel returns erode margin and add reverse-logistics cost.', action: 'Add detailed sizing guidance on the top-returned apparel SKUs.' },
   },
   logistics: {
-    'On-Time Delivery':      { comparison: 'vs 92.4% prior period', contributor: 'West Hub', risk: 'low' },
-    'Late Shipments':        { comparison: 'vs 55 prior period', contributor: 'South route', risk: 'medium' },
-    'Cost per Shipment':     { comparison: 'vs $13.20 prior period', contributor: 'Fuel costs', risk: 'medium' },
-    'Transit Time':          { comparison: 'vs 2.6d prior period', contributor: 'Air freight', risk: 'low' },
-    'Warehouse Utilization': { comparison: 'vs 86% prior period', contributor: 'Central hub', risk: 'medium' },
-    'Shipment Volume':       { comparison: 'vs 8,010 prior period', contributor: 'Express lane', risk: 'low' },
+    'On-Time Delivery':      { comparison: 'vs 92.4% prior period', contributor: 'West Hub', risk: 'low', whatChanged: 'On-time delivery improved 1.8pts, led by the West Hub.', why: 'Route optimization reduced handoff delays on key lanes.', impact: 'Higher reliability protects customer SLAs and repeat orders.', action: 'Replicate the West Hub routing playbook across underperforming hubs.' },
+    'Late Shipments':        { comparison: 'vs 55 prior period', contributor: 'South route', risk: 'medium', whatChanged: 'Late shipments dropped 12% but the South route still lags.', why: 'Carrier capacity on the South route tightens during peak windows.', impact: 'Concentrated lateness on one route risks regional SLA breaches.', action: 'Secure backup carrier capacity for the South route at peak hours.' },
+    'Cost per Shipment':     { comparison: 'vs $13.20 prior period', contributor: 'Fuel costs', risk: 'medium', whatChanged: 'Cost per shipment fell $0.80, partly offset by fuel volatility.', why: 'Better load consolidation lowered per-unit cost.', impact: 'Savings are fragile if fuel prices rebound.', action: 'Lock fuel surcharge terms while consolidation gains are holding.' },
+    'Transit Time':          { comparison: 'vs 2.6d prior period', contributor: 'Air freight', risk: 'low', whatChanged: 'Average transit time improved by 0.2 days.', why: 'Selective air freight on priority lanes shortened delivery.', impact: 'Faster transit improves the customer promise window.', action: 'Reserve air freight for high-value lanes to control cost.' },
+    'Warehouse Utilization': { comparison: 'vs 86% prior period', contributor: 'Central hub', risk: 'medium', whatChanged: 'Utilization rose to 88%, nearing capacity at the Central hub.', why: 'Inbound volume is outpacing outbound throughput.', impact: 'Above 90% utilization, pick-pack slows and errors rise.', action: 'Rebalance inventory to satellite sites before peak demand.' },
+    'Shipment Volume':       { comparison: 'vs 8,010 prior period', contributor: 'Express lane', risk: 'low', whatChanged: 'Shipment volume grew 5.2%, driven by the express lane.', why: 'Demand shifted toward faster delivery options.', impact: 'Express growth raises cost-to-serve per shipment.', action: 'Price express tiers to cover the higher handling cost.' },
   },
   manufacturing: {
-    'Units Produced':        { comparison: 'vs 38,720 prior period', contributor: 'Line B', risk: 'low' },
-    'Throughput':            { comparison: 'vs 1,705/day prior period', contributor: 'Morning shift', risk: 'low' },
-    'Defect Rate':           { comparison: 'vs 1.0% prior period', contributor: 'Line C issues', risk: 'high' },
-    'Downtime':              { comparison: 'vs 18h prior period', contributor: 'Line C', risk: 'medium' },
-    'Yield':                 { comparison: 'vs 97.7% prior period', contributor: 'Material quality', risk: 'low' },
-    'Capacity Utilization':  { comparison: 'vs 80.5% prior period', contributor: 'Night shift', risk: 'low' },
+    'Units Produced':        { comparison: 'vs 38,720 prior period', contributor: 'Line B', risk: 'low', whatChanged: 'Output rose 8.4%, led by Line B.', why: 'Reduced changeover time freed up production hours.', impact: 'Higher output supports the order backlog drawdown.', action: 'Apply Line B changeover practices to Lines A and C.' },
+    'Throughput':            { comparison: 'vs 1,705/day prior period', contributor: 'Morning shift', risk: 'low', whatChanged: 'Throughput climbed to 1,750/day, best on the morning shift.', why: 'Better staffing balance reduced idle stations.', impact: 'Sustained throughput shortens lead times.', action: 'Carry the morning-shift staffing model into other shifts.' },
+    'Defect Rate':           { comparison: 'vs 1.0% prior period', contributor: 'Line C issues', risk: 'high', whatChanged: 'Defect rate improved to 0.8% but Line C remains a hotspot.', why: 'Tooling wear on Line C is driving recurring defects.', impact: 'Line C defects threaten yield and rework cost.', action: 'Schedule preventive tooling maintenance on Line C immediately.' },
+    'Downtime':              { comparison: 'vs 18h prior period', contributor: 'Line C', risk: 'medium', whatChanged: 'Downtime fell to 14h, concentrated on Line C.', why: 'Unplanned stoppages on Line C dominate the total.', impact: 'Line C downtime caps overall capacity utilization.', action: 'Root-cause Line C stoppages and add condition monitoring.' },
+    'Yield':                 { comparison: 'vs 97.7% prior period', contributor: 'Material quality', risk: 'low', whatChanged: 'Yield improved to 98.2%.', why: 'Tighter incoming material inspection cut scrap.', impact: 'Higher yield directly improves cost per unit.', action: 'Maintain supplier quality scorecards on key materials.' },
+    'Capacity Utilization':  { comparison: 'vs 80.5% prior period', contributor: 'Night shift', risk: 'low', whatChanged: 'Capacity utilization rose 1.5pts.', why: 'Night-shift uptime improved after maintenance changes.', impact: 'Spare capacity is shrinking as demand grows.', action: 'Plan capacity additions before utilization exceeds 90%.' },
   },
   unified: {
-    'Perfect Order Rate':  { comparison: 'vs 97.2% prior period', contributor: 'East region', risk: 'low' },
-    'Cash-to-Cash Cycle':  { comparison: 'vs 16d prior period', contributor: 'Payables opt.', risk: 'low' },
-    'ATP Accuracy':        { comparison: 'vs 93.4% prior period', contributor: 'Forecast model', risk: 'low' },
-    'Bullwhip Index':      { comparison: 'vs 1.17 prior period', contributor: 'Demand smoothing', risk: 'low' },
+    'Perfect Order Rate':  { comparison: 'vs 97.2% prior period', contributor: 'East region', risk: 'low', whatChanged: 'Perfect order rate rose to 98.4%, led by the East region.', why: 'Tighter coordination between fulfillment and delivery reduced errors.', impact: 'Higher perfect-order rate strengthens customer retention.', action: 'Standardize the East region cross-team handoff across all regions.' },
+    'Cash-to-Cash Cycle':  { comparison: 'vs 16d prior period', contributor: 'Payables opt.', risk: 'low', whatChanged: 'Cash-to-cash cycle shortened by 2 days to 14.', why: 'Payables optimization freed up working capital.', impact: 'Faster cycle improves liquidity for reinvestment.', action: 'Extend payables terms with remaining key suppliers.' },
+    'ATP Accuracy':        { comparison: 'vs 93.4% prior period', contributor: 'Forecast model', risk: 'low', whatChanged: 'Available-to-promise accuracy improved 0.8pts.', why: 'A refreshed forecast model better captured demand shifts.', impact: 'More reliable promises reduce stockouts and overstock.', action: 'Retrain the forecast model monthly to hold accuracy gains.' },
+    'Bullwhip Index':      { comparison: 'vs 1.17 prior period', contributor: 'Demand smoothing', risk: 'low', whatChanged: 'Bullwhip index fell to 1.12, signaling steadier demand signals.', why: 'Demand smoothing reduced order amplification upstream.', impact: 'Lower amplification cuts excess safety stock across the chain.', action: 'Share point-of-sale signals upstream to keep amplification low.' },
   },
 };
 
@@ -189,6 +200,16 @@ function getRiskLabel(risk: 'low' | 'medium' | 'high') {
   if (risk === 'high') return 'High Risk';
   if (risk === 'medium') return 'Watch';
   return 'On Track';
+}
+
+function KpiIntelRow({ label, text, tone }: { label: string; text: string; tone: 'slate' | 'indigo' | 'amber' }) {
+  const toneMap = { slate: 'text-slate-500', indigo: 'text-indigo-600', amber: 'text-amber-600' } as const;
+  return (
+    <div>
+      <span className={`text-[9px] font-black uppercase tracking-widest ${toneMap[tone]}`}>{label}</span>
+      <p className="text-xs font-medium text-slate-600 leading-relaxed mt-0.5">{text}</p>
+    </div>
+  );
 }
 
 function WidgetRendererInner({ widget, data, sector, loading, presentationMode = false }: { widget: any, data: any, sector: string, loading: boolean, presentationMode?: boolean }) {
@@ -243,6 +264,40 @@ function WidgetRendererInner({ widget, data, sector, loading, presentationMode =
               )}
             </div>
             <div className="flex items-center gap-1.5 shrink-0">
+              {presentationMode && (() => {
+                const intel = SECTOR_KPI_INTEL[sector]?.[metric?.label || ''];
+                if (!intel) return null;
+                return (
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button
+                        className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-teal-50 text-teal-700 border border-teal-100 hover:bg-teal-100 transition-colors"
+                        data-testid={`button-kpi-intel-${(metric?.label || 'metric').toLowerCase().replace(/\s+/g, '-')}`}
+                      >
+                        <BrainCircuit className="w-3 h-3" />
+                        <span className="text-[8px] font-black uppercase tracking-wider">AI</span>
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent align="end" className="w-72 p-0 rounded-2xl border-slate-200 shadow-xl overflow-hidden">
+                      <div className="bg-slate-900 px-4 py-3">
+                        <div className="flex items-center gap-1.5">
+                          <BrainCircuit className="w-3.5 h-3.5 text-teal-400" />
+                          <span className="text-[10px] font-black uppercase tracking-widest text-white">{metric?.label} Intelligence</span>
+                        </div>
+                      </div>
+                      <div className="p-4 space-y-3">
+                        <KpiIntelRow label="What Changed" text={intel.whatChanged} tone="slate" />
+                        <KpiIntelRow label="Why" text={intel.why} tone="indigo" />
+                        <KpiIntelRow label="Impact" text={intel.impact} tone="amber" />
+                        <div className="rounded-xl border border-teal-200 bg-teal-50/70 p-3">
+                          <span className="text-[9px] font-black uppercase tracking-widest text-teal-700">Recommended Action</span>
+                          <p className="text-xs font-semibold text-slate-800 leading-relaxed mt-1">{intel.action}</p>
+                        </div>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                );
+              })()}
               {preset.statusBadgeVisible && widget.showBadge !== false && metric?.isPositive !== undefined && (
                 <div className={`px-1.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider ${metric.isPositive ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
                   {metric.isPositive ? 'On Track' : 'At Risk'}

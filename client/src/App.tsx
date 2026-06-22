@@ -26,6 +26,9 @@ import WelcomePage from "@/pages/welcome";
 const BuilderPage = lazy(() => import("@/pages/builder"));
 const DashboardPage = lazy(() => import("@/pages/dashboard"));
 const InsightsPage = lazy(() => import("@/pages/insights"));
+const BottlenecksPage = lazy(() => import("@/pages/bottlenecks"));
+const RecommendationsPage = lazy(() => import("@/pages/recommendations"));
+const PipelinePage = lazy(() => import("@/pages/pipeline"));
 const HubPage = lazy(() => import("@/pages/hub"));
 const ConnectorsPage = lazy(() => import("@/pages/connectors"));
 const ExportsPage = lazy(() => import("@/pages/exports"));
@@ -93,6 +96,15 @@ function Router() {
       </Route>
       <Route path="/insights">
         <Suspense fallback={<PageLoader />}><InsightsPage /></Suspense>
+      </Route>
+      <Route path="/bottlenecks">
+        <Suspense fallback={<PageLoader />}><BottlenecksPage /></Suspense>
+      </Route>
+      <Route path="/recommendations">
+        <Suspense fallback={<PageLoader />}><RecommendationsPage /></Suspense>
+      </Route>
+      <Route path="/pipeline">
+        <Suspense fallback={<PageLoader />}><PipelinePage /></Suspense>
       </Route>
       <Route path="/hub">
         <Suspense fallback={<PageLoader />}><HubPage /></Suspense>

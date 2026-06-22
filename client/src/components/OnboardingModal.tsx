@@ -1,18 +1,67 @@
+import { useState } from "react";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Settings, Building, Users, Layers, X, Sparkles } from "lucide-react";
-import { useDashboardStore } from "@/hooks/use-dashboard-store";
+import { Settings, Building, Users, Layers, Sparkles, ArrowRight, Check, Info } from "lucide-react";
+import { useDashboardStore, type BusinessStructure } from "@/hooks/use-dashboard-store";
 import { useLocation } from "wouter";
 
+const STRUCTURES: {
+  value: BusinessStructure;
+  icon: any;
+  label: string;
+  desc: string;
+  color: string;
+  ring: string;
+  guidance: string;
+  needsSettings: boolean;
+}[] = [
+  {
+    value: "single",
+    icon: Building,
+    label: "Single Business",
+    desc: "One company operating in one sector",
+    color: "text-blue-600 bg-blue-50 border-blue-100",
+    ring: "ring-blue-500 border-blue-300",
+    guidance: "Pick your sector and you're ready to build — no extra setup needed.",
+    needsSettings: false,
+  },
+  {
+    value: "partnered",
+    icon: Users,
+    label: "Partnered Business",
+    desc: "Two sectors working together or sharing data",
+    color: "text-violet-600 bg-violet-50 border-violet-100",
+    ring: "ring-violet-500 border-violet-300",
+    guidance:
+      "You'll connect two sectors (e.g. E-commerce + Logistics) that share data. Choose both sectors next in Settings, then enable data sharing and the Hub.",
+    needsSettings: true,
+  },
+  {
+    value: "unified-chain",
+    icon: Layers,
+    label: "Unified Supply Chain",
+    desc: "Three sectors connected in a full supply chain",
+    color: "text-primary bg-primary/5 border-primary/20",
+    ring: "ring-primary border-primary/40",
+    guidance:
+      "You'll link all three sectors end-to-end to unlock cross-sector bridge KPIs. Configure the connected sectors next in Settings.",
+    needsSettings: true,
+  },
+];
+
 export function OnboardingModal() {
-  const { setupComplete, completeSetup, dismissSetup } = useDashboardStore();
+  const { setupComplete, completeSetup, dismissSetup, setBusinessStructure } = useDashboardStore();
   const [, setLocation] = useLocation();
+  const [selected, setSelected] = useState<BusinessStructure>("single");
 
   if (setupComplete) return null;
 
-  const handleGoToSettings = () => {
+  const current = STRUCTURES.find((s) => s.value === selected)!;
+
+  const handleContinue = () => {
+    setBusinessStructure(selected);
     completeSetup();
-    setLocation("/settings");
+    setLocation(current.needsSettings ? "/settings" : "/builder");
   };
 
   const handleRemindLater = () => {
@@ -39,58 +88,58 @@ export function OnboardingModal() {
             </div>
             <h2 className="text-2xl font-black text-white tracking-tight mb-2 uppercase">Set Up Your Business Structure</h2>
             <p className="text-sm text-slate-400 font-medium leading-relaxed">
-              To generate accurate dashboards and insights, configure your business type and sectors.
+              This shapes your sectors, KPIs, AI generation, and data sharing. Pick the option that matches your operation.
             </p>
           </div>
         </div>
 
         <div className="px-6 sm:px-8 py-6 space-y-4 bg-white">
-          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">Choose your structure type</p>
+          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Choose your structure type</p>
 
           <div className="grid gap-3">
-            {[
-              {
-                icon: Building,
-                label: "Single Business",
-                desc: "One company operating in one sector",
-                color: "text-blue-600 bg-blue-50 border-blue-100",
-              },
-              {
-                icon: Users,
-                label: "Partnered Business",
-                desc: "Two sectors working together or sharing data",
-                color: "text-violet-600 bg-violet-50 border-violet-100",
-              },
-              {
-                icon: Layers,
-                label: "Unified Supply Chain",
-                desc: "Three sectors connected in a full supply chain",
-                color: "text-primary bg-primary/5 border-primary/20",
-              },
-            ].map((item) => (
-              <div
-                key={item.label}
-                className="flex items-center gap-4 p-4 rounded-xl border border-slate-100 bg-slate-50"
-              >
-                <div className={`w-9 h-9 rounded-xl border flex items-center justify-center shrink-0 ${item.color}`}>
-                  <item.icon className="w-4.5 h-4.5" />
-                </div>
-                <div>
-                  <p className="text-sm font-bold text-slate-800">{item.label}</p>
-                  <p className="text-[11px] text-slate-500 font-medium">{item.desc}</p>
-                </div>
-              </div>
-            ))}
+            {STRUCTURES.map((item) => {
+              const isSelected = selected === item.value;
+              return (
+                <button
+                  key={item.value}
+                  onClick={() => setSelected(item.value)}
+                  className={`flex items-center gap-4 p-4 rounded-xl border text-left transition-all ${
+                    isSelected
+                      ? `bg-white ring-2 ${item.ring} shadow-sm`
+                      : "border-slate-100 bg-slate-50 hover:bg-white hover:border-slate-200"
+                  }`}
+                  data-testid={`onboarding-structure-${item.value}`}
+                >
+                  <div className={`w-9 h-9 rounded-xl border flex items-center justify-center shrink-0 ${item.color}`}>
+                    <item.icon className="w-4 h-4" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-slate-800">{item.label}</p>
+                    <p className="text-[11px] text-slate-500 font-medium">{item.desc}</p>
+                  </div>
+                  {isSelected && (
+                    <div className="w-5 h-5 rounded-full bg-primary text-white flex items-center justify-center shrink-0">
+                      <Check className="w-3 h-3" />
+                    </div>
+                  )}
+                </button>
+              );
+            })}
           </div>
 
-          <div className="pt-4 space-y-2.5">
+          <div className="flex items-start gap-2.5 rounded-xl border border-slate-200 bg-slate-50 p-3.5" data-testid="onboarding-guidance">
+            <Info className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+            <p className="text-xs font-medium text-slate-600 leading-relaxed">{current.guidance}</p>
+          </div>
+
+          <div className="pt-1 space-y-2.5">
             <Button
-              onClick={handleGoToSettings}
+              onClick={handleContinue}
               className="w-full h-12 rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-primary/20"
               data-testid="button-go-to-settings"
             >
-              <Settings className="w-4 h-4 mr-2" />
-              Go to Settings
+              {current.needsSettings ? <Settings className="w-4 h-4 mr-2" /> : <ArrowRight className="w-4 h-4 mr-2" />}
+              {current.needsSettings ? "Configure Sectors in Settings" : "Continue to Builder"}
             </Button>
             <button
               onClick={handleRemindLater}
