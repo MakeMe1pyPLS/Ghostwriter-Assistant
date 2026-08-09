@@ -7,7 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 export default function GeneratePage() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
-  const { setSector, setBusinessStructure, setConnectedSectors, setDataSharingEnabled, setHubEnabled } = useDashboardStore();
+  const { setSector, setBusinessStructure, setConnectedSectors, setDataSharingEnabled, setHubEnabled, saveDashboard } = useDashboardStore();
   const [loading, setLoading] = useState(false);
 
   const handleComplete = async (answers: WizardAnswers) => {
@@ -32,11 +32,10 @@ export default function GeneratePage() {
       if (!res.ok) throw new Error('Generation failed');
       const result = await res.json();
 
-      const sector = answers.sector as any;
-      if (sector) setSector(sector === 'custom' ? 'custom' : sector);
+      const sector = (answers.sector as any) || 'ecommerce';
+      setSector(sector === 'custom' ? 'custom' : sector);
 
-      localStorage.setItem(`widgets_${sector}`, JSON.stringify(result.widgets));
-      localStorage.setItem(`layout_${sector}`, JSON.stringify(result.layout));
+      saveDashboard(sector, result.layout, result.widgets);
       localStorage.setItem('generated_dashboard_meta', JSON.stringify({
         title: result.title,
         subtitle: result.subtitle,
@@ -58,8 +57,7 @@ export default function GeneratePage() {
             });
             if (sectorRes.ok) {
               const sectorResult = await sectorRes.json();
-              localStorage.setItem(`widgets_${s}`, JSON.stringify(sectorResult.widgets));
-              localStorage.setItem(`layout_${s}`, JSON.stringify(sectorResult.layout));
+              saveDashboard(s as any, sectorResult.layout, sectorResult.widgets);
             }
           }
         }

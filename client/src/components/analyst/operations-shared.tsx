@@ -6,29 +6,24 @@ import type { Metric } from "@/hooks/use-sector-data";
 // Detection, AI Recommendations, Operations Pipeline). All three project from
 // the single /api/ai/operations-intel endpoint.
 
-export type Severity = "high" | "medium" | "low";
+import type {
+  Severity,
+  OperationsIntelItem,
+  OperationsIntelResult,
+  AnalystBottleneck,
+  AnalystAction,
+  AnalystResponse,
+  CommandCenterRequest,
+} from "@shared/ai-types";
 
-export interface OperationsIntelItem {
-  id: string;
-  type: "bottleneck" | "opportunity";
-  title: string;
-  severity: Severity;
-  priorityRank: number;
-  affectedWorkflow: string;
-  currentState: string;
-  issueDetected: string;
-  rootCause: string;
-  reasoning: string;
-  recommendedAction: string;
-  actionPlanSteps: string[];
-  estimatedImpact: string;
-  expectedOutcome: string;
-}
-
-export interface OperationsIntelResult {
-  items: OperationsIntelItem[];
-  generatedBy: "claude" | "rule-based";
-}
+export type {
+  Severity,
+  OperationsIntelItem,
+  OperationsIntelResult,
+  AnalystBottleneck,
+  AnalystAction,
+  AnalystResponse,
+};
 
 export const SEVERITY_STYLES: Record<
   Severity,
@@ -103,19 +98,20 @@ export function useOperationsIntel(
     setLoading(true);
     setError(false);
     try {
+      const payload: CommandCenterRequest = {
+        sector,
+        businessStructure,
+        metrics: metrics.map((m) => ({
+          label: m.label,
+          value: m.value,
+          trend: m.trend,
+          isPositive: m.isPositive,
+        })),
+      };
       const res = await fetch("/api/ai/operations-intel", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          sector,
-          businessStructure,
-          metrics: metrics.map((m) => ({
-            label: m.label,
-            value: m.value,
-            trend: m.trend,
-            isPositive: m.isPositive,
-          })),
-        }),
+        body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error("request failed");
       const json = (await res.json()) as OperationsIntelResult;

@@ -4,75 +4,42 @@
 // `anthropic-provider.ts` and implements the same interface so models can be
 // swapped (Claude -> OpenAI -> Gemini) without changing callers.
 
-export interface CommandCenterMetric {
-  label: string;
-  value: string;
-  trend: string;
-  isPositive: boolean;
-}
+import type {
+  Severity,
+  OperationsIntelItem,
+  OperationsIntelResult,
+  AnalystBottleneck,
+  AnalystAction,
+  AnalystResponse,
+  TopPriority,
+  HealthPillar,
+  CommandCenterResult,
+  CommandCenterMetric,
+  CommandCenterRequest,
+  AnalystChatRequest,
+  Equal,
+  Expect,
+} from '@shared/ai-types';
 
-export interface CommandCenterRequest {
-  sector: string;
-  metrics: CommandCenterMetric[];
-  businessStructure?: string;
-}
-
-export type Severity = 'high' | 'medium' | 'low';
-
-export interface TopPriority {
-  id: string;
-  title: string;
-  severity: Severity;
-  whatHappened: string;
-  whyItMatters: string;
-  businessImpact: string;
-  recommendedAction: string;
-  expectedOutcome: string;
-}
-
-export interface HealthPillar {
-  pillar: string;
-  score: number;
-}
-
-export interface CommandCenterResult {
-  healthScore: number;
-  healthGrade: string;
-  healthBreakdown: HealthPillar[];
-  executiveSummary: string;
-  topPriorities: TopPriority[];
-  alerts: { label: string; severity: Severity }[];
-  generatedBy: 'claude' | 'rule-based';
-}
-
-// A single operational intelligence item powers the Bottleneck Detection,
-// AI Recommendations, and Operations Pipeline pages — all three project from
-// this one shape so the underlying intelligence stays consistent.
-export interface OperationsIntelItem {
-  id: string;
-  type: 'bottleneck' | 'opportunity';
-  title: string;
-  severity: Severity;
-  priorityRank: number; // 1 = highest priority
-  affectedWorkflow: string;
-  currentState: string;
-  issueDetected: string;
-  rootCause: string;
-  reasoning: string;
-  recommendedAction: string;
-  actionPlanSteps: string[];
-  estimatedImpact: string;
-  expectedOutcome: string;
-}
-
-export interface OperationsIntelResult {
-  items: OperationsIntelItem[];
-  generatedBy: 'claude' | 'rule-based';
-}
+export type {
+  Severity,
+  OperationsIntelItem,
+  OperationsIntelResult,
+  AnalystBottleneck,
+  AnalystAction,
+  AnalystResponse,
+  TopPriority,
+  HealthPillar,
+  CommandCenterResult,
+  CommandCenterMetric,
+  CommandCenterRequest,
+  AnalystChatRequest,
+};
 
 export interface OperationalIntelligenceProvider {
   generateCommandCenter(req: CommandCenterRequest): Promise<CommandCenterResult>;
   generateOperationsIntel(req: CommandCenterRequest): Promise<OperationsIntelResult>;
+  generateAnalystResponse(req: AnalystChatRequest): Promise<AnalystResponse>;
 }
 
 export const SEVERITY_RANK: Record<Severity, number> = { high: 0, medium: 1, low: 2 };
@@ -243,6 +210,97 @@ const SECTOR_PRIORITY_TEMPLATES: Record<
 
 function sectorKey(sector: string): string {
   return SECTOR_PRIORITY_TEMPLATES[sector] ? sector : 'unified';
+}
+
+const SECTOR_DOMAIN_LABEL: Record<string, string> = {
+  ecommerce: 'E-commerce',
+  logistics: 'Logistics',
+  manufacturing: 'Manufacturing',
+  unified: 'Supply Chain',
+  custom: 'Operations',
+};
+
+// Scores how well an operational item answers the user's question by counting
+// meaningful word overlaps against the item's text. Used to surface the most
+// relevant bottleneck/opportunity first so the rule-based analyst feels
+// responsive rather than canned.
+function scoreItemForQuestion(message: string, item: OperationsTemplate): number {
+  const words = String(message ?? '')
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter((w) => w.length > 3);
+  if (!words.length) return 0;
+  const hay = `${item.title} ${item.affectedWorkflow} ${item.currentState} ${item.issueDetected} ${item.rootCause} ${item.recommendedAction}`.toLowerCase();
+  let score = 0;
+  for (const w of words) {
+    if (hay.includes(w)) score += 1;
+  }
+  return score;
+}
+
+// Ranks the sector's operational items by relevance to the question, breaking
+// ties by severity so the highest-impact items lead.
+function rankItemsForQuestion(message: string, key: string): OperationsTemplate[] {
+  return SECTOR_OPERATIONS_TEMPLATES[key]
+    .slice()
+    .sort((a, b) => {
+      const diff = scoreItemForQuestion(message, b) - scoreItemForQuestion(message, a);
+      if (diff !== 0) return diff;
+      return SEVERITY_RANK[a.severity] - SEVERITY_RANK[b.severity];
+    });
+}
+
+// Builds the deterministic, operationally-structured analyst answer from the
+// grounded health score, the live metrics, and the sector operations
+// templates. Shared by the rule-based provider and the Claude fallback.
+export function buildRuleBasedAnalystResponse(req: AnalystChatRequest): AnalystResponse {
+  const { message, sector, metrics } = req;
+  const key = sectorKey(sector);
+  const health = computeHealth(metrics);
+  const domain = SECTOR_DOMAIN_LABEL[key] || 'Operations';
+
+  const ranked = rankItemsForQuestion(message, key);
+  const focus = ranked[0];
+  const bottleneckItems = ranked.filter((i) => i.type === 'bottleneck');
+
+  const weak = metrics.filter((m) => !m.isPositive);
+  const strong = metrics.filter((m) => m.isPositive);
+
+  const keyFindings: string[] = [
+    ...weak.slice(0, 2).map((m) => `${m.label} is moving against target (${m.trend}, now ${m.value}).`),
+    ...strong.slice(0, 2).map((m) => `${m.label} is holding up (${m.trend}, now ${m.value}).`),
+  ];
+  if (keyFindings.length < 2) {
+    keyFindings.push(focus.currentState, focus.issueDetected);
+  }
+
+  const bottlenecks: AnalystBottleneck[] = bottleneckItems.slice(0, 3).map((i) => ({
+    title: i.title,
+    severity: i.severity,
+    detail: i.issueDetected,
+  }));
+
+  const recommendedActions: AnalystAction[] = ranked
+    .slice()
+    .sort((a, b) => SEVERITY_RANK[a.severity] - SEVERITY_RANK[b.severity])
+    .slice(0, 3)
+    .map((i) => ({ action: i.recommendedAction, impact: i.estimatedImpact }));
+
+  const businessSummary =
+    `${domain} health is ${health.healthGrade.toLowerCase()} at ${health.healthScore}/100. ` +
+    `${focus.currentState} Here's what stands out and the actions I'd take, ordered by impact.`;
+
+  return {
+    question: String(message ?? ''),
+    businessSummary,
+    keyFindings: keyFindings.slice(0, 4),
+    bottlenecks,
+    rootCause: focus.rootCause,
+    recommendedActions,
+    expectedImpact: focus.expectedOutcome,
+    nextSteps: focus.actionPlanSteps.slice(0, 5),
+    generatedBy: 'rule-based',
+  };
 }
 
 // Operations intelligence templates power the Bottleneck, Recommendations, and
@@ -609,4 +667,26 @@ export class RuleBasedIntelligenceProvider implements OperationalIntelligencePro
       .map((t, i) => ({ ...t, id: `ops-${i}`, priorityRank: i + 1 }));
     return { items, generatedBy: 'rule-based' };
   }
+
+  async generateAnalystResponse(req: AnalystChatRequest): Promise<AnalystResponse> {
+    return buildRuleBasedAnalystResponse(req);
+  }
 }
+
+// ---------------------------------------------------------------------------
+// Drift guards (compile-time only)
+// ---------------------------------------------------------------------------
+// These assert that the rule-based response builders return *exactly* the
+// shapes declared in `@shared/ai-types`. If anyone re-introduces a local copy
+// of a contract type, removes a return annotation and lets inference drift, or
+// changes a builder's output, the matching `Expect<Equal<...>>` stops compiling
+// and `npm run check` fails. They emit no runtime code.
+type _AssertCommandCenterShape = Expect<
+  Equal<Awaited<ReturnType<RuleBasedIntelligenceProvider['generateCommandCenter']>>, CommandCenterResult>
+>;
+type _AssertOperationsIntelShape = Expect<
+  Equal<Awaited<ReturnType<RuleBasedIntelligenceProvider['generateOperationsIntel']>>, OperationsIntelResult>
+>;
+type _AssertAnalystShape = Expect<
+  Equal<ReturnType<typeof buildRuleBasedAnalystResponse>, AnalystResponse>
+>;

@@ -6,28 +6,19 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { useState, useCallback, useEffect } from "react";
-import { useDashboardStore } from "@/hooks/use-dashboard-store";
+import { useState } from "react";
+import { DatasetImportResolver, type ImportPayload } from "@/components/DatasetImportResolver";
+import { DatasetManagementPanel } from "@/components/DatasetManagementPanel";
 import {
   Upload,
   Database,
   FileSpreadsheet,
   Globe,
-  CheckCircle2,
   AlertCircle,
   Loader2,
   Table2,
-  Trash2,
-  Eye,
-  FileText,
   ArrowRight,
-  RefreshCw,
-  X,
-  ChevronDown,
-  ChevronRight,
-  Plug
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
 
 type TabId = 'csv' | 'sql' | 'sheets' | 'api';
 type ImportStatus = 'idle' | 'loading' | 'success' | 'error';
@@ -41,6 +32,24 @@ interface DatasetMeta {
   created_at: string;
 }
 
+async function buildImportPayload(dataset: DatasetMeta, fallbackPreview: any[] | null): Promise<ImportPayload> {
+  let rows: any[] = Array.isArray(fallbackPreview) ? fallbackPreview : [];
+  try {
+    const res = await fetch(`/api/data/datasets/${dataset.id}/rows?limit=1000`);
+    const data = await res.json();
+    if (Array.isArray(data.rows) && data.rows.length > 0) rows = data.rows;
+  } catch {
+    /* fall back to preview rows */
+  }
+  return {
+    defaultName: dataset.name,
+    columns: dataset.columns,
+    rows,
+    rowCount: dataset.row_count ?? rows.length,
+    sourceType: (dataset.source_type as ImportPayload['sourceType']) || 'csv',
+  };
+}
+
 const TABS: { id: TabId; label: string; icon: any; desc: string }[] = [
   { id: 'csv', label: 'CSV Upload', icon: Upload, desc: 'Upload a CSV file from your computer' },
   { id: 'sql', label: 'SQL Database', icon: Database, desc: 'Connect to PostgreSQL or MySQL' },
@@ -48,46 +57,10 @@ const TABS: { id: TabId; label: string; icon: any; desc: string }[] = [
   { id: 'api', label: 'API Endpoint', icon: Globe, desc: 'Fetch JSON data from an API' },
 ];
 
-function DatasetPreview({ preview, columns }: { preview: any[]; columns: any[] }) {
-  if (!preview || preview.length === 0) return null;
-  const keys = columns?.map(c => c.name) || Object.keys(preview[0]);
-
-  return (
-    <div className="overflow-auto max-h-[300px] rounded-xl border border-slate-200">
-      <table className="w-full text-xs">
-        <thead className="bg-slate-50 sticky top-0">
-          <tr>
-            {keys.map(k => (
-              <th key={k} className="px-3 py-2 text-left font-black text-[10px] uppercase tracking-widest text-slate-500 border-b border-slate-200 whitespace-nowrap">
-                {k}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {preview.map((row, i) => (
-            <tr key={i} className="border-b border-slate-100 hover:bg-slate-50/50">
-              {keys.map(k => (
-                <td key={k} className="px-3 py-2 text-slate-700 font-medium whitespace-nowrap max-w-[200px] truncate">
-                  {String(row[k] ?? '')}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
 function CsvTab() {
   const { toast } = useToast();
-  const { setImportedData, setSector } = useDashboardStore();
   const [status, setStatus] = useState<ImportStatus>('idle');
-  const [datasetName, setDatasetName] = useState('');
-  const [preview, setPreview] = useState<any[] | null>(null);
-  const [columns, setColumns] = useState<any[]>([]);
-  const [datasetMeta, setDatasetMeta] = useState<DatasetMeta | null>(null);
+  const [payload, setPayload] = useState<ImportPayload | null>(null);
   const [dragActive, setDragActive] = useState(false);
 
   const handleFile = async (file: File) => {
@@ -96,7 +69,7 @@ function CsvTab() {
       return;
     }
     setStatus('loading');
-    setDatasetName(file.name.replace('.csv', ''));
+    setPayload(null);
 
     const formData = new FormData();
     formData.append('file', file);
@@ -106,13 +79,10 @@ function CsvTab() {
       const res = await fetch('/api/data/upload-csv', { method: 'POST', body: formData });
       const data = await res.json();
       if (data.success) {
-        setPreview(data.preview);
-        setColumns(data.dataset.columns);
-        setDatasetMeta(data.dataset);
+        const built = await buildImportPayload(data.dataset, data.preview);
+        setPayload(built);
         setStatus('success');
-        setImportedData(data.preview);
-        setSector('custom');
-        toast({ title: "CSV imported", description: `${data.dataset.row_count} rows loaded from ${file.name}` });
+        toast({ title: "CSV parsed", description: `${data.dataset.row_count} rows loaded from ${file.name}` });
       } else {
         throw new Error(data.error || 'Import failed');
       }
@@ -163,35 +133,8 @@ function CsvTab() {
         </div>
       )}
 
-      {status === 'success' && datasetMeta && preview && (
-        <div className="space-y-4">
-          <div className="flex items-center gap-3 p-4 bg-emerald-50 rounded-xl border border-emerald-200">
-            <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
-            <div>
-              <p className="text-sm font-bold text-emerald-800">{datasetMeta.name}</p>
-              <p className="text-xs text-emerald-600">{datasetMeta.row_count} rows · {datasetMeta.columns.length} columns · Ready for dashboard widgets</p>
-            </div>
-          </div>
-
-          <div>
-            <div className="flex items-center gap-2 mb-3">
-              <Table2 className="w-4 h-4 text-primary" />
-              <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500">Column Schema</h4>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {columns.map((col: any) => (
-                <Badge key={col.name} variant="secondary" className="bg-slate-100 text-slate-700 font-bold text-[10px] rounded-lg px-2.5 py-1">
-                  {col.name} <span className="text-slate-400 ml-1">({col.type})</span>
-                </Badge>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3">Data Preview</h4>
-            <DatasetPreview preview={preview} columns={columns} />
-          </div>
-        </div>
+      {status === 'success' && payload && (
+        <DatasetImportResolver payload={payload} onApplied={() => { setPayload(null); setStatus('idle'); }} />
       )}
 
       {status === 'error' && (
@@ -206,14 +149,11 @@ function CsvTab() {
 
 function SqlTab() {
   const { toast } = useToast();
-  const { setImportedData, setSector } = useDashboardStore();
   const [config, setConfig] = useState({ host: '', port: 5432, database: '', username: '', password: '', dbType: 'postgresql' as const });
   const [status, setStatus] = useState<ImportStatus>('idle');
   const [tables, setTables] = useState<string[]>([]);
   const [selectedTable, setSelectedTable] = useState('');
-  const [preview, setPreview] = useState<any[] | null>(null);
-  const [columns, setColumns] = useState<any[]>([]);
-  const [importResult, setImportResult] = useState<DatasetMeta | null>(null);
+  const [payload, setPayload] = useState<ImportPayload | null>(null);
 
   const handleTestConnection = async () => {
     setStatus('loading');
@@ -250,11 +190,8 @@ function SqlTab() {
       });
       const data = await res.json();
       if (data.success) {
-        setPreview(data.preview);
-        setColumns(data.dataset.columns);
-        setImportResult(data.dataset);
-        setImportedData(data.preview);
-        setSector('custom');
+        const built = await buildImportPayload(data.dataset, data.preview);
+        setPayload(built);
         setStatus('success');
         toast({ title: "Table imported", description: `${data.dataset.row_count} rows from ${selectedTable}` });
       }
@@ -315,17 +252,8 @@ function SqlTab() {
         </div>
       )}
 
-      {importResult && preview && (
-        <div className="space-y-4 pt-4 border-t border-slate-100">
-          <div className="flex items-center gap-3 p-4 bg-emerald-50 rounded-xl border border-emerald-200">
-            <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
-            <div>
-              <p className="text-sm font-bold text-emerald-800">{importResult.name}</p>
-              <p className="text-xs text-emerald-600">{importResult.row_count} rows · {importResult.columns.length} columns</p>
-            </div>
-          </div>
-          <DatasetPreview preview={preview} columns={columns} />
-        </div>
+      {payload && (
+        <DatasetImportResolver payload={payload} onApplied={() => { setPayload(null); setStatus('idle'); }} />
       )}
     </div>
   );
@@ -333,18 +261,16 @@ function SqlTab() {
 
 function SheetsTab() {
   const { toast } = useToast();
-  const { setImportedData, setSector } = useDashboardStore();
   const [url, setUrl] = useState('');
   const [status, setStatus] = useState<ImportStatus>('idle');
-  const [preview, setPreview] = useState<any[] | null>(null);
-  const [columns, setColumns] = useState<any[]>([]);
-  const [result, setResult] = useState<DatasetMeta | null>(null);
+  const [payload, setPayload] = useState<ImportPayload | null>(null);
   const [errorMsg, setErrorMsg] = useState('');
 
   const handleFetch = async () => {
     if (!url.trim()) return;
     setStatus('loading');
     setErrorMsg('');
+    setPayload(null);
     try {
       const res = await fetch('/api/data/google-sheets', {
         method: 'POST',
@@ -353,11 +279,8 @@ function SheetsTab() {
       });
       const data = await res.json();
       if (data.success) {
-        setPreview(data.preview);
-        setColumns(data.dataset.columns);
-        setResult(data.dataset);
-        setImportedData(data.preview);
-        setSector('custom');
+        const built = await buildImportPayload(data.dataset, data.preview);
+        setPayload(built);
         setStatus('success');
         toast({ title: "Sheet imported", description: `${data.dataset.row_count} rows loaded from Google Sheets` });
       } else {
@@ -392,17 +315,8 @@ function SheetsTab() {
         </div>
       )}
 
-      {status === 'success' && result && preview && (
-        <div className="space-y-4 pt-4 border-t border-slate-100">
-          <div className="flex items-center gap-3 p-4 bg-emerald-50 rounded-xl border border-emerald-200">
-            <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
-            <div>
-              <p className="text-sm font-bold text-emerald-800">{result.name}</p>
-              <p className="text-xs text-emerald-600">{result.row_count} rows · {result.columns.length} columns</p>
-            </div>
-          </div>
-          <DatasetPreview preview={preview} columns={columns} />
-        </div>
+      {status === 'success' && payload && (
+        <DatasetImportResolver payload={payload} onApplied={() => { setPayload(null); setStatus('idle'); }} />
       )}
     </div>
   );
@@ -410,20 +324,18 @@ function SheetsTab() {
 
 function ApiTab() {
   const { toast } = useToast();
-  const { setImportedData, setSector } = useDashboardStore();
   const [apiUrl, setApiUrl] = useState('');
   const [method, setMethod] = useState('GET');
   const [headers, setHeaders] = useState('');
   const [status, setStatus] = useState<ImportStatus>('idle');
-  const [preview, setPreview] = useState<any[] | null>(null);
-  const [columns, setColumns] = useState<any[]>([]);
-  const [result, setResult] = useState<DatasetMeta | null>(null);
+  const [payload, setPayload] = useState<ImportPayload | null>(null);
   const [errorMsg, setErrorMsg] = useState('');
 
   const handleFetch = async () => {
     if (!apiUrl.trim()) return;
     setStatus('loading');
     setErrorMsg('');
+    setPayload(null);
 
     let parsedHeaders: Record<string, string> = {};
     if (headers.trim()) {
@@ -443,11 +355,8 @@ function ApiTab() {
       });
       const data = await res.json();
       if (data.success) {
-        setPreview(data.preview);
-        setColumns(data.dataset.columns);
-        setResult(data.dataset);
-        setImportedData(data.preview);
-        setSector('custom');
+        const built = await buildImportPayload(data.dataset, data.preview);
+        setPayload(built);
         setStatus('success');
         toast({ title: "API data imported", description: `${data.dataset.row_count} rows loaded` });
       } else {
@@ -498,126 +407,9 @@ function ApiTab() {
         </div>
       )}
 
-      {status === 'success' && result && preview && (
-        <div className="space-y-4 pt-4 border-t border-slate-100">
-          <div className="flex items-center gap-3 p-4 bg-emerald-50 rounded-xl border border-emerald-200">
-            <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
-            <div>
-              <p className="text-sm font-bold text-emerald-800">{result.name}</p>
-              <p className="text-xs text-emerald-600">{result.row_count} rows · {result.columns.length} columns</p>
-            </div>
-          </div>
-          <DatasetPreview preview={preview} columns={columns} />
-        </div>
+      {status === 'success' && payload && (
+        <DatasetImportResolver payload={payload} onApplied={() => { setPayload(null); setStatus('idle'); }} />
       )}
-    </div>
-  );
-}
-
-function DatasetList() {
-  const [datasets, setDatasets] = useState<DatasetMeta[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [expandedPreview, setExpandedPreview] = useState<any[] | null>(null);
-  const { toast } = useToast();
-
-  const refresh = useCallback(async () => {
-    setLoading(true);
-    try {
-      const res = await fetch('/api/data/datasets');
-      const data = await res.json();
-      setDatasets(data.datasets || []);
-    } catch {}
-    setLoading(false);
-  }, []);
-
-  useEffect(() => { refresh(); }, [refresh]);
-
-  const handleDelete = async (id: string) => {
-    await fetch(`/api/data/datasets/${id}`, { method: 'DELETE' });
-    toast({ title: "Dataset deleted" });
-    refresh();
-  };
-
-  const handleExpand = async (id: string) => {
-    if (expandedId === id) { setExpandedId(null); return; }
-    try {
-      const res = await fetch(`/api/data/datasets/${id}`);
-      const data = await res.json();
-      setExpandedPreview(data.preview);
-      setExpandedId(id);
-    } catch {}
-  };
-
-  const sourceIcons: Record<string, any> = {
-    csv: FileText,
-    sql: Database,
-    'google-sheets': FileSpreadsheet,
-    api: Globe
-  };
-
-  if (datasets.length === 0 && !loading) return (
-    <div className="flex flex-col items-center justify-center py-12 text-center bg-white rounded-2xl border border-dashed border-slate-200">
-      <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-4">
-        <Database className="w-5 h-5 text-slate-400" />
-      </div>
-      <p className="text-sm font-bold text-slate-700 mb-1">No datasets imported yet</p>
-      <p className="text-xs text-slate-400">Upload a CSV or connect a data source above to get started.</p>
-    </div>
-  );
-
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Table2 className="w-4 h-4 text-primary" />
-          <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-500">Imported Datasets</h3>
-        </div>
-        <Button variant="ghost" size="sm" onClick={refresh} className="h-8 rounded-lg" data-testid="button-refresh-datasets">
-          <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-        </Button>
-      </div>
-
-      <div className="space-y-3">
-        {datasets.map(ds => {
-          const Icon = sourceIcons[ds.source_type] || Database;
-          return (
-            <div key={ds.id} className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="flex items-center gap-3 p-4 cursor-pointer hover:bg-slate-50/50 transition-colors" onClick={() => handleExpand(ds.id)}>
-                <div className="w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">
-                  <Icon className="w-4 h-4 text-slate-500" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold text-slate-900 truncate">{ds.name}</p>
-                  <p className="text-[10px] text-slate-400 font-medium">{ds.row_count} rows · {ds.columns.length} cols · {ds.source_type}</p>
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <Badge variant="secondary" className="bg-slate-100 text-slate-500 font-bold text-[9px] uppercase tracking-wider rounded-lg">{ds.source_type}</Badge>
-                  <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); handleDelete(ds.id); }} className="h-7 w-7 p-0 text-slate-400 hover:text-red-500" data-testid={`button-delete-${ds.id}`}>
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </Button>
-                  {expandedId === ds.id ? <ChevronDown className="w-4 h-4 text-slate-400" /> : <ChevronRight className="w-4 h-4 text-slate-400" />}
-                </div>
-              </div>
-
-              <AnimatePresence>
-                {expandedId === ds.id && expandedPreview && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    className="border-t border-slate-100 overflow-hidden"
-                  >
-                    <div className="p-4">
-                      <DatasetPreview preview={expandedPreview} columns={ds.columns} />
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          );
-        })}
-      </div>
     </div>
   );
 }
@@ -681,7 +473,7 @@ export default function DataSourcesPage() {
               </CardContent>
             </Card>
 
-            <DatasetList />
+            <DatasetManagementPanel />
           </div>
         </div>
       </div>

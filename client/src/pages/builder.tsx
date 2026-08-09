@@ -39,10 +39,11 @@ import { useToast } from "@/hooks/use-toast";
 import { buildSpecFromState, buildStateFromSpec, downloadSpecJson } from "@/lib/dashboard-spec";
 import { Link } from "wouter";
 import { Sparkles, Wand2 } from "lucide-react";
+import { GRID_COLS, GRID_BREAKPOINTS, GRID_ROW_HEIGHT, GRID_MARGIN, defaultDashboard } from "@/lib/dashboard-grid";
 
 export default function BuilderPage() {
   const { metrics, chartData, donutData, sector, dateRange, allMetrics } = useSectorData();
-  const { lastRefreshed } = useDashboardStore();
+  const { ensureDashboardLoaded, saveDashboard, resetDashboard } = useDashboardStore();
   const { toast } = useToast();
   
   const [layout, setLayout] = useState<any[]>([]);
@@ -52,130 +53,92 @@ export default function BuilderPage() {
   const [editMode, setEditMode] = useState(false);
   const [inspectedWidgetId, setInspectedWidgetId] = useState<string | null>(null);
 
+  // Hydrate local editing state from the store (the single source of truth),
+  // migrating from the legacy localStorage keys on first load if needed.
   useEffect(() => {
     setLoading(true);
-    const key = `layout_${sector}`;
-    const savedLayout = localStorage.getItem(key);
-    const savedWidgets = localStorage.getItem(`widgets_${sector}`);
-    
-    if (savedLayout && savedWidgets) {
-      setLayout(JSON.parse(savedLayout));
-      setLayouts({ lg: JSON.parse(savedLayout) });
-      setWidgets(JSON.parse(savedWidgets));
-    } else {
-      resetLayout(false);
+    ensureDashboardLoaded(sector);
+    const dash = useDashboardStore.getState().dashboards[sector];
+    if (dash) {
+      setLayout(dash.layout);
+      setLayouts({ lg: dash.layout });
+      setWidgets(dash.widgets);
     }
     setTimeout(() => setLoading(false), 400);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sector]);
 
+  // Persist the canonical (lg) layout + widgets to the store, which mirrors to
+  // the legacy localStorage keys and reactively drives the read-only Dashboard.
+  const persist = (nextLayout: any[], nextWidgets: any[]) => {
+    saveDashboard(sector, nextLayout, nextWidgets);
+  };
+
   const onLayoutChange = (newLayout: any, allLayouts: any) => {
-    setLayout(newLayout);
-    setLayouts(allLayouts);
-    localStorage.setItem(`layout_${sector}`, JSON.stringify(newLayout));
-    localStorage.setItem(`widgets_${sector}`, JSON.stringify(widgets));
+    const lgLayout = (allLayouts && allLayouts.lg) ? allLayouts.lg : newLayout;
+    setLayout(lgLayout);
+    setLayouts({ lg: lgLayout });
+    persist(lgLayout, widgets);
   };
 
   const addWidget = (widgetInfo: any) => {
     const id = `${widgetInfo.id}-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
     const newItem = { i: id, x: 0, y: Infinity, w: widgetInfo.w, h: widgetInfo.h };
-    
-    setWidgets(prev => {
-      const newWidgets = [...prev, { id, type: widgetInfo.id, metricIndex: Math.floor(Math.random() * 4), ...(widgetInfo.defaultProps || {}) }];
-      localStorage.setItem(`widgets_${sector}`, JSON.stringify(newWidgets));
-      return newWidgets;
-    });
-    
-    setLayout(prev => {
-      const newLayout = [...prev, newItem];
-      setLayouts((prevLayouts: any) => ({ ...prevLayouts, lg: newLayout }));
-      localStorage.setItem(`layout_${sector}`, JSON.stringify(newLayout));
-      return newLayout;
-    });
-    
+    const newWidgets = [...widgets, { id, type: widgetInfo.id, metricIndex: Math.floor(Math.random() * 4), ...(widgetInfo.defaultProps || {}) }];
+    const newLayout = [...layout, newItem];
+    setWidgets(newWidgets);
+    setLayout(newLayout);
+    setLayouts({ lg: newLayout });
+    persist(newLayout, newWidgets);
     toast({ title: "Widget Added", description: `${widgetInfo.name} added to dashboard.` });
   };
 
   const removeWidget = (id: string) => {
-    setWidgets(prev => {
-      const newWidgets = prev.filter(w => w.id !== id);
-      localStorage.setItem(`widgets_${sector}`, JSON.stringify(newWidgets));
-      return newWidgets;
-    });
-    setLayout(prev => {
-      const newLayout = prev.filter(l => l.i !== id);
-      setLayouts((prevLayouts: any) => ({ ...prevLayouts, lg: newLayout }));
-      localStorage.setItem(`layout_${sector}`, JSON.stringify(newLayout));
-      return newLayout;
-    });
+    const newWidgets = widgets.filter(w => w.id !== id);
+    const newLayout = layout.filter(l => l.i !== id);
+    setWidgets(newWidgets);
+    setLayout(newLayout);
+    setLayouts({ lg: newLayout });
+    persist(newLayout, newWidgets);
   };
 
   const duplicateWidget = (id: string) => {
     const widgetToDup = widgets.find(w => w.id === id);
     const layoutItem = layout.find(l => l.i === id);
     if (!widgetToDup || !layoutItem) return;
-    
     const newId = `${widgetToDup.type}-${Date.now()}`;
-    
-    setWidgets(prev => {
-      const newWidgets = [...prev, { ...widgetToDup, id: newId }];
-      localStorage.setItem(`widgets_${sector}`, JSON.stringify(newWidgets));
-      return newWidgets;
-    });
-    
-    setLayout(prev => {
-      const newLayout = [...prev, { ...layoutItem, i: newId, y: Infinity }];
-      setLayouts((prevLayouts: any) => ({ ...prevLayouts, lg: newLayout }));
-      localStorage.setItem(`layout_${sector}`, JSON.stringify(newLayout));
-      return newLayout;
-    });
-    
+    const newWidgets = [...widgets, { ...widgetToDup, id: newId }];
+    const newLayout = [...layout, { ...layoutItem, i: newId, y: Infinity }];
+    setWidgets(newWidgets);
+    setLayout(newLayout);
+    setLayouts({ lg: newLayout });
+    persist(newLayout, newWidgets);
     toast({ title: "Widget Duplicated" });
   };
 
   const moveWidget = (id: string, dir: 'up' | 'down') => {
-      setLayout(prev => {
-          const layoutItem = prev.find(l => l.i === id);
-          if (!layoutItem) return prev;
-          const newLayout = prev.map(l => {
-              if (l.i === id) {
-                  return { ...l, y: dir === 'up' ? Math.max(0, l.y - 1) : l.y + 1 };
-              }
-              return l;
-          });
-          setLayouts((prevLayouts: any) => ({ ...prevLayouts, lg: newLayout }));
-          localStorage.setItem(`layout_${sector}`, JSON.stringify(newLayout));
-          return newLayout;
-      });
+    const layoutItem = layout.find(l => l.i === id);
+    if (!layoutItem) return;
+    const newLayout = layout.map(l =>
+      l.i === id ? { ...l, y: dir === 'up' ? Math.max(0, l.y - 1) : l.y + 1 } : l
+    );
+    setLayout(newLayout);
+    setLayouts({ lg: newLayout });
+    persist(newLayout, widgets);
   };
 
   const updateWidget = (id: string, updates: any) => {
-    setWidgets(prev => {
-      const newWidgets = prev.map(w => w.id === id ? { ...w, ...updates } : w);
-      localStorage.setItem(`widgets_${sector}`, JSON.stringify(newWidgets));
-      return newWidgets;
-    });
+    const newWidgets = widgets.map(w => w.id === id ? { ...w, ...updates } : w);
+    setWidgets(newWidgets);
+    persist(layout, newWidgets);
   };
 
   const resetLayout = (showToast = true) => {
-    const defaultLayout = [
-      { i: 'kpi-0', x: 0, y: 0, w: 3, h: 2 },
-      { i: 'kpi-1', x: 3, y: 0, w: 3, h: 2 },
-      { i: 'kpi-2', x: 6, y: 0, w: 3, h: 2 },
-      { i: 'kpi-3', x: 9, y: 0, w: 3, h: 2 },
-      { i: 'trend-1', x: 0, y: 2, w: 8, h: 4 },
-      { i: 'insights-1', x: 8, y: 2, w: 4, h: 4 }
-    ];
-    const defaultWidgets = [
-      { id: 'kpi-0', type: 'kpi', metricIndex: 0 },
-      { id: 'kpi-1', type: 'kpi', metricIndex: 1 },
-      { id: 'kpi-2', type: 'kpi', metricIndex: 2 },
-      { id: 'kpi-3', type: 'kpi', metricIndex: 3 },
-      { id: 'trend-1', type: 'trend' },
-      { id: 'insights-1', type: 'insights' },
-    ];
+    const { layout: defaultLayout, widgets: defaultWidgets } = defaultDashboard();
     setLayout(defaultLayout);
     setLayouts({ lg: defaultLayout });
     setWidgets(defaultWidgets);
+    resetDashboard(sector);
     if (showToast) {
        toast({ title: "Layout Reset", description: "Reverted to default configuration." });
     }
@@ -197,6 +160,7 @@ export default function BuilderPage() {
     setWidgets(templateWidgets);
     setLayout(templateLayout);
     setLayouts({ lg: templateLayout });
+    persist(templateLayout, templateWidgets);
     toast({ title: "Template Applied" });
   };
 
@@ -257,11 +221,11 @@ export default function BuilderPage() {
                          const spec = JSON.parse(event.target?.result as string);
                          if (spec.version === "1.0.0" && spec.widgets) {
                                                       const { widgets: newWidgets, layouts: newLayouts } = buildStateFromSpec(spec);
+                           const importedLayout = newLayouts.lg || [];
                            setWidgets(newWidgets);
-                           setLayout(newLayouts.lg || []);
-                           setLayouts(newLayouts);
-                           localStorage.setItem(`widgets_${sector}`, JSON.stringify(newWidgets));
-                           localStorage.setItem(`layout_${sector}`, JSON.stringify(newLayouts.lg || []));
+                           setLayout(importedLayout);
+                           setLayouts({ lg: importedLayout });
+                           persist(importedLayout, newWidgets);
                            toast({ title: "Blueprint Imported", description: "Dashboard updated from spec." });
                          } else {
                            toast({ title: "Invalid Spec", description: "The uploaded file is not a valid v1.0.0 Dashboard Blueprint.", variant: "destructive" });
@@ -360,13 +324,15 @@ export default function BuilderPage() {
                 <MeasuredGrid
                   className="layout"
                   layouts={layouts}
-                  cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
-                  rowHeight={80}
+                  cols={GRID_COLS}
+                  breakpoints={GRID_BREAKPOINTS}
+                  rowHeight={GRID_ROW_HEIGHT}
                   onLayoutChange={onLayoutChange}
                   draggableHandle=".widget-handle"
-                  margin={[16, 16]}
+                  margin={GRID_MARGIN}
                   isDraggable={editMode}
                   isResizable={editMode}
+                  compactType={null}
                 >
                   {widgets.map((w) => (
                     <div 
@@ -457,8 +423,8 @@ export default function BuilderPage() {
         onUpdateLayout={(id, updates) => {
           const newLayout = layout.map(l => l.i === id ? { ...l, ...updates } : l);
           setLayout(newLayout);
-          setLayouts({ ...layouts, lg: newLayout, md: newLayout, sm: newLayout });
-          localStorage.setItem(`layout_${sector}`, JSON.stringify(newLayout));
+          setLayouts({ lg: newLayout });
+          persist(newLayout, widgets);
         }}
         onDelete={removeWidget}
         onDuplicate={(id) => {

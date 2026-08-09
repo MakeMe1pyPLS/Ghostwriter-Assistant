@@ -1,5 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { type DashboardData, defaultDashboard } from '@/lib/dashboard-grid';
+import { type ManagedDataset, MAX_PERSISTED_ROWS } from '@/lib/dataset-library';
 
 export type Sector = 'ecommerce' | 'logistics' | 'manufacturing' | 'unified' | 'custom';
 export type SectorMode = 'single' | 'unified';
@@ -37,6 +39,10 @@ interface DashboardState {
   lastRefreshed: number;
   importedData: any[] | null;
 
+  // Per-sector dataset library (replaces the single anonymous imported-data slot)
+  datasetLibrary: ManagedDataset[];
+  activeDatasetBySector: Record<string, string | null>;
+
   businessStructure: BusinessStructure;
   connectedSectors: Sector[];
   dataSharingEnabled: boolean;
@@ -44,6 +50,9 @@ interface DashboardState {
   dataShareRequests: DataShareRequest[];
   setupComplete: boolean;
   analystMode: boolean;
+
+  // Per-sector dashboard configuration (single source of truth for Builder + Dashboard)
+  dashboards: Record<string, DashboardData>;
 
   // Auth
   currentUser: AuthUser | null;
@@ -56,6 +65,29 @@ interface DashboardState {
   refresh: () => void;
   setImportedData: (data: any[] | null) => void;
 
+  // Dataset library actions
+  addDataset: (input: {
+    name: string;
+    sector: Sector;
+    columns: ManagedDataset['columns'];
+    rows: Record<string, any>[];
+    rowCount?: number;
+    sourceType: ManagedDataset['sourceType'];
+  }) => ManagedDataset;
+  mergeIntoDataset: (targetId: string, rows: Record<string, any>[], columns: ManagedDataset['columns']) => void;
+  overwriteDataset: (targetId: string, input: {
+    name?: string;
+    columns: ManagedDataset['columns'];
+    rows: Record<string, any>[];
+    rowCount?: number;
+    sourceType: ManagedDataset['sourceType'];
+  }) => void;
+  setActiveDataset: (sector: Sector, id: string | null) => void;
+  archiveDataset: (id: string) => void;
+  restoreDataset: (id: string) => void;
+  renameDataset: (id: string, name: string) => void;
+  removeDataset: (id: string) => void;
+
   setBusinessStructure: (structure: BusinessStructure) => void;
   setConnectedSectors: (sectors: Sector[]) => void;
   setDataSharingEnabled: (enabled: boolean) => void;
@@ -65,6 +97,11 @@ interface DashboardState {
   completeSetup: () => void;
   dismissSetup: () => void;
   setAnalystMode: (enabled: boolean) => void;
+
+  // Dashboard layout/widget persistence
+  ensureDashboardLoaded: (sector: string) => void;
+  saveDashboard: (sector: string, layout: any[], widgets: any[]) => void;
+  resetDashboard: (sector: string) => void;
 
   // Auth actions
   signUp: (input: { fullName: string; email: string; password: string }) => AuthUser;
@@ -87,6 +124,9 @@ export const useDashboardStore = create<DashboardState>()(
       lastRefreshed: Date.now(),
       importedData: null,
 
+      datasetLibrary: [],
+      activeDatasetBySector: {},
+
       businessStructure: 'single',
       connectedSectors: ['ecommerce'],
       dataSharingEnabled: false,
@@ -94,6 +134,8 @@ export const useDashboardStore = create<DashboardState>()(
       dataShareRequests: [],
       setupComplete: false,
       analystMode: false,
+
+      dashboards: {},
 
       currentUser: null,
       tutorialCompleted: false,
@@ -107,6 +149,109 @@ export const useDashboardStore = create<DashboardState>()(
       setRange: (range) => set({ selectedRange: range }),
       refresh: () => set({ lastRefreshed: Date.now() }),
       setImportedData: (data) => set({ importedData: data }),
+
+      addDataset: (input) => {
+        const id = `mds_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+        const rows = (input.rows || []).slice(0, MAX_PERSISTED_ROWS);
+        const dataset: ManagedDataset = {
+          id,
+          name: input.name?.trim() || 'Untitled Dataset',
+          sector: input.sector,
+          columns: input.columns || [],
+          rows,
+          rowCount: input.rowCount ?? input.rows?.length ?? rows.length,
+          sourceType: input.sourceType,
+          createdAt: Date.now(),
+          archived: false,
+        };
+        set((state) => ({
+          datasetLibrary: [...state.datasetLibrary, dataset],
+          activeDatasetBySector: { ...state.activeDatasetBySector, [input.sector]: id },
+        }));
+        return dataset;
+      },
+      mergeIntoDataset: (targetId, rows, columns) => set((state) => ({
+        datasetLibrary: state.datasetLibrary.map((d) => {
+          if (d.id !== targetId) return d;
+          const existingNames = new Set(d.columns.map((c) => c.name));
+          const mergedColumns = [
+            ...d.columns,
+            ...columns.filter((c) => !existingNames.has(c.name)),
+          ];
+          const mergedRows = [...d.rows, ...(rows || [])].slice(0, MAX_PERSISTED_ROWS);
+          return {
+            ...d,
+            columns: mergedColumns,
+            rows: mergedRows,
+            rowCount: d.rowCount + (rows?.length ?? 0),
+          };
+        }),
+      })),
+      overwriteDataset: (targetId, input) => set((state) => {
+        const rows = (input.rows || []).slice(0, MAX_PERSISTED_ROWS);
+        return {
+          datasetLibrary: state.datasetLibrary.map((d) =>
+            d.id === targetId
+              ? {
+                  ...d,
+                  name: input.name?.trim() || d.name,
+                  columns: input.columns || [],
+                  rows,
+                  rowCount: input.rowCount ?? input.rows?.length ?? rows.length,
+                  sourceType: input.sourceType,
+                }
+              : d
+          ),
+        };
+      }),
+      setActiveDataset: (sector, id) => set((state) => ({
+        activeDatasetBySector: { ...state.activeDatasetBySector, [sector]: id },
+      })),
+      archiveDataset: (id) => set((state) => {
+        const target = state.datasetLibrary.find((d) => d.id === id);
+        const nextActive = { ...state.activeDatasetBySector };
+        if (target && nextActive[target.sector] === id) {
+          // Promote another non-archived dataset in the same sector, if any.
+          const replacement = state.datasetLibrary.find(
+            (d) => d.sector === target.sector && d.id !== id && !d.archived
+          );
+          nextActive[target.sector] = replacement ? replacement.id : null;
+        }
+        return {
+          datasetLibrary: state.datasetLibrary.map((d) => (d.id === id ? { ...d, archived: true } : d)),
+          activeDatasetBySector: nextActive,
+        };
+      }),
+      restoreDataset: (id) => set((state) => {
+        const target = state.datasetLibrary.find((d) => d.id === id);
+        const nextActive = { ...state.activeDatasetBySector };
+        if (target && !nextActive[target.sector]) {
+          nextActive[target.sector] = id;
+        }
+        return {
+          datasetLibrary: state.datasetLibrary.map((d) => (d.id === id ? { ...d, archived: false } : d)),
+          activeDatasetBySector: nextActive,
+        };
+      }),
+      renameDataset: (id, name) => set((state) => ({
+        datasetLibrary: state.datasetLibrary.map((d) =>
+          d.id === id ? { ...d, name: name.trim() || d.name } : d
+        ),
+      })),
+      removeDataset: (id) => set((state) => {
+        const target = state.datasetLibrary.find((d) => d.id === id);
+        const nextActive = { ...state.activeDatasetBySector };
+        if (target && nextActive[target.sector] === id) {
+          const replacement = state.datasetLibrary.find(
+            (d) => d.sector === target.sector && d.id !== id && !d.archived
+          );
+          nextActive[target.sector] = replacement ? replacement.id : null;
+        }
+        return {
+          datasetLibrary: state.datasetLibrary.filter((d) => d.id !== id),
+          activeDatasetBySector: nextActive,
+        };
+      }),
 
       setBusinessStructure: (structure) => {
         const updates: Partial<DashboardState> = { businessStructure: structure };
@@ -144,6 +289,46 @@ export const useDashboardStore = create<DashboardState>()(
       completeSetup: () => set({ setupComplete: true }),
       dismissSetup: () => set({ setupComplete: true }),
       setAnalystMode: (enabled) => set({ analystMode: enabled }),
+
+      ensureDashboardLoaded: (sector) => {
+        if (get().dashboards[sector]) return;
+        let data: DashboardData | null = null;
+        // Migrate any pre-existing per-sector layout from the legacy localStorage keys.
+        try {
+          const savedLayout = localStorage.getItem(`layout_${sector}`);
+          const savedWidgets = localStorage.getItem(`widgets_${sector}`);
+          if (savedLayout && savedWidgets) {
+            data = { layout: JSON.parse(savedLayout), widgets: JSON.parse(savedWidgets) };
+          }
+        } catch {
+          data = null;
+        }
+        if (!data || !Array.isArray(data.layout) || !Array.isArray(data.widgets)) {
+          data = defaultDashboard();
+        }
+        set(state => ({ dashboards: { ...state.dashboards, [sector]: data! } }));
+      },
+      saveDashboard: (sector, layout, widgets) => {
+        set(state => ({ dashboards: { ...state.dashboards, [sector]: { layout, widgets } } }));
+        // Mirror to the legacy keys so the Export Center and dashboard-spec readers
+        // that still read raw localStorage keep working.
+        try {
+          localStorage.setItem(`layout_${sector}`, JSON.stringify(layout));
+          localStorage.setItem(`widgets_${sector}`, JSON.stringify(widgets));
+        } catch {
+          /* storage may be unavailable; store state is still the source of truth */
+        }
+      },
+      resetDashboard: (sector) => {
+        const data = defaultDashboard();
+        set(state => ({ dashboards: { ...state.dashboards, [sector]: data } }));
+        try {
+          localStorage.setItem(`layout_${sector}`, JSON.stringify(data.layout));
+          localStorage.setItem(`widgets_${sector}`, JSON.stringify(data.widgets));
+        } catch {
+          /* ignore */
+        }
+      },
 
       signUp: ({ fullName, email, password: _password }) => {
         const now = Date.now();

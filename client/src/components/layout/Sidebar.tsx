@@ -24,7 +24,11 @@ import {
   AlertOctagon,
   Lightbulb,
   Workflow,
-  Lock
+  Lock,
+  Bell,
+  Share2,
+  Activity,
+  KeyRound
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AccountDropdown } from "@/components/AccountDropdown";
@@ -45,6 +49,15 @@ const navItems = [
   { name: "Data Sources", href: "/data", icon: Database, description: "Import & Connect" },
   { name: "Connectors", href: "/connectors", icon: Plug, description: "ERP Sync" },
   { name: "Exports", href: "/exports", icon: Download, description: "Report Engine" },
+];
+
+const upcomingNavItems = [
+  { name: "Team Management", icon: Users, description: "Roles & Members" },
+  { name: "Notifications", icon: Bell, description: "Alerts & Digest" },
+  { name: "Integrations", icon: Puzzle, description: "Connected Apps" },
+  { name: "Shared Workspaces", icon: Share2, description: "Cross-Team Boards" },
+  { name: "Audit Activity", icon: Activity, description: "Change History" },
+  { name: "API Access", icon: KeyRound, description: "Developer Keys" },
 ];
 
 const SECTOR_OPTIONS: { value: Sector; label: string; icon: any }[] = [
@@ -238,6 +251,30 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
             </Link>
           );
         })}
+
+        <div className="pt-4 mt-3 border-t border-slate-100">
+          <p className="px-4 mb-2 text-[9px] font-black uppercase tracking-widest text-slate-300">Coming Soon</p>
+          {upcomingNavItems.map((item) => (
+            <div
+              key={item.name}
+              aria-disabled="true"
+              title={`${item.name} — coming soon`}
+              className="flex items-center group relative px-4 py-3.5 rounded-2xl text-slate-300 cursor-not-allowed select-none"
+              data-testid={`nav-upcoming-${item.name.toLowerCase().replace(/\s+/g, '-')}`}
+            >
+              <div className="p-2 rounded-xl mr-4 shrink-0 bg-slate-50 text-slate-300 border border-dashed border-slate-200">
+                <item.icon className="w-5 h-5" />
+              </div>
+              <div className="flex flex-col min-w-0">
+                <span className="text-sm font-black uppercase tracking-widest truncate">{item.name}</span>
+                <span className="text-[10px] font-medium opacity-70 truncate">{item.description}</span>
+              </div>
+              <span className="ml-auto flex items-center text-[8px] font-black uppercase tracking-widest bg-slate-100 text-slate-400 border border-slate-200 px-1.5 py-0.5 rounded-full shrink-0">
+                Soon
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
 
       <div className="p-4 lg:p-5 border-t border-slate-50 shrink-0 space-y-2">

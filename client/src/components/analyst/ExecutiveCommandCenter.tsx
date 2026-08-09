@@ -10,34 +10,13 @@ import {
   Zap,
 } from "lucide-react";
 import type { Metric } from "@/hooks/use-sector-data";
-
-type Severity = "high" | "medium" | "low";
-
-interface TopPriority {
-  id: string;
-  title: string;
-  severity: Severity;
-  whatHappened: string;
-  whyItMatters: string;
-  businessImpact: string;
-  recommendedAction: string;
-  expectedOutcome: string;
-}
-
-interface HealthPillar {
-  pillar: string;
-  score: number;
-}
-
-interface CommandCenterResult {
-  healthScore: number;
-  healthGrade: string;
-  healthBreakdown: HealthPillar[];
-  executiveSummary: string;
-  topPriorities: TopPriority[];
-  alerts: { label: string; severity: Severity }[];
-  generatedBy: "claude" | "rule-based";
-}
+import type {
+  Severity,
+  TopPriority,
+  HealthPillar,
+  CommandCenterResult,
+  CommandCenterRequest,
+} from "@shared/ai-types";
 
 const SEVERITY_STYLES: Record<Severity, { dot: string; badge: string; label: string }> = {
   high: { dot: "bg-red-500", badge: "bg-red-50 text-red-700 border-red-200", label: "High" },
@@ -198,24 +177,27 @@ export function ExecutiveCommandCenter({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
-  const payload = useMemo(
-    () => ({
-      sector,
-      businessStructure,
-      metrics: metrics.map((m) => ({
-        label: m.label,
-        value: m.value,
-        trend: m.trend,
-        isPositive: m.isPositive,
-      })),
-    }),
-    [sector, businessStructure, metrics]
+  // Content-based key so the effect only re-runs when the metric values
+  // actually change — not on every render (which would cause a fetch loop).
+  const metricsKey = useMemo(
+    () => JSON.stringify(metrics.map((m) => [m.label, m.value, m.trend, m.isPositive])),
+    [metrics]
   );
 
   const load = useCallback(async () => {
     setLoading(true);
     setError(false);
     try {
+      const payload: CommandCenterRequest = {
+        sector,
+        businessStructure,
+        metrics: metrics.map((m) => ({
+          label: m.label,
+          value: m.value,
+          trend: m.trend,
+          isPositive: m.isPositive,
+        })),
+      };
       const res = await fetch("/api/ai/command-center", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -229,7 +211,8 @@ export function ExecutiveCommandCenter({
     } finally {
       setLoading(false);
     }
-  }, [payload]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sector, businessStructure, metricsKey]);
 
   useEffect(() => {
     load();

@@ -14,6 +14,36 @@ export interface AIProvider {
   recommendKpis(sector: string): Promise<any[]>;
 }
 
+// Flattens the structured AnalystResponse from /api/ai/chat into a readable
+// plain-text briefing for legacy string-based chat consumers.
+function flattenAnalystResponse(data: any): string {
+  const parts: string[] = [];
+  if (data.businessSummary) parts.push(data.businessSummary);
+  if (Array.isArray(data.keyFindings) && data.keyFindings.length) {
+    parts.push('Key Findings:\n' + data.keyFindings.map((f: string) => `• ${f}`).join('\n'));
+  }
+  if (Array.isArray(data.bottlenecks) && data.bottlenecks.length) {
+    parts.push(
+      'Bottlenecks:\n' +
+        data.bottlenecks.map((b: any) => `• ${b.title} (${b.severity}) — ${b.detail}`).join('\n')
+    );
+  }
+  if (data.rootCause) parts.push(`Root Cause: ${data.rootCause}`);
+  if (Array.isArray(data.recommendedActions) && data.recommendedActions.length) {
+    parts.push(
+      'Recommended Actions:\n' +
+        data.recommendedActions
+          .map((a: any, i: number) => `${i + 1}. ${a.action}${a.impact ? ` — ${a.impact}` : ''}`)
+          .join('\n')
+    );
+  }
+  if (data.expectedImpact) parts.push(`Expected Impact: ${data.expectedImpact}`);
+  if (Array.isArray(data.nextSteps) && data.nextSteps.length) {
+    parts.push('Next Steps:\n' + data.nextSteps.map((s: string, i: number) => `${i + 1}. ${s}`).join('\n'));
+  }
+  return parts.join('\n\n');
+}
+
 export class BackendAIProvider implements AIProvider {
   async generateInsights(sector: string, _data: any): Promise<AIResponse> {
     try {
@@ -56,7 +86,14 @@ export class BackendAIProvider implements AIProvider {
       });
       if (!res.ok) throw new Error('API error');
       const data = await res.json();
-      return data.response;
+      // The /api/ai/chat endpoint returns a structured AnalystResponse. Flatten
+      // it into a readable string for legacy string-based consumers (e.g. the
+      // Insights chat). The AIAnalystPanel consumes the structured shape directly.
+      if (data && typeof data === 'object' && 'businessSummary' in data) {
+        return flattenAnalystResponse(data);
+      }
+      if (typeof data?.response === 'string') return data.response;
+      throw new Error('Unexpected chat response shape');
     } catch {
       return new DemoAIProvider().chat(message, context);
     }

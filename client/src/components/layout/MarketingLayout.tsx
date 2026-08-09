@@ -55,7 +55,7 @@ export function MarketingLayout({ children }: { children: React.ReactNode }) {
             <div key={i} className="flex items-center gap-8 mx-4 text-[11px] font-black uppercase tracking-widest text-slate-300">
               <span>Build once. Render dashboards anywhere.</span>
               <span className="w-1.5 h-1.5 bg-primary rounded-full" />
-              <span className="text-primary">14-Day Free Trial available now.</span>
+              <span className="text-primary">{isAuthed ? 'Your AI supply chain analyst is ready.' : '14-Day Free Trial available now.'}</span>
               <span className="w-1.5 h-1.5 bg-primary rounded-full" />
               <span>AI dashboard generator for Excel, Power BI & Sheets.</span>
               <span className="w-1.5 h-1.5 bg-primary rounded-full" />
@@ -188,16 +188,33 @@ export function MarketingLayout({ children }: { children: React.ReactNode }) {
                 The AI-powered dashboard generator platform that helps businesses create operational analytics and render them into Excel, Power BI, Google Sheets, and beyond.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-8">
-                <Link href="/builder" className="w-full sm:w-auto">
-                  <Button className="w-full sm:w-auto font-black uppercase tracking-widest text-[10px] h-10 px-5 rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/30">
-                    Try Demo
-                  </Button>
-                </Link>
-                <Link href="/pricing" className="w-full sm:w-auto">
-                  <Button variant="outline" className="w-full sm:w-auto font-black uppercase tracking-widest text-[10px] h-10 px-5 rounded-xl border-slate-700 text-white hover:bg-slate-800 hover:text-white">
-                    Start Your 14-Day Free Trial
-                  </Button>
-                </Link>
+                {isAuthed ? (
+                  <>
+                    <Link href="/dashboard" className="w-full sm:w-auto">
+                      <Button className="w-full sm:w-auto font-black uppercase tracking-widest text-[10px] h-10 px-5 rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/30" data-testid="button-footer-open-dashboard">
+                        Open Dashboard
+                      </Button>
+                    </Link>
+                    <Link href="/insights" className="w-full sm:w-auto">
+                      <Button variant="outline" className="w-full sm:w-auto font-black uppercase tracking-widest text-[10px] h-10 px-5 rounded-xl border-slate-700 text-white hover:bg-slate-800 hover:text-white" data-testid="button-footer-open-ai-analyst">
+                        Open AI Analyst
+                      </Button>
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <Link href="/sign-up" className="w-full sm:w-auto">
+                      <Button className="w-full sm:w-auto font-black uppercase tracking-widest text-[10px] h-10 px-5 rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/30" data-testid="button-footer-start-free-trial">
+                        Start Free Trial
+                      </Button>
+                    </Link>
+                    <Link href="/contact" className="w-full sm:w-auto">
+                      <Button variant="outline" className="w-full sm:w-auto font-black uppercase tracking-widest text-[10px] h-10 px-5 rounded-xl border-slate-700 text-white hover:bg-slate-800 hover:text-white" data-testid="button-footer-book-demo">
+                        Book Demo
+                      </Button>
+                    </Link>
+                  </>
+                )}
               </div>
 
               <div className="space-y-3">

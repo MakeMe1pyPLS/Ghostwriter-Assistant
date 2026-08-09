@@ -7,7 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 export default function EnhancePage() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
-  const { selectedSector } = useDashboardStore();
+  const { selectedSector, saveDashboard } = useDashboardStore();
   const [loading, setLoading] = useState(false);
 
   const handleComplete = async (answers: EnhanceAnswers) => {
@@ -35,8 +35,7 @@ export default function EnhancePage() {
       if (!res.ok) throw new Error('Enhancement failed');
       const result = await res.json();
 
-      localStorage.setItem(`widgets_${selectedSector}`, JSON.stringify(result.widgets));
-      localStorage.setItem(`layout_${selectedSector}`, JSON.stringify(result.layout));
+      saveDashboard(selectedSector, result.layout, result.widgets);
       localStorage.setItem('generated_dashboard_meta', JSON.stringify({
         title: result.title,
         subtitle: result.subtitle,
@@ -59,5 +58,5 @@ export default function EnhancePage() {
     }
   };
 
-  return <EnhanceWizard onComplete={handleComplete} onCancel={() => navigate('/builder')} loading={loading} />;
+  return <EnhanceWizard onComplete={handleComplete} onCancel={() => navigate('/builder')} loading={loading} sector={selectedSector} />;
 }

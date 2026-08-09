@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useDashboardStore, Sector } from "@/hooks/use-dashboard-store";
+import { deriveMetricsFromRows, deriveChartFromRows } from "@/lib/dataset-library";
 
 export interface Metric {
   label: string;
@@ -78,7 +79,11 @@ export const getAllMetrics = (rangeMultiplier: number): Metric[] => {
 };
 
 export const useSectorData = () => {
-  const { selectedSector, selectedRange, importedData } = useDashboardStore();
+  const selectedSector = useDashboardStore((s) => s.selectedSector);
+  const selectedRange = useDashboardStore((s) => s.selectedRange);
+  const importedData = useDashboardStore((s) => s.importedData);
+  const datasetLibrary = useDashboardStore((s) => s.datasetLibrary);
+  const activeDatasetBySector = useDashboardStore((s) => s.activeDatasetBySector);
 
   const rangeMultiplier = useMemo(
     () => (selectedRange === '90d' ? 3 : selectedRange === '30d' ? 1 : 0.25),
@@ -87,35 +92,35 @@ export const useSectorData = () => {
 
   const allMetrics = useMemo(() => getAllMetrics(rangeMultiplier), [rangeMultiplier]);
 
+  // The active, non-archived dataset rows for the currently selected sector (if any).
+  const activeRows = useMemo<Record<string, any>[] | null>(() => {
+    const activeId = activeDatasetBySector[selectedSector];
+    if (activeId) {
+      const ds = datasetLibrary.find((d) => d.id === activeId && !d.archived);
+      if (ds && ds.rows.length > 0) return ds.rows;
+    }
+    // Legacy fallback: the deprecated single imported-data slot, custom sector only.
+    if (selectedSector === 'custom' && importedData && importedData.length > 0) {
+      return importedData;
+    }
+    return null;
+  }, [activeDatasetBySector, datasetLibrary, selectedSector, importedData]);
+
   const metrics = useMemo((): Metric[] => {
+    if (activeRows && activeRows.length > 0) {
+      const derived = deriveMetricsFromRows(activeRows, selectedSector);
+      if (derived.length > 0) return derived;
+    }
     if (selectedSector === 'custom') {
-      if (importedData && importedData.length > 0) {
-        const firstRow = importedData[0];
-        const keys = Object.keys(firstRow).slice(0, 4);
-        return keys.map((key) => ({
-          category: 'custom' as Sector,
-          label: key,
-          value: String(firstRow[key]),
-          trend: '+0%',
-          isPositive: true,
-          helpText: `Imported data column: ${key}`,
-        }));
-      }
       return allMetrics.filter(m => m.category === 'unified');
     }
     return allMetrics.filter(m => m.category === selectedSector);
-  }, [selectedSector, allMetrics, importedData]);
+  }, [selectedSector, allMetrics, activeRows]);
 
   const chartData = useMemo(() => {
-    if (selectedSector === 'custom' && importedData && importedData.length > 0) {
-      const firstNumericKey = Object.keys(importedData[0]).find(key => !isNaN(Number(importedData[0][key])));
-      const firstStringKey = Object.keys(importedData[0]).find(key => isNaN(Number(importedData[0][key])));
-      if (firstNumericKey && firstStringKey) {
-        return importedData.slice(0, 30).map((row, i) => ({
-          name: String(row[firstStringKey] || `Row ${i}`),
-          value: Number(row[firstNumericKey]) || 0,
-        }));
-      }
+    if (activeRows && activeRows.length > 0) {
+      const derived = deriveChartFromRows(activeRows);
+      if (derived) return derived;
     }
     const multi = SECTOR_MULTIPLIERS[selectedSector] ?? 1.0;
     return BASE_CHART_DATA.map(d => ({
@@ -125,11 +130,11 @@ export const useSectorData = () => {
       lower: d.lower != null ? Math.round(d.lower * multi * rangeMultiplier) : null,
       upper: d.upper != null ? Math.round(d.upper * multi * rangeMultiplier) : null,
     }));
-  }, [selectedSector, importedData, rangeMultiplier]);
+  }, [selectedSector, activeRows, rangeMultiplier]);
 
   const hasImportedData = useMemo(
-    () => !!importedData && importedData.length > 0,
-    [importedData]
+    () => !!activeRows && activeRows.length > 0,
+    [activeRows]
   );
 
   return {

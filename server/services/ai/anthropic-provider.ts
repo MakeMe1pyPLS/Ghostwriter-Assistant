@@ -1,4 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
+import type { Equal, Expect } from '@shared/ai-types';
 import {
   type OperationalIntelligenceProvider,
   type CommandCenterRequest,
@@ -7,7 +8,12 @@ import {
   type OperationsIntelItem,
   type TopPriority,
   type Severity,
+  type AnalystChatRequest,
+  type AnalystResponse,
+  type AnalystBottleneck,
+  type AnalystAction,
   computeHealth,
+  buildRuleBasedAnalystResponse,
   RuleBasedIntelligenceProvider,
 } from './operational-intelligence';
 
@@ -216,6 +222,101 @@ Return exactly 4 items ordered by business impact (highest first). Ground everyt
     }
   }
 
+  async generateAnalystResponse(req: AnalystChatRequest): Promise<AnalystResponse> {
+    const { message, sector, metrics, businessStructure } = req;
+    const sectorLabel = SECTOR_LABELS[sector] || sector;
+    const health = computeHealth(metrics);
+    const metricsBlock = metrics
+      .map((m) => `- ${m.label}: ${m.value} (${m.trend}, ${m.isPositive ? 'favorable' : 'unfavorable'})`)
+      .join('\n');
+
+    const system = `You are the AI Operations Analyst for ChainInsideIQ. You answer like a senior operations consultant and BI analyst, never a generic chatbot. Always interpret the data: what happened, why, the impact, and what to do next, ordered by operational impact. Be specific and concise. Output ONLY valid JSON, no markdown, no commentary.`;
+
+    const prompt = `Business context:
+- Sector: ${sectorLabel}
+- Business structure: ${businessStructure || 'single'}
+- Computed Business Health Score: ${health.healthScore}/100 (grade: ${health.healthGrade})
+
+Current operational metrics:
+${metricsBlock || '- (no metrics provided)'}
+
+The user asked: "${message || 'Give me an operational read on my business.'}"
+
+Answer with an operationally structured briefing as JSON with this exact shape:
+{
+  "businessSummary": "2-3 sentences interpreting the current condition in the context of the question",
+  "keyFindings": ["3-4 short, data-grounded findings"],
+  "bottlenecks": [
+    { "title": "short bottleneck title", "severity": "high | medium | low", "detail": "one sentence on the issue" }
+  ],
+  "rootCause": "one sentence on the underlying root cause",
+  "recommendedActions": [
+    { "action": "one specific, actionable step", "impact": "one short phrase on the expected impact" }
+  ],
+  "expectedImpact": "one sentence on the overall expected impact if the actions are taken",
+  "nextSteps": ["2-4 concrete, sequenced next steps"]
+}
+
+Return 1-3 bottlenecks and 3 recommendedActions ordered by operational impact (highest first). Ground everything in the metrics above.`;
+
+    try {
+      const aiMessage = await this.client.messages.create({
+        // "claude-sonnet-4-20250514"
+        model: DEFAULT_MODEL_STR,
+        max_tokens: 1800,
+        system,
+        messages: [{ role: 'user', content: prompt }],
+      });
+
+      const textBlock = aiMessage.content.find((b) => b.type === 'text');
+      const raw = textBlock && textBlock.type === 'text' ? textBlock.text : '';
+      const parsed = JSON.parse(this.extractJson(raw));
+
+      const bottlenecks: AnalystBottleneck[] = Array.isArray(parsed.bottlenecks)
+        ? parsed.bottlenecks.slice(0, 3).map((b: any) => ({
+            title: String(b.title || 'Operational bottleneck'),
+            severity: clampSeverity(b.severity),
+            detail: String(b.detail || ''),
+          }))
+        : [];
+
+      const recommendedActions: AnalystAction[] = Array.isArray(parsed.recommendedActions)
+        ? parsed.recommendedActions.slice(0, 4).map((a: any) => ({
+            action: String(a.action || ''),
+            impact: String(a.impact || ''),
+          }))
+        : [];
+
+      const keyFindings: string[] = Array.isArray(parsed.keyFindings)
+        ? parsed.keyFindings.slice(0, 4).map((f: any) => String(f))
+        : [];
+
+      const nextSteps: string[] = Array.isArray(parsed.nextSteps)
+        ? parsed.nextSteps.slice(0, 5).map((s: any) => String(s))
+        : [];
+
+      const businessSummary = String(parsed.businessSummary || '');
+      if (!businessSummary || recommendedActions.length === 0) {
+        throw new Error('Incomplete analyst response');
+      }
+
+      return {
+        question: String(message ?? ''),
+        businessSummary,
+        keyFindings,
+        bottlenecks,
+        rootCause: String(parsed.rootCause || ''),
+        recommendedActions,
+        expectedImpact: String(parsed.expectedImpact || ''),
+        nextSteps,
+        generatedBy: 'claude',
+      };
+    } catch (err) {
+      console.error('[AnthropicIntelligenceProvider] analyst falling back to rule-based:', err);
+      return buildRuleBasedAnalystResponse(req);
+    }
+  }
+
   private extractJson(text: string): string {
     const start = text.indexOf('{');
     const end = text.lastIndexOf('}');
@@ -223,3 +324,19 @@ Return exactly 4 items ordered by business impact (highest first). Ground everyt
     return text.slice(start, end + 1);
   }
 }
+
+// ---------------------------------------------------------------------------
+// Drift guards (compile-time only)
+// ---------------------------------------------------------------------------
+// The Claude-backed provider must return the same shared contract shapes as the
+// rule-based fallback it can transparently degrade to. These assertions stop
+// compiling (failing `npm run check`) if its response shapes drift.
+type _AssertClaudeCommandCenter = Expect<
+  Equal<Awaited<ReturnType<AnthropicIntelligenceProvider['generateCommandCenter']>>, CommandCenterResult>
+>;
+type _AssertClaudeOperationsIntel = Expect<
+  Equal<Awaited<ReturnType<AnthropicIntelligenceProvider['generateOperationsIntel']>>, OperationsIntelResult>
+>;
+type _AssertClaudeAnalyst = Expect<
+  Equal<Awaited<ReturnType<AnthropicIntelligenceProvider['generateAnalystResponse']>>, AnalystResponse>
+>;

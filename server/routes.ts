@@ -15,6 +15,7 @@ import { fetchApiData } from "./services/data-sources/api-source";
 import { getAllDatasets, getDataset, deleteDataset, getDatasetRows, inferColumns, registerDataset } from "./services/data-sources/dataset-registry";
 import { DemoAIProvider } from "./services/ai/demo-provider";
 import { getIntelligenceProvider } from "./services/ai/intelligence-router";
+import type { CommandCenterRequest, AnalystChatRequest } from "@shared/ai-types";
 
 interface AIResponse {
   summary: string;
@@ -95,39 +96,6 @@ const SECTOR_INSIGHTS: Record<string, AIResponse> = {
   }
 };
 
-const CHAT_RESPONSES: Record<string, string> = {
-  revenue: "Revenue softened primarily due to lower conversion rates in the secondary market segment and a slight drop in Average Order Value (AOV) from $86 to $84. The root cause appears to be increased price sensitivity among mid-tier customers. To reverse this trend, consider running targeted promotions for high-intent segments (cart abandoners with AOV >$100) and bundling complementary products to push AOV back above target.",
-  late: "Shipment delays increased mainly due to higher warehouse utilization (approaching 92%) and regional carrier congestion in the Midwest corridor. The bottleneck is concentrated at the picking-to-packing handoff during the 11am-1pm peak window. To stabilize performance, consider rerouting 10-15% of shipments through alternate carriers and temporarily increasing picking capacity with cross-trained staff.",
-  action: "Based on current data, your top 3 immediate priorities should be: 1) Address the fulfillment bottleneck by reallocating labor from put-away to picking for the next 48 hours. 2) Expedite all priority and subscription orders through the express lane. 3) Proactively reach out to customers with orders in the delayed pipeline to manage expectations.",
-  kpi: "The most critical KPI to monitor right now is the 'Perfect Order Rate'. It's currently at 98.4% but is under pressure from the transit delays and warehouse congestion. A drop below 97% would trigger SLA penalties with your top 3 retail partners. Secondary: watch the Cash-to-Cash Cycle — it's a leading indicator of liquidity stress.",
-  forecast: "Looking ahead over the next 14 days:\n\n• Days 1-3: Continued pressure on On-Time Delivery (-1.5% projected)\n• Days 4-7: Stabilization as carrier capacity normalizes\n• Days 8-14: Recovery to baseline, with a potential 2% improvement if recommended actions are executed\n\nOverall forecast: Moderate recovery with 72% confidence. Key risk factor: unexpected demand surge from upcoming promotional calendar.",
-  summarize: "Executive Summary:\n\nOperations remain fundamentally resilient, but we are seeing friction at the edges. Top-line metrics are holding (+8% revenue YoY), but underlying operational efficiency is slipping. Key concerns: warehouse utilization at 92%, transit times +14 hours, and defect rates creeping above target. Net assessment: Stable with Watch status. Recommended escalation: None at this time, but implement the 3 corrective actions within 48 hours to prevent degradation.",
-  bullwhip: "The Bullwhip Effect Index measures how much demand signal amplification occurs as you move upstream in the supply chain. Your current index of 1.12 means demand variance at the supplier level is 12% higher than at the point of sale. This is within acceptable range (target: <1.15), but the upward trend is concerning. Root cause: inconsistent order batching and long lead times from Tier 2 suppliers.",
-  perfect: "Perfect Order Rate measures the percentage of orders that are delivered complete, on-time, undamaged, and with accurate documentation. Your current rate of 98.4% is strong, but each 0.1% drop represents approximately $12,000 in penalty costs and 45 affected customers. The metric is currently under pressure from transit delays.",
-  cash: "Cash-to-Cash Cycle Time measures the number of days between when you pay your suppliers and when you receive payment from customers. Your current 14-day cycle is 2 days above target. This means $2.1M in additional working capital is being tied up. Primary driver: supplier payment terms tightened while customer payment cycles extended.",
-  defect: "The current defect rate of 0.8% is at the upper boundary of your target range. The increase is primarily driven by Assembly Line C, where a calibration drift was detected on the precision tooling module. Historical pattern suggests this is a maintenance-related issue rather than a material quality problem."
-};
-
-function matchChat(message: string, sector: string): string {
-  const msg = message.toLowerCase();
-
-  if (msg.includes("bullwhip")) return CHAT_RESPONSES.bullwhip;
-  if (msg.includes("perfect order")) return CHAT_RESPONSES.perfect;
-  if (msg.includes("cash-to-cash") || msg.includes("cash to cash") || msg.includes("c2c")) return CHAT_RESPONSES.cash;
-  if (msg.includes("defect")) return CHAT_RESPONSES.defect;
-  if (msg.includes("revenue") || msg.includes("drop") || msg.includes("decline") || msg.includes("aov")) return CHAT_RESPONSES.revenue;
-  if (msg.includes("late") || msg.includes("shipment") || msg.includes("delay") || msg.includes("delivery")) return CHAT_RESPONSES.late;
-  if (msg.includes("next") || msg.includes("action") || msg.includes("do") || msg.includes("priority")) return CHAT_RESPONSES.action;
-  if (msg.includes("kpi") || msg.includes("track") || msg.includes("urgent") || msg.includes("attention")) return CHAT_RESPONSES.kpi;
-  if (msg.includes("forecast") || msg.includes("14 day") || msg.includes("7 day") || msg.includes("future") || msg.includes("outlook")) return CHAT_RESPONSES.forecast;
-  if (msg.includes("summarize") || msg.includes("leadership") || msg.includes("executive") || msg.includes("summary")) return CHAT_RESPONSES.summarize;
-  if (msg.includes("what is") || msg.includes("what does") || msg.includes("explain") || msg.includes("mean")) {
-    return `Great question. In supply chain analytics, that metric helps quantify operational efficiency across your ${sector} workflow. It's typically benchmarked against industry standards and monitored for trend deviations. Would you like me to break down how it specifically applies to your current dashboard configuration?`;
-  }
-
-  return `I've analyzed the recent ${sector} data across your dashboard. While core operations are stable, there are emerging trends in fulfillment efficiency and capacity utilization that warrant attention. The data suggests focusing on operational throughput in the near term. Would you like me to drill into a specific KPI or generate a detailed forecast?`;
-}
-
 export async function registerRoutes(
   httpServer: Server,
   app: Express
@@ -139,10 +107,23 @@ export async function registerRoutes(
     res.json(SECTOR_INSIGHTS[key]);
   });
 
-  app.post('/api/ai/chat', (req, res) => {
-    const { message, sector } = req.body;
-    const response = matchChat(message || '', sector || 'unified');
-    res.json({ response });
+  app.post('/api/ai/chat', async (req, res) => {
+    const parsed = analystChatSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ error: 'Invalid chat payload', details: parsed.error.flatten() });
+    }
+
+    try {
+      const provider = getIntelligenceProvider();
+      const result = await provider.generateAnalystResponse({
+        ...normalizeIntelRequest(parsed.data),
+        message: parsed.data.message,
+      } satisfies AnalystChatRequest);
+      res.json(result);
+    } catch (err) {
+      console.error('[ai/chat] error:', err);
+      res.status(500).json({ error: 'Failed to generate analyst response' });
+    }
   });
 
   app.post('/api/ai/forecast', (req, res) => {
@@ -205,8 +186,16 @@ export async function registerRoutes(
       .default([]),
   });
 
+  const analystChatSchema = operationsIntelSchema.extend({
+    message: z.string().trim().max(2000).default(''),
+  });
+
   type OperationsIntelInput = z.infer<typeof operationsIntelSchema>;
-  const normalizeIntelRequest = (data: OperationsIntelInput) => ({
+  // `satisfies CommandCenterRequest` ties the Zod validator to the shared
+  // request contract: if the schema or shared type drift apart (e.g. a renamed
+  // field or a metric losing its `value`), this stops compiling and `npm run
+  // check` fails — the request side now has the same drift guard as responses.
+  const normalizeIntelRequest = (data: OperationsIntelInput): CommandCenterRequest => ({
     sector: data.sector || 'unified',
     metrics: data.metrics.map((m) => ({
       label: m.label,
@@ -215,7 +204,7 @@ export async function registerRoutes(
       isPositive: m.isPositive ?? true,
     })),
     businessStructure: data.businessStructure,
-  });
+  }) satisfies CommandCenterRequest;
 
   app.post('/api/ai/command-center', async (req, res) => {
     const parsed = operationsIntelSchema.safeParse(req.body);

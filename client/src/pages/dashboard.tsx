@@ -11,59 +11,45 @@ import { ExportDrawer } from "@/components/ExportDrawer";
 import { Link } from "wouter";
 import { AnalystPanel } from "@/components/analyst/AnalystPanel";
 import { AIAnalystPanel } from "@/components/analyst/AIAnalystPanel";
-import { DashboardInsightBanner } from "@/components/analyst/DashboardInsightBanner";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { ExecutiveCommandCenter } from "@/components/analyst/ExecutiveCommandCenter";
+import { GRID_COLS, GRID_BREAKPOINTS, GRID_ROW_HEIGHT, GRID_MARGIN } from "@/lib/dashboard-grid";
+
+// Stable empty-array reference so loading renders don't churn new refs into the grid.
+const EMPTY_ARR: any[] = [];
 
 export default function DashboardPage() {
   const sectorData = useSectorData();
   const { metrics, chartData, donutData, sector, dateRange, allMetrics } = sectorData;
-  const { analystMode, setAnalystMode } = useDashboardStore();
+  const { analystMode, setAnalystMode, businessStructure } = useDashboardStore();
+  // Read the dashboard config reactively from the store so Builder edits are
+  // mirrored here without a manual refresh. The Builder is the single source of truth.
+  const dash = useDashboardStore((s) => s.dashboards[sector]);
+  const ensureDashboardLoaded = useDashboardStore((s) => s.ensureDashboardLoaded);
   const { toast } = useToast();
-  const [layout, setLayout] = useState<any[]>([]);
-  const [layouts, setLayouts] = useState<any>({});
-  const [widgets, setWidgets] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
   const [aiPanelOpen, setAiPanelOpen] = useState(false);
-  const isMobile = useIsMobile();
 
   useEffect(() => {
-    setLoading(true);
-    const savedLayout = localStorage.getItem(`layout_${sector}`);
-    const savedWidgets = localStorage.getItem(`widgets_${sector}`);
+    ensureDashboardLoaded(sector);
+  }, [sector, ensureDashboardLoaded]);
 
-    if (savedLayout && savedWidgets) {
-      const parsed = JSON.parse(savedLayout);
-      const staticLayout = parsed.map((l: any) => ({
+  const widgets = dash?.widgets ?? EMPTY_ARR;
+  const rawLayout = dash?.layout ?? EMPTY_ARR;
+  const loading = !dash;
+
+  // Lock every item read-only so the presentation grid mirrors the saved geometry exactly.
+  const layout = useMemo(
+    () =>
+      rawLayout.map((l: any) => ({
         ...l,
         static: true,
         minW: l.w,
         minH: l.h,
         maxW: l.w,
         maxH: l.h,
-      }));
-      setLayout(staticLayout);
-      setLayouts({ lg: staticLayout, md: staticLayout, sm: staticLayout, xs: staticLayout, xxs: staticLayout });
-      setWidgets(JSON.parse(savedWidgets));
-    } else {
-      const defaultLayout = [
-        { i: 'kpi-0', x: 0, y: 0, w: 3, h: 2, static: true },
-        { i: 'kpi-1', x: 3, y: 0, w: 3, h: 2, static: true },
-        { i: 'kpi-2', x: 6, y: 0, w: 3, h: 2, static: true },
-        { i: 'kpi-3', x: 9, y: 0, w: 3, h: 2, static: true },
-        { i: 'trend-1', x: 0, y: 2, w: 12, h: 4, static: true },
-      ];
-      setLayout(defaultLayout);
-      setLayouts({ lg: defaultLayout });
-      setWidgets([
-        { id: 'kpi-0', type: 'kpi', metricIndex: 0 },
-        { id: 'kpi-1', type: 'kpi', metricIndex: 1 },
-        { id: 'kpi-2', type: 'kpi', metricIndex: 2 },
-        { id: 'kpi-3', type: 'kpi', metricIndex: 3 },
-        { id: 'trend-1', type: 'trend' },
-      ]);
-    }
-    setTimeout(() => setLoading(false), 400);
-  }, [sector]);
+      })),
+    [rawLayout]
+  );
+  const layouts = useMemo(() => ({ lg: layout }), [layout]);
 
   const widgetData = useMemo(
     () => ({ metrics, chartData, donutData, allMetrics }),
@@ -141,7 +127,7 @@ export default function DashboardPage() {
               <span className="hidden sm:inline">AI Analyst</span>
             </Button>
 
-            <ExportDrawer layout={layout} widgets={widgets} sector={sector} dateRange={dateRange} metrics={metrics} chartData={chartData} donutData={donutData} allMetrics={allMetrics} />
+            <ExportDrawer layout={rawLayout} widgets={widgets} sector={sector} dateRange={dateRange} metrics={metrics} chartData={chartData} donutData={donutData} allMetrics={allMetrics} />
 
             <Button variant="outline" className="rounded-xl font-black text-[10px] uppercase tracking-widest h-9 md:h-10 px-4 shadow-sm border-slate-200">
               <Share2 className="w-4 h-4 md:mr-2" /> <span className="hidden md:inline">Share View</span>
@@ -158,10 +144,14 @@ export default function DashboardPage() {
           </div>
         )}
 
-        <DashboardInsightBanner sector={sector} />
+        <ExecutiveCommandCenter sector={sector} metrics={metrics} businessStructure={businessStructure} />
 
         <div className="bg-transparent flex-1 relative min-h-0">
-          {widgets.length === 0 && !loading ? (
+          {loading ? (
+            <div className="h-64 flex items-center justify-center" data-testid="status-dashboard-loading">
+              <div className="w-6 h-6 border-2 border-slate-300 border-t-primary rounded-full animate-spin" />
+            </div>
+          ) : widgets.length === 0 ? (
             <div className="h-64 flex flex-col items-center justify-center text-center bg-white rounded-3xl border border-slate-200 border-dashed">
               <h3 className="text-lg font-bold text-slate-900 mb-2">No Widgets Configured</h3>
               <p className="text-slate-500 text-sm mb-6">Build your dashboard first to see it here in presentation mode.</p>
@@ -169,43 +159,18 @@ export default function DashboardPage() {
                 <Button>Go to Builder</Button>
               </Link>
             </div>
-          ) : isMobile ? (
-            // Mobile: stacked vertical layout — saved grid widths assume 12 cols, which don't fit narrow screens
-            <div className="flex flex-col gap-4">
-              {widgets.map((w) => {
-                const layoutItem = layout.find((l: any) => l.i === w.id);
-                const widgetH = layoutItem?.h ?? 4;
-                const minHeight = Math.max(160, widgetH * 60);
-                return (
-                  <div
-                    key={w.id}
-                    style={{ minHeight }}
-                    className={
-                      "flex flex-col overflow-hidden transition-all duration-300 " +
-                      (w.stylePreset === 'corporate'
-                        ? "bg-white rounded-lg border border-slate-300 shadow-sm p-4"
-                        : w.stylePreset === 'executive'
-                        ? "bg-gradient-to-b from-slate-900 to-slate-800 text-white rounded-xl border border-slate-700 shadow-lg p-4"
-                        : w.stylePreset === 'elevated'
-                        ? "bg-white rounded-2xl border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.08)] p-4"
-                        : w.stylePreset === 'compact'
-                        ? "bg-white rounded-md border border-slate-200 shadow-sm p-3"
-                        : "bg-white rounded-3xl border border-slate-100 shadow-[0_10px_40px_rgb(0,0,0,0.04)] p-4")
-                    }
-                    data-testid={`mobile-widget-${w.id}`}
-                  >
-                    {renderWidgetContent(w)}
-                  </div>
-                );
-              })}
-            </div>
           ) : (
+            // Same responsive grid engine + geometry as the Builder, so widgets
+            // sit in the exact same place and size. Smaller breakpoints (incl. mobile)
+            // are derived from the lg layout by react-grid-layout, clamped to the
+            // available columns — no separate mobile stack to diverge from.
             <MeasuredGrid
               className="layout presentation-mode"
               layouts={layouts}
-              cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
-              rowHeight={90}
-              margin={[20, 20]}
+              cols={GRID_COLS}
+              breakpoints={GRID_BREAKPOINTS}
+              rowHeight={GRID_ROW_HEIGHT}
+              margin={GRID_MARGIN}
               isDraggable={false}
               isResizable={false}
               compactType={null}
@@ -213,6 +178,7 @@ export default function DashboardPage() {
               {widgets.map((w) => (
                 <div
                   key={w.id}
+                  data-testid={`widget-${w.id}`}
                   className={
                     "flex flex-col overflow-hidden transition-all duration-300 " +
                     (w.stylePreset === 'corporate'

@@ -7,6 +7,7 @@ import {
   CheckCircle2, ChevronRight, BrainCircuit, Building2, Gauge
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { ExecutivePreview } from "@/components/analyst/ExecutivePreview";
 
 export type EnhanceAnswers = {
   currentTool: string;
@@ -22,6 +23,7 @@ interface EnhanceWizardProps {
   onCancel: () => void;
   loading?: boolean;
   hasExistingDashboard?: boolean;
+  sector?: string;
 }
 
 const ENHANCE_STEPS = [
@@ -65,8 +67,9 @@ function CheckCard({ selected, onClick, label }: { selected: boolean; onClick: (
   );
 }
 
-export function EnhanceWizard({ onComplete, onCancel, loading }: EnhanceWizardProps) {
+export function EnhanceWizard({ onComplete, onCancel, loading, sector }: EnhanceWizardProps) {
   const [step, setStep] = useState(0);
+  const [showPreview, setShowPreview] = useState(false);
   const [answers, setAnswers] = useState<EnhanceAnswers>({
     currentTool: '', improvements: [], keepKpis: true, recommendKpis: false, designStyle: '', targetTool: '',
   });
@@ -91,7 +94,7 @@ export function EnhanceWizard({ onComplete, onCancel, loading }: EnhanceWizardPr
 
   const handleNext = () => {
     if (step < ENHANCE_STEPS.length - 1) setStep(step + 1);
-    else onComplete(answers);
+    else setShowPreview(true);
   };
 
   const renderStep = () => {
@@ -153,6 +156,57 @@ export function EnhanceWizard({ onComplete, onCancel, loading }: EnhanceWizardPr
       default: return null;
     }
   };
+
+  if (showPreview) {
+    return (
+      <div className="fixed inset-0 z-50 bg-white flex flex-col">
+        <div className="border-b border-slate-200 bg-white/80 backdrop-blur-md px-4 md:px-8 py-4 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-indigo-500/10 flex items-center justify-center">
+              <BrainCircuit className="w-5 h-5 text-indigo-600" />
+            </div>
+            <div>
+              <h2 className="text-sm font-black text-slate-900 uppercase tracking-widest">AI Executive Preview</h2>
+              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Review before we enhance it</p>
+            </div>
+          </div>
+          <Button variant="ghost" onClick={onCancel} className="text-slate-500 font-bold text-xs uppercase tracking-widest" data-testid="button-cancel-enhance">Cancel</Button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto">
+          <div className="max-w-3xl mx-auto px-4 md:px-8 py-8 md:py-10">
+            <h3 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tighter mb-2">Here's what we're seeing</h3>
+            <p className="text-slate-500 font-medium mb-8">A consultant-grade read on your operations before we enhance the dashboard.</p>
+            <ExecutivePreview sector={sector || 'ecommerce'} variant="enhance" />
+          </div>
+        </div>
+
+        <div className="border-t border-slate-200 bg-white px-4 md:px-8 py-4 flex items-center justify-between shrink-0">
+          <Button
+            variant="outline"
+            onClick={() => setShowPreview(false)}
+            disabled={loading}
+            className="rounded-xl font-bold text-xs uppercase tracking-widest h-11 px-6 border-slate-200"
+            data-testid="button-enhance-preview-back"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" /> Back
+          </Button>
+          <Button
+            onClick={() => onComplete(answers)}
+            disabled={loading}
+            className="rounded-xl font-black text-xs uppercase tracking-widest h-11 px-8 shadow-lg bg-indigo-600 hover:bg-indigo-700 shadow-indigo-500/20"
+            data-testid="button-enhance-preview-confirm"
+          >
+            {loading ? (
+              <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" /> Enhancing...</>
+            ) : (
+              <><BrainCircuit className="w-4 h-4 mr-2" /> Enhance Dashboard</>
+            )}
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-50 bg-white flex flex-col">

@@ -2,8 +2,11 @@ import { MarketingLayout } from "@/components/layout/MarketingLayout";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { ArrowRight, LayoutDashboard, BrainCircuit, TrendingUp, Download, Plug, BarChart3, CheckCircle2, Zap, Sparkles, Wand2, Wrench } from "lucide-react";
+import { useDashboardStore } from "@/hooks/use-dashboard-store";
 
 export default function HomePage() {
+  const currentUser = useDashboardStore((s) => s.currentUser);
+  const isAuthed = !!currentUser;
   return (
     <MarketingLayout>
       {/* HERO SECTION */}
@@ -27,23 +30,52 @@ export default function HomePage() {
           </p>
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link href="/pricing">
-              <Button className="w-full sm:w-auto font-black uppercase tracking-widest text-sm h-14 px-8 rounded-2xl shadow-xl shadow-primary/20 hover:shadow-primary/30 hover:-translate-y-0.5 transition-all">
-                Start 14-Day Free Trial <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
-            </Link>
-            <Link href="/builder">
-              <Button variant="outline" className="w-full sm:w-auto font-black uppercase tracking-widest text-sm h-14 px-8 rounded-2xl border-slate-200 bg-white hover:bg-slate-50 shadow-sm">
-                Explore the Demo
-              </Button>
-            </Link>
+            {isAuthed ? (
+              <>
+                <Link href="/dashboard">
+                  <Button className="w-full sm:w-auto font-black uppercase tracking-widest text-sm h-14 px-8 rounded-2xl shadow-xl shadow-primary/20 hover:shadow-primary/30 hover:-translate-y-0.5 transition-all" data-testid="button-open-dashboard">
+                    Open Dashboard <ArrowRight className="w-5 h-5 ml-2" />
+                  </Button>
+                </Link>
+                <Link href="/insights">
+                  <Button variant="outline" className="w-full sm:w-auto font-black uppercase tracking-widest text-sm h-14 px-8 rounded-2xl border-slate-200 bg-white hover:bg-slate-50 shadow-sm" data-testid="button-open-ai-analyst">
+                    Open AI Analyst
+                  </Button>
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link href="/sign-up">
+                  <Button className="w-full sm:w-auto font-black uppercase tracking-widest text-sm h-14 px-8 rounded-2xl shadow-xl shadow-primary/20 hover:shadow-primary/30 hover:-translate-y-0.5 transition-all" data-testid="button-start-free-trial">
+                    Start Free Trial <ArrowRight className="w-5 h-5 ml-2" />
+                  </Button>
+                </Link>
+                <Link href="/contact">
+                  <Button variant="outline" className="w-full sm:w-auto font-black uppercase tracking-widest text-sm h-14 px-8 rounded-2xl border-slate-200 bg-white hover:bg-slate-50 shadow-sm" data-testid="button-book-demo">
+                    Book Demo
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
           
-          <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 text-xs font-bold text-slate-400 uppercase tracking-widest">
-            <span className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 text-emerald-500" /> No setup friction</span>
-            <span className="hidden sm:inline">•</span>
-            <span className="text-primary">Try it free for 14 days</span>
-          </div>
+          {isAuthed ? (
+            <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 text-xs font-bold text-slate-400 uppercase tracking-widest">
+              <span className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 text-emerald-500" /> Welcome back</span>
+              <span className="hidden sm:inline">•</span>
+              <span className="text-primary">Your workspace is ready</span>
+              <span className="hidden sm:inline">•</span>
+              <span className="text-slate-400">Jump straight to your dashboards</span>
+            </div>
+          ) : (
+            <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 text-xs font-bold text-slate-400 uppercase tracking-widest">
+              <span className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 text-emerald-500" /> No setup friction</span>
+              <span className="hidden sm:inline">•</span>
+              <span className="text-primary">Try free for 14 days · No credit card</span>
+              <span className="hidden sm:inline">•</span>
+              <span className="text-slate-400">Demo requires no signup</span>
+            </div>
+          )}
         </div>
       </section>
 
@@ -184,21 +216,42 @@ export default function HomePage() {
       <section className="py-32 px-4 md:px-6 bg-primary text-white text-center">
         <div className="max-w-3xl mx-auto">
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/10 rounded-full text-xs font-bold uppercase tracking-widest text-white mb-8 border border-white/20">
-            Start free, then upgrade
+            {isAuthed ? 'Your workspace is ready' : 'Start free, then upgrade'}
           </div>
           <h2 className="text-4xl md:text-6xl font-black tracking-tighter mb-6">Experience the AI dashboard generator live.</h2>
-          <p className="text-teal-50 text-lg mb-10 font-medium">Start with a guided demo, then unlock your 14-day free trial.</p>
+          <p className="text-teal-50 text-lg mb-10 font-medium">
+            {isAuthed
+              ? 'Jump back into your dashboards and AI supply chain analyst.'
+              : 'Start with a guided demo, then unlock your 14-day free trial.'}
+          </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Link href="/pricing">
-              <Button className="w-full sm:w-auto font-black uppercase tracking-widest text-sm h-14 px-10 rounded-2xl bg-white text-primary hover:bg-slate-50 hover:scale-105 transition-all shadow-2xl">
-                Start Your 14-Day Free Trial
-              </Button>
-            </Link>
-            <Link href="/builder">
-              <Button variant="outline" className="w-full sm:w-auto font-black uppercase tracking-widest text-sm h-14 px-10 rounded-2xl border-white/30 text-white hover:bg-white/10 transition-all">
-                Try Interactive Demo
-              </Button>
-            </Link>
+            {isAuthed ? (
+              <>
+                <Link href="/dashboard">
+                  <Button className="w-full sm:w-auto font-black uppercase tracking-widest text-sm h-14 px-10 rounded-2xl bg-white text-primary hover:bg-slate-50 hover:scale-105 transition-all shadow-2xl" data-testid="button-cta-open-dashboard">
+                    Open Dashboard
+                  </Button>
+                </Link>
+                <Link href="/insights">
+                  <Button variant="outline" className="w-full sm:w-auto font-black uppercase tracking-widest text-sm h-14 px-10 rounded-2xl border-white/30 text-white hover:bg-white/10 transition-all" data-testid="button-cta-open-ai-analyst">
+                    Open AI Analyst
+                  </Button>
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link href="/sign-up">
+                  <Button className="w-full sm:w-auto font-black uppercase tracking-widest text-sm h-14 px-10 rounded-2xl bg-white text-primary hover:bg-slate-50 hover:scale-105 transition-all shadow-2xl" data-testid="button-cta-start-free-trial">
+                    Start Free Trial
+                  </Button>
+                </Link>
+                <Link href="/contact">
+                  <Button variant="outline" className="w-full sm:w-auto font-black uppercase tracking-widest text-sm h-14 px-10 rounded-2xl border-white/30 text-white hover:bg-white/10 transition-all" data-testid="button-cta-book-demo">
+                    Book Demo
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </section>
