@@ -11,9 +11,14 @@ const __dirname = path.dirname(__filename);
 export default defineConfig({
   root: path.resolve(__dirname, "client"),
 
+  build: {
+    outDir: path.resolve(__dirname, "dist/public"),
+    emptyOutDir: true,
+  },
+
   plugins: [
     react(),
-    tailwindcss(), // 🔥 THIS FIXES YOUR PROBLEM
+    tailwindcss(),
   ],
 
   resolve: {
