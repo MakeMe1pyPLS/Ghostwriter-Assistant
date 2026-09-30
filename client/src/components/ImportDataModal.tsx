@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Upload, FileSpreadsheet, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { DatasetImportResolver, type ImportPayload } from "@/components/DatasetImportResolver";
-import Papa from "papaparse";
+import { parseDataFile, ACCEPTED_DATA_FILES } from "@/lib/file-import";
 
 export function ImportDataModal() {
   const [open, setOpen] = useState(false);
@@ -14,39 +14,18 @@ export function ImportDataModal() {
 
   const { toast } = useToast();
 
-  const handleFileUpload = (file: File) => {
+  const handleFileUpload = async (file: File) => {
     if (!file) return;
-
     setIsProcessing(true);
-
-    Papa.parse(file, {
-      header: true,
-      skipEmptyLines: true,
-      complete: (results) => {
-        const rows = results.data as Record<string, any>[];
-        const columns = (results.meta.fields || Object.keys(rows[0] || {})).map((name) => ({ name }));
-        setPayload({
-          defaultName: file.name.replace(/\.(csv|json)$/i, ''),
-          columns,
-          rows,
-          rowCount: rows.length,
-          sourceType: 'csv',
-        });
-        setIsProcessing(false);
-        toast({
-          title: "Data Parsed Successfully",
-          description: `Found ${rows.length} rows in ${file.name}.`
-        });
-      },
-      error: (error) => {
-        setIsProcessing(false);
-        toast({
-          title: "Error Parsing File",
-          description: error.message,
-          variant: "destructive"
-        });
-      }
-    });
+    try {
+      const parsed = await parseDataFile(file);
+      setPayload(parsed);
+      toast({ title: "File ready", description: `Found ${parsed.rowCount.toLocaleString()} rows in ${file.name}.` });
+    } catch (error: any) {
+      toast({ title: "Couldn’t import that file", description: error?.message || "Check the format and try again.", variant: "destructive" });
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const onDrop = (e: React.DragEvent) => {
@@ -65,7 +44,7 @@ export function ImportDataModal() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-2 h-9 font-bold text-xs bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100 hover:text-indigo-800 transition-colors hidden sm:flex rounded-xl shadow-sm px-4">
+        <Button variant="outline" size="sm" className="gap-2 h-9 font-bold text-xs bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100 hover:text-indigo-800 transition-colors flex rounded-xl shadow-sm px-4">
           <Upload className="w-4 h-4" />
           <span className="uppercase tracking-widest text-[10px]">Import</span>
         </Button>
@@ -74,7 +53,7 @@ export function ImportDataModal() {
         <DialogHeader className="p-6 md:p-8 border-b border-slate-100 bg-slate-50/50 pb-6">
           <DialogTitle className="text-2xl font-black text-slate-900 tracking-tight">Import Dataset</DialogTitle>
           <DialogDescription className="text-sm font-medium text-slate-500 mt-2">
-            Upload a CSV or JSON file to bring your own supply chain data.
+            Upload a CSV, Excel (.xlsx) or JSON file. It’s read on your device, then you choose where it goes.
           </DialogDescription>
         </DialogHeader>
 
@@ -100,7 +79,7 @@ export function ImportDataModal() {
                 <input
                   type="file"
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                  accept=".csv,.json"
+                  accept={ACCEPTED_DATA_FILES}
                   onChange={(e) => e.target.files && handleFileUpload(e.target.files[0])}
                   disabled={isProcessing}
                 />

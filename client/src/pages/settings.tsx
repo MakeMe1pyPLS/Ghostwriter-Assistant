@@ -1,4 +1,6 @@
 import { AppLayout } from "@/components/layout/AppLayout";
+import { AIEngineSection, IntegrationsSection, OnboardingSection } from "@/components/settings/GrowthSettings";
+import { useEffect as useEffectHash } from "react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -50,6 +52,11 @@ export default function SettingsPage() {
       setConnectedSectors([...connectedSectors, sector]);
     }
   };
+
+  useEffectHash(() => {
+    const id = window.location.hash.slice(1);
+    if (id) setTimeout(() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 300);
+  }, []);
 
   return (
     <AppLayout>
@@ -331,6 +338,10 @@ export default function SettingsPage() {
               </div>
             </div>
           </section>
+
+          <AIEngineSection />
+          <IntegrationsSection />
+          <OnboardingSection />
         </div>
       </div>
 

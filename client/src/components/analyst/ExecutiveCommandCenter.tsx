@@ -1,3 +1,4 @@
+import { fetchCommandCenter, ENGINE_LABELS } from "@/lib/intel-client";
 import { useEffect, useMemo, useState, useCallback } from "react";
 import {
   Sparkles,
@@ -198,13 +199,7 @@ export function ExecutiveCommandCenter({
           isPositive: m.isPositive,
         })),
       };
-      const res = await fetch("/api/ai/command-center", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      if (!res.ok) throw new Error("request failed");
-      const json = (await res.json()) as CommandCenterResult;
+      const json: CommandCenterResult = await fetchCommandCenter(payload);
       setData(json);
     } catch {
       setError(true);
@@ -278,7 +273,7 @@ export function ExecutiveCommandCenter({
                 AI Executive Summary
               </span>
               <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">
-                {data.generatedBy === "claude" ? "· Claude" : "· Demo Engine"}
+                · {ENGINE_LABELS[data.generatedBy] ?? data.generatedBy}
               </span>
             </div>
             <button

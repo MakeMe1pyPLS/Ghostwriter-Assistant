@@ -1,3 +1,4 @@
+import { getCardShellClasses } from "@/lib/card-shell";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useState, useEffect } from "react";
 import MeasuredGrid from "@/components/MeasuredGrid";
@@ -337,7 +338,7 @@ export default function BuilderPage() {
                   {widgets.map((w) => (
                     <div 
                       key={w.id} 
-                      className={`bg-white rounded-2xl border ${editMode ? 'border-primary/30 shadow-md ring-1 ring-primary/10' : 'border-slate-100 shadow-sm hover:border-slate-200'} group transition-all duration-200 flex flex-col overflow-hidden relative`}
+                      className={`${getCardShellClasses(w.cardPreset || w.stylePreset, 'builder')} ${editMode ? 'ring-2 ring-primary/20' : 'hover:shadow-md'} group transition-all duration-200 flex flex-col overflow-hidden relative`}
                       onClick={(e) => {
                         // Prevent triggering inspector if clicking handle or its children
                         if ((e.target as HTMLElement).closest('.widget-handle')) return;

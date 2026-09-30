@@ -12,6 +12,8 @@ import {
 
 const SOURCE_ICONS: Record<string, any> = {
   csv: FileText,
+  excel: FileSpreadsheet,
+  json: FileText,
   sql: Database,
   'google-sheets': FileSpreadsheet,
   api: Globe,

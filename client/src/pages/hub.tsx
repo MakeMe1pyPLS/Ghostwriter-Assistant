@@ -18,39 +18,26 @@ import {
   Search,
   ArrowRight,
   Settings,
-  MessageSquareOff
+  MessageSquareOff,
+  MessageCircle,
+  ListPlus,
+  Handshake,
+  CornerDownRight,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useDashboardStore, Sector } from "@/hooks/use-dashboard-store";
+import { useGrowthStore, type HubPost, type HubUrgency } from "@/hooks/use-growth-store";
+import { ShareMenu } from "@/components/ShareMenu";
+import { appLink } from "@/lib/share";
+import { useEffect, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Link } from "wouter";
 
-type Urgency = 'Low' | 'Medium' | 'High' | 'Critical';
-type Status = 'Open' | 'In Progress' | 'Resolved';
-type ItemType = 'message' | 'alert' | 'notification';
-type TabType = 'all' | 'alerts' | 'notifications' | 'urgent' | 'resolved';
-
-interface HubItem {
-  id: string;
-  type: ItemType;
-  author?: {
-    name: string;
-    role: string;
-    initials: string;
-    avatar?: string;
-  };
-  title?: string;
-  content: string;
-  timestamp: Date;
-  sector: Sector;
-  tags: string[];
-  urgency: Urgency;
-  status: Status;
-  kpi?: string;
-  isRead: boolean;
-}
+type Urgency = HubUrgency;
+type TabType = 'all' | 'alerts' | 'discussions' | 'urgent' | 'resolved';
+type HubItem = HubPost;
 
 const URGENCY_CONFIG = {
   Low: 'bg-slate-100 text-slate-600 border-slate-200',
@@ -72,58 +59,6 @@ const SECTOR_CONFIG: Record<Sector, { icon: typeof Building2; color: string; lab
   unified: { icon: Layers, color: 'text-slate-600 bg-slate-50 border-slate-100', label: 'Unified' },
   custom: { icon: Layers, color: 'text-teal-600 bg-teal-50 border-teal-100', label: 'Custom' },
 };
-
-const MOCK_ITEMS: HubItem[] = [
-  {
-    id: "1",
-    type: "alert",
-    title: "On-Time Delivery Drop",
-    content: "On-time delivery fell below the 92% threshold for the West Coast region. Immediate rerouting recommended to mitigate downstream impacts.",
-    timestamp: new Date(Date.now() - 1000 * 60 * 15),
-    sector: "logistics",
-    tags: ["Threshold Breach"],
-    urgency: "High",
-    status: "Open",
-    kpi: "On-Time Delivery",
-    isRead: false
-  },
-  {
-    id: "2",
-    type: "message",
-    author: { name: "Sarah Chen", role: "Logistics Lead", initials: "SC" },
-    content: "Port congestion at Long Beach is worsening. Rerouting all priority E-comm shipments to Vancouver rail link.",
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2),
-    sector: "logistics",
-    tags: ["Delay", "Reroute"],
-    urgency: "Medium",
-    status: "In Progress",
-    isRead: true
-  },
-  {
-    id: "3",
-    type: "alert",
-    title: "Defect Rate Spike",
-    content: "Defect rate exceeded 3% on Line B in the past 4 hours. QA teams deployed for immediate inspection.",
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 5),
-    sector: "manufacturing",
-    tags: ["Quality Control"],
-    urgency: "Critical",
-    status: "Open",
-    kpi: "Defect Rate",
-    isRead: false
-  },
-  {
-    id: "4",
-    type: "notification",
-    content: "AI Insights generated a new mitigation plan for Tier-2 supplier volatility.",
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24),
-    sector: "unified",
-    tags: ["AI"],
-    urgency: "Low",
-    status: "Resolved",
-    isRead: true
-  }
-];
 
 function HubDisabledState() {
   return (
@@ -150,7 +85,26 @@ function HubDisabledState() {
 export default function HubPage() {
   const { toast } = useToast();
   const { hubEnabled, businessStructure, connectedSectors } = useDashboardStore();
-  const [items, setItems] = useState<HubItem[]>(MOCK_ITEMS);
+  const currentUser = useDashboardStore((s) => s.currentUser);
+  const { hubPosts: items, addHubPost, updateHubPost, replyToHubPost, addAction, collabs } = useGrowthStore();
+  const [openThreads, setOpenThreads] = useState<Record<string, boolean>>({});
+  const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
+  const [postCollab, setPostCollab] = useState<string>('');
+  const [highlight, setHighlight] = useState<string | null>(null);
+  const itemRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const myName = currentUser?.fullName || 'You';
+  const myInitials = myName.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase();
+
+  // Deep link from a bottleneck or collab: /hub?thread=<id>
+  useEffect(() => {
+    const id = new URLSearchParams(window.location.search).get('thread');
+    if (!id) return;
+    setOpenThreads((o) => ({ ...o, [id]: true }));
+    setHighlight(id);
+    const t = setTimeout(() => itemRefs.current[id]?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 250);
+    const t2 = setTimeout(() => setHighlight(null), 2600);
+    return () => { clearTimeout(t); clearTimeout(t2); };
+  }, []);
   const [newMessage, setNewMessage] = useState("");
   const [newTitle, setNewTitle] = useState("");
   const [postSector, setPostSector] = useState<Sector>('unified');
@@ -170,44 +124,40 @@ export default function HubPage() {
   const handlePost = () => {
     if (!newMessage.trim()) return;
     
-    const post: HubItem = {
-      id: Date.now().toString(),
+    addHubPost({
       type: 'message',
-      author: { name: "Executive User", role: "Chain Director", initials: "EX" },
+      author: { name: myName, role: currentUser ? 'Team member' : 'Demo user', initials: myInitials || 'YO' },
       title: newTitle.trim() || undefined,
-      content: newMessage,
-      timestamp: new Date(),
+      content: newMessage.trim(),
       sector: postSector,
-      tags: ["Update"],
+      collabId: postCollab || undefined,
+      tags: postCollab ? ['Collab'] : ["Update"],
       urgency: postUrgency,
       status: 'Open',
-      isRead: true
-    };
-    
-    setItems([post, ...items]);
+    });
     setNewMessage("");
     setNewTitle("");
     toast({ title: "Update Posted", description: "Your message has been broadcasted to the hub." });
   };
 
   const handleResolve = (id: string) => {
-    setItems(items.map(item => item.id === id ? { ...item, status: 'Resolved' } : item));
+    updateHubPost(id, { status: 'Resolved' });
     toast({ title: "Marked as Resolved", description: "Item status updated." });
   };
 
   const handleMarkRead = (id: string) => {
-    setItems(items.map(item => item.id === id ? { ...item, isRead: true } : item));
+    updateHubPost(id, { isRead: true });
   };
 
   const filteredItems = useMemo(() => {
     let result = items;
 
     if (businessStructure === 'single') {
-      result = result.filter(i => connectedSectors.includes(i.sector) || i.sector === 'unified');
+      result = result.filter(i => (connectedSectors as string[]).includes(i.sector) || i.sector === "unified");
     }
     
     if (activeTab === 'alerts') result = result.filter(i => i.type === 'alert');
-    if (activeTab === 'notifications') result = result.filter(i => i.type === 'notification');
+    if (activeTab === 'discussions') result = result.filter(i => i.type === 'discussion' || i.replies.length > 0);
     if (activeTab === 'urgent') result = result.filter(i => i.urgency === 'High' || i.urgency === 'Critical');
     if (activeTab === 'resolved') result = result.filter(i => i.status === 'Resolved');
     
@@ -301,7 +251,7 @@ export default function HubPage() {
                  { id: 'all', label: 'All Updates' },
                  { id: 'alerts', label: 'Alerts' },
                  { id: 'urgent', label: 'Urgent' },
-                 { id: 'notifications', label: 'Notifications' },
+                 { id: 'discussions', label: 'Discussions' },
                  { id: 'resolved', label: 'Resolved' }
                ].map(tab => (
                  <button
@@ -324,15 +274,20 @@ export default function HubPage() {
                 ) : (
                   <div className="max-w-4xl mx-auto space-y-6">
                     {filteredItems.map(item => {
-                      const sConfig = SECTOR_CONFIG[item.sector];
+                      const sConfig = SECTOR_CONFIG[item.sector as Sector] ?? SECTOR_CONFIG.unified;
+                      const collab = item.collabId ? collabs.find((c) => c.id === item.collabId) : undefined;
+                      const threadOpen = !!openThreads[item.id];
                       const Icon = sConfig.icon;
                       
                       return (
                         <motion.div 
                           key={item.id}
+                          ref={(el) => { itemRefs.current[item.id] = el; }}
+                          layout
                           initial={{ opacity: 0, y: 15 }}
                           animate={{ opacity: 1, y: 0 }}
-                          className={`bg-white rounded-3xl border ${!item.isRead ? 'border-primary/30 shadow-[0_8px_30px_rgb(15,118,110,0.12)] ring-1 ring-primary/10' : 'border-slate-200 shadow-sm'} p-6 lg:p-8 transition-all hover:shadow-md relative group overflow-hidden`}
+                          transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                          className={`bg-white rounded-3xl border ${highlight === item.id ? 'border-primary ring-4 ring-primary/15' : !item.isRead ? 'border-primary/30 shadow-[0_8px_30px_rgb(15,118,110,0.12)] ring-1 ring-primary/10' : 'border-slate-200 shadow-sm'} p-5 sm:p-6 lg:p-8 transition-all hover:shadow-md relative group overflow-hidden`}
                           onClick={() => !item.isRead && handleMarkRead(item.id)}
                         >
                           {!item.isRead && <div className="absolute top-0 bottom-0 left-0 w-1.5 bg-primary"></div>}
@@ -348,6 +303,11 @@ export default function HubPage() {
                                <Badge variant="outline" className={`rounded-xl font-black text-[10px] uppercase tracking-widest px-3 py-1 border-none ${STATUS_CONFIG[item.status]}`}>
                                  {item.status}
                                </Badge>
+                               {collab && (
+                                 <Badge variant="outline" className="rounded-xl font-black text-[10px] uppercase tracking-widest px-3 py-1 bg-teal-50 text-teal-700 border-none flex items-center gap-1.5">
+                                   <Handshake className="w-3.5 h-3.5" /> {collab.name}
+                                 </Badge>
+                               )}
                                {item.type === 'alert' && (
                                  <Badge variant="outline" className="rounded-xl font-black text-[10px] uppercase tracking-widest px-3 py-1 bg-red-50 text-red-600 border-none flex items-center gap-1.5">
                                    <AlertTriangle className="w-3.5 h-3.5" /> Alert
@@ -392,16 +352,57 @@ export default function HubPage() {
                                 </div>
                               )}
                               
-                              {item.status !== 'Resolved' && (
-                                <div className="flex flex-wrap gap-3 pt-4 border-t border-slate-100">
-                                  <Button onClick={(e) => { e.stopPropagation(); handleResolve(item.id); }} variant="outline" size="sm" className="h-10 px-5 rounded-xl text-[11px] font-black uppercase tracking-widest text-emerald-600 border-emerald-200 hover:bg-emerald-50 bg-emerald-50/50 shadow-sm transition-all">
-                                    <CheckCircle2 className="w-4 h-4 mr-2" /> Mark Resolved
+                              <div className="flex flex-wrap gap-2 pt-4 border-t border-slate-100" onClick={(e) => e.stopPropagation()}>
+                                <Button onClick={() => setOpenThreads((o) => ({ ...o, [item.id]: !o[item.id] }))} variant="outline" size="sm" className="h-10 px-4 rounded-xl text-[11px] font-black uppercase tracking-widest text-slate-700 border-slate-200 bg-white hover:bg-slate-50 shadow-sm" aria-expanded={threadOpen}>
+                                  <MessageCircle className="w-4 h-4 mr-2" /> {item.replies.length ? `${item.replies.length} ${item.replies.length === 1 ? 'reply' : 'replies'}` : 'Reply'}
+                                </Button>
+                                <Button onClick={() => {
+                                  addAction({ title: item.title || item.content.slice(0, 80), detail: item.content, owner: 'Owner', source: 'hub', sourceRef: item.id, threadId: item.id, kpi: item.kpi });
+                                  toast({ title: "Added to your action board", description: "Find it under Growth Plan → Action board." });
+                                }} variant="outline" size="sm" className="h-10 px-4 rounded-xl text-[11px] font-black uppercase tracking-widest text-slate-700 border-slate-200 bg-white hover:bg-slate-50 shadow-sm">
+                                  <ListPlus className="w-4 h-4 mr-2" /> Track as action
+                                </Button>
+                                <ShareMenu message={() => ({ title: item.title || 'Update from ChainInsideIQ Hub', text: item.content, link: appLink(`/hub?thread=${item.id}`), facts: [{ name: 'Urgency', value: item.urgency }, { name: 'Status', value: item.status }, ...(item.kpi ? [{ name: 'KPI', value: item.kpi }] : [])] })}
+                                  className="h-10 px-4 text-[11px] font-black uppercase tracking-widest" />
+                                {item.status !== 'Resolved' && (
+                                  <Button onClick={() => handleResolve(item.id)} variant="outline" size="sm" className="h-10 px-4 rounded-xl text-[11px] font-black uppercase tracking-widest text-emerald-600 border-emerald-200 hover:bg-emerald-50 bg-emerald-50/50 shadow-sm transition-all sm:ml-auto">
+                                    <CheckCircle2 className="w-4 h-4 mr-2" /> Mark resolved
                                   </Button>
-                                  <Button variant="outline" size="sm" className="h-10 px-5 rounded-xl text-[11px] font-black uppercase tracking-widest text-slate-600 border-slate-200 bg-white hover:bg-slate-50 shadow-sm transition-all">
-                                    View Details
-                                  </Button>
-                                </div>
-                              )}
+                                )}
+                              </div>
+
+                              <AnimatePresence initial={false}>
+                                {threadOpen && (
+                                  <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.22 }} className="overflow-hidden" onClick={(e) => e.stopPropagation()}>
+                                    <div className="pt-4 space-y-3">
+                                      {item.replies.map((r) => (
+                                        <div key={r.id} className="flex gap-3">
+                                          <CornerDownRight className="w-4 h-4 text-slate-300 mt-2 shrink-0" />
+                                          <div className="flex-1 rounded-2xl bg-slate-50 border border-slate-100 px-4 py-3">
+                                            <div className="flex flex-wrap items-baseline gap-x-2">
+                                              <span className="text-sm font-black text-slate-900">{r.author}</span>
+                                              {r.company && <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{r.company}</span>}
+                                              <span className="text-[10px] font-bold text-slate-300 ml-auto">{formatDistanceToNow(r.timestamp)} ago</span>
+                                            </div>
+                                            <p className="text-sm text-slate-600 mt-1 leading-relaxed">{r.content}</p>
+                                          </div>
+                                        </div>
+                                      ))}
+                                      <form className="flex gap-2 pl-7" onSubmit={(e) => {
+                                        e.preventDefault();
+                                        const text = (replyDrafts[item.id] || '').trim();
+                                        if (!text) return;
+                                        replyToHubPost(item.id, { author: myName, content: text });
+                                        setReplyDrafts((d) => ({ ...d, [item.id]: '' }));
+                                      }}>
+                                        <Input value={replyDrafts[item.id] || ''} onChange={(e) => setReplyDrafts((d) => ({ ...d, [item.id]: e.target.value }))}
+                                          placeholder="Write a reply…" className="h-10 rounded-xl bg-white" aria-label="Reply" maxLength={1000} />
+                                        <Button type="submit" size="sm" className="h-10 rounded-xl px-4" disabled={!(replyDrafts[item.id] || '').trim()} aria-label="Send reply"><Send className="w-4 h-4" /></Button>
+                                      </form>
+                                    </div>
+                                  </motion.div>
+                                )}
+                              </AnimatePresence>
                             </div>
                           </div>
                         </motion.div>
@@ -444,6 +445,17 @@ export default function HubPage() {
                      })}
                    </div>
                  </div>
+
+                 {collabs.length > 0 && (
+                   <div className="space-y-3">
+                     <label htmlFor="hub-collab" className="text-[10px] font-black uppercase tracking-widest text-slate-400">Collab (optional)</label>
+                     <select id="hub-collab" value={postCollab} onChange={(e) => setPostCollab(e.target.value)}
+                       className="w-full h-11 rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm font-medium">
+                       <option value="">Everyone in this workspace</option>
+                       {collabs.filter((c) => c.active).map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                     </select>
+                   </div>
+                 )}
 
                  <div className="space-y-3">
                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Urgency Level</label>

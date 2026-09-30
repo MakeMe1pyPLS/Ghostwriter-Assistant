@@ -50,20 +50,20 @@ export function MarketingLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-[#F4F7FA] font-sans selection:bg-primary/20 selection:text-primary flex flex-col">
       <div className="bg-slate-900 text-white py-2 overflow-hidden flex items-center shrink-0">
-        <div className="flex whitespace-nowrap animate-[marquee_30s_linear_infinite] hover:[animation-play-state:paused]">
+        <div className="flex whitespace-nowrap animate-[marquee_30s_linear_infinite] motion-reduce:animate-none hover:[animation-play-state:paused]">
           {[...Array(3)].map((_, i) => (
             <div key={i} className="flex items-center gap-8 mx-4 text-[11px] font-black uppercase tracking-widest text-slate-300">
-              <span>Build once. Render dashboards anywhere.</span>
+              <span>Find the bottleneck. Fix it together.</span>
               <span className="w-1.5 h-1.5 bg-primary rounded-full" />
-              <span className="text-primary">{isAuthed ? 'Your AI supply chain analyst is ready.' : '14-Day Free Trial available now.'}</span>
+              <span className="text-primary">{isAuthed ? 'Your AI business analyst is ready.' : '14-day free trial. Your growth plan in 2 minutes.'}</span>
               <span className="w-1.5 h-1.5 bg-primary rounded-full" />
-              <span>AI dashboard generator for Excel, Power BI & Sheets.</span>
+              <span>Share data with suppliers, carriers and partners.</span>
               <span className="w-1.5 h-1.5 bg-primary rounded-full" />
-              <span>Bridge KPIs for E-commerce, Logistics, and Manufacturing.</span>
+              <span>300+ KPIs across 45 industries.</span>
               <span className="w-1.5 h-1.5 bg-primary rounded-full" />
-              <span>AI Supply Chain Analyst included.</span>
+              <span>Powered by Claude, ChatGPT and Gemini.</span>
               <span className="w-1.5 h-1.5 bg-primary rounded-full" />
-              <span>Turn raw data into tool-ready dashboards.</span>
+              <span>Export to Excel, Power BI, Google Sheets and more.</span>
               <span className="w-1.5 h-1.5 bg-primary rounded-full" />
               <span>Request custom dashboard setup.</span>
               <span className="w-1.5 h-1.5 bg-primary rounded-full" />
@@ -185,7 +185,7 @@ export function MarketingLayout({ children }: { children: React.ReactNode }) {
                 </div>
               </Link>
               <p className="text-slate-400 text-sm leading-relaxed max-w-sm mb-8">
-                The AI-powered dashboard generator platform that helps businesses create operational analytics and render them into Excel, Power BI, Google Sheets, and beyond.
+                The AI business tool that turns goals into step-by-step plans, spots bottlenecks and helps companies fix them with their partners. Dashboards export to Excel, Power BI, Google Sheets and beyond.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-8">
                 {isAuthed ? (

@@ -15,7 +15,12 @@ import { fetchApiData } from "./services/data-sources/api-source";
 import { getAllDatasets, getDataset, deleteDataset, getDatasetRows, inferColumns, registerDataset } from "./services/data-sources/dataset-registry";
 import { DemoAIProvider } from "./services/ai/demo-provider";
 import { getIntelligenceProvider } from "./services/ai/intelligence-router";
-import type { CommandCenterRequest, AnalystChatRequest } from "@shared/ai-types";
+import { engineStatus } from "./services/ai/engines";
+import type { CommandCenterRequest, AnalystChatRequest, AIEnginePreference } from "@shared/ai-types";
+import type { GrowthProfile } from "@shared/growth";
+import { GOALS, COMPANY_SIZES, STAGES, CHALLENGES } from "@shared/growth";
+import { rateLimit } from "./services/rate-limit";
+import { assertPublicHttpUrl, isAllowedWebhook, postWebhook } from "./services/integrations/webhooks";
 
 interface AIResponse {
   summary: string;
@@ -101,6 +106,19 @@ export async function registerRoutes(
   app: Express
 ): Promise<Server> {
 
+  // AI endpoints cost money per call: cap them per client IP.
+  app.use('/api/ai', rateLimit({ windowMs: 60_000, max: Number(process.env.AI_RATE_LIMIT_PER_MIN || 30) }));
+
+  const engineSchema = z.enum(['auto', 'claude', 'openai', 'gemini']).optional().default('auto');
+  const enginePref = (body: any): AIEnginePreference => {
+    const r = engineSchema.safeParse(body?.engine);
+    return r.success ? r.data : 'auto';
+  };
+
+  app.get('/api/ai/engines', (_req, res) => {
+    res.json(engineStatus());
+  });
+
   app.post('/api/ai/insights', (req, res) => {
     const { sector } = req.body;
     const key = sector && SECTOR_INSIGHTS[sector] ? sector : 'unified';
@@ -114,11 +132,12 @@ export async function registerRoutes(
     }
 
     try {
-      const provider = getIntelligenceProvider();
+      const provider = getIntelligenceProvider(enginePref(req.body));
       const result = await provider.generateAnalystResponse({
         ...normalizeIntelRequest(parsed.data),
         message: parsed.data.message,
-      } satisfies AnalystChatRequest);
+        businessContext: parsed.data.businessContext,
+      } satisfies AnalystChatRequest & { businessContext?: string });
       res.json(result);
     } catch (err) {
       console.error('[ai/chat] error:', err);
@@ -188,6 +207,7 @@ export async function registerRoutes(
 
   const analystChatSchema = operationsIntelSchema.extend({
     message: z.string().trim().max(2000).default(''),
+    businessContext: z.string().trim().max(3000).optional(),
   });
 
   type OperationsIntelInput = z.infer<typeof operationsIntelSchema>;
@@ -213,7 +233,7 @@ export async function registerRoutes(
     }
 
     try {
-      const provider = getIntelligenceProvider();
+      const provider = getIntelligenceProvider(enginePref(req.body));
       const result = await provider.generateCommandCenter(normalizeIntelRequest(parsed.data));
       res.json(result);
     } catch (err) {
@@ -229,12 +249,68 @@ export async function registerRoutes(
     }
 
     try {
-      const provider = getIntelligenceProvider();
+      const provider = getIntelligenceProvider(enginePref(req.body));
       const result = await provider.generateOperationsIntel(normalizeIntelRequest(parsed.data));
       res.json(result);
     } catch (err) {
       console.error('[operations-intel] error:', err);
       res.status(500).json({ error: 'Failed to generate operations intelligence' });
+    }
+  });
+
+  // Growth plan from the onboarding interview.
+  const growthProfileSchema = z.object({
+    businessName: z.string().trim().max(120).optional(),
+    goal: z.enum(GOALS.map((g) => g.id) as [string, ...string[]]),
+    goalDetail: z.string().trim().max(600).optional(),
+    industryId: z.string().trim().max(60),
+    size: z.enum(COMPANY_SIZES.map((s) => s.id) as [string, ...string[]]),
+    stage: z.enum(STAGES.map((s) => s.id) as [string, ...string[]]),
+    challenges: z.array(z.enum(CHALLENGES.map((c) => c.id) as [string, ...string[]])).max(12).default([]),
+    targetKpi: z.string().trim().max(120),
+    targetValue: z.string().trim().max(80).optional(),
+    timeframeDays: z.union([z.literal(30), z.literal(90), z.literal(180), z.literal(365)]),
+    partners: z.array(z.string().trim().max(120)).max(10).default([]),
+  });
+
+  app.post('/api/ai/growth-plan', async (req, res) => {
+    const parsed = growthProfileSchema.safeParse(req.body?.profile ?? req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ error: 'Invalid growth profile', details: parsed.error.flatten() });
+    }
+    try {
+      const plan = await getIntelligenceProvider(enginePref(req.body)).generateGrowthPlan(parsed.data as GrowthProfile);
+      res.json(plan);
+    } catch (err) {
+      console.error('[growth-plan] error:', err);
+      res.status(500).json({ error: 'Failed to build growth plan' });
+    }
+  });
+
+  // Send a message to Microsoft Teams, Google Chat or Slack via an incoming
+  // webhook the customer created in that tool. Only those tools' webhook hosts
+  // are allowed, so this endpoint cannot be used to reach arbitrary URLs.
+  const notifySchema = z.object({
+    channel: z.enum(['teams', 'google-chat', 'slack']),
+    webhookUrl: z.string().url().max(2000),
+    title: z.string().trim().min(1).max(200),
+    text: z.string().trim().max(4000).default(''),
+    link: z.string().url().max(2000).optional(),
+    facts: z.array(z.object({ name: z.string().max(80), value: z.string().max(200) })).max(10).optional(),
+  });
+
+  app.post('/api/integrations/notify', rateLimit({ windowMs: 60_000, max: 20 }), async (req, res) => {
+    const parsed = notifySchema.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ error: 'Invalid notification', details: parsed.error.flatten() });
+    const { channel, webhookUrl } = parsed.data;
+    if (!isAllowedWebhook(channel, webhookUrl)) {
+      return res.status(400).json({ error: `That URL is not a ${channel === 'teams' ? 'Microsoft Teams' : channel === 'google-chat' ? 'Google Chat' : 'Slack'} webhook address.` });
+    }
+    try {
+      await postWebhook(parsed.data);
+      res.json({ success: true });
+    } catch (err: any) {
+      res.status(502).json({ error: `The ${channel} webhook did not accept the message.`, details: String(err?.message ?? err).slice(0, 200) });
     }
   });
 
@@ -422,7 +498,19 @@ export async function registerRoutes(
     try {
       const { url, method, headers } = req.body;
       if (!url) return res.status(400).json({ success: false, error: 'API URL is required' });
-      const result = await fetchApiData(url, method, headers);
+      try {
+        await assertPublicHttpUrl(url);
+      } catch (e: any) {
+        return res.status(400).json({ success: false, error: e.message });
+      }
+      const safeMethod = String(method || 'GET').toUpperCase() === 'POST' ? 'POST' : 'GET';
+      const safeHeaders: Record<string, string> = {};
+      if (headers && typeof headers === 'object') {
+        for (const [k, v] of Object.entries(headers).slice(0, 10)) {
+          if (typeof v === 'string' && /^[a-z0-9-]{1,64}$/i.test(k) && !/^(host|cookie|connection|content-length)$/i.test(k)) safeHeaders[k] = v.slice(0, 500);
+        }
+      }
+      const result = await fetchApiData(url, safeMethod, safeHeaders);
       if (result.success && result.data) {
         const { rows, ...meta } = result.data;
         res.json({ success: true, dataset: meta, preview: rows.slice(0, 10) });

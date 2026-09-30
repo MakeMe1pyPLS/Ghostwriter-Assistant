@@ -1,11 +1,14 @@
 import { Sidebar } from "./Sidebar";
 import { TopBar } from "./TopBar";
 import { useState } from "react";
-import { Menu } from "lucide-react";
+import { Menu, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { OnboardingModal } from "@/components/OnboardingModal";
 import { DemoBanner } from "@/components/DemoBanner";
+import { PageTransition } from "@/components/motion";
+import { ProductTour } from "@/components/ProductTour";
+import { useLocation, Link } from "wouter";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -13,6 +16,7 @@ interface AppLayoutProps {
 
 export function AppLayout({ children }: AppLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [location] = useLocation();
 
   return (
     <div className="flex flex-col h-[100dvh] bg-background text-foreground overflow-hidden">
@@ -34,12 +38,15 @@ export function AppLayout({ children }: AppLayoutProps) {
                <Sidebar onNavigate={() => setSidebarOpen(false)} />
              </SheetContent>
            </Sheet>
-           <div className="flex items-center gap-2">
+           <Link href="/plan" className="flex items-center gap-2">
              <div className="w-6 h-6 rounded bg-slate-900 text-primary flex items-center justify-center">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
              </div>
              <span className="font-black text-sm text-slate-900 tracking-tight">ChainInsideIQ</span>
-           </div>
+           </Link>
+           <Link href="/insights" className="ml-auto inline-flex items-center gap-1.5 h-9 px-3 rounded-xl bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest touch-manipulation" aria-label="Open the AI Analyst">
+             <Sparkles className="w-3.5 h-3.5 text-teal-300" /> Analyst
+           </Link>
         </div>
 
         <div className="hidden lg:block shrink-0">
@@ -47,12 +54,15 @@ export function AppLayout({ children }: AppLayoutProps) {
         </div>
 
         <main className="flex-1 overflow-y-auto bg-[#F4F7FA] relative overscroll-contain" style={{ WebkitOverflowScrolling: 'touch' }}>
-          {children}
+          <PageTransition key={location} className="h-full">
+            {children}
+          </PageTransition>
         </main>
       </div>
       </div>
 
       <OnboardingModal />
+      <ProductTour />
     </div>
   );
 }

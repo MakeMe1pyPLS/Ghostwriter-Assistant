@@ -1,3 +1,4 @@
+import { getCardShellClasses } from "@/lib/card-shell";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import MeasuredGrid from "@/components/MeasuredGrid";
@@ -179,18 +180,7 @@ export default function DashboardPage() {
                 <div
                   key={w.id}
                   data-testid={`widget-${w.id}`}
-                  className={
-                    "flex flex-col overflow-hidden transition-all duration-300 " +
-                    (w.stylePreset === 'corporate'
-                      ? "bg-white rounded-lg border border-slate-300 shadow-sm p-4 sm:p-6"
-                      : w.stylePreset === 'executive'
-                      ? "bg-gradient-to-b from-slate-900 to-slate-800 text-white rounded-xl border border-slate-700 shadow-lg p-4 sm:p-6"
-                      : w.stylePreset === 'elevated'
-                      ? "bg-white rounded-2xl border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.08)] p-4 sm:p-6"
-                      : w.stylePreset === 'compact'
-                      ? "bg-white rounded-md border border-slate-200 shadow-sm p-3 sm:p-4"
-                      : "bg-white rounded-3xl border border-slate-100 shadow-[0_10px_40px_rgb(0,0,0,0.04)] p-4 sm:p-6 md:p-8")
-                  }
+                  className={`flex flex-col overflow-hidden transition-shadow duration-300 hover:shadow-md ${getCardShellClasses(w.cardPreset || w.stylePreset, 'dashboard')}`}
                 >
                   {renderWidgetContent(w)}
                 </div>

@@ -6,6 +6,11 @@
 
 export type Severity = "high" | "medium" | "low";
 
+/** Which engine produced a result. "rule-based" is the built-in, no-key fallback. */
+export type AIEngineId = "claude" | "openai" | "gemini" | "rule-based";
+/** What a caller may request. "auto" lets the router pick the first configured engine. */
+export type AIEnginePreference = "auto" | "claude" | "openai" | "gemini";
+
 // ---------------------------------------------------------------------------
 // Request contract (client -> server)
 // ---------------------------------------------------------------------------
@@ -52,7 +57,7 @@ export interface OperationsIntelItem {
 
 export interface OperationsIntelResult {
   items: OperationsIntelItem[];
-  generatedBy: "claude" | "rule-based";
+  generatedBy: AIEngineId;
 }
 
 export interface AnalystBottleneck {
@@ -75,7 +80,7 @@ export interface AnalystResponse {
   recommendedActions: AnalystAction[]; // ordered by operational impact (highest first)
   expectedImpact: string;
   nextSteps: string[];
-  generatedBy: "claude" | "rule-based";
+  generatedBy: AIEngineId;
 }
 
 // Executive Command Center contract. The server computes the deterministic
@@ -104,7 +109,7 @@ export interface CommandCenterResult {
   executiveSummary: string;
   topPriorities: TopPriority[];
   alerts: { label: string; severity: Severity }[];
-  generatedBy: "claude" | "rule-based";
+  generatedBy: AIEngineId;
 }
 
 // ---------------------------------------------------------------------------

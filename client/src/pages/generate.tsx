@@ -1,3 +1,4 @@
+import { generateDashboard } from "@/lib/intel-client";
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { GenerateWizard, WizardAnswers } from "@/components/GenerateWizard";
@@ -24,13 +25,7 @@ export default function GeneratePage() {
         setHubEnabled(true);
       }
 
-      const res = await fetch('/api/ai/generate-dashboard', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(answers),
-      });
-      if (!res.ok) throw new Error('Generation failed');
-      const result = await res.json();
+      const result = await generateDashboard(answers);
 
       const sector = (answers.sector as any) || 'ecommerce';
       setSector(sector === 'custom' ? 'custom' : sector);
@@ -50,15 +45,8 @@ export default function GeneratePage() {
       if (answers.businessStructure === 'partnered' && answers.sectors?.length === 2) {
         for (const s of answers.sectors) {
           if (s !== sector) {
-            const sectorRes = await fetch('/api/ai/generate-dashboard', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ ...answers, sector: s }),
-            });
-            if (sectorRes.ok) {
-              const sectorResult = await sectorRes.json();
-              saveDashboard(s as any, sectorResult.layout, sectorResult.widgets);
-            }
+            const sectorResult = await generateDashboard({ ...answers, sector: s });
+            saveDashboard(s as any, sectorResult.layout, sectorResult.widgets);
           }
         }
       }

@@ -1,3 +1,8 @@
+import { useSectorData } from "@/hooks/use-sector-data";
+import { useGrowthStore } from "@/hooks/use-growth-store";
+import { fetchAnalystAnswer, ENGINE_LABELS } from "@/lib/intel-client";
+import { flattenAnalystResponse } from "@/lib/ai-provider";
+import { useLocation } from "wouter";
 import { Card } from "@/components/ui/card";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useState, useRef, useEffect } from "react";
@@ -28,6 +33,22 @@ interface Message {
 
 export default function InsightsPage() {
   const { selectedSector } = useDashboardStore();
+  const { metrics } = useSectorData();
+  const profile = useGrowthStore((s) => s.profile);
+  const plan = useGrowthStore((s) => s.plan);
+  const aiEngine = useGrowthStore((s) => s.aiEngine);
+  const [location] = useLocation();
+  const askedRef = useRef(false);
+
+  // Structured analyst answers (engine router + fallback), flattened for this chat view.
+  const askAnalyst = async (text: string): Promise<string> => {
+    const res = await fetchAnalystAnswer({
+      message: text,
+      sector: selectedSector,
+      metrics: metrics.map((m) => ({ label: m.label, value: String(m.value), trend: m.trend, isPositive: m.isPositive })),
+    });
+    return flattenAnalystResponse(res) + `\n\n— ${ENGINE_LABELS[res.generatedBy] ?? res.generatedBy}`;
+  };
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -42,15 +63,22 @@ export default function InsightsPage() {
     ai.generateForecast('', { sector: selectedSector }).then(setForecastData);
     ai.recommendKpis(selectedSector).then(setRecommendedKpis);
 
-    ai.chat("", { sector: selectedSector }).then(response => {
-      setMessages([{
-        id: "1",
-        role: "ai",
-        content: response,
-        timestamp: new Date(),
-      }]);
-    });
-  }, [selectedSector]);
+    const greeting = profile && plan
+      ? `Hi${profile.businessName ? ' ' + profile.businessName : ''} team. I know your goal (${plan.northStar.name} → ${plan.northStar.target}) and the numbers on your dashboard. Ask me why something moved, what to do next, or how to handle any step in your plan.`
+      : `Hi, I'm your AI Business Analyst. Ask me why a number moved, what to fix first, or how to grow. For advice tailored to your goal, answer the 2-minute interview under Growth Plan.`;
+    setMessages([{ id: "1", role: "ai", content: greeting, timestamp: new Date() }]);
+  }, [selectedSector, profile, plan]);
+
+  // Questions passed from other screens, e.g. /insights?ask=...
+  useEffect(() => {
+    if (askedRef.current) return;
+    const q = new URLSearchParams(window.location.search).get('ask');
+    if (q) {
+      askedRef.current = true;
+      setTimeout(() => handleSend(q), 300);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -75,7 +103,7 @@ export default function InsightsPage() {
 
     try {
       await new Promise(resolve => setTimeout(resolve, 600));
-      const response = await ai.chat(textToSend, { sector: selectedSector });
+      const response = await askAnalyst(textToSend);
       setMessages(prev => [...prev, {
         id: (Date.now() + 1).toString(),
         role: "ai",
@@ -88,6 +116,7 @@ export default function InsightsPage() {
   };
 
   const demoPrompts = [
+    ...(plan ? [`How do I hit ${plan.northStar.target} on ${plan.northStar.name}?`, "What should I do first this week?"] : []),
     "Why did on-time delivery drop?",
     "What should we do next?",
     "Which KPI needs urgent attention?",

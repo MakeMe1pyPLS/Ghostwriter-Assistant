@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { DatasetImportResolver, type ImportPayload } from "@/components/DatasetImportResolver";
 import { DatasetManagementPanel } from "@/components/DatasetManagementPanel";
+import { parseDataFile, ACCEPTED_DATA_FILES } from "@/lib/file-import";
 import {
   Upload,
   Database,
@@ -51,7 +52,7 @@ async function buildImportPayload(dataset: DatasetMeta, fallbackPreview: any[] |
 }
 
 const TABS: { id: TabId; label: string; icon: any; desc: string }[] = [
-  { id: 'csv', label: 'CSV Upload', icon: Upload, desc: 'Upload a CSV file from your computer' },
+  { id: 'csv', label: 'File Upload', icon: Upload, desc: 'CSV, Excel (.xlsx) or JSON from your computer' },
   { id: 'sql', label: 'SQL Database', icon: Database, desc: 'Connect to PostgreSQL or MySQL' },
   { id: 'sheets', label: 'Google Sheets', icon: FileSpreadsheet, desc: 'Import from a public Google Sheet' },
   { id: 'api', label: 'API Endpoint', icon: Globe, desc: 'Fetch JSON data from an API' },
@@ -62,33 +63,21 @@ function CsvTab() {
   const [status, setStatus] = useState<ImportStatus>('idle');
   const [payload, setPayload] = useState<ImportPayload | null>(null);
   const [dragActive, setDragActive] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleFile = async (file: File) => {
-    if (!file.name.endsWith('.csv')) {
-      toast({ title: "Invalid file", description: "Please upload a .csv file.", variant: "destructive" });
-      return;
-    }
     setStatus('loading');
     setPayload(null);
-
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('name', file.name.replace('.csv', ''));
-
     try {
-      const res = await fetch('/api/data/upload-csv', { method: 'POST', body: formData });
-      const data = await res.json();
-      if (data.success) {
-        const built = await buildImportPayload(data.dataset, data.preview);
-        setPayload(built);
-        setStatus('success');
-        toast({ title: "CSV parsed", description: `${data.dataset.row_count} rows loaded from ${file.name}` });
-      } else {
-        throw new Error(data.error || 'Import failed');
-      }
+      // Parsed in the browser: works without the server and keeps files on the device.
+      const built = await parseDataFile(file);
+      setPayload(built);
+      setStatus('success');
+      toast({ title: "File ready", description: `${built.rowCount.toLocaleString()} rows and ${built.columns.length} columns found in ${file.name}.` });
     } catch (err: any) {
       setStatus('error');
-      toast({ title: "Import failed", description: err.message, variant: "destructive" });
+      setErrorMessage(err?.message || 'Import failed');
+      toast({ title: "Import failed", description: err?.message || 'Import failed', variant: "destructive" });
     }
   };
 
@@ -110,12 +99,12 @@ function CsvTab() {
         }`}
       >
         <Upload className={`w-10 h-10 mx-auto mb-4 ${dragActive ? 'text-primary' : 'text-slate-300'}`} />
-        <p className="text-sm font-bold text-slate-700 mb-1">Drag and drop a CSV file here</p>
-        <p className="text-xs text-slate-400 mb-4">or click to browse (max 10MB)</p>
+        <p className="text-sm font-bold text-slate-700 mb-1">Drag and drop a CSV, Excel or JSON file</p>
+        <p className="text-xs text-slate-400 mb-4">or browse your computer · .csv, .xlsx, .json up to 25 MB</p>
         <label>
           <input
             type="file"
-            accept=".csv"
+            accept={ACCEPTED_DATA_FILES}
             className="hidden"
             onChange={(e) => { if (e.target.files?.[0]) handleFile(e.target.files[0]); }}
             data-testid="input-csv-upload"
@@ -129,7 +118,7 @@ function CsvTab() {
       {status === 'loading' && (
         <div className="flex items-center justify-center gap-3 py-6">
           <Loader2 className="w-5 h-5 animate-spin text-primary" />
-          <span className="text-sm font-bold text-slate-600">Parsing CSV...</span>
+          <span className="text-sm font-bold text-slate-600">Reading your file…</span>
         </div>
       )}
 
@@ -140,7 +129,7 @@ function CsvTab() {
       {status === 'error' && (
         <div className="flex items-center gap-3 p-4 bg-red-50 rounded-xl border border-red-200">
           <AlertCircle className="w-5 h-5 text-red-600 shrink-0" />
-          <p className="text-sm font-bold text-red-700">Failed to parse CSV file. Check format and try again.</p>
+          <p className="text-sm font-bold text-red-700">{errorMessage || "We couldn’t read that file. Check the format and try again."}</p>
         </div>
       )}
     </div>

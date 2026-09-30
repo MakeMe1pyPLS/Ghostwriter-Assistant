@@ -28,7 +28,10 @@ import {
   Bell,
   Share2,
   Activity,
-  KeyRound
+  KeyRound,
+  Target,
+  BookOpen,
+  Handshake,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AccountDropdown } from "@/components/AccountDropdown";
@@ -36,26 +39,54 @@ import { motion } from "framer-motion";
 import { useDashboardStore, type Sector, type SectorMode, type BusinessStructure } from "@/hooks/use-dashboard-store";
 import { hasPlan, getFeatureRequirement, type FeatureKey } from "@/lib/pricing";
 
-const navItems = [
-  { name: "Builder", href: "/builder", icon: Wrench, description: "Command Center" },
-  { name: "Generate", href: "/generate", icon: Sparkles, description: "Generate For Me" },
-  { name: "Enhance", href: "/enhance", icon: Wand2, description: "Enhance Dashboard" },
-  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard, description: "Live Monitoring" },
-  { name: "AI Insights", href: "/insights", icon: BrainCircuit, description: "Smart Analysis" },
-  { name: "Bottlenecks", href: "/bottlenecks", icon: AlertOctagon, description: "Constraint Detection", feature: "bottlenecks" as FeatureKey },
-  { name: "Recommendations", href: "/recommendations", icon: Lightbulb, description: "Action Plans", feature: "recommendations" as FeatureKey },
-  { name: "Pipeline", href: "/pipeline", icon: Workflow, description: "Signal to Resolution", feature: "pipeline" as FeatureKey },
-  { name: "Hub", href: "/hub", icon: MessageSquare, description: "Internal Comms" },
-  { name: "Data Sources", href: "/data", icon: Database, description: "Import & Connect" },
-  { name: "Connectors", href: "/connectors", icon: Plug, description: "ERP Sync" },
-  { name: "Exports", href: "/exports", icon: Download, description: "Report Engine" },
+type NavItem = { name: string; href: string; icon: any; description: string; feature?: FeatureKey; tour?: string };
+
+const navGroups: { label: string; items: NavItem[] }[] = [
+  {
+    label: "Grow",
+    items: [
+      { name: "Growth Plan", href: "/plan", icon: Target, description: "Goals & action board", tour: "plan" },
+      { name: "AI Analyst", href: "/insights", icon: BrainCircuit, description: "Ask anything about your numbers", tour: "analyst" },
+      { name: "KPI Library", href: "/kpis", icon: BookOpen, description: "Metrics for every industry", tour: "kpis" },
+    ],
+  },
+  {
+    label: "Spot & fix",
+    items: [
+      { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard, description: "Health score & live view" },
+      { name: "Bottlenecks", href: "/bottlenecks", icon: AlertOctagon, description: "Find what slows you down", feature: "bottlenecks", tour: "bottlenecks" },
+      { name: "Recommendations", href: "/recommendations", icon: Lightbulb, description: "Step-by-step fixes", feature: "recommendations" },
+      { name: "Pipeline", href: "/pipeline", icon: Workflow, description: "Signal to resolution", feature: "pipeline" },
+    ],
+  },
+  {
+    label: "Collaborate",
+    items: [
+      { name: "Collabs", href: "/collabs", icon: Handshake, description: "Share data with partners", tour: "collabs" },
+      { name: "Hub", href: "/hub", icon: MessageSquare, description: "Discuss & resolve together", tour: "hub" },
+    ],
+  },
+  {
+    label: "Build",
+    items: [
+      { name: "Builder", href: "/builder", icon: Wrench, description: "Design your dashboard" },
+      { name: "Generate", href: "/generate", icon: Sparkles, description: "Start from scratch with AI" },
+      { name: "Enhance", href: "/enhance", icon: Wand2, description: "Improve an existing dashboard" },
+    ],
+  },
+  {
+    label: "Data",
+    items: [
+      { name: "Data Sources", href: "/data", icon: Database, description: "Import CSV, Excel, Sheets, APIs", tour: "data" },
+      { name: "Connectors", href: "/connectors", icon: Plug, description: "Apps & integrations" },
+      { name: "Exports", href: "/exports", icon: Download, description: "Excel, CSV, JSON & more" },
+    ],
+  },
 ];
 
 const upcomingNavItems = [
   { name: "Team Management", icon: Users, description: "Roles & Members" },
   { name: "Notifications", icon: Bell, description: "Alerts & Digest" },
-  { name: "Integrations", icon: Puzzle, description: "Connected Apps" },
-  { name: "Shared Workspaces", icon: Share2, description: "Cross-Team Boards" },
   { name: "Audit Activity", icon: Activity, description: "Change History" },
   { name: "API Access", icon: KeyRound, description: "Developer Keys" },
 ];
@@ -209,48 +240,59 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         </div>
       </div>
 
-      <div className="flex-1 py-4 lg:py-4 px-4 lg:px-6 space-y-1.5 overflow-y-auto custom-scrollbar-hidden overscroll-contain">
-        {navItems.map((item) => {
-          const isActive = location === item.href || (location === "/" && item.href === "/builder");
-          return (
-            <Link
-              key={item.name}
-              href={item.href}
-              onClick={onNavigate}
-              className={cn(
-                "flex items-center group relative px-4 py-3.5 rounded-2xl transition-all duration-200",
-                isActive
-                  ? "bg-slate-900 text-white shadow-[0_8px_20px_rgb(0,0,0,0.12)]"
-                  : "text-slate-400 hover:text-slate-900 hover:bg-slate-50"
-              )}
-            >
-              <div className={cn(
-                "p-2 rounded-xl transition-colors duration-200 mr-4 shrink-0",
-                isActive ? "bg-white/15 text-white" : "bg-slate-50 text-slate-400 group-hover:bg-white group-hover:text-primary shadow-sm group-hover:shadow-md"
-              )}>
-                <item.icon className="w-5 h-5" />
-              </div>
-              <div className="flex flex-col min-w-0">
-                <span className="text-sm font-black uppercase tracking-widest truncate">{item.name}</span>
-                <span className={cn("text-[10px] font-medium opacity-60 truncate", isActive ? "text-slate-300" : "text-slate-400")}>{item.description}</span>
-              </div>
-              {!isActive && "feature" in item && item.feature && !hasPlan(currentUser?.plan, item.feature) && (
-                <span
-                  className="ml-auto flex items-center gap-1 text-[8px] font-black uppercase tracking-widest bg-amber-100 text-amber-700 border border-amber-200 px-1.5 py-0.5 rounded-full shrink-0"
-                  data-testid={`lock-nav-${item.feature}`}
-                >
-                  <Lock className="w-2.5 h-2.5" />
-                  {getFeatureRequirement(item.feature).label.slice(0, 3)}
-                </span>
-              )}
-              {isActive && (
-                <motion.div layoutId="activeNav" className="absolute right-4 hidden lg:block">
-                  <ChevronRight className="w-4 h-4 text-primary" />
-                </motion.div>
-              )}
-            </Link>
-          );
-        })}
+      <div className="flex-1 py-2 px-3 lg:px-4 overflow-y-auto custom-scrollbar-hidden overscroll-contain">
+        {navGroups.map((group) => (
+          <div key={group.label} className="pb-2">
+            <p className="px-4 pt-3 pb-1.5 text-[9px] font-black uppercase tracking-[0.18em] text-slate-300">{group.label}</p>
+            <div className="space-y-1">
+              {group.items.map((item) => {
+                const isActive = location === item.href || (location === "/app" && item.href === "/plan");
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    onClick={onNavigate}
+                    data-tour={item.tour ? `nav-${item.tour}` : undefined}
+                    className={cn(
+                      "flex items-center group relative px-3 py-2.5 rounded-2xl transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
+                      isActive
+                        ? "text-white"
+                        : "text-slate-400 hover:text-slate-900 hover:bg-slate-50"
+                    )}
+                  >
+                    {isActive && (
+                      <motion.span
+                        layoutId="activeNavBg"
+                        className="absolute inset-0 rounded-2xl bg-slate-900 shadow-[0_8px_20px_rgb(0,0,0,0.12)]"
+                        transition={{ type: "spring", stiffness: 500, damping: 40 }}
+                      />
+                    )}
+                    <div className={cn(
+                      "relative p-2 rounded-xl transition-colors duration-200 mr-3 shrink-0",
+                      isActive ? "bg-white/15 text-white" : "bg-slate-50 text-slate-400 group-hover:bg-white group-hover:text-primary shadow-sm group-hover:shadow-md"
+                    )}>
+                      <item.icon className="w-[18px] h-[18px]" />
+                    </div>
+                    <div className="relative flex flex-col min-w-0">
+                      <span className="text-[13px] font-black uppercase tracking-widest truncate">{item.name}</span>
+                      <span className={cn("text-[10px] font-medium opacity-70 truncate", isActive ? "text-slate-300" : "text-slate-400")}>{item.description}</span>
+                    </div>
+                    {!isActive && item.feature && !hasPlan(currentUser?.plan, item.feature) && (
+                      <span
+                        className="relative ml-auto flex items-center gap-1 text-[8px] font-black uppercase tracking-widest bg-amber-100 text-amber-700 border border-amber-200 px-1.5 py-0.5 rounded-full shrink-0"
+                        data-testid={`lock-nav-${item.feature}`}
+                      >
+                        <Lock className="w-2.5 h-2.5" />
+                        {getFeatureRequirement(item.feature).label.slice(0, 3)}
+                      </span>
+                    )}
+                    {isActive && <ChevronRight className="relative ml-auto w-4 h-4 text-primary hidden lg:block" />}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        ))}
 
         <div className="pt-4 mt-3 border-t border-slate-100">
           <p className="px-4 mb-2 text-[9px] font-black uppercase tracking-widest text-slate-300">Coming Soon</p>

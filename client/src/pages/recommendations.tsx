@@ -1,3 +1,4 @@
+import { IssueActions } from "@/components/analyst/IssueActions";
 import { useMemo } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useSectorData } from "@/hooks/use-sector-data";
@@ -22,7 +23,7 @@ import {
 } from "lucide-react";
 import { UpgradeBanner } from "@/components/UpgradeBadge";
 
-function RecommendationCard({ item, rank }: { item: OperationsIntelItem; rank: number }) {
+function RecommendationCard({ item, rank, sector }: { item: OperationsIntelItem; rank: number; sector: string }) {
   const s = SEVERITY_STYLES[item.severity];
   return (
     <div
@@ -109,6 +110,8 @@ function RecommendationCard({ item, rank }: { item: OperationsIntelItem; rank: n
             </p>
           </div>
         </div>
+
+        <IssueActions item={item} sector={sector} />
       </div>
     </div>
   );
@@ -184,7 +187,7 @@ export default function RecommendationsPage() {
             {!loading && !error && items.length > 0 && (
               <div className="space-y-4">
                 {items.map((item, i) => (
-                  <RecommendationCard key={item.id} item={item} rank={i + 1} />
+                  <RecommendationCard key={item.id} item={item} rank={i + 1} sector={sector} />
                 ))}
               </div>
             )}

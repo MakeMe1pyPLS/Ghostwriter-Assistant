@@ -1,0 +1,110 @@
+# ChainInsideIQ · Phase 1 changes
+
+Phase 1 turns ChainInsideIQ from a dashboard generator into an AI business tool: owners set a goal, get a step-by-step plan, spot bottlenecks and fix them with their partners. The existing product is kept and improved, not replaced.
+
+## What's new
+
+### New customer flow
+Sign up (or buy) → verify email → **AI Analyst interview** (8 questions, ~2 minutes) → **Growth Plan** → **product tour** (skippable).
+
+- `/onboarding` asks about the goal, business name, industry (46 options), team size, stage, challenges, target KPI and timeframe, and partners.
+- The plan is written by the AI router (Claude, ChatGPT or Gemini). With no keys, or no server, the built-in analyst writes it.
+- Sign-in now goes to `/plan` (or `/onboarding` if the interview isn't done). Checkout success goes to the interview.
+
+### Growth Plan (`/plan`)
+- Goal headline, North Star metric with a progress ring, supporting KPI targets and a "Next up" card.
+- **Plan view:** three phases with steps. Each step has an owner, a due date, a status, "Ask the analyst", and Add to Google Calendar, Outlook or Apple Calendar (.ics).
+- **Action board:** To do, In progress and Done. It also collects actions created from bottlenecks and Hub posts.
+- Export the plan to Excel, CSV or calendar. Share it to Teams, Google Chat, Slack or email.
+- Rebuild the plan with a chosen AI engine. Actions you added yourself are kept.
+
+### Three AI engines
+- `server/services/ai/engines.ts` has adapters for Claude (Anthropic SDK), ChatGPT (OpenAI REST) and Gemini (Google REST). No new npm packages were added.
+- `server/services/ai/intelligence-router.ts` tries the requested engine first, then the other connected engines, then the rule-based engine, so every request gets an answer.
+- Settings → AI engine: users pick Auto, Claude, ChatGPT or Gemini, and can see which engines are connected.
+- New endpoints: `GET /api/ai/engines` and `POST /api/ai/growth-plan`. The existing AI endpoints accept an `engine` field.
+
+### Works on Vercel without the server
+The rule-based analyst, dashboard generator, exporters, KPI library and plan builder moved to `shared/` so the browser can use them.
+- **Bottlenecks, Recommendations, Pipeline, the Command Center and AI chat** now work on a frontend-only deploy. On the live Vercel site they currently show "Could not load".
+- **Generate and Enhance** work without the server.
+- **CSV, Excel (.xlsx) and JSON imports** are parsed in the browser.
+- **Exports** fall back to browser-built CSV, JSON and a formatted Excel workbook.
+- **`vercel.json`** adds SPA rewrites, so refreshing a page like `/plan` no longer 404s.
+
+### Collaboration
+- **Data collabs (`/collabs`):** 8 templates (Seller + 3PL, Manufacturer + suppliers, Restaurant + distributor, Business + agency…). Each collab has partners, shared datasets, shared KPIs, an access level and a review cadence. **Reuse as preset** copies a collab to set up the next partner. Invites go out by email.
+- **Hub:** posts are now saved rather than lost on page change. Posts have reply threads and can be tied to a collab. Any post can become a tracked action or be sent to Teams, Google Chat or Slack. Links like `/hub?thread=…` open and highlight a thread.
+- **Bottlenecks and Recommendations:** "Discuss with partner" opens a Hub thread for that issue, and "Track as actions" adds its action-plan steps to the board with weekly due dates.
+
+### KPI Library (`/kpis`)
+314 KPIs across 45 industries plus a universal set. Each shows how it's measured, its unit and which direction is better. You can search, filter by industry and category, track KPIs and set one as the plan's North Star.
+
+### Microsoft and Google (first step)
+- **Settings → Connected tools:** paste an incoming-webhook URL for Microsoft Teams (Workflows), Google Chat or Slack, then test and save it.
+- **Calendar links** for Google Calendar and Outlook, plus `.ics` files, on every action with a due date.
+- **Email sharing** through `mailto:`, which opens Outlook, Gmail or the default mail app.
+
+### Import & export
+- File upload accepts CSV, TSV, Excel (.xlsx) and JSON. The Excel importer picks the fullest sheet, finds the header row and evaluates formulas.
+- **Enhance** now starts with "Which dashboard should we improve?" You can upload an Excel, CSV or JSON dashboard spec, or use the current one. Uploaded data is also saved to Data Sources.
+
+### UI and motion
+- One motion system (`client/src/components/motion.tsx`) with page transitions, staggered lists, scroll reveals and press feedback. Every animation runs 150–400ms and respects the phone's "reduce motion" setting.
+- The sidebar is grouped into Grow, Spot & fix, Collaborate, Build and Data, with an animated active state.
+- On phones, the top bar has a quick "Analyst" button. All new pages were checked at 390px (phone) and 1440px (desktop).
+- The homepage and marketing copy were repositioned around the new message ("Find the bottleneck. Fix it together."), with a four-step "How it works" and a "Who it's for" section.
+
+### Fixes from the code review
+- **Server now reachable on hosting platforms:** it listens on `0.0.0.0` using `httpServer`. Before, it used `127.0.0.1` with `app.listen`, which blocked Replit deploys and broke hot reload.
+- **Logs no longer include full response bodies,** which could contain customer data.
+- **AI endpoints are rate-limited per IP** (`AI_RATE_LIMIT_PER_MIN`, default 30).
+- **API data import is safer:** it blocks private, loopback and cloud-metadata addresses, blocks redirects, and filters headers.
+- **CORS is available** for split deployments (`ALLOWED_ORIGINS`).
+- **Card style presets** now look the same in the Builder and on the Dashboard (`client/src/lib/card-shell.ts`).
+- **The chart-type picker** no longer appears on KPI and table widgets.
+- **The `catMetrics` type error** is fixed.
+- **The checkout success page** no longer claims a card was connected through Stripe.
+- **Removed stray files:** `cross-env`, `rest-express@1.0.0`, the `fix_*.cjs` and `replace_dashboard.*` patch scripts, and the duplicate `scripts/build.ts`. The duplicate `welcome.tsx` homepage was also removed; `/welcome` now opens the interview.
+- **Added `.gitattributes`** so Windows line endings stop showing as changes.
+
+## Environment variables
+
+| Variable | Needed for | Default |
+|---|---|---|
+| `ANTHROPIC_API_KEY` | Claude | — |
+| `OPENAI_API_KEY` | ChatGPT | — |
+| `GEMINI_API_KEY` (or `GOOGLE_API_KEY`) | Gemini | — |
+| `AI_PROVIDER` | First choice when set to Auto: `claude`, `openai` or `gemini` | `claude` |
+| `ANTHROPIC_MODEL` / `OPENAI_MODEL` / `GEMINI_MODEL` | Model IDs | `claude-sonnet-5` / `gpt-6-luna` / `gemini-3.8-flash` |
+| `AI_RATE_LIMIT_PER_MIN` | AI calls per IP per minute | `30` |
+| `AI_TIMEOUT_MS` | Per-engine timeout | `45000` |
+| `ALLOWED_ORIGINS` | CORS when the frontend and API are on different domains | — |
+| `VITE_API_URL` (frontend) | Points the Vercel frontend at a separately hosted API | same origin |
+
+Check each provider's model list and set the `*_MODEL` variables if a newer model is available.
+
+## Deploying
+
+**Frontend only (Vercel, as today):** push this code. Everything works in demo mode with the built-in analyst. Sending to Teams and Google Chat and the AI engines need the server.
+
+**Frontend on Vercel + API elsewhere (recommended):**
+1. Deploy the whole repo to Render, Railway, Fly.io or Replit with `npm run build` then `npm start`, and set the API keys.
+2. On that host, set `ALLOWED_ORIGINS=https://ghostwriter-assistant.vercel.app`.
+3. On Vercel, set `VITE_API_URL=https://your-api-host` and redeploy.
+
+## Testing checklist
+1. `npm install`, then `npm run check`, then `npm run dev`.
+2. Sign up → verify → answer the interview → open the plan → take the tour.
+3. On the Plan page: tick steps, set a due date, add one to your calendar, export to Excel.
+4. Bottlenecks → Discuss with partner (it should open the Hub thread) → Track as actions (they should appear on the board).
+5. Collabs → create from a template → Reuse as preset → Send invite.
+6. Data Sources → upload an .xlsx file. Enhance → upload a dashboard file.
+7. Settings → Connected tools → paste a Teams or Google Chat webhook → Test.
+8. Resize to phone width and repeat the key steps.
+
+## Not in Phase 1 (planned)
+- **Phase 2:** real server-side accounts and companies, partner invites so two companies see the same data live, Postgres storage for plans, collabs, Hub and datasets (Drizzle is already set up), Stripe Checkout, and role permissions.
+- **Phase 3:** Microsoft 365 and Google Workspace sign-in (Graph API for Outlook, Teams and OneDrive; Google APIs for Gmail, Chat, Sheets and Drive), scheduled reports, and live connectors (Shopify, QuickBooks, ShipStation…).
+
+Until Phase 2, all workspace data (plans, actions, collabs, Hub posts) is stored in the user's browser.
