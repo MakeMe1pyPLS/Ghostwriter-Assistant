@@ -17,6 +17,7 @@ import {
 } from '@shared/intelligence';
 import { type GrowthProfile, type GrowthPlan, describeProfile, sanitizeGrowthPlan } from '@shared/growth';
 import { kpisForIndustry } from '@shared/kpi-industries';
+import { buildAnalystSystemPrompt } from '@shared/analyst-framework';
 import type { EngineAdapter } from './engines';
 
 const SECTOR_LABELS: Record<string, string> = {
@@ -27,7 +28,9 @@ const SECTOR_LABELS: Record<string, string> = {
   custom: 'Custom Operations',
 };
 
-const PERSONA = `You are the AI Business Analyst inside ChainInsideIQ, a platform that helps businesses of every size, from local shops to enterprises, grow, fix bottlenecks and collaborate with their partners (suppliers, carriers, distributors, agencies). You think like a senior business consultant with strong operations and finance knowledge. For every situation you explain what happened, why, the business impact and exactly what to do next. Be specific, practical and concise. Use plain language a busy owner understands. Output ONLY valid JSON: no markdown, no commentary.`;
+// The analyst's method lives in shared/analyst-framework.ts so the founder
+// can "train" all three engines by editing one file.
+const PERSONA = buildAnalystSystemPrompt();
 
 function clampSeverity(value: unknown): Severity {
   return value === 'high' || value === 'medium' || value === 'low' ? value : 'medium';
