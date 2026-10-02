@@ -57,7 +57,7 @@ export default function CheckoutStripeMockPage() {
           <div className="relative z-10">
             <div className="flex items-center gap-2 mb-12 opacity-70">
               <Lock className="w-4 h-4" />
-              <span className="text-xs font-black tracking-widest uppercase">Secure Checkout</span>
+              <span className="text-xs font-black tracking-widest uppercase">Start your trial</span>
             </div>
 
             <h2 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-3">Subscribe to</h2>
@@ -131,7 +131,7 @@ export default function CheckoutStripeMockPage() {
                 {tier.trial && (
                   <div className="bg-emerald-50 border border-emerald-100 rounded-xl px-4 py-3 flex items-center gap-2 text-emerald-700">
                     <Check className="w-4 h-4 shrink-0" />
-                    <span className="text-xs font-bold">{tier.trial} — no credit card charged today</span>
+                    <span className="text-xs font-bold">{tier.trial} · no payment today</span>
                   </div>
                 )}
               </div>
@@ -177,7 +177,7 @@ export default function CheckoutStripeMockPage() {
                 >
                   <ArrowLeft className="w-3.5 h-3.5" /> Back to confirmation
                 </button>
-                <h3 className="text-xl font-black text-slate-900 tracking-tight">Payment Details</h3>
+                <h3 className="text-xl font-black text-slate-900 tracking-tight">Your details</h3>
                 <p className="text-xs text-slate-500 font-medium mt-1">
                   Subscribing to <strong>{tier.name}</strong> at {priceFormatted}/month
                 </p>
@@ -186,23 +186,17 @@ export default function CheckoutStripeMockPage() {
               <div className="space-y-5">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Email</label>
-                  <Input required name="email" type="email" placeholder="you@company.com" className="h-12 rounded-xl border-slate-200" defaultValue="test@example.com" />
+                  <Input required name="email" type="email" placeholder="you@company.com" className="h-12 rounded-xl border-slate-200" />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Card Information</label>
-                  <div className="border border-slate-200 rounded-xl overflow-hidden focus-within:border-primary transition-colors shadow-sm">
-                    <Input required placeholder="Card number" className="h-12 border-0 rounded-none border-b border-slate-200 focus-visible:ring-0 font-mono text-sm" defaultValue="4242 4242 4242 4242" />
-                    <div className="grid grid-cols-2">
-                      <Input required placeholder="MM / YY" className="h-12 border-0 rounded-none border-r border-slate-200 focus-visible:ring-0 font-mono text-sm" defaultValue="12/26" />
-                      <Input required placeholder="CVC" className="h-12 border-0 rounded-none focus-visible:ring-0 font-mono text-sm" defaultValue="123" />
-                    </div>
-                  </div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Your name</label>
+                  <Input required name="cardholderName" placeholder="Full name" className="h-12 rounded-xl border-slate-200" />
                 </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Name on card</label>
-                  <Input required name="cardholderName" placeholder="Full name" className="h-12 rounded-xl border-slate-200" defaultValue="Jane Doe" />
+                <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-800 leading-relaxed" data-testid="notice-billing-not-live">
+                  <p className="font-black uppercase tracking-widest text-[10px] mb-1">No payment needed today</p>
+                  Online billing isn’t live yet, so we don’t ask for card details. Your trial starts right away and we’ll contact you about payment before it ends.
                 </div>
               </div>
 
@@ -221,12 +215,9 @@ export default function CheckoutStripeMockPage() {
                 </Button>
 
                 <p className="text-[11px] text-center font-medium text-slate-500 px-4 leading-relaxed">
-                  By confirming, you allow us to charge you for future payments in accordance with our terms. You can always cancel.
+                  By starting your trial you agree to our terms. You won’t be charged without your approval.
                 </p>
 
-                <div className="flex items-center justify-center gap-2 text-xs font-bold text-emerald-600 bg-emerald-50 py-2 rounded-lg">
-                  <ShieldCheck className="w-4 h-4" /> Payments are secure and encrypted.
-                </div>
 
                 <div className="text-center">
                   <button type="button" onClick={() => setLocation('/checkout/cancel')} className="text-xs font-bold text-slate-400 hover:text-slate-800 transition-colors underline-offset-4 hover:underline">

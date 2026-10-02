@@ -78,7 +78,7 @@ const CONNECTORS = [
   { id: "salesforce", name: "Salesforce", category: "platform", description: "Connect CRM data and pipeline metrics.", icon: CloudCog, color: "text-sky-600 bg-sky-100", status: "available" },
   { id: "quickbooks", name: "QuickBooks", category: "platform", description: "Sync invoices, expenses, and accounting data.", icon: Building, color: "text-green-600 bg-green-100", status: "available" },
   { id: "hubspot", name: "HubSpot", category: "platform", description: "Import marketing and sales pipeline metrics.", icon: CloudCog, color: "text-orange-600 bg-orange-100", status: "available" },
-  { id: "slack", name: "Slack", category: "comm", description: "Send alerts and scheduled reports to channels.", icon: MessageSquare, color: "text-purple-600 bg-purple-100", status: "available" },
+  { id: "slack", name: "Slack", category: "comm", description: "Send alerts and updates to channels.", icon: MessageSquare, color: "text-purple-600 bg-purple-100", status: "available" },
   { id: "teams", name: "Microsoft Teams", category: "comm", description: "Post updates directly to Teams channels.", icon: MessageSquare, color: "text-indigo-600 bg-indigo-100", status: "available" },
   { id: "email", name: "Email Notifications", category: "comm", description: "Configure automated email report delivery.", icon: Mail, color: "text-slate-600 bg-slate-100", status: "connected", lastSync: "System Default" }
 ];
