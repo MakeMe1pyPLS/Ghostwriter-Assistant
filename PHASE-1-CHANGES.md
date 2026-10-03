@@ -114,6 +114,13 @@ The rule-based analyst, dashboard generator, exporters, KPI library and plan bui
 - **Dashboard and Builder** half-width cards on phones get one more row so their bottom line isn't cut off.
 - The **X button** in the footer links to [@AtomBSA](https://x.com/AtomBSA), and link previews credit @AtomBSA.
 
+### Builder: what you save is what the Dashboard shows
+- **Fixed a bug where Builder edits didn't reach the Dashboard.** With the widget library open, the grid became narrower than 1200px and switched to a 10-column layout. Your edits went to that version and were thrown away, because only the full-width layout was saved.
+- **One layout now covers every screen at least 540px wide** (tablets, laptops, desktops, and the Builder with the library open). The Builder and Dashboard use the same layout, so positions match exactly.
+- **Phones get a stacked version** made from your layout, which is never saved back over it. On phones, moving and resizing is turned off (tapping to configure and the + button still work), and a short note explains why.
+- **Save:** a **Save** button, plus **Save layout** and **Done** in edit mode. You get a "Layout saved" confirmation with a **View dashboard** shortcut, a "Saved just now" status under the title, and a **View on dashboard** button. Changes still save automatically, so nothing is lost.
+- **Phone stacking** fills gaps, so a half-width card never leaves a hole beside it, and uses slightly shorter rows so cards fit without wasted space.
+
 ## Environment variables
 
 | Variable | Needed for | Default |

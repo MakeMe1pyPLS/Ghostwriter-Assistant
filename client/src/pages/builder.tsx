@@ -1,6 +1,6 @@
 import { getCardShellClasses } from "@/lib/card-shell";
 import { AppLayout } from "@/components/layout/AppLayout";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import MeasuredGrid from "@/components/MeasuredGrid";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -23,7 +23,10 @@ import {
   ArrowDownToLine,
   LineChart as LineChartIcon,
   Bot,
-  Download
+  Download,
+  Save,
+  Eye,
+  CheckCircle2,
 } from "lucide-react";
 import { useSectorData } from "@/hooks/use-sector-data";
 import { useDashboardStore } from "@/hooks/use-dashboard-store";
@@ -40,7 +43,19 @@ import { useToast } from "@/hooks/use-toast";
 import { buildSpecFromState, buildStateFromSpec, downloadSpecJson } from "@/lib/dashboard-spec";
 import { Link } from "wouter";
 import { Sparkles, Wand2 } from "lucide-react";
-import { GRID_COLS, GRID_BREAKPOINTS, GRID_ROW_HEIGHT, GRID_MARGIN, defaultDashboard } from "@/lib/dashboard-grid";
+import { GRID_COLS, GRID_BREAKPOINTS, GRID_ROW_HEIGHT, GRID_MARGIN, EDITABLE_COLS, defaultDashboard } from "@/lib/dashboard-grid";
+import { ToastAction } from "@/components/ui/toast";
+import { useLocation } from "wouter";
+
+function timeAgo(ts: number): string {
+  const s = Math.round((Date.now() - ts) / 1000);
+  if (s < 45) return "just now";
+  const m = Math.round(s / 60);
+  if (m < 60) return `${m} min ago`;
+  const h = Math.round(m / 60);
+  if (h < 24) return `${h} hr ago`;
+  return new Date(ts).toLocaleDateString();
+}
 
 export default function BuilderPage() {
   const { metrics, chartData, donutData, sector, dateRange, allMetrics } = useSectorData();
@@ -53,6 +68,15 @@ export default function BuilderPage() {
   const [loading, setLoading] = useState(true);
   const [editMode, setEditMode] = useState(false);
   const [inspectedWidgetId, setInspectedWidgetId] = useState<string | null>(null);
+  // Columns at the grid's current width. The saved layout is edited only at
+  // full width (12 columns), so what you arrange is exactly what the Dashboard shows.
+  const [gridCols, setGridCols] = useState<number>(EDITABLE_COLS);
+  const colsRef = useRef<number>(EDITABLE_COLS); // read synchronously in onLayoutChange
+  const canArrange = gridCols === EDITABLE_COLS;
+  const savedAt = useDashboardStore((s) => s.dashboards[sector]?.savedAt);
+  const [, navigate] = useLocation();
+  const [, setTick] = useState(0);
+  useEffect(() => { const id = setInterval(() => setTick((t) => t + 1), 30000); return () => clearInterval(id); }, []);
 
   // Hydrate local editing state from the store (the single source of truth),
   // migrating from the legacy localStorage keys on first load if needed.
@@ -75,11 +99,27 @@ export default function BuilderPage() {
     saveDashboard(sector, nextLayout, nextWidgets);
   };
 
-  const onLayoutChange = (newLayout: any, allLayouts: any) => {
-    const lgLayout = (allLayouts && allLayouts.lg) ? allLayouts.lg : newLayout;
-    setLayout(lgLayout);
-    setLayouts({ lg: lgLayout });
-    persist(lgLayout, widgets);
+  const geometry = (l: any[]) => JSON.stringify((l || []).map(({ i, x, y, w, h }: any) => [i, x, y, w, h]).sort());
+
+  const onLayoutChange = (newLayout: any) => {
+    // Only the full-width layout is the saved one. Stacked phone layouts are
+    // generated from it and never written back.
+    if (colsRef.current !== EDITABLE_COLS) return;
+    const clean = newLayout.map(({ i, x, y, w, h, minW, minH, maxW, maxH }: any) => ({ i, x, y, w, h, ...(minW ? { minW } : {}), ...(minH ? { minH } : {}), ...(maxW ? { maxW } : {}), ...(maxH ? { maxH } : {}) }));
+    if (geometry(clean) === geometry(layout)) return; // nothing actually moved
+    setLayout(clean);
+    setLayouts({ lg: clean });
+    persist(clean, widgets);
+  };
+
+  const saveNow = (finish: boolean) => {
+    persist(layout, widgets);
+    if (finish) setEditMode(false);
+    toast({
+      title: "Layout saved",
+      description: "Your Dashboard now shows this exact layout.",
+      action: <ToastAction altText="View dashboard" onClick={() => navigate("/dashboard")}>View dashboard</ToastAction>,
+    });
   };
 
   const addWidget = (widgetInfo: any) => {
@@ -186,6 +226,10 @@ export default function BuilderPage() {
             <div>
               <h1 className="text-2xl lg:text-3xl font-black text-slate-900 tracking-tighter uppercase">Dashboard Builder</h1>
               <p className="text-slate-500 font-bold text-[10px] md:text-xs uppercase tracking-widest mt-1">Configure your supply chain command center.</p>
+              <p className="mt-2 inline-flex items-center gap-1.5 text-[12.5px] font-semibold text-slate-500" data-testid="text-save-status" aria-live="polite">
+                <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                {savedAt ? `Saved ${timeAgo(savedAt)} · changes save automatically` : "Changes save automatically"}
+              </p>
             </div>
             <div className="toolbar w-full xl:w-auto">
                {!editMode && (
@@ -252,27 +296,38 @@ export default function BuilderPage() {
                )}
                {!editMode && <div><TemplateGallery onSelect={applyTemplate} /></div>}
                {!editMode && <div><ExportDrawer layout={layout} widgets={widgets} sector={sector} dateRange={dateRange} metrics={metrics} chartData={chartData} donutData={donutData} /></div>}
-               <Button 
-                 variant={editMode ? "default" : "outline"} 
-                 className={`rounded-xl shadow-sm font-bold text-[10px] md:text-xs uppercase tracking-wider h-9 md:h-10 px-3 md:px-4 ${!editMode ? 'border-slate-200 bg-white' : ''}`}
-                 onClick={() => {
-                   if (editMode) {
-                     toast({ title: "Layout Saved", description: "Your dashboard layout has been saved." });
-                   }
-                   setEditMode(!editMode);
-                 }}
-               >
-                 {editMode ? <Settings2 className="w-3 h-3 md:w-4 md:h-4 mr-1.5 md:mr-2" /> : <Edit3 className="w-3 h-3 md:w-4 md:h-4 mr-1.5 md:mr-2" />}
-                 {editMode ? 'Done Editing' : 'Edit Mode'}
-               </Button>
+               {editMode ? (
+                 <>
+                   <Button variant="outline" onClick={() => setEditMode(false)} className="rounded-xl shadow-sm font-semibold text-[13px] h-10 px-4 border-slate-200 bg-white" data-testid="button-done-editing">
+                     <Settings2 className="w-4 h-4" /> Done
+                   </Button>
+                   <Button onClick={() => saveNow(true)} className="rounded-xl shadow-sm font-semibold text-[13px] h-10 px-4" data-testid="button-save-layout">
+                     <Save className="w-4 h-4" /> Save layout
+                   </Button>
+                 </>
+               ) : (
+                 <>
+                   <Button variant="outline" className="rounded-xl shadow-sm font-semibold text-[13px] h-10 px-4 border-slate-200 bg-white" onClick={() => setEditMode(true)} data-testid="button-edit-mode">
+                     <Edit3 className="w-4 h-4" /> Edit layout
+                   </Button>
+                   <Button onClick={() => saveNow(false)} className="rounded-xl shadow-sm font-semibold text-[13px] h-10 px-4" data-testid="button-save-layout">
+                     <Save className="w-4 h-4" /> Save
+                   </Button>
+                   <Link href="/dashboard">
+                     <Button variant="outline" className="rounded-xl shadow-sm font-semibold text-[13px] h-10 px-4 border-slate-200 bg-white" data-testid="button-view-dashboard">
+                       <Eye className="w-4 h-4" /> View on dashboard
+                     </Button>
+                   </Link>
+                 </>
+               )}
             </div>
           </header>
 
-          {editMode && (
-            <div className="md:hidden flex items-start gap-2 p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 shrink-0" data-testid="builder-mobile-hint">
+          {editMode && !canArrange && (
+            <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 shrink-0" data-testid="builder-mobile-hint">
               <Info className="w-4 h-4 mt-0.5 shrink-0" />
-              <p className="text-[11px] font-bold leading-relaxed">
-                Editing layouts works best on a larger screen. Tap a widget to configure it, or use the <span className="uppercase tracking-widest font-black">+</span> button to add new widgets.
+              <p className="text-[12.5px] font-semibold leading-relaxed">
+                Moving and resizing widgets works on a tablet or computer, so the layout you save is the one your Dashboard shows. Here you can tap a widget to configure it, or use the + button to add one.
               </p>
             </div>
           )}
@@ -329,10 +384,11 @@ export default function BuilderPage() {
                   breakpoints={GRID_BREAKPOINTS}
                   rowHeight={GRID_ROW_HEIGHT}
                   onLayoutChange={onLayoutChange}
+                  onBreakpointChange={(_bp, cols) => { colsRef.current = cols; setGridCols(cols); }}
                   draggableHandle=".widget-handle"
                   margin={GRID_MARGIN}
-                  isDraggable={editMode}
-                  isResizable={editMode}
+                  isDraggable={editMode && canArrange}
+                  isResizable={editMode && canArrange}
                   compactType={null}
                 >
                   {widgets.map((w) => (

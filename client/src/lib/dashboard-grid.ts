@@ -3,14 +3,22 @@
 // these constants so a widget renders in the exact same place and size on both
 // pages, across every breakpoint.
 
-export const GRID_COLS = { lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 } as const;
-export const GRID_BREAKPOINTS = { lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 } as const;
+// One 12-column layout is used whenever the grid is at least 540px wide
+// (tablets, laptops, desktops — including the Builder while the widget library
+// panel is open). What you arrange in the Builder is exactly what the Dashboard
+// shows. Only phone-width grids get an automatically stacked version.
+export const GRID_COLS = { lg: 12, md: 6, sm: 6, xs: 4, xxs: 2 } as const;
+export const GRID_BREAKPOINTS = { lg: 540, md: 480, sm: 420, xs: 320, xxs: 0 } as const;
+/** Breakpoints where the saved layout is shown and can be edited as-is. */
+export const EDITABLE_COLS = 12;
 export const GRID_ROW_HEIGHT = 80;
 export const GRID_MARGIN: [number, number] = [16, 16];
 
 export interface DashboardData {
   layout: any[];
   widgets: any[];
+  /** When the layout was last saved (ms). */
+  savedAt?: number;
 }
 
 // Canonical default dashboard used when a sector has no saved configuration.

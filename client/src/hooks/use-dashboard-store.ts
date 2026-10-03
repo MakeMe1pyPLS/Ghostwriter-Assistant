@@ -309,7 +309,7 @@ export const useDashboardStore = create<DashboardState>()(
         set(state => ({ dashboards: { ...state.dashboards, [sector]: data! } }));
       },
       saveDashboard: (sector, layout, widgets) => {
-        set(state => ({ dashboards: { ...state.dashboards, [sector]: { layout, widgets } } }));
+        set(state => ({ dashboards: { ...state.dashboards, [sector]: { layout, widgets, savedAt: Date.now() } } }));
         // Mirror to the legacy keys so the Export Center and dashboard-spec readers
         // that still read raw localStorage keep working.
         try {

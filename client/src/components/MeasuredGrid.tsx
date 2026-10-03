@@ -46,18 +46,25 @@ export function deriveLayouts(lg: GridItem[], cols: Record<string, number>, prov
       });
       continue;
     }
-    let x = 0, y = 0, rowH = 0;
+    // Phones: first-fit packing in reading order, so a half-width card never
+    // leaves a hole next to it when a full-width card follows.
+    const filled: boolean[][] = [];
+    const free = (x: number, y: number, w: number, h: number) => {
+      for (let r = y; r < y + h; r++) for (let c = x; c < x + w; c++) if (filled[r]?.[c]) return false;
+      return true;
+    };
+    const mark = (x: number, y: number, w: number, h: number) => {
+      for (let r = y; r < y + h; r++) { filled[r] ??= []; for (let c = x; c < x + w; c++) filled[r][c] = true; }
+    };
     out[bp] = order.map((item): GridItem => {
-      // Scale width to the new column count, then snap to halves/full rows on small grids.
-      let w = Math.max(1, Math.round((item.w / lgCols) * C));
-      if (C <= 6) w = item.w / lgCols <= 0.34 ? Math.max(1, Math.floor(C / 2)) : C;
+      let w = item.w / lgCols <= 0.34 ? Math.max(1, Math.floor(C / 2)) : C;
       w = Math.min(w, C);
-      if (x + w > C) { x = 0; y += rowH; rowH = 0; }
       // Half-width cards on phones need one more row so their content isn't clipped.
-      const h = C <= 4 && w < C && item.w / lgCols <= 0.34 ? item.h + 1 : item.h;
-      const placed = { ...item, x, y, w, h, minW: Math.min(item.minW ?? 1, w), maxW: undefined };
-      x += w; rowH = Math.max(rowH, h);
-      return placed;
+      const h = C <= 4 && w < C ? item.h + 1 : item.h;
+      let y = 0, x = 0;
+      search: for (;; y++) for (x = 0; x + w <= C; x++) if (free(x, y, w, h)) break search;
+      mark(x, y, w, h);
+      return { ...item, x, y, w, h, minW: Math.min(item.minW ?? 1, w), maxW: undefined };
     });
   }
   return out;
@@ -80,7 +87,8 @@ export default function MeasuredGrid({
   compactType = null,
 }: Props) {
   const ref = React.useRef<HTMLDivElement | null>(null);
-  const [width, setWidth] = React.useState<number>(1200);
+  // null until measured, so the grid never renders (or reports) a wrong breakpoint first.
+  const [width, setWidth] = React.useState<number | null>(null);
 
   React.useEffect(() => {
     if (!ref.current) return;
@@ -102,7 +110,7 @@ export default function MeasuredGrid({
       const next = Math.floor(w);
       cancelAnimationFrame(frame);
       frame = window.requestAnimationFrame(() => {
-        setWidth((prev: number) => (prev !== next ? next : prev));
+        setWidth((prev) => (prev !== next ? next : prev));
       });
     });
     ro.observe(el);
@@ -121,19 +129,36 @@ export default function MeasuredGrid({
     [lgLayout, layouts, JSON.stringify(colMap)],
   );
 
+  // Current breakpoint, computed the same way react-grid-layout does. Reported to
+  // the parent *before* any layout change, including the very first one on mount
+  // (RGL itself only reports breakpoint *changes*).
+  const currentBp = React.useMemo(() => {
+    if (width === null) return null;
+    const sorted = Object.entries(breakpoints).sort((a, b) => b[1] - a[1]);
+    return (sorted.find(([, min]) => width >= min) ?? sorted[sorted.length - 1])[0];
+  }, [width, breakpoints]);
+  const reportedBp = React.useRef<string | null>(null);
+  const reportBp = (bp: string | null) => {
+    if (!bp || reportedBp.current === bp) return;
+    reportedBp.current = bp;
+    onBreakpointChange?.(bp, (colMap as any)[bp]);
+  };
+
   return (
     <div ref={ref} className={className} style={{ width: "100%" }}>
-      <ResponsiveGridLayout
+      {width !== null && <ResponsiveGridLayout
         className="layout"
         layouts={fullLayouts}
         breakpoints={breakpoints}
         cols={colMap}
-        rowHeight={rowHeight}
+        // Phone-width grids use slightly shorter rows; half-width cards get one
+        // extra row there (see deriveLayouts), so they fit without wasted space.
+        rowHeight={currentBp && (colMap as any)[currentBp] <= 4 ? Math.round(rowHeight * 0.75) : rowHeight}
         width={width}
         margin={margin}
         containerPadding={margin}
-        onLayoutChange={(l, all) => onLayoutChange?.(l as any, all as any)}
-        onBreakpointChange={onBreakpointChange}
+        onLayoutChange={(l, all) => { reportBp(currentBp); onLayoutChange?.(l as any, all as any); }}
+        onBreakpointChange={(bp) => reportBp(bp)}
         // @ts-ignore - react-grid-layout types don't correctly extend base props
         preventCollision={false}
         compactType={compactType}
@@ -143,7 +168,7 @@ export default function MeasuredGrid({
         isResizable={isResizable}
       >
         {children}
-      </ResponsiveGridLayout>
+      </ResponsiveGridLayout>}
     </div>
   );
 }
