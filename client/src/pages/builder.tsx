@@ -181,7 +181,7 @@ export default function BuilderPage() {
 
     return (
       <AppLayout>
-        <div className="p-4 md:p-6 lg:p-8 max-w-[1600px] mx-auto h-full flex flex-col gap-4 md:gap-6 lg:gap-8">
+        <div className="p-4 md:p-6 lg:p-8 pb-24 lg:pb-8 max-w-[1600px] mx-auto min-h-full lg:h-full flex flex-col gap-4 md:gap-6 lg:gap-8">
           <header className="flex flex-col xl:flex-row justify-between items-start xl:items-end gap-4 shrink-0">
             <div>
               <h1 className="text-2xl lg:text-3xl font-black text-slate-900 tracking-tighter uppercase">Dashboard Builder</h1>
@@ -277,8 +277,8 @@ export default function BuilderPage() {
             </div>
           )}
 
-        <div className="flex-1 flex flex-col lg:flex-row gap-6 md:gap-8 overflow-hidden min-h-0 relative">
-          <div className={`flex-1 bg-white rounded-2xl border ${editMode ? 'border-primary/20 ring-4 ring-primary/5' : 'border-slate-200'} shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-y-auto p-2 md:p-4 custom-scrollbar relative transition-all`}>
+        <div className="flex-1 flex flex-col lg:flex-row gap-6 md:gap-8 lg:overflow-hidden lg:min-h-0 relative">
+          <div className={`flex-1 bg-white rounded-2xl border ${editMode ? 'border-primary/20 ring-4 ring-primary/5' : 'border-slate-200'} shadow-[0_8px_30px_rgb(0,0,0,0.04)] min-h-[320px] lg:min-h-0 lg:overflow-y-auto p-2 md:p-4 custom-scrollbar relative transition-all`}>
             <AnimatePresence mode="wait">
               {loading ? (
                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full flex items-center justify-center">
@@ -408,10 +408,10 @@ export default function BuilderPage() {
                 </div>
               </aside>
               
-              {/* Mobile Widget Library Floating Action Button */}
-              <WidgetLibraryMobile onAdd={addWidget} />
             </>
           )}
+          {/* Phones & tablets: the + button is always available (the tip above points to it) */}
+          <WidgetLibraryMobile onAdd={addWidget} />
         </div>
       </div>
       

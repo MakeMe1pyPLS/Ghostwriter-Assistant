@@ -107,6 +107,13 @@ The rule-based analyst, dashboard generator, exporters, KPI library and plan bui
 - **Website header:** see-through at the top and frosted once you scroll. Added Demo and Support links. The scrolling marquee is gone.
 - **Removed false claims** from sign-in and sign-up ("bank-grade encryption", "SOC 2 ready"). Fixed the social-share image and the Twitter handle that still pointed to Replit.
 
+### Phase 1.5: phone fixes
+- **Builder:** the + (add widget) button is always available on phones and tablets and sits above the tab bar. The builder now scrolls as one page.
+- **Hub** scrolls on phones (the feed used to be squeezed into a fixed-height box); "Post to Hub" is reachable above the tab bar.
+- **Bottlenecks, Recommendations, Pipeline, AI Analyst, Data Sources, Exports and Connectors** scroll as one page instead of an inner box, with smaller side padding on phones.
+- **Dashboard and Builder** half-width cards on phones get one more row so their bottom line isn't cut off.
+- The **X button** in the footer links to [@AtomBSA](https://x.com/AtomBSA), and link previews credit @AtomBSA.
+
 ## Environment variables
 
 | Variable | Needed for | Default |

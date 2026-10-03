@@ -135,8 +135,8 @@ export default function BottlenecksPage() {
 
   return (
     <AppLayout>
-      <div className="flex flex-col h-full bg-[#F4F7FA]">
-        <div className="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6 lg:p-8">
+      <div className="flex flex-col min-h-full bg-[#F4F7FA]">
+        <div className="flex-1 p-4 md:p-6 lg:p-8">
           <div className="max-w-4xl mx-auto space-y-6">
             <div className="flex items-start justify-between gap-4 flex-wrap">
               <div className="flex items-center gap-3">

@@ -34,7 +34,7 @@ function GitHubIcon({ className }: { className?: string }) {
 
 const socialLinks = [
   { name: "LinkedIn", href: "https://linkedin.com/company/chaininsideiq", icon: LinkedInIcon },
-  { name: "X / Twitter", href: "https://x.com/chaininsideiq", icon: XIcon },
+  { name: "X / Twitter", href: "https://x.com/AtomBSA", icon: XIcon },
   { name: "YouTube", href: "https://youtube.com/@chaininsideiq", icon: YouTubeIcon },
   { name: "GitHub", href: "https://github.com/chaininsideiq", icon: GitHubIcon },
 ];

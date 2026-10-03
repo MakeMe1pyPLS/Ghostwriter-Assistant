@@ -53,8 +53,10 @@ export function deriveLayouts(lg: GridItem[], cols: Record<string, number>, prov
       if (C <= 6) w = item.w / lgCols <= 0.34 ? Math.max(1, Math.floor(C / 2)) : C;
       w = Math.min(w, C);
       if (x + w > C) { x = 0; y += rowH; rowH = 0; }
-      const placed = { ...item, x, y, w, minW: Math.min(item.minW ?? 1, w), maxW: undefined };
-      x += w; rowH = Math.max(rowH, item.h);
+      // Half-width cards on phones need one more row so their content isn't clipped.
+      const h = C <= 4 && w < C && item.w / lgCols <= 0.34 ? item.h + 1 : item.h;
+      const placed = { ...item, x, y, w, h, minW: Math.min(item.minW ?? 1, w), maxW: undefined };
+      x += w; rowH = Math.max(rowH, h);
       return placed;
     });
   }

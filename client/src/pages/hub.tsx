@@ -191,7 +191,7 @@ export default function HubPage() {
 
   return (
     <AppLayout>
-      <div className="flex flex-col h-full bg-[#F4F7FA]">
+      <div className="flex flex-col min-h-full lg:h-full bg-[#F4F7FA]">
         <div className="bg-white border-b border-slate-200 px-4 md:px-8 py-4 md:py-5 flex flex-col xl:flex-row xl:items-center justify-between gap-4 md:gap-6 shrink-0 shadow-sm z-10 relative">
           <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-6">
             <div className="flex items-center gap-3">
@@ -244,7 +244,7 @@ export default function HubPage() {
           </div>
         </div>
 
-        <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
+        <div className="flex-1 flex flex-col lg:flex-row lg:overflow-hidden">
           <div className="flex-1 flex flex-col min-w-0 border-r border-slate-200 bg-[#F4F7FA]">
             <div className="px-4 md:px-8 py-4 bg-white border-b border-slate-200 flex gap-2 overflow-x-auto custom-scrollbar shrink-0 shadow-sm">
                {[
@@ -267,7 +267,7 @@ export default function HubPage() {
                ))}
             </div>
 
-            <div className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar relative">
+            <div className="flex-1 lg:overflow-y-auto p-4 md:p-8 custom-scrollbar relative">
               <AnimatePresence initial={false}>
                 {filteredItems.length === 0 ? (
                   <motion.div initial={{opacity: 0}} animate={{opacity: 1}} className="flex flex-col items-center justify-center h-full text-slate-400 gap-4 mt-20">
@@ -417,7 +417,7 @@ export default function HubPage() {
             </div>
           </div>
 
-          <aside className="w-full lg:w-[420px] xl:w-[480px] bg-white flex flex-col shrink-0 border-l border-slate-200 z-10 shadow-[-10px_0_40px_rgb(0,0,0,0.03)] h-[50vh] lg:h-auto">
+          <aside className="w-full lg:w-[420px] xl:w-[480px] bg-white flex flex-col shrink-0 border-l border-slate-200 z-10 shadow-[-10px_0_40px_rgb(0,0,0,0.03)] lg:h-auto border-t lg:border-t-0">
             <div className="p-6 border-b border-slate-100 bg-slate-50 flex items-center justify-between shrink-0">
                <div>
                  <h3 className="text-sm font-black uppercase tracking-widest text-slate-900 mb-1 flex items-center gap-2">
@@ -427,7 +427,7 @@ export default function HubPage() {
                </div>
             </div>
             
-            <div className="p-6 flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-8">
+            <div className="p-5 sm:p-6 flex-1 lg:overflow-y-auto custom-scrollbar flex flex-col gap-8">
                <div className="space-y-6">
                  <div className="space-y-3">
                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Target Sector</label>

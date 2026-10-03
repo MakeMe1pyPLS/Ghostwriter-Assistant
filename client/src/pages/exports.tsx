@@ -374,8 +374,8 @@ export default function ExportsPage() {
 
   return (
     <AppLayout>
-      <div className="flex flex-col h-full bg-[#F4F7FA]">
-        <div className="bg-white border-b border-slate-200 px-8 py-8 shrink-0 shadow-sm relative z-10">
+      <div className="flex flex-col min-h-full bg-[#F4F7FA]">
+        <div className="bg-white border-b border-slate-200 px-4 sm:px-6 md:px-8 py-6 md:py-8 shrink-0 shadow-sm relative z-10">
           <div className="max-w-6xl mx-auto flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div>
               <h1 className="text-3xl font-black text-slate-900 tracking-tight uppercase" data-testid="text-export-title">Export Center</h1>
@@ -436,7 +436,7 @@ export default function ExportsPage() {
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+        <div className="flex-1 p-4 sm:p-6 md:p-8">
           <div className="max-w-6xl mx-auto flex flex-col lg:flex-row gap-10">
             <div className="w-full lg:w-72 shrink-0">
               <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sticky top-0">

@@ -119,7 +119,7 @@ export function AppLayout({ children }: AppLayoutProps) {
             onScroll={onScroll}
             className="flex-1 overflow-y-auto bg-[#F4F7FA] relative overscroll-contain pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0"
           >
-            <PageTransition key={location} className="h-full">
+            <PageTransition key={location} className="min-h-full lg:h-full">
               {children}
             </PageTransition>
           </main>

@@ -128,8 +128,8 @@ export default function InsightsPage() {
 
   return (
     <AppLayout>
-      <div className="flex flex-col h-full bg-[#F4F7FA]">
-        <div className="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6 lg:p-8">
+      <div className="flex flex-col min-h-full bg-[#F4F7FA]">
+        <div className="flex-1 p-4 md:p-6 lg:p-8">
           <div className="max-w-5xl mx-auto space-y-6 md:space-y-8">
 
             <div className="space-y-4">

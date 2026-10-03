@@ -408,8 +408,8 @@ export default function DataSourcesPage() {
 
   return (
     <AppLayout>
-      <div className="flex flex-col h-full bg-[#F4F7FA]">
-        <div className="bg-white border-b border-slate-200 px-8 py-8 shrink-0 shadow-sm relative z-10">
+      <div className="flex flex-col min-h-full bg-[#F4F7FA]">
+        <div className="bg-white border-b border-slate-200 px-4 sm:px-6 md:px-8 py-6 md:py-8 shrink-0 shadow-sm relative z-10">
           <div className="max-w-5xl mx-auto">
             <h1 className="text-3xl font-black text-slate-900 tracking-tight uppercase" data-testid="text-datasources-title">Data Sources</h1>
             <p className="text-slate-500 font-bold text-xs uppercase tracking-widest mt-2">
@@ -418,7 +418,7 @@ export default function DataSourcesPage() {
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+        <div className="flex-1 p-4 sm:p-6 md:p-8">
           <div className="max-w-5xl mx-auto space-y-8">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {TABS.map(tab => (
