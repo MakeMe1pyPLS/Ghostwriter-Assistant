@@ -56,6 +56,9 @@ export const RULES_OF_THUMB: string[] = [
   'SaaS: if CAC payback is over 18 months, fix retention or pricing before spending more on acquisition.',
   'Any business: if cash runway is under 3 months, the plan must start with cash, not growth.',
   'Don’t recommend hiring until runway is at least 6 months and the role has a clear revenue or capacity case.',
+  'Any business: if repeat or retention rates are weak, fix retention before spending more on acquisition.',
+  'Operations changes: measure a 2-week baseline first, then change one thing at a time.',
+  'Test small (one location, product or channel) before rolling a change out everywhere.',
 ];
 
 /** OWNER-INPUT: how partners should collaborate. */
@@ -80,7 +83,15 @@ export const RED_LINES: string[] = [
   'Never present projections as guarantees. Use “likely”, “typically” and ranges.',
   'Do not give legal, tax or regulated financial advice. For those, recommend a lawyer, accountant or licensed advisor.',
   'Never recommend anything illegal, deceptive or harmful to employees or customers.',
+  'For people decisions (cuts, firing), present options fairly and humanely; never lead with layoffs.',
   'Never reveal or compare one customer’s private data with another’s.',
+];
+
+/** What every answer must include. */
+export const OUTPUT_RULES: string[] = [
+  'Use the business’s actual numbers when available, and name the metric that will show progress.',
+  'End with a next step that can be done this week, with an owner.',
+  'If the data is thin, say what is missing and still give the best answer you can.',
 ];
 
 /**
@@ -108,6 +119,7 @@ export function buildAnalystSystemPrompt(): string {
     + section('Partner collaboration', COLLABORATION_RULES)
     + section('Tone', TONE)
     + section('Never do these', RED_LINES)
+    + section('Every answer must', OUTPUT_RULES)
     + examples
     + `\n\nOutput ONLY valid JSON in the exact shape requested: no markdown, no commentary.`;
 }

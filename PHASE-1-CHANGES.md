@@ -68,6 +68,11 @@ The rule-based analyst, dashboard generator, exporters, KPI library and plan bui
 - **Removed stray files:** `cross-env`, `rest-express@1.0.0`, the `fix_*.cjs` and `replace_dashboard.*` patch scripts, and the duplicate `scripts/build.ts`. The duplicate `welcome.tsx` homepage was also removed; `/welcome` now opens the interview.
 - **Added `.gitattributes`** so Windows line endings stop showing as changes.
 
+### Phase 1.2: analyst framework, project brief and intro
+- **AI Analyst framework** (`shared/analyst-framework.ts`): one editable playbook (principles, diagnostic order, prioritization, rules of thumb, collaboration rules, tone, red lines, output rules and example answers) is sent to Claude, ChatGPT and Gemini on every request, so all three follow the same method. Edit it to "train" the analyst.
+- **Project brief** (`CLAUDE.md`) and **brand, design and motion spec** (`docs/BRAND.md`): the setup every developer and AI assistant works from.
+- **Homepage intro:** a 4-second interactive story (chain → bottleneck → fixed → logo), shown on the first visit only. Click, tap, Esc, Enter or "Skip intro" ends it; reduced-motion users never see it; `?nointro` turns it off.
+
 ## Environment variables
 
 | Variable | Needed for | Default |

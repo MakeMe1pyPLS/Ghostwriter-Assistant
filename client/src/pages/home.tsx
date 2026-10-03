@@ -4,6 +4,7 @@ import { Link } from "wouter";
 import { ArrowRight, LayoutDashboard, BrainCircuit, Download, BarChart3, CheckCircle2, Zap, Sparkles, Wand2, Wrench, Target, Search, Handshake, MessagesSquare, Store, Users, Building2, Briefcase } from "lucide-react";
 import { motion } from "framer-motion";
 import { Reveal, EASE_OUT } from "@/components/motion";
+import { IntroSplash } from "@/components/IntroSplash";
 import { useDashboardStore } from "@/hooks/use-dashboard-store";
 
 export default function HomePage() {
@@ -11,6 +12,7 @@ export default function HomePage() {
   const isAuthed = !!currentUser;
   return (
     <MarketingLayout>
+      <IntroSplash />
       {/* HERO SECTION */}
       <section className="relative pt-20 pb-32 md:pt-32 md:pb-48 px-4 md:px-6 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-white to-[#F4F7FA] -z-10" />
