@@ -86,6 +86,27 @@ The rule-based analyst, dashboard generator, exporters, KPI library and plan bui
 - **Feel:** buttons respond to presses, focus rings are consistent, pages load with a thin progress bar instead of a full-screen spinner, and page code is prefetched once you're in the app, so switching pages is near-instant.
 - Pricing shows 2 columns up to 1279px wide so plans aren't squeezed on laptops. Toasts sit above the tab bar.
 
+### Phase 1.4: redesigned website, dark mode, new logo, new pricing
+- **Light and dark mode** across the whole app and website. There's a switch in every header, the choice is remembered, and the page never flashes the wrong theme on load. With no choice saved it follows the device setting. The new theme spreads out in a circle from the button where the browser supports it.
+- **New logo:** two interlocking chain links (you and your partner, the teal link is the fix) on an ink tile, plus a new favicon and app icon.
+- **Redesigned homepage:**
+  - A live, interactive product preview in the hero: orders flow, the warehouse backs up, the AI explains it, and "Apply fix" clears it while KPIs climb. It plays once by itself.
+  - Real product numbers (314 KPIs, 46 industries, 3 engines, 2 minutes) and a how-it-works rail that fills as you scroll.
+  - A feature grid with six small animated illustrations.
+  - "Who it's for" tabs, a pricing teaser, FAQ and a final call to action.
+- **Features page rebuilt** with the animated illustrations instead of placeholder icons. Copy now matches what ships: removed PDF export, "direct" Power BI export, and ERP or warehouse connectors.
+- **Pricing based on supply and demand** (see `docs/PRICING.md`):
+  - Plans: Starter $49 ($39 yearly), Professional $129 ($99 yearly), Business $299 ($249 yearly), Enterprise custom.
+  - Each plan includes an AI answer allowance (200 / 1,000 / 3,000).
+  - A monthly/yearly toggle, a three-tap plan finder, a comparison table and pricing FAQ. Checkout carries the billing choice.
+- **Stronger intro (about 4.7s, once, skippable):**
+  - Particles ignite the chain, energy pulses jam at the weak link with a red shockwave and shake, and a teal beam snaps it fixed.
+  - The chain then folds into the new logo with a wordmark sweep.
+  - Visitors who saw the old intro see the new one once.
+- **Dashboard:** greeting with your business name, an animated view switch, KPI numbers that count up, widgets that rise in one after another, a health ring that draws in, and smooth priority expand and collapse.
+- **Website header:** see-through at the top and frosted once you scroll. Added Demo and Support links. The scrolling marquee is gone.
+- **Removed false claims** from sign-in and sign-up ("bank-grade encryption", "SOC 2 ready"). Fixed the social-share image and the Twitter handle that still pointed to Replit.
+
 ## Environment variables
 
 | Variable | Needed for | Default |

@@ -6,7 +6,8 @@ import {
 } from 'recharts';
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { useEffect, useState, memo } from "react";
+import { useEffect, useRef, useState, memo } from "react";
+import { animate, useReducedMotion } from "framer-motion";
 import { getAllMetrics } from "@/hooks/use-sector-data";
 import { CARD_PRESETS, type CardPresetId } from "@/lib/kpi-card-presets";
 import { getHighlights, type OpportunityRiskHighlight } from "@/lib/opportunity-risk-engine";
@@ -315,7 +316,7 @@ function WidgetRendererInner({ widget, data, sector, loading, presentationMode =
           </div>
 
           <div className={`${isCompact ? 'mt-1' : 'mt-2'} flex-1 flex flex-col justify-center ${preset.accentStrip && preset.accentPosition === 'left' ? 'pl-2' : ''}`}>
-            <h3 className={`${valueSizeClass} font-bold text-slate-900 tracking-tight`}>{metric?.value || '0'}</h3>
+            <h3 className={`${valueSizeClass} font-bold text-slate-900 tracking-tight`}><AnimatedMetric value={String(metric?.value || '0')} /></h3>
             {(widget.showDelta !== false || preset.deltaPosition !== 'hidden') && metric?.trend && (
               <div className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold ${isCompact ? 'mt-0.5' : 'mt-1'} w-fit ${metric.isPositive ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
                 {metric.isPositive ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
@@ -639,6 +640,31 @@ function WidgetRendererInner({ widget, data, sector, loading, presentationMode =
       </div>
     );
   }
+}
+
+
+/**
+ * Counts a KPI value up to its number once (e.g. "98.4%", "14 Days", "$1,240"),
+ * keeping its prefix, suffix, decimals and thousands separators.
+ */
+function AnimatedMetric({ value }: { value: string }) {
+  const reduce = useReducedMotion();
+  const m = /^([^\d-]*)(-?[\d,]*\.?\d+)(.*)$/.exec(value);
+  const target = m ? parseFloat(m[2].replace(/,/g, "")) : NaN;
+  const decimals = m && m[2].includes(".") ? m[2].split(".")[1].length : 0;
+  const commas = !!m && m[2].includes(",");
+  const [n, setN] = useState(reduce || !isFinite(target) ? target : 0);
+  const prev = useRef(reduce ? target : 0);
+  useEffect(() => {
+    if (!isFinite(target)) return;
+    if (reduce) { setN(target); return; }
+    const c = animate(prev.current, target, { duration: 0.9, ease: [0.22, 1, 0.36, 1], onUpdate: setN });
+    prev.current = target;
+    return () => c.stop();
+  }, [target, reduce]);
+  if (!m || !isFinite(target)) return <>{value}</>;
+  const num = commas ? n.toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals }) : n.toFixed(decimals);
+  return <span className="tabular-nums">{m[1]}{num}{m[3]}</span>;
 }
 
 export const WidgetRenderer = memo(WidgetRendererInner);

@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/select";
 import { RefreshCw, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { useDashboardStore, Sector, DateRange } from "@/hooks/use-dashboard-store";
@@ -78,6 +79,7 @@ export function TopBar({ scrolled = false }: { scrolled?: boolean }) {
           </Button>
         </Link>
         
+        <ThemeToggle size={36} />
         <Button 
           variant="ghost" 
           size="sm" 

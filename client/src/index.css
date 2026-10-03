@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./styles/dark-theme.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -60,6 +61,39 @@
   --ring: 175 76% 26%;
   
   --radius: 0.5rem;
+  color-scheme: light;
+}
+
+/* Dark theme. Light-first slate/white utilities are remapped in
+   styles/dark-theme.css (generated); semantic tokens are set here. */
+.dark {
+  --dk-canvas: #070B13;
+  --dk-surface: #0D131E;
+  --dk-surface-2: #111926;
+  --dk-surface-3: #16202F;
+  --dk-line-soft: #172131;
+  --dk-line: #1F2A3B;
+  --dk-line-strong: #2C394E;
+  --dk-ink: #16233A;
+
+  --background: 220 47% 5%;
+  --foreground: 214 40% 95%;
+  --card: 218 40% 9%;
+  --card-foreground: 214 40% 95%;
+  --popover: 218 40% 10%;
+  --popover-foreground: 214 40% 95%;
+  --primary: 174 72% 38%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 217 30% 15%;
+  --secondary-foreground: 214 25% 80%;
+  --muted: 217 30% 14%;
+  --muted-foreground: 215 16% 62%;
+  --accent: 172 66% 45%;
+  --accent-foreground: 0 0% 100%;
+  --border: 217 30% 17%;
+  --input: 217 30% 19%;
+  --ring: 172 66% 45%;
+  color-scheme: dark;
 }
 
 @layer base {
@@ -157,11 +191,24 @@
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
   padding: 2px;
-  margin: -2px;
-  max-width: calc(100% + 4px);
+  max-width: 100%;
 }
 .toolbar::-webkit-scrollbar { display: none; }
 .toolbar > * { flex-shrink: 0; }
 @media (min-width: 1280px) {
   .toolbar { flex-wrap: wrap; overflow: visible; }
 }
+
+/* Theme switch: the new theme is revealed in a circle (see lib/theme.ts). */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/* Dashboard widgets rise in one after another on first paint. */
+@keyframes ciq-rise {
+  from { opacity: 0; transform: translateY(10px) scale(0.985); }
+  to { opacity: 1; transform: none; }
+}
+.ciq-rise > * { animation: ciq-rise 420ms cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: inherit; }

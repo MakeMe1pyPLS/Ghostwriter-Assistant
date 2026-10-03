@@ -13,6 +13,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { NAV_GROUPS, SETTINGS_ITEM, UPCOMING_ITEMS, isActivePath, type NavItem } from "@/lib/nav";
 import { EASE_OUT } from "@/components/motion";
 import { openCommandPalette } from "@/components/CommandPalette";
+import { Logo } from "@/components/Logo";
 
 const SECTOR_OPTIONS: { value: Sector; label: string; icon: any }[] = [
   { value: 'ecommerce', label: 'E-commerce', icon: ShoppingCart },
@@ -71,15 +72,7 @@ export function Sidebar({ onNavigate, collapsed = false, onToggleCollapsed }: Si
       {/* Brand + collapse */}
       <div className={cn("h-16 flex items-center shrink-0 border-b border-slate-100", collapsed ? "justify-center px-0" : "px-5 gap-3")}>
         <Link href="/plan" onClick={onNavigate} className="flex items-center gap-3 min-w-0 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40" aria-label="ChainInsideIQ home">
-          <div className="w-9 h-9 rounded-xl bg-slate-900 text-teal-300 flex items-center justify-center shadow-sm shrink-0">
-            <Bolt size={18} />
-          </div>
-          {!collapsed && (
-            <div className="flex flex-col min-w-0">
-              <span className="font-black text-[14px] text-slate-900 uppercase tracking-tighter leading-none">ChainInside</span>
-              <span className="text-[9px] font-black text-primary uppercase tracking-[0.2em] mt-1">Intelligence IQ</span>
-            </div>
-          )}
+          <Logo size={34} compact={collapsed} />
         </Link>
         {!collapsed && onToggleCollapsed && (
           <button
@@ -308,6 +301,3 @@ function RailTip({ label, hint, enabled, children }: { label: string; hint?: str
   );
 }
 
-function Bolt({ size }: { size: number }) {
-  return <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></svg>;
-}

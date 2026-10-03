@@ -11,6 +11,8 @@ import { ProductTour } from "@/components/ProductTour";
 import { CommandPalette, openCommandPalette } from "@/components/CommandPalette";
 import { useLocation, Link } from "wouter";
 import { cn } from "@/lib/utils";
+import { Logo } from "@/components/Logo";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -88,15 +90,13 @@ export function AppLayout({ children }: AppLayoutProps) {
             >
               <Menu className="w-5 h-5" />
             </button>
-            <Link href="/plan" className="flex items-center gap-2 px-1 min-w-0">
-              <span className="w-7 h-7 rounded-lg bg-slate-900 text-teal-300 flex items-center justify-center shrink-0">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></svg>
-              </span>
-              <span className="font-black text-[15px] text-slate-900 tracking-tight truncate">ChainInsideIQ</span>
+            <Link href="/plan" className="flex items-center px-1 min-w-0" aria-label="Growth Plan">
+              <Logo size={30} />
             </Link>
+            <ThemeToggle className="ml-auto" />
             <button
               onClick={openCommandPalette}
-              className="ml-auto w-10 h-10 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-100 touch-manipulation"
+              className="w-10 h-10 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-100 touch-manipulation"
               aria-label="Search and jump to a page"
             >
               <Search className="w-5 h-5" />

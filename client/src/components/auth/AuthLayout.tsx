@@ -1,13 +1,8 @@
+import { Logo } from "@/components/Logo";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { Link } from "wouter";
 import { ShieldCheck, Lock, Sparkles } from "lucide-react";
 
-function Zap({ size = 22 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-    </svg>
-  );
-}
 
 interface AuthLayoutProps {
   children: React.ReactNode;
@@ -19,19 +14,19 @@ interface AuthLayoutProps {
 export function AuthLayout({ children, title, subtitle, side = "signin" }: AuthLayoutProps) {
   const sideContent = {
     signin: {
-      headline: "Welcome back to your supply chain command center.",
+      headline: "Welcome back. Your plan is waiting.",
       points: [
-        { icon: ShieldCheck, text: "Your dashboards, KPIs, and data stay tied to your account." },
-        { icon: Sparkles, text: "AI Analyst Mode picks up exactly where you left off." },
-        { icon: Lock, text: "Bank-grade security and encryption for your operational data." },
+        { icon: ShieldCheck, text: "Pick up your growth plan and action board where you left off." },
+        { icon: Sparkles, text: "The AI Analyst remembers your goal and your numbers." },
+        { icon: Lock, text: "Partners only see the data you choose to share." },
       ],
     },
     signup: {
-      headline: "Build dashboards your team will actually use.",
+      headline: "Your growth plan is two minutes away.",
       points: [
-        { icon: Sparkles, text: "Generate full operations dashboards in seconds with AI." },
+        { icon: Sparkles, text: "Answer 8 quick questions and the AI Analyst writes your plan." },
         { icon: ShieldCheck, text: "14-day free trial. No credit card required." },
-        { icon: Lock, text: "Export to Excel, Power BI, or Google Sheets when ready." },
+        { icon: Lock, text: "Export to Excel, CSV and JSON whenever you need." },
       ],
     },
     verify: {
@@ -52,13 +47,7 @@ export function AuthLayout({ children, title, subtitle, side = "signin" }: AuthL
         <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-primary/10 blur-[120px] rounded-full -translate-x-1/3 translate-y-1/3 pointer-events-none" />
 
         <Link href="/" className="flex items-center gap-3 relative z-10" data-testid="link-brand-home">
-          <div className="w-10 h-10 rounded-xl bg-white text-primary flex items-center justify-center shadow-lg">
-            <Zap />
-          </div>
-          <div className="flex flex-col">
-            <span className="font-black text-base uppercase tracking-tighter leading-none">ChainInside</span>
-            <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mt-1">Intelligence IQ</span>
-          </div>
+          <Logo size={40} tone="light" />
         </Link>
 
         <div className="relative z-10 max-w-md">
@@ -85,12 +74,10 @@ export function AuthLayout({ children, title, subtitle, side = "signin" }: AuthL
       {/* Right form panel */}
       <main className="flex flex-col px-6 sm:px-10 py-10 lg:py-16 overflow-y-auto">
         <div className="lg:hidden flex items-center justify-between mb-8">
-          <Link href="/" className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-slate-900 text-primary flex items-center justify-center">
-              <Zap size={18} />
-            </div>
-            <span className="font-black text-sm uppercase tracking-tighter">ChainInsideIQ</span>
+          <Link href="/" className="flex items-center" aria-label="ChainInsideIQ home">
+            <Logo size={34} />
           </Link>
+          <ThemeToggle />
         </div>
 
         <div className="flex-1 flex flex-col justify-center max-w-md w-full mx-auto">
@@ -99,8 +86,8 @@ export function AuthLayout({ children, title, subtitle, side = "signin" }: AuthL
           {children}
         </div>
 
-        <div className="text-center mt-10 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-          Protected by bank-grade encryption · SOC 2 ready
+        <div className="text-center mt-10 text-[12px] text-slate-400">
+          Partners only see what you choose to share. Questions? <a href="mailto:support@chaininsideiq.com" className="font-semibold text-primary hover:underline">support@chaininsideiq.com</a>
         </div>
       </main>
     </div>

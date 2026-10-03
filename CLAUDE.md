@@ -41,12 +41,15 @@ If a feature doesn't help someone move through this loop, it waits.
 - New AI capability: add it to `llm-provider.ts` and give it a rule-based fallback in `shared/`.
 - New pricing or marketing claim: only if it ships in the same change.
 - Never commit API keys. Secrets come from environment variables.
+- New colour classes: support dark mode (prefer `dark:` variants) and re-run `node script/gen-dark-theme.mjs`.
+- Pricing lives in `client/src/lib/pricing.ts`; the reasoning is in `docs/PRICING.md`.
 - Keep bundle weight in check. Prefer existing dependencies; lazy-load heavy ones (e.g. `exceljs`).
 
 ## Definition of done
 - `npm run check` passes and `npm run build` succeeds.
 - Works at 390px and 1440px; no horizontal scroll; keyboard focus is visible.
 - Respects `prefers-reduced-motion`.
+- Looks right in light and dark mode.
 - AI features still answer with no keys and no server (built-in analyst).
 - No new false claims on marketing, pricing, support or privacy pages.
 - `PHASE-*-CHANGES.md` updated for anything a customer would notice.
