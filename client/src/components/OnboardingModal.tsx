@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useGrowthStore } from "@/hooks/use-growth-store";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Settings, Building, Users, Layers, Sparkles, ArrowRight, Check, Info } from "lucide-react";
@@ -50,11 +51,14 @@ const STRUCTURES: {
 ];
 
 export function OnboardingModal() {
-  const { setupComplete, completeSetup, dismissSetup, setBusinessStructure } = useDashboardStore();
+  const { setupComplete, completeSetup, dismissSetup, setBusinessStructure, isDemoMode } = useDashboardStore();
+  // The AI interview (/onboarding) already captures industry and partners, so
+  // people who finished it, and demo visitors, never see this older setup step.
+  const interviewDone = useGrowthStore((s) => s.onboardingComplete);
   const [, setLocation] = useLocation();
   const [selected, setSelected] = useState<BusinessStructure>("single");
 
-  if (setupComplete) return null;
+  if (setupComplete || interviewDone || isDemoMode) return null;
 
   const current = STRUCTURES.find((s) => s.value === selected)!;
 

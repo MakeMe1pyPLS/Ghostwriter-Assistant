@@ -155,7 +155,7 @@ export default function PricingPage() {
           </p>
         </div>
 
-        <div className="max-w-6xl mx-auto grid sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-5 items-start">
+        <div className="max-w-6xl mx-auto grid sm:grid-cols-2 xl:grid-cols-4 gap-6 xl:gap-5 items-start">
           {PRICING_TIERS.map(tier => (
             <PricingCard
               key={tier.id}

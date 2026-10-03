@@ -83,7 +83,7 @@ export default function DashboardPage() {
   return (
     <AppLayout>
       <div className="p-4 sm:p-6 md:p-10 max-w-[1600px] mx-auto min-h-0 flex flex-col">
-        <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 md:mb-8 shrink-0">
+        <header className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 mb-6 md:mb-8 shrink-0">
           <div className="flex items-center gap-4">
             <Link href="/builder">
               <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full bg-white shadow-sm border border-slate-200 text-slate-500 hover:text-slate-900 shrink-0">
@@ -98,7 +98,7 @@ export default function DashboardPage() {
               </p>
             </div>
           </div>
-          <div className="flex gap-2 md:gap-3 flex-wrap items-center">
+          <div className="toolbar w-full xl:w-auto md:gap-3">
             <div className="flex items-center bg-white rounded-xl border border-slate-200 shadow-sm p-1 gap-1">
               <button
                 onClick={() => setAnalystMode(false)}

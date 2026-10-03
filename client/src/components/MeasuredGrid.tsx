@@ -21,6 +21,46 @@ type Props = {
   compactType?: 'horizontal' | 'vertical' | null;
 };
 
+/**
+ * Builds tidy layouts for narrower breakpoints from the desktop (lg) layout.
+ * Without this, react-grid-layout clamps desktop positions into fewer columns
+ * and, with compaction off, widgets end up staggered with gaps on tablets and
+ * phones. Widgets keep their reading order (top-to-bottom, left-to-right).
+ */
+type GridItem = { i: string; x: number; y: number; w: number; h: number; minW?: number; maxW?: number; [k: string]: unknown };
+type GridLayouts = Record<string, GridItem[]>;
+
+export function deriveLayouts(lg: GridItem[], cols: Record<string, number>, provided: GridLayouts = {}): GridLayouts {
+  const lgCols = cols.lg || 12;
+  const order = [...lg].sort((a, b) => a.y - b.y || a.x - b.x);
+  const out: GridLayouts = { lg, ...provided };
+  for (const bp of Object.keys(cols)) {
+    if (bp === 'lg' || (provided[bp] && provided[bp].length === lg.length)) continue;
+    const C = cols[bp];
+    if (C > 6) {
+      // Wide grids (laptops): keep rows intact by scaling edges proportionally.
+      out[bp] = lg.map((item): GridItem => {
+        const x0 = Math.round((item.x / lgCols) * C);
+        const x1 = Math.max(x0 + 1, Math.round(((item.x + item.w) / lgCols) * C));
+        return { ...item, x: x0, w: Math.min(x1, C) - x0, minW: 1, maxW: undefined };
+      });
+      continue;
+    }
+    let x = 0, y = 0, rowH = 0;
+    out[bp] = order.map((item): GridItem => {
+      // Scale width to the new column count, then snap to halves/full rows on small grids.
+      let w = Math.max(1, Math.round((item.w / lgCols) * C));
+      if (C <= 6) w = item.w / lgCols <= 0.34 ? Math.max(1, Math.floor(C / 2)) : C;
+      w = Math.min(w, C);
+      if (x + w > C) { x = 0; y += rowH; rowH = 0; }
+      const placed = { ...item, x, y, w, minW: Math.min(item.minW ?? 1, w), maxW: undefined };
+      x += w; rowH = Math.max(rowH, item.h);
+      return placed;
+    });
+  }
+  return out;
+}
+
 export default function MeasuredGrid({
   layouts,
   layout,
@@ -60,7 +100,7 @@ export default function MeasuredGrid({
       const next = Math.floor(w);
       cancelAnimationFrame(frame);
       frame = window.requestAnimationFrame(() => {
-        setWidth((prev) => (prev !== next ? next : prev));
+        setWidth((prev: number) => (prev !== next ? next : prev));
       });
     });
     ro.observe(el);
@@ -71,13 +111,21 @@ export default function MeasuredGrid({
     };
   }, []);
 
+  const colMap = typeof cols === 'number' ? { lg: cols, md: cols, sm: cols, xs: cols, xxs: cols } : cols;
+  const lgLayout: GridItem[] | undefined = layouts?.lg ?? layout;
+  const fullLayouts = React.useMemo(
+    () => (lgLayout ? deriveLayouts(lgLayout, colMap, layouts ?? {}) : layouts),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [lgLayout, layouts, JSON.stringify(colMap)],
+  );
+
   return (
     <div ref={ref} className={className} style={{ width: "100%" }}>
       <ResponsiveGridLayout
         className="layout"
-        layouts={layouts}
+        layouts={fullLayouts}
         breakpoints={breakpoints}
-        cols={typeof cols === 'number' ? { lg: cols, md: cols, sm: cols, xs: cols, xxs: cols } : cols}
+        cols={colMap}
         rowHeight={rowHeight}
         width={width}
         margin={margin}

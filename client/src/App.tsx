@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -23,23 +23,60 @@ import SignInPage from "@/pages/sign-in";
 import SignUpPage from "@/pages/sign-up";
 import VerifyEmailPage from "@/pages/verify-email";
 
-const BuilderPage = lazy(() => import("@/pages/builder"));
-const DashboardPage = lazy(() => import("@/pages/dashboard"));
-const InsightsPage = lazy(() => import("@/pages/insights"));
-const BottlenecksPage = lazy(() => import("@/pages/bottlenecks"));
-const RecommendationsPage = lazy(() => import("@/pages/recommendations"));
-const PipelinePage = lazy(() => import("@/pages/pipeline"));
-const HubPage = lazy(() => import("@/pages/hub"));
-const ConnectorsPage = lazy(() => import("@/pages/connectors"));
-const ExportsPage = lazy(() => import("@/pages/exports"));
-const DataSourcesPage = lazy(() => import("@/pages/data-sources"));
-const GeneratePage = lazy(() => import("@/pages/generate"));
-const EnhancePage = lazy(() => import("@/pages/enhance"));
-const SettingsPage = lazy(() => import("@/pages/settings"));
-const OnboardingPage = lazy(() => import("@/pages/onboarding"));
-const PlanPage = lazy(() => import("@/pages/plan"));
-const CollabsPage = lazy(() => import("@/pages/collabs"));
-const KpiLibraryPage = lazy(() => import("@/pages/kpi-library"));
+const pageLoaders = {
+  BuilderPage: () => import("@/pages/builder"),
+  DashboardPage: () => import("@/pages/dashboard"),
+  InsightsPage: () => import("@/pages/insights"),
+  BottlenecksPage: () => import("@/pages/bottlenecks"),
+  RecommendationsPage: () => import("@/pages/recommendations"),
+  PipelinePage: () => import("@/pages/pipeline"),
+  HubPage: () => import("@/pages/hub"),
+  ConnectorsPage: () => import("@/pages/connectors"),
+  ExportsPage: () => import("@/pages/exports"),
+  DataSourcesPage: () => import("@/pages/data-sources"),
+  GeneratePage: () => import("@/pages/generate"),
+  EnhancePage: () => import("@/pages/enhance"),
+  SettingsPage: () => import("@/pages/settings"),
+  OnboardingPage: () => import("@/pages/onboarding"),
+  PlanPage: () => import("@/pages/plan"),
+  CollabsPage: () => import("@/pages/collabs"),
+  KpiLibraryPage: () => import("@/pages/kpi-library"),
+};
+const BuilderPage = lazy(pageLoaders.BuilderPage);
+const DashboardPage = lazy(pageLoaders.DashboardPage);
+const InsightsPage = lazy(pageLoaders.InsightsPage);
+const BottlenecksPage = lazy(pageLoaders.BottlenecksPage);
+const RecommendationsPage = lazy(pageLoaders.RecommendationsPage);
+const PipelinePage = lazy(pageLoaders.PipelinePage);
+const HubPage = lazy(pageLoaders.HubPage);
+const ConnectorsPage = lazy(pageLoaders.ConnectorsPage);
+const ExportsPage = lazy(pageLoaders.ExportsPage);
+const DataSourcesPage = lazy(pageLoaders.DataSourcesPage);
+const GeneratePage = lazy(pageLoaders.GeneratePage);
+const EnhancePage = lazy(pageLoaders.EnhancePage);
+const SettingsPage = lazy(pageLoaders.SettingsPage);
+const OnboardingPage = lazy(pageLoaders.OnboardingPage);
+const PlanPage = lazy(pageLoaders.PlanPage);
+const CollabsPage = lazy(pageLoaders.CollabsPage);
+const KpiLibraryPage = lazy(pageLoaders.KpiLibraryPage);
+
+const MARKETING = ["/", "/pricing", "/features", "/contact", "/support", "/privacy", "/terms", "/request-setup"];
+
+/**
+ * Once someone is inside the app, warm the other pages' code in the background
+ * so moving between pages is instant. Marketing visitors don't download it.
+ */
+function usePrefetchPages() {
+  const [location] = useLocation();
+  const inApp = !MARKETING.includes(location);
+  useEffect(() => {
+    if (!inApp) return;
+    const run = () => Object.values(pageLoaders).forEach((load) => { load().catch(() => {}); });
+    const w = window as any;
+    const id = w.requestIdleCallback ? w.requestIdleCallback(run, { timeout: 4000 }) : window.setTimeout(run, 2500);
+    return () => (w.cancelIdleCallback ? w.cancelIdleCallback(id) : clearTimeout(id));
+  }, [inApp]);
+}
 
 function DemoEntry({ children }: { children: React.ReactNode }) {
   const enterDemoMode = useDashboardStore(s => s.enterDemoMode);
@@ -51,10 +88,9 @@ function DemoEntry({ children }: { children: React.ReactNode }) {
 
 function PageLoader() {
   return (
-    <div className="min-h-screen bg-[#F4F7FA] flex items-center justify-center">
-      <div className="flex flex-col items-center gap-3">
-        <div className="w-8 h-8 rounded-full border-2 border-teal-600 border-t-transparent animate-spin" />
-        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Loading</p>
+    <div className="min-h-[100dvh] bg-[#F4F7FA]" role="status" aria-label="Loading">
+      <div className="fixed inset-x-0 top-0 h-[3px] overflow-hidden bg-teal-600/10">
+        <div className="ciq-loadbar h-full w-2/5 rounded-full bg-gradient-to-r from-transparent via-teal-500 to-transparent" />
       </div>
     </div>
   );
@@ -148,6 +184,7 @@ function Router() {
 }
 
 function App() {
+  usePrefetchPages();
   return (
     <QueryClientProvider client={queryClient}>
       <MotionConfig reducedMotion="user">
