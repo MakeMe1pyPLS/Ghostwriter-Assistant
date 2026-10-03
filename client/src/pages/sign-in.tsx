@@ -1,3 +1,4 @@
+import { useGrowthStore } from "@/hooks/use-growth-store";
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { AuthLayout } from "@/components/auth/AuthLayout";
@@ -37,7 +38,7 @@ export default function SignInPage() {
     setSubmitting(false);
 
     toast({ title: `Welcome back, ${user.fullName.split(' ')[0]}`, description: "You're signed in." });
-    setLocation('/dashboard');
+    setLocation(useGrowthStore.getState().onboardingComplete ? '/plan' : '/onboarding');
   };
 
   return (

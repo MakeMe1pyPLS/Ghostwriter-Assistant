@@ -44,6 +44,8 @@ export async function fetchApiData(
   try {
     const response = await fetch(url, {
       method: method.toUpperCase(),
+      redirect: 'error', // a redirect could point at an internal address
+      signal: AbortSignal.timeout(15_000),
       headers: {
         'Accept': 'application/json',
         ...headers

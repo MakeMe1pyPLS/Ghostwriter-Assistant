@@ -12,7 +12,7 @@ export interface ManagedDataset {
   columns: ManagedDatasetColumn[];
   rows: Record<string, any>[];
   rowCount: number;
-  sourceType: 'csv' | 'sql' | 'google-sheets' | 'api';
+  sourceType: 'csv' | 'excel' | 'json' | 'sql' | 'google-sheets' | 'api';
   createdAt: number;
   archived: boolean;
 }

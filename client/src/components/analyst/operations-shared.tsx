@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Sparkles } from "lucide-react";
 import type { Metric } from "@/hooks/use-sector-data";
+import { fetchOperationsIntel, ENGINE_LABELS } from "@/lib/intel-client";
+import type { AIEngineId } from "@shared/ai-types";
 
 // Shared types + helpers for the operations intelligence pages (Bottleneck
 // Detection, AI Recommendations, Operations Pipeline). All three project from
@@ -68,11 +70,11 @@ export function SeverityBadge({ severity }: { severity: Severity }) {
   );
 }
 
-export function GeneratedByBadge({ generatedBy }: { generatedBy: "claude" | "rule-based" }) {
+export function GeneratedByBadge({ generatedBy }: { generatedBy: AIEngineId }) {
   return (
-    <span className="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-slate-400">
+    <span className="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-slate-400" title="The engine that produced this analysis">
       <Sparkles className="w-3 h-3 text-teal-500" />
-      {generatedBy === "claude" ? "AI · Claude" : "AI · Demo Engine"}
+      AI · {ENGINE_LABELS[generatedBy] ?? generatedBy}
     </span>
   );
 }
@@ -108,13 +110,7 @@ export function useOperationsIntel(
           isPositive: m.isPositive,
         })),
       };
-      const res = await fetch("/api/ai/operations-intel", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      if (!res.ok) throw new Error("request failed");
-      const json = (await res.json()) as OperationsIntelResult;
+      const json: OperationsIntelResult = await fetchOperationsIntel(payload);
       setData(json);
     } catch {
       setError(true);

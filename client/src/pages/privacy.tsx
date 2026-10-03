@@ -45,7 +45,7 @@ export default function PrivacyPage() {
               </div>
               <div>
                 <h2 className="text-xl font-black text-slate-900 mb-3">4. Data Security</h2>
-                <p className="text-slate-600 leading-relaxed">We implement industry-standard security measures including encryption in transit (TLS 1.3), encryption at rest (AES-256), access controls, and regular security audits. We follow SOC 2 Type II compliance standards.</p>
+                <p className="text-slate-600 leading-relaxed">Connections to ChainInsideIQ are encrypted with HTTPS. At present, your workspace data (such as growth plans, actions, collabs and imported datasets) is stored locally in your browser on your device, and clearing your browser data removes it. When we introduce server-side accounts, we will update this policy to describe how that data is stored and protected.</p>
               </div>
               <div>
                 <h2 className="text-xl font-black text-slate-900 mb-3">5. Data Retention</h2>
@@ -53,7 +53,7 @@ export default function PrivacyPage() {
               </div>
               <div>
                 <h2 className="text-xl font-black text-slate-900 mb-3">6. Third-Party Sharing</h2>
-                <p className="text-slate-600 leading-relaxed">We do not sell your personal data. We may share data with trusted service providers who assist in operating our platform (hosting, analytics, payment processing), subject to strict data protection agreements.</p>
+                <p className="text-slate-600 leading-relaxed">We do not sell your personal data. We share data with service providers who help operate the platform, such as hosting providers. When you use AI features, the relevant business metrics, plan details and your question are sent to the AI provider selected for that request (Anthropic, OpenAI or Google) to generate a response; their handling of that data is governed by their own terms and policies. If you connect Microsoft Teams, Google Chat or Slack, the messages you choose to send are delivered to that service.</p>
               </div>
               <div>
                 <h2 className="text-xl font-black text-slate-900 mb-3">7. Your Rights</h2>

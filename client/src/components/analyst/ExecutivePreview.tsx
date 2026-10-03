@@ -1,3 +1,4 @@
+import { fetchCommandCenter, fetchOperationsIntel } from "@/lib/intel-client";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Sparkles,
@@ -222,16 +223,13 @@ export function ExecutivePreview({
         isPositive: m.isPositive,
       })),
     };
-    const body = JSON.stringify(payload);
-    const headers = { "Content-Type": "application/json" };
     try {
-      const [ccRes, opsRes] = await Promise.all([
-        fetch("/api/ai/command-center", { method: "POST", headers, body }),
-        fetch("/api/ai/operations-intel", { method: "POST", headers, body }),
+      const [ccJson, opsJson] = await Promise.all([
+        fetchCommandCenter(payload),
+        fetchOperationsIntel(payload),
       ]);
-      if (!ccRes.ok || !opsRes.ok) throw new Error("request failed");
-      setCc((await ccRes.json()) as CommandCenterResult);
-      setOps((await opsRes.json()) as OperationsIntelResult);
+      setCc(ccJson);
+      setOps(opsJson);
     } catch {
       setError(true);
     } finally {

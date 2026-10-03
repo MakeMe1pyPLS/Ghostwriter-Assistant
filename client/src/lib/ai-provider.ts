@@ -16,7 +16,7 @@ export interface AIProvider {
 
 // Flattens the structured AnalystResponse from /api/ai/chat into a readable
 // plain-text briefing for legacy string-based chat consumers.
-function flattenAnalystResponse(data: any): string {
+export function flattenAnalystResponse(data: any): string {
   const parts: string[] = [];
   if (data.businessSummary) parts.push(data.businessSummary);
   if (Array.isArray(data.keyFindings) && data.keyFindings.length) {

@@ -8,6 +8,7 @@ import NotFound from "@/pages/not-found";
 
 import { useEffect } from "react";
 import { useDashboardStore } from "@/hooks/use-dashboard-store";
+import { MotionConfig } from "framer-motion";
 import HomePage from "@/pages/home";
 import PricingPage from "@/pages/pricing";
 import FeaturesPage from "@/pages/features";
@@ -21,7 +22,6 @@ import CheckoutStripeMockPage from "@/pages/checkout-stripe-mock";
 import SignInPage from "@/pages/sign-in";
 import SignUpPage from "@/pages/sign-up";
 import VerifyEmailPage from "@/pages/verify-email";
-import WelcomePage from "@/pages/welcome";
 
 const BuilderPage = lazy(() => import("@/pages/builder"));
 const DashboardPage = lazy(() => import("@/pages/dashboard"));
@@ -36,6 +36,10 @@ const DataSourcesPage = lazy(() => import("@/pages/data-sources"));
 const GeneratePage = lazy(() => import("@/pages/generate"));
 const EnhancePage = lazy(() => import("@/pages/enhance"));
 const SettingsPage = lazy(() => import("@/pages/settings"));
+const OnboardingPage = lazy(() => import("@/pages/onboarding"));
+const PlanPage = lazy(() => import("@/pages/plan"));
+const CollabsPage = lazy(() => import("@/pages/collabs"));
+const KpiLibraryPage = lazy(() => import("@/pages/kpi-library"));
 
 function DemoEntry({ children }: { children: React.ReactNode }) {
   const enterDemoMode = useDashboardStore(s => s.enterDemoMode);
@@ -76,7 +80,24 @@ function Router() {
       <Route path="/signup" component={SignUpPage} />
       <Route path="/register" component={SignUpPage} />
       <Route path="/verify-email" component={VerifyEmailPage} />
-      <Route path="/welcome" component={WelcomePage} />
+      <Route path="/welcome">
+        <Suspense fallback={<PageLoader />}><OnboardingPage /></Suspense>
+      </Route>
+      <Route path="/onboarding">
+        <Suspense fallback={<PageLoader />}><OnboardingPage /></Suspense>
+      </Route>
+      <Route path="/plan">
+        <Suspense fallback={<PageLoader />}><PlanPage /></Suspense>
+      </Route>
+      <Route path="/app">
+        <Suspense fallback={<PageLoader />}><PlanPage /></Suspense>
+      </Route>
+      <Route path="/collabs">
+        <Suspense fallback={<PageLoader />}><CollabsPage /></Suspense>
+      </Route>
+      <Route path="/kpis">
+        <Suspense fallback={<PageLoader />}><KpiLibraryPage /></Suspense>
+      </Route>
       <Route path="/demo">
         <DemoEntry>
           <Suspense fallback={<PageLoader />}><BuilderPage /></Suspense>
@@ -129,10 +150,12 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Router />
-      </TooltipProvider>
+      <MotionConfig reducedMotion="user">
+        <TooltipProvider>
+          <Toaster />
+          <Router />
+        </TooltipProvider>
+      </MotionConfig>
     </QueryClientProvider>
   );
 }

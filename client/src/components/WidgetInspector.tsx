@@ -59,7 +59,7 @@ export function WidgetInspector({
     [widget?.type]
   );
   const isChartWidget = useMemo(
-    () => ['trend', 'bar', 'donut', 'kpi', 'table', 'progress'].includes(widget?.type),
+    () => ['trend', 'bar', 'donut', 'pie', 'progress'].includes(widget?.type),
     [widget?.type]
   );
   const isKPI = widget?.type === 'kpi';
@@ -217,7 +217,7 @@ export function WidgetInspector({
                       {Object.entries(metricsByCategory).map(([category, catMetrics]) => (
                         <SelectGroup key={category}>
                           <SelectLabel className="capitalize text-primary font-black bg-slate-50/50 text-[10px] uppercase tracking-widest py-2 px-3 border-b border-slate-100">{category}</SelectLabel>
-                          {catMetrics.map((m, i) => (
+                          {(catMetrics as { label: string }[]).map((m, i) => (
                             <SelectItem key={`${category}-${i}`} value={m.label} className="text-xs py-2">{m.label}</SelectItem>
                           ))}
                         </SelectGroup>

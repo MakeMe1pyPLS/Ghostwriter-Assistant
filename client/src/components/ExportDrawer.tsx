@@ -1,3 +1,4 @@
+import { exportExcel, exportCsv, exportJsonSpec, exportDataset } from "@/lib/client-export";
 import { Button } from "@/components/ui/button";
 import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
 import { Download, FileJson, FileSpreadsheet, FileText, Image as ImageIcon, Monitor, Loader2, Table2, Database, CheckCircle2, AlertCircle } from "lucide-react";
@@ -32,18 +33,7 @@ export function ExportDrawer({ layout, widgets, sector, dateRange = '30d', metri
         donutData: donutData || [], widgets, layouts: { lg: layout }, allMetrics
       });
 
-      const response = await fetch('/api/export/excel', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || 'Export failed');
-      }
-
-      await downloadFromResponse(response, exportFilename('dashboard_excel', sector, 'xlsx'));
+      await exportExcel(payload, { metrics: metrics || [], chartData: chartData || [], donutData: donutData || [] }, exportFilename('dashboard_excel', sector, 'xlsx'));
       setExportStatus('excel', 'success');
       toast({ title: "Excel Exported", description: "Your dashboard workbook has been downloaded." });
     } catch (err: any) {
@@ -56,15 +46,7 @@ export function ExportDrawer({ layout, widgets, sector, dateRange = '30d', metri
   const handleCsvExport = async () => {
     setExportStatus('csv', 'loading');
     try {
-      const response = await fetch('/api/export/csv', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ metrics, chartData, sector, dateRange })
-      });
-
-      if (!response.ok) throw new Error('CSV export failed');
-
-      await downloadFromResponse(response, exportFilename('dashboard', sector, 'csv'));
+      await exportCsv({ metrics: metrics || [], chartData, sector, dateRange }, exportFilename('dashboard', sector, 'csv'));
       setExportStatus('csv', 'success');
       toast({ title: "CSV Exported", description: "Dashboard data downloaded as CSV." });
     } catch (err: any) {
@@ -81,15 +63,7 @@ export function ExportDrawer({ layout, widgets, sector, dateRange = '30d', metri
         donutData: donutData || [], widgets, layouts: { lg: layout }
       });
 
-      const response = await fetch('/api/export/json', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      if (!response.ok) throw new Error('JSON export failed');
-
-      await downloadFromResponse(response, exportFilename('dashboard_spec', sector, 'json'));
+      await exportJsonSpec(payload, exportFilename('dashboard_spec', sector, 'json'));
       setExportStatus('json', 'success');
       toast({ title: "JSON Exported", description: "Dashboard specification downloaded." });
     } catch (err: any) {
@@ -101,17 +75,7 @@ export function ExportDrawer({ layout, widgets, sector, dateRange = '30d', metri
   const handleDatasetExport = async () => {
     setExportStatus('dataset', 'loading');
     try {
-      const response = await fetch('/api/export/dataset', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          metrics, chartData, donutData, sector, dateRange, format: 'json'
-        })
-      });
-
-      if (!response.ok) throw new Error('Dataset export failed');
-
-      await downloadFromResponse(response, exportFilename('dataset', sector, 'json'));
+      await exportDataset({ metrics: metrics || [], chartData, donutData, sector, dateRange }, 'json', exportFilename('dataset', sector, 'json'));
       setExportStatus('dataset', 'success');
       toast({ title: "Dataset Exported", description: "Underlying dataset downloaded as JSON." });
     } catch (err: any) {

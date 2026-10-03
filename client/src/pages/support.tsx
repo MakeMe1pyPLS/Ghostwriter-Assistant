@@ -10,14 +10,14 @@ import { useState } from "react";
 import { getPricingSummary } from "@/lib/pricing";
 
 const faqs = [
-  { q: "How do I get started with ChainInsideIQ?", a: "Start by signing up for a 14-day free trial. You can immediately access the Dashboard Builder, import your data, and begin generating insights. No credit card required." },
-  { q: "Can I import my own datasets?", a: "Yes. You can upload CSV files, connect to SQL databases, import from Google Sheets, or ingest data from external APIs. The platform will automatically detect column types and map them to the appropriate KPIs." },
-  { q: "What export formats are supported?", a: "ChainInsideIQ supports Excel (.xlsx), CSV, JSON, formatted PDF reports, and scheduled exports. Professional plans and above also support Google Sheets, SQL, and API integrations. Enterprise plans add Power BI and Tableau connectors." },
-  { q: "Is the AI analysis powered by real machine learning?", a: "The current demo uses a sophisticated rule-based engine calibrated against real supply chain benchmarks. Our production tier integrates with advanced AI models for deeper predictive analytics." },
+  { q: "How do I get started with ChainInsideIQ?", a: "Sign up for a 14-day free trial. The AI Analyst asks a few questions about your goal and builds a step-by-step growth plan. Then you can import your data, explore bottlenecks and build dashboards." },
+  { q: "Can I import my own datasets?", a: "Yes. Upload CSV, Excel (.xlsx) or JSON files, import a public Google Sheet, or pull JSON from an API. Column types are detected automatically. Direct database connections are coming soon." },
+  { q: "What export formats are supported?", a: "You can export to Excel (.xlsx), CSV and JSON, and export your growth plan's due dates to Google Calendar, Outlook or Apple Calendar. Generated dashboards can be laid out for Excel, Google Sheets, Power BI or Tableau. PDF reports, scheduled exports and direct Power BI and Tableau connectors are coming soon." },
+  { q: "Is the AI analysis powered by real machine learning?", a: "Yes. ChainInsideIQ runs on three AI engines (Anthropic Claude, OpenAI ChatGPT and Google Gemini) and you can choose which one to use. If none is available, a built-in rule-based analyst answers instead, and every answer shows which engine produced it." },
   { q: "How does the pricing work?", a: getPricingSummary() },
-  { q: "Can multiple team members use the same account?", a: "Yes. Starter includes 1 user, Professional supports up to 5 users, Business supports up to 15 users, and Enterprise plans support unlimited team members with role-based access controls, SSO, and audit logs." },
+  { q: "Can multiple team members use the same account?", a: "Not yet. Today each account is for one person. Team members (up to 5 on Professional and 15 on Business), role-based access, SSO and audit logs are coming soon. In the meantime you can share plans, bottlenecks and updates with your team through Microsoft Teams, Google Chat, Slack or email." },
   { q: "Do you offer onboarding or setup assistance?", a: "Absolutely. We offer guided onboarding sessions for Business and Enterprise customers. Enterprise plans include dedicated onboarding assistance, custom KPI engineering, and direct support. You can also request a custom setup through our Contact page." },
-  { q: "Is my data secure?", a: "Yes. All data is encrypted in transit and at rest. We follow SOC 2 Type II compliance standards and never share your data with third parties. Enterprise plans include dedicated environments and audit logs. See our Privacy Policy for details." },
+  { q: "Is my data secure?", a: "Data travels over encrypted HTTPS connections. Right now your workspace (plans, actions, collabs and imported data) is stored in your own browser on your device. When you use an AI feature, the relevant numbers and your question are sent to the AI provider you've chosen to generate the answer. We do not sell your data. See our Privacy Policy for details." },
   { q: "What is the difference between Single and Unified sector mode?", a: "Single mode focuses your dashboard on one sector (e.g. E-commerce only). Unified mode displays cross-sector KPIs that bridge manufacturing, logistics, and e-commerce together, showing end-to-end supply chain health." },
   { q: "Can I customize the look of individual KPI cards?", a: "Yes. Each KPI card supports 8 style presets, 4 data density modes (minimal, standard, detailed, grid), adjustable border radius, shadow intensity, padding, and toggles for sparklines, badges, icons, and comparison labels." },
   { q: "What are the three business structure types?", a: "Single Business: one company operating in one sector. Partnered Business: two sectors working together (e.g. E-commerce + Logistics), with Hub and data sharing enabled by default. Unified Supply Chain: three sectors connected end-to-end (e.g. Manufacturing → E-commerce → Logistics), unlocking cross-sector dashboards, shared intelligence, and the unified sector mode." },
@@ -81,8 +81,8 @@ const docSections = [
     title: "Export & Reporting",
     color: "text-amber-600 bg-amber-50 border-amber-100",
     content: [
-      "Export your dashboards in multiple formats: Excel (.xlsx) with formatted sheets, CSV for raw data, JSON for developer integrations, and PDF for executive reporting.",
-      "Exports include all visible widget data, chart configurations, and AI-generated insights. Scheduled exports are available on Professional plans and above.",
+      "Export your dashboards as Excel (.xlsx) with formatted sheets, CSV for raw data, or JSON for developer integrations. Your growth plan exports to Excel, CSV and calendar files.",
+      "Exports include the visible widget data and chart configurations. PDF reports and scheduled exports are coming soon.",
       "The Export drawer is accessible from both the Builder and Dashboard pages via the export icon in the top toolbar.",
     ]
   },
@@ -91,9 +91,9 @@ const docSections = [
     title: "Connectors & Integrations",
     color: "text-emerald-600 bg-emerald-50 border-emerald-100",
     content: [
-      "Connect ChainInsideIQ to your existing systems: ERP platforms (SAP, Oracle, NetSuite), WMS (Manhattan, Blue Yonder), TMS (Oracle TMS, MercuryGate), and e-commerce platforms (Shopify, WooCommerce, Magento).",
-      "API-first architecture supports REST and webhook integrations. Professional plans and above include Google Sheets and SQL database connectors. Enterprise plans add Power BI, Tableau, and custom API endpoints.",
-      "All connections are managed through the Connectors page in the sidebar. Data sync frequency depends on your plan tier.",
+      "Bring data in today by uploading CSV, Excel or JSON files, importing a public Google Sheet, or pulling JSON from an API.",
+      "Send plans, bottlenecks and Hub updates to Microsoft Teams, Google Chat or Slack, and add action due dates to Google Calendar or Outlook. Set these up under Settings → Connected tools.",
+      "Live connectors for systems such as Shopify, QuickBooks, ERP, WMS and TMS platforms, plus Power BI and Tableau, are on the roadmap. The Connectors page shows what's available and what's coming.",
     ]
   },
   {
@@ -101,9 +101,9 @@ const docSections = [
     title: "Team & Collaboration",
     color: "text-rose-600 bg-rose-50 border-rose-100",
     content: [
-      "Invite team members to collaborate on dashboards. Each member can have a role: Viewer (read-only access), Editor (can modify dashboards), or Admin (full access including settings and billing).",
-      "The Hub page provides internal communication features for discussing dashboard insights, flagging anomalies, and sharing views with stakeholders.",
-      "Enterprise plans include SSO (SAML 2.0), audit logs, and granular permission controls for dashboard-level access.",
+      "Data collabs let you agree with a partner which data and KPIs you share, invite them by email, and save the setup as a preset for your next partner.",
+      "The Hub is where you discuss issues: every post has a reply thread, can be tied to a collab, and can be turned into a tracked action or sent to Teams, Google Chat or Slack.",
+      "Team member accounts with roles, live shared workspaces, SSO and audit logs are coming soon.",
     ]
   },
   {
@@ -111,9 +111,9 @@ const docSections = [
     title: "Security & Compliance",
     color: "text-slate-600 bg-slate-50 border-slate-200",
     content: [
-      "All data is encrypted in transit (TLS 1.3) and at rest (AES-256). We maintain SOC 2 Type II compliance and undergo annual third-party security audits.",
-      "Enterprise deployments include dedicated environments, custom data retention policies, IP allowlisting, and comprehensive audit logging.",
-      "We never share customer data with third parties. Our AI processing happens within your data boundary — no data leaves your environment for model training.",
+      "Connections to ChainInsideIQ use HTTPS encryption. Today your workspace data is stored in your own browser; server-side accounts with encrypted storage are coming soon.",
+      "AI features send the relevant numbers and your question to the AI provider you choose (Anthropic, OpenAI or Google) to generate an answer. Imports from Google Sheets and APIs are fetched by our server. We do not sell customer data.",
+      "Audit logging, SSO, dedicated environments and formal security certifications are on our roadmap for business and enterprise customers.",
     ]
   },
   {
@@ -154,9 +154,9 @@ const docSections = [
     title: "Plans & Billing",
     color: "text-orange-600 bg-orange-50 border-orange-100",
     content: [
-      "Four plans are available: Starter ($79/mo, 1 user, 5 dashboards), Professional ($149/mo, 5 users, unlimited dashboards, AI features), Business ($299/mo, 15 users, API access, priority support), and Enterprise (custom pricing, unlimited users, dedicated support).",
-      "All plans include a 14-day free trial. No credit card is required to start. Annual billing provides a 20% discount on all tiers.",
-      "Upgrades and downgrades take effect immediately. Prorated charges are applied automatically. Enterprise customers receive custom invoicing.",
+      "Four plans are available: Starter ($79/mo), Professional ($149/mo), Business ($299/mo) and Enterprise (custom pricing). See the Pricing page for exactly what each includes and what's coming soon.",
+      "Starter, Professional and Business begin with a 14-day free trial.",
+      "Online billing is being finalized. Contact us for annual pricing or Enterprise invoicing.",
     ]
   },
 ];
@@ -224,8 +224,8 @@ export default function SupportPage() {
           <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-6">
             {[
               { icon: Mail, title: "Email Support", desc: "Reach our team directly for technical questions or account issues.", action: "support@chaininsideiq.com", color: "text-primary bg-primary/10 border-primary/20" },
-              { icon: MessageCircle, title: "Live Chat", desc: "Chat with our AI assistant or connect with a human agent during business hours.", action: "Available 9am-6pm EST", color: "text-indigo-600 bg-indigo-50 border-indigo-100" },
-              { icon: BookOpen, title: "Documentation", desc: "Browse our guides, API docs, and video tutorials to get the most out of the platform.", action: "13 Sections Below", color: "text-amber-600 bg-amber-50 border-amber-100" }
+              { icon: MessageCircle, title: "AI Analyst", desc: "Ask the in-app AI Analyst how to use a feature or what a number means, any time.", action: "Inside the app", color: "text-indigo-600 bg-indigo-50 border-indigo-100" },
+              { icon: BookOpen, title: "Guides", desc: "Step-by-step guides for every part of the platform.", action: "Sections below", color: "text-amber-600 bg-amber-50 border-amber-100" }
             ].map((item, i) => (
               <div key={i} className="bg-white rounded-2xl border border-slate-200 p-8 text-center shadow-sm hover:shadow-md transition-shadow">
                 <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-5 border ${item.color}`}>

@@ -1,3 +1,4 @@
+import { IssueActions } from "@/components/analyst/IssueActions";
 import { useMemo, useState } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useSectorData } from "@/hooks/use-sector-data";
@@ -22,7 +23,7 @@ import {
 } from "lucide-react";
 import { UpgradeBanner } from "@/components/UpgradeBadge";
 
-function BottleneckCard({ item, rank }: { item: OperationsIntelItem; rank: number }) {
+function BottleneckCard({ item, rank, sector }: { item: OperationsIntelItem; rank: number; sector: string }) {
   const [open, setOpen] = useState(rank === 1);
   const s = SEVERITY_STYLES[item.severity];
 
@@ -84,6 +85,8 @@ function BottleneckCard({ item, rank }: { item: OperationsIntelItem; rank: numbe
             </div>
             <p className="text-xs font-semibold text-slate-800 leading-relaxed">{item.recommendedAction}</p>
           </div>
+
+          <IssueActions item={item} sector={sector} />
         </div>
       )}
     </div>
@@ -202,7 +205,7 @@ export default function BottlenecksPage() {
             {!loading && !error && bottlenecks.length > 0 && (
               <div className="space-y-3">
                 {bottlenecks.map((item, i) => (
-                  <BottleneckCard key={item.id} item={item} rank={i + 1} />
+                  <BottleneckCard key={item.id} item={item} rank={i + 1} sector={sector} />
                 ))}
               </div>
             )}

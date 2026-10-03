@@ -9,10 +9,15 @@ export interface PricingTier {
   badge: string | null;
   cta: string;
   ctaVariant: 'default' | 'outline';
+  /** Only features that work today. */
   features: string[];
+  /** Planned for this plan but not built yet. Shown separately and labeled. */
+  comingSoon?: string[];
   highlighted: boolean;
 }
 
+// Keep these lists honest: a feature goes in `features` only once it ships.
+// Anything planned belongs in `comingSoon`, which the pricing page labels clearly.
 export const PRICING_TIERS: PricingTier[] = [
   {
     id: 'starter',
@@ -20,21 +25,21 @@ export const PRICING_TIERS: PricingTier[] = [
     price: 79,
     priceLabel: '$79',
     period: '/month',
-    description: 'Best for small teams and early-stage operations.',
+    description: 'For owner-operators and small businesses getting started.',
     trial: '14-day free trial',
     badge: null,
     cta: 'Start Starter',
     ctaVariant: 'outline',
     highlighted: false,
     features: [
-      'Dashboard Builder with KPI cards, charts, tables, and forecasting widgets',
-      'E-commerce, Manufacturing, and Logistics KPI libraries',
-      'CSV upload, Excel upload, and manual dataset import',
-      'Excel, CSV, and JSON export',
-      'AI Supply Chain Analyst (basic) — KPI explanations, dashboard summary, anomaly hints',
-      '3 dashboards',
-      '3 datasets',
-      '1 user',
+      'AI Analyst interview and a step-by-step Growth Plan',
+      'Action board with owners, due dates and calendar links (Google, Outlook, Apple)',
+      'AI Analyst chat that knows your goal and your numbers',
+      'Dashboard Builder, Generate For Me and Enhance My Dashboard',
+      'KPI Library: 300+ metrics across 45 industries',
+      'Import CSV, Excel and JSON files',
+      'Export to Excel, CSV and JSON',
+      '1 data collab with a partner',
     ],
   },
   {
@@ -43,7 +48,7 @@ export const PRICING_TIERS: PricingTier[] = [
     price: 149,
     priceLabel: '$149',
     period: '/month',
-    description: 'Best for growing companies and analytics teams.',
+    description: 'For growing businesses that work closely with partners.',
     trial: '14-day free trial',
     badge: 'Most Popular',
     cta: 'Start Professional',
@@ -51,12 +56,18 @@ export const PRICING_TIERS: PricingTier[] = [
     highlighted: true,
     features: [
       'Everything in Starter, plus:',
-      'Advanced AI Analyst — anomaly detection, trend insights, AI dashboard summaries, operational recommendations, forecast explanations',
-      'Unlimited dashboards and widgets',
-      'Google Sheets connector, SQL database connection, API ingestion',
-      'Formatted PDF reports and scheduled exports',
-      'Weekly AI reports',
-      'Up to 5 users',
+      'Bottleneck detection with root causes, ranked by business impact',
+      'AI recommendations with step-by-step action plans',
+      'Choose your AI engine: Claude, ChatGPT or Gemini',
+      'Unlimited data collabs, saved as reusable presets',
+      'Ops Hub with discussion threads tied to each issue',
+      'Send updates to Microsoft Teams, Google Chat and Slack',
+      'Import from public Google Sheets and JSON APIs',
+    ],
+    comingSoon: [
+      'Up to 5 team members',
+      'Scheduled exports and PDF reports',
+      'Weekly AI summary emails',
     ],
   },
   {
@@ -65,7 +76,7 @@ export const PRICING_TIERS: PricingTier[] = [
     price: 299,
     priceLabel: '$299',
     period: '/month',
-    description: 'Best for operations teams running multiple data systems.',
+    description: 'For operations teams running a full supply chain.',
     trial: '14-day free trial',
     badge: null,
     cta: 'Start Business',
@@ -73,12 +84,16 @@ export const PRICING_TIERS: PricingTier[] = [
     highlighted: false,
     features: [
       'Everything in Professional, plus:',
-      'Unified Supply Chain Mode with Bridge KPIs — Perfect Order Rate, Cash-to-Cash Cycle Time, Available-to-Promise Accuracy, Bullwhip Effect Index',
-      'Multi-dataset linking, sector data normalization, metric calculation engine',
-      '30-day forecasting and scenario simulation',
-      'Comments on dashboards, team notifications, shared workspaces',
-      'AI root-cause analysis and KPI prioritization',
-      'Up to 15 users',
+      'Operations Pipeline: track every issue from signal to resolution',
+      'Unified Supply Chain mode with bridge KPIs: Perfect Order Rate, Cash-to-Cash Cycle, ATP Accuracy, Bullwhip Index',
+      'Dataset library per sector with merge and overwrite',
+      '7- and 14-day demand forecasts',
+      'Priority email support',
+    ],
+    comingSoon: [
+      'Up to 15 team members',
+      'Shared workspaces where partners sign in and see live data',
+      'Scenario simulation',
     ],
   },
   {
@@ -87,7 +102,7 @@ export const PRICING_TIERS: PricingTier[] = [
     price: null,
     priceLabel: 'Custom',
     period: '',
-    description: 'For large companies and supply chain networks.',
+    description: 'For multi-location companies and supply chain networks.',
     trial: null,
     badge: null,
     cta: 'Contact Sales',
@@ -95,18 +110,23 @@ export const PRICING_TIERS: PricingTier[] = [
     highlighted: false,
     features: [
       'Everything in Business, plus:',
-      'Power BI, Tableau, and ERP integrations with custom API pipelines',
-      'AI operational simulation, predictive demand modeling, supply chain optimization insights',
-      'SSO, audit logs, and role-based access',
-      'Dedicated environment',
-      'Onboarding assistance and custom KPI engineering',
+      'Guided onboarding and setup with our team',
+      'Custom KPI and dashboard engineering',
+      'Custom data imports set up for your systems',
+      'Volume pricing for multiple locations or business units',
       'Direct support',
+    ],
+    comingSoon: [
+      'Single sign-on (SSO) and audit logs',
+      'Role-based access controls',
+      'Power BI, Tableau and ERP integrations',
+      'Dedicated environment',
     ],
   },
 ];
 
 export function getPricingSummary(): string {
-  return 'ChainInsideIQ offers four plans: Starter ($79/month), Professional ($149/month), Business ($299/month), and Enterprise (custom pricing). Starter, Professional, and Business include a 14-day free trial. Each tier unlocks more AI capability, integrations, exports, collaboration, and supply chain intelligence features.';
+  return 'ChainInsideIQ offers four plans: Starter ($79/month), Professional ($149/month), Business ($299/month) and Enterprise (custom pricing). Starter, Professional and Business start with a 14-day free trial. Every plan includes the AI growth plan, AI Analyst chat, KPI Library and Excel/CSV/JSON import and export. Higher plans add bottleneck detection, AI engine choice, unlimited partner collabs, Teams and Google Chat updates, and supply-chain-wide analysis. Features marked "Coming soon" on the pricing page are not available yet.';
 }
 
 export function getTierByName(name: string): PricingTier | undefined {

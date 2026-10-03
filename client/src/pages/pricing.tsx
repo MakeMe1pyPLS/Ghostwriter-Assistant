@@ -1,7 +1,7 @@
 import { MarketingLayout } from "@/components/layout/MarketingLayout";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation, useSearch } from "wouter";
-import { Check, ArrowRight, Sparkles, Loader2, Mail } from "lucide-react";
+import { Check, ArrowRight, Sparkles, Loader2, Mail, Clock } from "lucide-react";
 import { useState } from "react";
 import { PRICING_TIERS, type PricingTier } from "@/lib/pricing";
 import { cn } from "@/lib/utils";
@@ -107,6 +107,22 @@ function PricingCard({ tier, onCheckout, checkoutLoading, recommended }: { tier:
               );
             })}
           </div>
+
+          {tier.comingSoon && tier.comingSoon.length > 0 && (
+            <div className="mt-6 pt-5 border-t border-dashed border-slate-200" data-testid={`coming-soon-${tier.id}`}>
+              <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                <Clock className="w-3 h-3" /> Coming soon
+              </h4>
+              <div className="space-y-2.5">
+                {tier.comingSoon.map((item) => (
+                  <div key={item} className="flex items-start gap-2.5">
+                    <div className="w-4.5 h-4.5 rounded-full border border-dashed border-slate-300 shrink-0 mt-0.5" aria-hidden />
+                    <span className="text-xs leading-relaxed text-slate-400 font-medium">{item}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -135,7 +151,7 @@ export default function PricingPage() {
             Simple, transparent pricing.
           </h1>
           <p className="text-lg text-slate-500 font-medium max-w-2xl mx-auto">
-            Choose the plan that fits your team. All paid plans include a 14-day free trial — no credit card required.
+            Choose the plan that fits your business. Starter, Professional and Business begin with a 14-day free trial.
           </p>
         </div>
 
@@ -151,14 +167,18 @@ export default function PricingPage() {
           ))}
         </div>
 
-        <div className="max-w-5xl mx-auto mt-20 grid md:grid-cols-2 gap-8">
+        <p className="max-w-3xl mx-auto mt-10 text-center text-xs text-slate-400 font-medium leading-relaxed" data-testid="text-coming-soon-note">
+          Items under “Coming soon” are on our roadmap and aren’t available yet. Your plan includes only the features listed under “What’s included”.
+        </p>
+
+        <div className="max-w-5xl mx-auto mt-16 grid md:grid-cols-2 gap-8">
           <div className="bg-[#F4F7FA] rounded-3xl p-8 border border-slate-200 transition-colors hover:border-slate-300">
             <h3 className="text-lg font-black text-slate-900 mb-6">Expert Services</h3>
             <div className="space-y-6">
               {[
-                { name: "Custom Dashboard Build", desc: "Let our experts build your ideal setup.", price: "From $999" },
-                { name: "Database Setup", desc: "We'll connect your data warehouse natively.", price: "From $1,499" },
-                { name: "KPI Engineering", desc: "Custom bridge metric development.", price: "Custom" }
+                { name: "Custom Dashboard Build", desc: "We design and build your dashboards and growth plan with you.", price: "From $999" },
+                { name: "Data Import Setup", desc: "We get your sales, inventory and operations data into ChainInsideIQ.", price: "From $1,499" },
+                { name: "KPI Engineering", desc: "Custom metrics designed for your business.", price: "Custom" }
               ].map((service, i) => (
                 <div key={i} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-slate-200 last:border-0 last:pb-0">
                   <div>
@@ -177,7 +197,8 @@ export default function PricingPage() {
           </div>
 
           <div className="bg-[#F4F7FA] rounded-3xl p-8 border border-slate-200 transition-colors hover:border-slate-300">
-            <h3 className="text-lg font-black text-slate-900 mb-6">Native Add-ons</h3>
+            <h3 className="text-lg font-black text-slate-900 mb-1">Native Add-ons</h3>
+            <p className="text-xs text-slate-500 font-medium mb-6">In development. Join the waitlist to hear first.</p>
             <div className="space-y-4">
               {["Excel AI Add-on", "Power BI AI Add-on", "Tableau AI Add-on", "Google Sheets Add-on"].map((addon, i) => (
                 <div key={i} className="flex items-center justify-between">
@@ -185,15 +206,20 @@ export default function PricingPage() {
                     <div className="w-2 h-2 rounded-full bg-slate-300" />
                     <span className="font-bold text-slate-700 text-sm">{addon}</span>
                   </div>
-                  <span className="text-xs font-black text-slate-500 bg-slate-100 px-2 py-1 rounded-md">+$29/mo</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 bg-slate-100 px-2 py-1 rounded-md">Coming soon</span>
                 </div>
               ))}
             </div>
 
             <div className="mt-8 pt-6 border-t border-slate-200">
               <p className="text-xs text-slate-500 font-medium leading-relaxed">
-                Add-ons are available on Professional plans and above. Contact our team for volume pricing or custom integrations.
+                Want an add-on sooner, or need a custom integration today? Tell us what you use.
               </p>
+              <Link href="/contact">
+                <Button variant="outline" className="w-full mt-4 h-11 rounded-xl font-bold uppercase tracking-widest text-xs border-slate-300 bg-white hover:bg-slate-50" data-testid="button-addon-waitlist">
+                  Join the waitlist
+                </Button>
+              </Link>
             </div>
           </div>
         </div>

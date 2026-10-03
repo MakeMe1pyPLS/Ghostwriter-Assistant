@@ -1,3 +1,4 @@
+import { exportExcel, exportCsv, exportJsonSpec, exportDataset } from "@/lib/client-export";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -278,62 +279,28 @@ export default function ExportsPage() {
         const payload = buildExcelPayload({
           sector, dateRange, metrics, chartData, donutData, widgets, layouts: { lg: layout }, allMetrics
         });
-        const response = await fetch('/api/export/excel', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        if (!response.ok) throw new Error((await response.json().catch(() => ({}))).error || 'Excel export failed');
-        await downloadFromResponse(response, exportFilename('dashboard_excel', sector, 'xlsx'));
+        await exportExcel(payload, { metrics, chartData, donutData }, exportFilename('dashboard_excel', sector, 'xlsx'));
         setStatus(itemId, 'success');
-        toast({ title: "Excel Exported", description: `${sectorLabel(sector)} dashboard workbook downloaded.` });
+        toast({ title: "Excel exported", description: `${sectorLabel(sector)} dashboard workbook downloaded.` });
 
       } else if (itemId === 'csv') {
-        const response = await fetch('/api/export/csv', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ metrics, chartData, sector, dateRange })
-        });
-        if (!response.ok) throw new Error('CSV export failed');
-        await downloadFromResponse(response, exportFilename('dashboard', sector, 'csv'));
+        await exportCsv({ metrics, chartData, sector, dateRange }, exportFilename('dashboard', sector, 'csv'));
         setStatus(itemId, 'success');
-        toast({ title: "CSV Exported", description: `${sectorLabel(sector)} dashboard data downloaded.` });
+        toast({ title: "CSV exported", description: `${sectorLabel(sector)} dashboard data downloaded.` });
 
       } else if (itemId === 'json') {
         const payload = buildDashboardPayload({
           sector, dateRange, metrics, chartData, donutData, widgets, layouts: { lg: layout }
         });
-        const response = await fetch('/api/export/json', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        if (!response.ok) throw new Error('JSON export failed');
-        await downloadFromResponse(response, exportFilename('dashboard_spec', sector, 'json'));
+        await exportJsonSpec(payload, exportFilename('dashboard_spec', sector, 'json'));
         setStatus(itemId, 'success');
-        toast({ title: "JSON Exported", description: "Dashboard specification downloaded." });
+        toast({ title: "JSON exported", description: "Dashboard specification downloaded." });
 
-      } else if (itemId === 'dataset-json') {
-        const response = await fetch('/api/export/dataset', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ metrics, chartData, donutData, sector, dateRange, format: 'json' })
-        });
-        if (!response.ok) throw new Error('Dataset export failed');
-        await downloadFromResponse(response, exportFilename('dataset', sector, 'json'));
+      } else if (itemId === 'dataset-json' || itemId === 'dataset-csv') {
+        const format = itemId === 'dataset-csv' ? 'csv' : 'json';
+        await exportDataset({ metrics, chartData, donutData, sector, dateRange }, format, exportFilename('dataset', sector, format));
         setStatus(itemId, 'success');
-        toast({ title: "Dataset Exported", description: "Underlying dataset downloaded as JSON." });
-
-      } else if (itemId === 'dataset-csv') {
-        const response = await fetch('/api/export/dataset', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ metrics, chartData, donutData, sector, dateRange, format: 'csv' })
-        });
-        if (!response.ok) throw new Error('Dataset export failed');
-        await downloadFromResponse(response, exportFilename('dataset', sector, 'csv'));
-        setStatus(itemId, 'success');
-        toast({ title: "Dataset Exported", description: "Underlying dataset downloaded as CSV." });
+        toast({ title: "Dataset exported", description: `Underlying dataset downloaded as ${format.toUpperCase()}.` });
 
       } else {
         setStatus(itemId, 'idle');

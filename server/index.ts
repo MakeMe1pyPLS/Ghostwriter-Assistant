@@ -4,6 +4,7 @@ import { serveStatic } from "./static";
 import { createServer } from "http";
 
 const app = express();
+export default app;
 const httpServer = createServer(app);
 
 declare module "http" {
@@ -12,15 +13,36 @@ declare module "http" {
   }
 }
 
+app.set("trust proxy", 1);
+
 app.use(
   express.json({
+    limit: "2mb",
     verify: (req, _res, buf) => {
       req.rawBody = buf;
     },
   }),
 );
 
-app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: false, limit: "2mb" }));
+
+// CORS for split deployments (frontend on Vercel, API elsewhere).
+// Set ALLOWED_ORIGINS to a comma-separated list, e.g. https://ghostwriter-assistant.vercel.app
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || "")
+  .split(",")
+  .map((o) => o.trim())
+  .filter(Boolean);
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Vary", "Origin");
+    res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    if (req.method === "OPTIONS") return res.sendStatus(204);
+  }
+  next();
+});
 
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
@@ -36,23 +58,12 @@ export function log(message: string, source = "express") {
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
-  let capturedJsonResponse: Record<string, any> | undefined = undefined;
-
-  const originalResJson = res.json;
-  res.json = function (bodyJson, ...args) {
-    capturedJsonResponse = bodyJson;
-    return originalResJson.apply(res, [bodyJson, ...args]);
-  };
-
   res.on("finish", () => {
     const duration = Date.now() - start;
     if (path.startsWith("/api")) {
-      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
-      }
-
-      log(logLine);
+      // Method, path, status and timing only: response bodies can contain
+      // customer data and AI output, so they are never written to logs.
+      log(`${req.method} ${path} ${res.statusCode} in ${duration}ms`);
     }
   });
 
@@ -89,9 +100,10 @@ app.use((req, res, next) => {
   // Other ports are firewalled. Default to 5000 if not specified.
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
-  const PORT = process.env.PORT || 5000;
-app.listen(PORT, "127.0.0.1", () => {
-  console.log(`Server running on http://127.0.0.1:${PORT}`);
-    },
-  );
+  const PORT = Number(process.env.PORT) || 5000;
+  // Bind to all interfaces so hosting platforms (Replit, Render, Railway, Fly)
+  // can reach the app. httpServer (not app.listen) so Vite HMR shares the port.
+  httpServer.listen(PORT, "0.0.0.0", () => {
+    log(`serving on port ${PORT}`);
+  });
 })();

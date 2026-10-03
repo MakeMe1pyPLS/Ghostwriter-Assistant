@@ -35,8 +35,7 @@ export default function VerifyEmailPage() {
     await new Promise(r => setTimeout(r, 800));
     verifyEmail();
     setVerifying(false);
-    toast({ title: "Email verified", description: "Your workspace is now fully active." });
-    setLocation('/welcome');
+    setLocation('/onboarding');
   };
 
   if (currentUser.emailVerified) {
@@ -50,7 +49,7 @@ export default function VerifyEmailPage() {
             <h3 className="text-xl font-black text-slate-900 mb-2">Email verified successfully</h3>
             <p className="text-sm text-slate-500">{currentUser.email}</p>
           </div>
-          <Link href="/welcome" className="w-full">
+          <Link href="/onboarding" className="w-full">
             <Button className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs" data-testid="button-continue">
               Continue to Workspace <ArrowRight className="w-4 h-4 ml-2" />
             </Button>

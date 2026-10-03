@@ -1,3 +1,4 @@
+import { fetchAnalystAnswer } from "@/lib/intel-client";
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -275,13 +276,7 @@ export function AIAnalystPanel({
             isPositive: m.isPositive,
           })),
         };
-        const res = await fetch("/api/ai/chat", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-        if (!res.ok) throw new Error("request failed");
-        const data = (await res.json()) as AnalystResponse;
+        const data: AnalystResponse = await fetchAnalystAnswer(payload);
         const aiMsg: Message = { id: `a-${Date.now()}`, role: "ai", analysis: data, ts: Date.now() };
         setMessages((prev) => [...prev, aiMsg]);
       } catch {

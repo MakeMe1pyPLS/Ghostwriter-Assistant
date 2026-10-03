@@ -1,21 +1,54 @@
-// Modular AI router. Today: Claude first, rule-based fallback. Tomorrow: add
-// OpenAI / Gemini providers behind the same OperationalIntelligenceProvider
-// interface and switch on AI_PROVIDER without touching callers.
+// Three-engine AI router.
+// Tries the requested engine first, then the other configured engines, then the
+// rule-based engine, so a request always gets an answer. Callers pass an
+// engine preference ("auto" | "claude" | "openai" | "gemini").
+import type { AIEnginePreference } from '@shared/ai-types';
 import {
   type OperationalIntelligenceProvider,
+  type CommandCenterRequest,
+  type AnalystChatRequest,
   RuleBasedIntelligenceProvider,
-} from './operational-intelligence';
-import { AnthropicIntelligenceProvider } from './anthropic-provider';
+  buildRuleBasedAnalystResponse,
+} from '@shared/intelligence';
+import { type GrowthProfile, type GrowthPlan, buildRuleBasedGrowthPlan } from '@shared/growth';
+import { configuredEngines, defaultOrder, type LLMEngineId } from './engines';
+import { LLMIntelligenceProvider } from './llm-provider';
 
-export function getIntelligenceProvider(): OperationalIntelligenceProvider {
-  const preferred = (process.env.AI_PROVIDER || 'claude').toLowerCase();
+export interface GrowthCapableProvider extends OperationalIntelligenceProvider {
+  generateGrowthPlan(profile: GrowthProfile): Promise<GrowthPlan>;
+  generateAnalystResponse(req: AnalystChatRequest & { businessContext?: string }): ReturnType<OperationalIntelligenceProvider['generateAnalystResponse']>;
+}
 
-  if (preferred === 'claude' && process.env.ANTHROPIC_API_KEY) {
-    return new AnthropicIntelligenceProvider();
+function engineChain(pref: AIEnginePreference = 'auto'): LLMIntelligenceProvider[] {
+  const engines = configuredEngines();
+  const order: LLMEngineId[] = pref !== 'auto' && engines[pref]
+    ? [pref, ...defaultOrder().filter((e) => e !== pref)]
+    : defaultOrder();
+  return order.map((id) => engines[id]).filter(Boolean).map((e) => new LLMIntelligenceProvider(e!));
+}
+
+async function firstSuccess<T>(chain: LLMIntelligenceProvider[], run: (p: LLMIntelligenceProvider) => Promise<T>, fallback: () => Promise<T> | T, label: string): Promise<T> {
+  for (const p of chain) {
+    try {
+      return await run(p);
+    } catch (err: any) {
+      console.warn(`[ai:${label}] ${p.id} failed, trying next engine: ${err?.message ?? err}`);
+    }
   }
+  return fallback();
+}
 
-  // Future: if (preferred === 'openai' && process.env.OPENAI_API_KEY) ...
-  // Future: if (preferred === 'gemini' && process.env.GEMINI_API_KEY) ...
-
-  return new RuleBasedIntelligenceProvider();
+export function getIntelligenceProvider(pref: AIEnginePreference = 'auto'): GrowthCapableProvider {
+  const chain = engineChain(pref);
+  const rules = new RuleBasedIntelligenceProvider();
+  return {
+    generateCommandCenter: (req: CommandCenterRequest) =>
+      firstSuccess(chain, (p) => p.generateCommandCenter(req), () => rules.generateCommandCenter(req), 'command-center'),
+    generateOperationsIntel: (req: CommandCenterRequest) =>
+      firstSuccess(chain, (p) => p.generateOperationsIntel(req), () => rules.generateOperationsIntel(req), 'operations-intel'),
+    generateAnalystResponse: (req: AnalystChatRequest & { businessContext?: string }) =>
+      firstSuccess(chain, (p) => p.generateAnalystResponse(req), () => buildRuleBasedAnalystResponse(req), 'chat'),
+    generateGrowthPlan: (profile: GrowthProfile) =>
+      firstSuccess(chain, (p) => p.generateGrowthPlan(profile), () => buildRuleBasedGrowthPlan(profile), 'growth-plan'),
+  };
 }
