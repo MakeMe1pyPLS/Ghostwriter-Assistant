@@ -6,7 +6,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { RefreshCw, Calendar, Zap, Clock, ArrowRight } from "lucide-react";
+import { RefreshCw, Zap } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { useDashboardStore, Sector, DateRange } from "@/hooks/use-dashboard-store";
@@ -14,7 +15,7 @@ import { format } from "date-fns";
 import { ImportDataModal } from "@/components/ImportDataModal";
 import { Link } from "wouter";
 
-export function TopBar() {
+export function TopBar({ scrolled = false }: { scrolled?: boolean }) {
   const { toast } = useToast();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const { selectedSector, setSector, selectedRange, setRange, lastRefreshed, refresh } = useDashboardStore();
@@ -32,7 +33,10 @@ export function TopBar() {
   };
 
   return (
-    <div className="h-16 border-b border-border bg-white/80 backdrop-blur-md sticky top-0 z-40 flex items-center justify-between px-4 lg:px-6 shadow-sm overflow-x-auto custom-scrollbar no-scrollbar-on-mobile shrink-0">
+    <div className={cn(
+      "h-16 border-b bg-white/85 backdrop-blur-xl sticky top-0 z-40 flex items-center justify-between gap-3 px-4 lg:px-6 overflow-x-auto custom-scrollbar no-scrollbar-on-mobile shrink-0 transition-[box-shadow,border-color] duration-200",
+      scrolled ? "border-slate-200 shadow-[0_6px_20px_-12px_rgba(15,23,42,0.25)]" : "border-slate-200/70",
+    )}>
       <div className="flex items-center gap-2 lg:gap-4 shrink-0 pr-4">
         <Select value={selectedSector} onValueChange={(v) => setSector(v as Sector)}>
           <SelectTrigger className="w-[140px] lg:w-[180px] bg-slate-50 border-slate-200 font-medium h-9">
@@ -59,10 +63,10 @@ export function TopBar() {
         </Select>
       </div>
 
-      <div className="flex items-center gap-3 lg:gap-4 shrink-0">
+      <div className="flex items-center gap-2 xl:gap-3 shrink-0">
         <ImportDataModal />
         
-        <div className="hidden md:flex flex-col items-end mr-2">
+        <div className="hidden xl:flex flex-col items-end mx-1">
           <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Last Sync</span>
           <span className="text-xs text-slate-600 font-medium">{format(lastRefreshed, 'HH:mm:ss')}</span>
         </div>

@@ -130,7 +130,7 @@ export const useDashboardStore = create<DashboardState>()(
       businessStructure: 'single',
       connectedSectors: ['ecommerce'],
       dataSharingEnabled: false,
-      hubEnabled: false,
+      hubEnabled: true,
       dataShareRequests: [],
       setupComplete: false,
       analystMode: false,
@@ -259,7 +259,7 @@ export const useDashboardStore = create<DashboardState>()(
           updates.connectedSectors = [get().connectedSectors[0] || 'ecommerce'];
           updates.sectorMode = 'single';
           updates.selectedSector = updates.connectedSectors[0];
-          updates.hubEnabled = false;
+          // Hub stays as the owner set it: "Discuss with partner" and Collabs need it.
         } else if (structure === 'partnered') {
           if (get().connectedSectors.length < 2) {
             updates.connectedSectors = ['ecommerce', 'logistics'];
@@ -376,6 +376,9 @@ export const useDashboardStore = create<DashboardState>()(
     }),
     {
       name: 'chaininsideiq-storage',
+      version: 1,
+      // v1: the Hub is part of the core loop, so turn it on for existing visitors.
+      migrate: (persisted: any, version) => (version < 1 ? { ...persisted, hubEnabled: true } : persisted),
     }
   )
 );

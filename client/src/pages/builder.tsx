@@ -182,12 +182,12 @@ export default function BuilderPage() {
     return (
       <AppLayout>
         <div className="p-4 md:p-6 lg:p-8 max-w-[1600px] mx-auto h-full flex flex-col gap-4 md:gap-6 lg:gap-8">
-          <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 shrink-0">
+          <header className="flex flex-col xl:flex-row justify-between items-start xl:items-end gap-4 shrink-0">
             <div>
               <h1 className="text-2xl lg:text-3xl font-black text-slate-900 tracking-tighter uppercase">Dashboard Builder</h1>
               <p className="text-slate-500 font-bold text-[10px] md:text-xs uppercase tracking-widest mt-1">Configure your supply chain command center.</p>
             </div>
-            <div className="flex flex-row flex-wrap items-center gap-2 w-full md:w-auto mt-2 md:mt-0 bg-white md:bg-transparent p-2 md:p-0 rounded-xl md:rounded-none border md:border-none border-slate-100 shadow-sm md:shadow-none">
+            <div className="toolbar w-full xl:w-auto">
                {!editMode && (
                  <div className="flex gap-1.5">
                    <Link href="/generate">
@@ -203,7 +203,7 @@ export default function BuilderPage() {
                  </div>
                )}
                {editMode && (
-                 <Button variant="outline" onClick={() => resetLayout(true)} className="flex-1 md:flex-none rounded-xl shadow-sm font-bold text-[10px] md:text-xs uppercase tracking-wider h-9 md:h-10 border-slate-200 bg-white px-3 md:px-4">
+                 <Button variant="outline" onClick={() => resetLayout(true)} className="rounded-xl shadow-sm font-bold text-[10px] md:text-xs uppercase tracking-wider h-9 md:h-10 border-slate-200 bg-white px-3 md:px-4">
                    Reset
                  </Button>
                )}
@@ -238,23 +238,23 @@ export default function BuilderPage() {
                      reader.readAsText(file);
                    };
                    input.click();
-                 }} className="flex-1 md:flex-none rounded-xl shadow-sm font-bold text-[10px] md:text-xs uppercase tracking-wider h-9 md:h-10 border-slate-200 bg-white px-3 md:px-4">
+                 }} className="rounded-xl shadow-sm font-bold text-[10px] md:text-xs uppercase tracking-wider h-9 md:h-10 border-slate-200 bg-white px-3 md:px-4">
                    Import Spec
                  </Button>
                  <Button variant="outline" onClick={() => {
                    const spec = buildSpecFromState("My Dashboard", sector, widgets, layouts);
                    downloadSpecJson(spec);
                    toast({ title: "Blueprint Exported", description: "Your Dashboard JSON spec has been downloaded." });
-                 }} className="flex-1 md:flex-none rounded-xl shadow-sm font-bold text-[10px] md:text-xs uppercase tracking-wider h-9 md:h-10 border-slate-200 bg-white px-3 md:px-4">
+                 }} className="rounded-xl shadow-sm font-bold text-[10px] md:text-xs uppercase tracking-wider h-9 md:h-10 border-slate-200 bg-white px-3 md:px-4">
                    <Download className="w-3.5 h-3.5 mr-1.5" /> Export Spec
                  </Button>
                  </>
                )}
-               {!editMode && <div className="flex-1 md:flex-none"><TemplateGallery onSelect={applyTemplate} /></div>}
-               {!editMode && <div className="flex-1 md:flex-none"><ExportDrawer layout={layout} widgets={widgets} sector={sector} dateRange={dateRange} metrics={metrics} chartData={chartData} donutData={donutData} /></div>}
+               {!editMode && <div><TemplateGallery onSelect={applyTemplate} /></div>}
+               {!editMode && <div><ExportDrawer layout={layout} widgets={widgets} sector={sector} dateRange={dateRange} metrics={metrics} chartData={chartData} donutData={donutData} /></div>}
                <Button 
                  variant={editMode ? "default" : "outline"} 
-                 className={`flex-[2] md:flex-none rounded-xl shadow-sm font-bold text-[10px] md:text-xs uppercase tracking-wider h-9 md:h-10 w-full md:w-auto px-3 md:px-4 ${!editMode ? 'border-slate-200 bg-white' : ''}`}
+                 className={`rounded-xl shadow-sm font-bold text-[10px] md:text-xs uppercase tracking-wider h-9 md:h-10 px-3 md:px-4 ${!editMode ? 'border-slate-200 bg-white' : ''}`}
                  onClick={() => {
                    if (editMode) {
                      toast({ title: "Layout Saved", description: "Your dashboard layout has been saved." });

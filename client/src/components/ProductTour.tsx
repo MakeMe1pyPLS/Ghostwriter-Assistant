@@ -41,8 +41,11 @@ export function ProductTour() {
 
   const measure = useCallback(() => {
     if (!step?.target) { setRect(null); return; }
-    const el = document.querySelector<HTMLElement>(`[data-tour="${step.target}"]`);
-    if (!el || el.offsetParent === null) { setRect(null); return; }
+    // The sidebar on desktop, or the bottom tab bar on phones and tablets.
+    const alt = step.target.replace(/^nav-/, 'tab-');
+    const el = [...document.querySelectorAll<HTMLElement>(`[data-tour="${step.target}"], [data-tour="${alt}"]`)]
+      .find((n) => n.offsetParent !== null && n.getBoundingClientRect().width > 0);
+    if (!el) { setRect(null); return; }
     el.scrollIntoView({ block: 'nearest' });
     const r = el.getBoundingClientRect();
     if (r.width === 0) { setRect(null); return; }
@@ -71,9 +74,14 @@ export function ProductTour() {
   if (!active) return null;
 
   const last = index === STEPS.length - 1;
-  const cardStyle: React.CSSProperties = rect
-    ? { top: Math.max(16, Math.min(rect.top, window.innerHeight - 260)), left: rect.left + rect.width + 16 }
-    : {};
+  // Beside the target when there's room (sidebar), otherwise above it (tab bar).
+  const cardW = Math.min(360, window.innerWidth - 32);
+  const roomRight = rect ? window.innerWidth - (rect.left + rect.width) > cardW + 32 : false;
+  const cardStyle: React.CSSProperties = !rect
+    ? {}
+    : roomRight
+      ? { top: Math.max(16, Math.min(rect.top, window.innerHeight - 260)), left: rect.left + rect.width + 16 }
+      : { bottom: Math.max(16, window.innerHeight - rect.top + 12), left: Math.max(16, Math.min(rect.left + rect.width / 2 - cardW / 2, window.innerWidth - cardW - 16)) };
 
   return (
     <div className="fixed inset-0 z-[200]" role="dialog" aria-modal="true" aria-labelledby="tour-title">

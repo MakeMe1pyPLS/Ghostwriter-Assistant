@@ -1,95 +1,18 @@
 import { Link, useLocation } from "wouter";
+import { useEffect, useRef, useState } from "react";
 import {
-  LayoutDashboard,
-  BarChart3,
-  MessageSquare,
-  Plug,
-  Download,
-  Settings,
-  BrainCircuit,
-  Wrench,
-  ChevronRight,
-  ArrowLeft,
-  Database,
-  Sparkles,
-  Wand2,
-  ShoppingCart,
-  Truck,
-  Building2,
-  Layers,
-  Puzzle,
-  Users,
-  Building,
-  AlertCircle,
-  AlertOctagon,
-  Lightbulb,
-  Workflow,
-  Lock,
-  Bell,
-  Share2,
-  Activity,
-  KeyRound,
-  Target,
-  BookOpen,
-  Handshake,
+  ArrowLeft, ShoppingCart, Truck, Building2, Layers, Puzzle, Users, Building,
+  AlertCircle, Lock, ChevronDown, PanelLeftClose, PanelLeftOpen, Search,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AccountDropdown } from "@/components/AccountDropdown";
-import { motion } from "framer-motion";
-import { useDashboardStore, type Sector, type SectorMode, type BusinessStructure } from "@/hooks/use-dashboard-store";
-import { hasPlan, getFeatureRequirement, type FeatureKey } from "@/lib/pricing";
-
-type NavItem = { name: string; href: string; icon: any; description: string; feature?: FeatureKey; tour?: string };
-
-const navGroups: { label: string; items: NavItem[] }[] = [
-  {
-    label: "Grow",
-    items: [
-      { name: "Growth Plan", href: "/plan", icon: Target, description: "Goals & action board", tour: "plan" },
-      { name: "AI Analyst", href: "/insights", icon: BrainCircuit, description: "Ask anything about your numbers", tour: "analyst" },
-      { name: "KPI Library", href: "/kpis", icon: BookOpen, description: "Metrics for every industry", tour: "kpis" },
-    ],
-  },
-  {
-    label: "Spot & fix",
-    items: [
-      { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard, description: "Health score & live view" },
-      { name: "Bottlenecks", href: "/bottlenecks", icon: AlertOctagon, description: "Find what slows you down", feature: "bottlenecks", tour: "bottlenecks" },
-      { name: "Recommendations", href: "/recommendations", icon: Lightbulb, description: "Step-by-step fixes", feature: "recommendations" },
-      { name: "Pipeline", href: "/pipeline", icon: Workflow, description: "Signal to resolution", feature: "pipeline" },
-    ],
-  },
-  {
-    label: "Collaborate",
-    items: [
-      { name: "Collabs", href: "/collabs", icon: Handshake, description: "Share data with partners", tour: "collabs" },
-      { name: "Hub", href: "/hub", icon: MessageSquare, description: "Discuss & resolve together", tour: "hub" },
-    ],
-  },
-  {
-    label: "Build",
-    items: [
-      { name: "Builder", href: "/builder", icon: Wrench, description: "Design your dashboard" },
-      { name: "Generate", href: "/generate", icon: Sparkles, description: "Start from scratch with AI" },
-      { name: "Enhance", href: "/enhance", icon: Wand2, description: "Improve an existing dashboard" },
-    ],
-  },
-  {
-    label: "Data",
-    items: [
-      { name: "Data Sources", href: "/data", icon: Database, description: "Import CSV, Excel, Sheets, APIs", tour: "data" },
-      { name: "Connectors", href: "/connectors", icon: Plug, description: "Apps & integrations" },
-      { name: "Exports", href: "/exports", icon: Download, description: "Excel, CSV, JSON & more" },
-    ],
-  },
-];
-
-const upcomingNavItems = [
-  { name: "Team Management", icon: Users, description: "Roles & Members" },
-  { name: "Notifications", icon: Bell, description: "Alerts & Digest" },
-  { name: "Audit Activity", icon: Activity, description: "Change History" },
-  { name: "API Access", icon: KeyRound, description: "Developer Keys" },
-];
+import { AnimatePresence, motion } from "framer-motion";
+import { useDashboardStore, type Sector, type BusinessStructure } from "@/hooks/use-dashboard-store";
+import { hasPlan, getFeatureRequirement } from "@/lib/pricing";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { NAV_GROUPS, SETTINGS_ITEM, UPCOMING_ITEMS, isActivePath, type NavItem } from "@/lib/nav";
+import { EASE_OUT } from "@/components/motion";
+import { openCommandPalette } from "@/components/CommandPalette";
 
 const SECTOR_OPTIONS: { value: Sector; label: string; icon: any }[] = [
   { value: 'ecommerce', label: 'E-commerce', icon: ShoppingCart },
@@ -105,242 +28,286 @@ const MODE_OPTIONS: { value: BusinessStructure; label: string; short: string; ic
 ];
 
 function getSectorLabel(sector: Sector): string {
-  const map: Record<Sector, string> = {
-    ecommerce: 'E-comm',
-    logistics: 'Logistics',
-    manufacturing: 'Mfg',
-    unified: 'Unified',
-    custom: 'Custom',
-  };
+  const map: Record<Sector, string> = { ecommerce: 'E-commerce', logistics: 'Logistics', manufacturing: 'Manufacturing', unified: 'Unified', custom: 'Custom' };
   return map[sector] ?? sector;
 }
 
-export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
+interface SidebarProps {
+  onNavigate?: () => void;
+  /** Icon-only rail (laptops). The phone/tablet sheet always shows the full sidebar. */
+  collapsed?: boolean;
+  onToggleCollapsed?: () => void;
+}
+
+export function Sidebar({ onNavigate, collapsed = false, onToggleCollapsed }: SidebarProps) {
   const [location] = useLocation();
   const {
-    selectedSector, sectorMode, setSector, setSectorMode,
-    businessStructure, setBusinessStructure, connectedSectors, setupComplete,
+    selectedSector, setSector, businessStructure, setBusinessStructure, connectedSectors, setupComplete,
   } = useDashboardStore();
   const currentUser = useDashboardStore((s) => s.currentUser);
+  const [modeOpen, setModeOpen] = useState(false);
+  const navRef = useRef<HTMLElement>(null);
 
-  const handleModeChange = (mode: BusinessStructure) => {
-    setBusinessStructure(mode);
-  };
+  // Keep the current page visible in the nav on short screens.
+  useEffect(() => {
+    navRef.current?.querySelector('[aria-current="page"]')?.scrollIntoView({ block: "nearest" });
+  }, [location, collapsed]);
 
   const activeModeSectors = connectedSectors.filter(s => s !== 'unified' && s !== 'custom');
+  const mode = MODE_OPTIONS.find((m) => m.value === businessStructure) ?? MODE_OPTIONS[0];
+  const modeSummary = businessStructure === 'single'
+    ? getSectorLabel(selectedSector)
+    : businessStructure === 'partnered'
+      ? (activeModeSectors.length >= 2 ? `${getSectorLabel(activeModeSectors[0])} + ${getSectorLabel(activeModeSectors[1])}` : 'Set up sectors')
+      : '3-sector view';
 
   return (
-    <div className="w-full lg:w-72 border-r border-slate-200 bg-white flex flex-col h-full relative z-[60] shadow-[1px_0_10px_rgb(0,0,0,0.02)]">
-      <div className="hidden lg:flex h-16 items-center px-8 border-b border-slate-50 shrink-0">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-slate-900 text-primary flex items-center justify-center shadow-lg shrink-0">
-             <Zap size={22} fill="currentColor" />
+    <div
+      className={cn(
+        "border-r border-slate-200/80 bg-white flex flex-col h-full relative z-[60] transition-[width] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
+        collapsed ? "w-[76px]" : "w-full lg:w-64",
+      )}
+    >
+      {/* Brand + collapse */}
+      <div className={cn("h-16 flex items-center shrink-0 border-b border-slate-100", collapsed ? "justify-center px-0" : "px-5 gap-3")}>
+        <Link href="/plan" onClick={onNavigate} className="flex items-center gap-3 min-w-0 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40" aria-label="ChainInsideIQ home">
+          <div className="w-9 h-9 rounded-xl bg-slate-900 text-teal-300 flex items-center justify-center shadow-sm shrink-0">
+            <Bolt size={18} />
           </div>
-          <div className="flex flex-col">
-            <span className="font-black text-[15px] text-slate-900 uppercase tracking-tighter leading-none">ChainInside</span>
-            <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mt-1">Intelligence IQ</span>
-          </div>
-        </div>
-      </div>
-
-      <div className="px-4 lg:px-6 pt-4 shrink-0">
-        <Link
-          href="/"
-          onClick={onNavigate}
-          className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors text-[10px] font-bold uppercase tracking-widest shadow-sm"
-        >
-          <ArrowLeft className="w-3.5 h-3.5" />
-          Back to Home
+          {!collapsed && (
+            <div className="flex flex-col min-w-0">
+              <span className="font-black text-[14px] text-slate-900 uppercase tracking-tighter leading-none">ChainInside</span>
+              <span className="text-[9px] font-black text-primary uppercase tracking-[0.2em] mt-1">Intelligence IQ</span>
+            </div>
+          )}
         </Link>
+        {!collapsed && onToggleCollapsed && (
+          <button
+            onClick={onToggleCollapsed}
+            className="ml-auto w-9 h-9 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+            aria-label="Collapse sidebar"
+            title="Collapse sidebar"
+          >
+            <PanelLeftClose className="w-[18px] h-[18px]" />
+          </button>
+        )}
       </div>
 
-      <div className="px-4 lg:px-6 pt-4 shrink-0">
-        <div className="bg-slate-50 rounded-xl border border-slate-200 p-3 space-y-2.5">
-          <div className="flex items-center justify-between">
-            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Business Mode</span>
-            {businessStructure === 'partnered' && activeModeSectors.length >= 2 && (
-              <span className="text-[8px] font-black text-violet-600 bg-violet-50 border border-violet-100 px-2 py-0.5 rounded-full uppercase tracking-widest">
-                {getSectorLabel(activeModeSectors[0])} + {getSectorLabel(activeModeSectors[1])}
-              </span>
+      {/* Search + business mode */}
+      <div className="px-3 pt-3 shrink-0 space-y-2">
+        <RailTip label="Search & jump" hint="Ctrl K" enabled={collapsed}>
+          <button
+            onClick={() => { onNavigate?.(); openCommandPalette(); }}
+            className={cn(
+              "w-full flex items-center gap-2.5 h-10 rounded-xl border border-slate-200 bg-slate-50/70 text-slate-400 hover:text-slate-700 hover:border-slate-300 hover:bg-white transition-colors",
+              collapsed ? "justify-center" : "px-3",
             )}
-          </div>
+            aria-label="Search and jump to a page"
+          >
+            <Search className="w-4 h-4 shrink-0" />
+            {!collapsed && (
+              <>
+                <span className="text-[13px] font-medium">Search or jump to…</span>
+                <kbd className="ml-auto hidden lg:inline-flex items-center rounded-md border border-slate-200 bg-white px-1.5 py-0.5 text-[10px] font-semibold text-slate-400">Ctrl K</kbd>
+              </>
+            )}
+          </button>
+        </RailTip>
 
-          <div className="grid grid-cols-3 gap-1 bg-slate-100 p-0.5 rounded-lg">
-            {MODE_OPTIONS.map(opt => (
-              <button
-                key={opt.value}
-                onClick={() => handleModeChange(opt.value)}
-                className={cn(
-                  "flex flex-col items-center gap-0.5 py-2 rounded-md transition-all",
-                  businessStructure === opt.value
-                    ? "bg-white text-slate-900 shadow-sm"
-                    : "text-slate-500 hover:text-slate-700"
-                )}
-                data-testid={`mode-${opt.value}`}
-                title={opt.label}
-              >
-                <opt.icon className="w-3 h-3" />
-                <span className="text-[9px] font-bold leading-none">{opt.short}</span>
-              </button>
-            ))}
-          </div>
-
-          {businessStructure === 'single' && (
-            <div className="grid grid-cols-2 gap-1">
-              {SECTOR_OPTIONS.map(opt => (
-                <button
-                  key={opt.value}
-                  onClick={() => setSector(opt.value)}
-                  className={cn(
-                    "flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[10px] font-bold transition-all",
-                    selectedSector === opt.value
-                      ? "bg-primary/10 text-primary border border-primary/20"
-                      : "text-slate-500 hover:bg-slate-100 border border-transparent"
-                  )}
-                  data-testid={`sector-${opt.value}`}
+        {!collapsed && (
+          <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+            <button
+              onClick={() => setModeOpen((o) => !o)}
+              className="w-full flex items-center gap-2.5 px-3 h-11 text-left hover:bg-slate-50 transition-colors"
+              aria-expanded={modeOpen}
+              data-testid="button-business-mode"
+            >
+              <div className="w-7 h-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                <mode.icon className="w-3.5 h-3.5" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-[12px] font-bold text-slate-900 leading-tight truncate">{mode.label}</p>
+                <p className="text-[11px] text-slate-400 leading-tight truncate">{modeSummary}</p>
+              </div>
+              <ChevronDown className={cn("w-4 h-4 text-slate-400 transition-transform duration-200", modeOpen && "rotate-180")} />
+            </button>
+            <AnimatePresence initial={false}>
+              {modeOpen && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.22, ease: EASE_OUT }}
+                  className="overflow-hidden"
                 >
-                  <opt.icon className="w-3 h-3" />
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-          )}
-
-          {businessStructure === 'partnered' && (
-            <div className="flex flex-wrap gap-1">
-              {activeModeSectors.length >= 2 ? (
-                activeModeSectors.slice(0, 2).map(s => {
-                  const opt = SECTOR_OPTIONS.find(o => o.value === s);
-                  if (!opt) return null;
-                  return (
-                    <div
-                      key={s}
-                      className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[10px] font-bold bg-violet-50 text-violet-700 border border-violet-100"
-                    >
-                      <opt.icon className="w-3 h-3" />
-                      {opt.label}
+                  <div className="px-3 pb-3 pt-1 space-y-2 border-t border-slate-100">
+                    <div className="grid grid-cols-3 gap-1 bg-slate-100 p-0.5 rounded-lg mt-2">
+                      {MODE_OPTIONS.map(opt => (
+                        <button
+                          key={opt.value}
+                          onClick={() => setBusinessStructure(opt.value)}
+                          className={cn(
+                            "flex flex-col items-center gap-0.5 py-2 rounded-md transition-all",
+                            businessStructure === opt.value ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
+                          )}
+                          data-testid={`mode-${opt.value}`}
+                          title={opt.label}
+                        >
+                          <opt.icon className="w-3.5 h-3.5" />
+                          <span className="text-[10px] font-bold leading-none">{opt.short}</span>
+                        </button>
+                      ))}
                     </div>
-                  );
-                })
-              ) : (
-                <div className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[10px] font-bold text-amber-600 bg-amber-50 border border-amber-100 w-full">
-                  <AlertCircle className="w-3 h-3" />
-                  Configure sectors in Settings
-                </div>
+                    {businessStructure === 'single' && (
+                      <div className="grid grid-cols-2 gap-1">
+                        {SECTOR_OPTIONS.map(opt => (
+                          <button
+                            key={opt.value}
+                            onClick={() => setSector(opt.value)}
+                            className={cn(
+                              "flex items-center gap-1.5 px-2 py-2 rounded-lg text-[11px] font-bold transition-all",
+                              selectedSector === opt.value ? "bg-primary/10 text-primary border border-primary/20" : "text-slate-500 hover:bg-slate-100 border border-transparent"
+                            )}
+                            data-testid={`sector-${opt.value}`}
+                          >
+                            <opt.icon className="w-3.5 h-3.5" />
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    {businessStructure === 'partnered' && activeModeSectors.length < 2 && (
+                      <Link href="/settings" onClick={onNavigate} className="flex items-center gap-1.5 px-2 py-2 rounded-lg text-[11px] font-bold text-amber-700 bg-amber-50 border border-amber-100">
+                        <AlertCircle className="w-3.5 h-3.5" /> Configure sectors in Settings
+                      </Link>
+                    )}
+                  </div>
+                </motion.div>
               )}
-            </div>
-          )}
-
-          {businessStructure === 'unified-chain' && (
-            <div className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-primary/10 border border-primary/20">
-              <Layers className="w-3 h-3 text-primary" />
-              <span className="text-[10px] font-bold text-primary">3-Sector Unified View</span>
-            </div>
-          )}
-        </div>
+            </AnimatePresence>
+          </div>
+        )}
       </div>
 
-      <div className="flex-1 py-2 px-3 lg:px-4 overflow-y-auto custom-scrollbar-hidden overscroll-contain">
-        {navGroups.map((group) => (
-          <div key={group.label} className="pb-2">
-            <p className="px-4 pt-3 pb-1.5 text-[9px] font-black uppercase tracking-[0.18em] text-slate-300">{group.label}</p>
-            <div className="space-y-1">
-              {group.items.map((item) => {
-                const isActive = location === item.href || (location === "/app" && item.href === "/plan");
-                return (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    onClick={onNavigate}
-                    data-tour={item.tour ? `nav-${item.tour}` : undefined}
-                    className={cn(
-                      "flex items-center group relative px-3 py-2.5 rounded-2xl transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
-                      isActive
-                        ? "text-white"
-                        : "text-slate-400 hover:text-slate-900 hover:bg-slate-50"
-                    )}
-                  >
-                    {isActive && (
-                      <motion.span
-                        layoutId="activeNavBg"
-                        className="absolute inset-0 rounded-2xl bg-slate-900 shadow-[0_8px_20px_rgb(0,0,0,0.12)]"
-                        transition={{ type: "spring", stiffness: 500, damping: 40 }}
-                      />
-                    )}
-                    <div className={cn(
-                      "relative p-2 rounded-xl transition-colors duration-200 mr-3 shrink-0",
-                      isActive ? "bg-white/15 text-white" : "bg-slate-50 text-slate-400 group-hover:bg-white group-hover:text-primary shadow-sm group-hover:shadow-md"
-                    )}>
-                      <item.icon className="w-[18px] h-[18px]" />
-                    </div>
-                    <div className="relative flex flex-col min-w-0">
-                      <span className="text-[13px] font-black uppercase tracking-widest truncate">{item.name}</span>
-                      <span className={cn("text-[10px] font-medium opacity-70 truncate", isActive ? "text-slate-300" : "text-slate-400")}>{item.description}</span>
-                    </div>
-                    {!isActive && item.feature && !hasPlan(currentUser?.plan, item.feature) && (
-                      <span
-                        className="relative ml-auto flex items-center gap-1 text-[8px] font-black uppercase tracking-widest bg-amber-100 text-amber-700 border border-amber-200 px-1.5 py-0.5 rounded-full shrink-0"
-                        data-testid={`lock-nav-${item.feature}`}
-                      >
-                        <Lock className="w-2.5 h-2.5" />
-                        {getFeatureRequirement(item.feature).label.slice(0, 3)}
-                      </span>
-                    )}
-                    {isActive && <ChevronRight className="relative ml-auto w-4 h-4 text-primary hidden lg:block" />}
-                  </Link>
-                );
-              })}
+      {/* Navigation */}
+      <nav ref={navRef} className="flex-1 px-3 py-2 overflow-y-auto custom-scrollbar-hidden overscroll-contain" aria-label="Main">
+        {NAV_GROUPS.map((group, gi) => (
+          <div key={group.label} className="pb-1">
+            {collapsed
+              ? (gi > 0 && <div className="mx-auto my-2 h-px w-6 bg-slate-200" aria-hidden />)
+              : <p className="px-3 pt-3 pb-1 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">{group.label}</p>}
+            <div className="space-y-0.5">
+              {group.items.map((item) => (
+                <NavLink key={item.href} item={item} active={isActivePath(location, item.href)} collapsed={collapsed} onNavigate={onNavigate} locked={!!item.feature && !hasPlan(currentUser?.plan, item.feature)} />
+              ))}
             </div>
           </div>
         ))}
 
-        <div className="pt-4 mt-3 border-t border-slate-100">
-          <p className="px-4 mb-2 text-[9px] font-black uppercase tracking-widest text-slate-300">Coming Soon</p>
-          {upcomingNavItems.map((item) => (
-            <div
-              key={item.name}
-              aria-disabled="true"
-              title={`${item.name} — coming soon`}
-              className="flex items-center group relative px-4 py-3.5 rounded-2xl text-slate-300 cursor-not-allowed select-none"
-              data-testid={`nav-upcoming-${item.name.toLowerCase().replace(/\s+/g, '-')}`}
-            >
-              <div className="p-2 rounded-xl mr-4 shrink-0 bg-slate-50 text-slate-300 border border-dashed border-slate-200">
-                <item.icon className="w-5 h-5" />
-              </div>
-              <div className="flex flex-col min-w-0">
-                <span className="text-sm font-black uppercase tracking-widest truncate">{item.name}</span>
-                <span className="text-[10px] font-medium opacity-70 truncate">{item.description}</span>
-              </div>
-              <span className="ml-auto flex items-center text-[8px] font-black uppercase tracking-widest bg-slate-100 text-slate-400 border border-slate-200 px-1.5 py-0.5 rounded-full shrink-0">
-                Soon
-              </span>
+        {!collapsed && (
+          <div className="mt-3 mx-1 rounded-xl border border-dashed border-slate-200 px-3 py-2.5">
+            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400 mb-1.5">Coming soon</p>
+            <div className="flex flex-wrap gap-1">
+              {UPCOMING_ITEMS.map((item) => (
+                <span
+                  key={item.name}
+                  aria-disabled="true"
+                  className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-400 bg-slate-50 rounded-md px-1.5 py-0.5"
+                  data-testid={`nav-upcoming-${item.name.toLowerCase().replace(/\s+/g, '-')}`}
+                >
+                  <item.icon className="w-3 h-3" /> {item.name}
+                </span>
+              ))}
             </div>
-          ))}
-        </div>
-      </div>
+          </div>
+        )}
+      </nav>
 
-      <div className="p-4 lg:p-5 border-t border-slate-50 shrink-0 space-y-2">
-        <Link
-          href="/settings"
-          onClick={onNavigate}
-          className="flex items-center gap-3 px-3 py-2 rounded-xl text-slate-400 hover:text-slate-900 hover:bg-slate-50 transition-all group relative"
-          data-testid="link-settings-sidebar"
-        >
-          <Settings className="w-4 h-4 group-hover:rotate-45 transition-transform" />
-          <span className="text-[11px] font-bold uppercase tracking-widest">Settings</span>
-          {!setupComplete && (
-            <span className="ml-auto flex items-center gap-1 text-[8px] font-black uppercase tracking-widest bg-amber-100 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full">
-              <AlertCircle className="w-2.5 h-2.5" />
-              Setup
-            </span>
-          )}
-        </Link>
-        <AccountDropdown />
+      {/* Footer */}
+      <div className="p-3 border-t border-slate-100 shrink-0 space-y-1">
+        <NavLink item={SETTINGS_ITEM} active={isActivePath(location, SETTINGS_ITEM.href)} collapsed={collapsed} onNavigate={onNavigate} attention={!setupComplete} testId="link-settings-sidebar" />
+        <RailTip label="Back to home page" enabled={collapsed}>
+          <Link
+            href="/"
+            onClick={onNavigate}
+            className={cn("flex items-center gap-3 h-10 rounded-xl text-slate-400 hover:text-slate-900 hover:bg-slate-100/70 transition-colors", collapsed ? "justify-center" : "px-3")}
+            aria-label="Back to home page"
+          >
+            <ArrowLeft className="w-[18px] h-[18px] shrink-0" />
+            {!collapsed && <span className="text-[13px] font-semibold">Home page</span>}
+          </Link>
+        </RailTip>
+        {collapsed && onToggleCollapsed && (
+          <RailTip label="Expand sidebar" enabled>
+            <button onClick={onToggleCollapsed} className="w-full flex items-center justify-center h-10 rounded-xl text-slate-400 hover:text-slate-900 hover:bg-slate-100/70 transition-colors" aria-label="Expand sidebar">
+              <PanelLeftOpen className="w-[18px] h-[18px]" />
+            </button>
+          </RailTip>
+        )}
+        <div className="pt-1">
+          <AccountDropdown compact={collapsed} />
+        </div>
       </div>
     </div>
   );
 }
 
-function Zap({ size, fill, className }: { size: number, fill: string, className?: string }) {
-  return <svg width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>;
+function NavLink({ item, active, collapsed, onNavigate, locked, attention, testId }: {
+  item: NavItem; active: boolean; collapsed: boolean; onNavigate?: () => void; locked?: boolean; attention?: boolean; testId?: string;
+}) {
+  const link = (
+    <Link
+      href={item.href}
+      onClick={onNavigate}
+      data-tour={item.tour ? `nav-${item.tour}` : undefined}
+      data-testid={testId}
+      aria-current={active ? "page" : undefined}
+      aria-label={collapsed ? item.name : undefined}
+      className={cn(
+        "relative flex items-center h-10 rounded-xl transition-colors duration-150 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
+        collapsed ? "justify-center" : "px-3 gap-3",
+        active ? "text-white" : "text-slate-500 hover:text-slate-900 hover:bg-slate-100/70",
+      )}
+    >
+      {active && (
+        <motion.span
+          layoutId={collapsed ? "activeNavRail" : "activeNavBg"}
+          className="absolute inset-0 rounded-xl bg-slate-900 shadow-[0_6px_16px_rgba(15,23,42,0.18)]"
+          transition={{ type: "spring", stiffness: 500, damping: 40 }}
+        />
+      )}
+      <item.icon className={cn("relative w-[18px] h-[18px] shrink-0 transition-colors", active ? "text-teal-300" : "text-slate-400 group-hover:text-primary")} />
+      {!collapsed && <span className="relative text-[13.5px] font-semibold truncate">{item.name}</span>}
+      {!collapsed && locked && !active && (
+        <span className="relative ml-auto flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-md" data-testid={`lock-nav-${item.feature}`} title={`Included in ${getFeatureRequirement(item.feature!).label}`}>
+          <Lock className="w-2.5 h-2.5" /> {getFeatureRequirement(item.feature!).label.slice(0, 3)}
+        </span>
+      )}
+      {!collapsed && attention && (
+        <span className="relative ml-auto flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-md">
+          <AlertCircle className="w-2.5 h-2.5" /> Setup
+        </span>
+      )}
+      {collapsed && (locked || attention) && <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-amber-400 ring-2 ring-white" aria-hidden />}
+    </Link>
+  );
+  return <RailTip label={item.name} hint={item.description} enabled={collapsed}>{link}</RailTip>;
+}
+
+/** Tooltip shown only in the collapsed rail. */
+function RailTip({ label, hint, enabled, children }: { label: string; hint?: string; enabled: boolean; children: React.ReactElement }) {
+  if (!enabled) return children;
+  return (
+    <Tooltip delayDuration={150}>
+      <TooltipTrigger asChild>{children}</TooltipTrigger>
+      <TooltipContent side="right" sideOffset={10} className="bg-slate-900 text-white rounded-lg px-3 py-2 shadow-xl">
+        <p className="text-[12px] font-bold">{label}</p>
+        {hint && <p className="text-[11px] text-slate-300">{hint}</p>}
+      </TooltipContent>
+    </Tooltip>
+  );
+}
+
+function Bolt({ size }: { size: number }) {
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></svg>;
 }

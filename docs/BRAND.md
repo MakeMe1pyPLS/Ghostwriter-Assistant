@@ -33,8 +33,18 @@ Rules: teal is the only brand accent. Status colors mean status. Dark panels (in
 - Borders before shadows. Shadows are soft and used on hover or for one hero element.
 
 ## Layout
-- App: sidebar (grouped: Grow, Spot & fix, Collaborate, Build, Data) plus a content max width of about 1400px with 16–32px gutters.
-- Mobile: the sidebar becomes a sheet; the top bar keeps the "Analyst" quick button. Stack to one column at 390px.
+Navigation lives in `client/src/lib/nav.ts`: one list feeds the sidebar, the tab bar and quick-jump search.
+
+| Width | Navigation |
+|---|---|
+| < 1024px (phones, portrait tablets) | Header (menu, logo, search) + bottom tab bar: Plan, Analyst, Bottlenecks, Hub, More. The full sidebar opens as a sheet. |
+| 1024–1279px (laptops, landscape tablets) | 76px icon rail with tooltips |
+| ≥ 1280px | 256px full sidebar (collapsible; choice remembered) |
+
+- Content max width about 1400–1600px with 16–32px gutters. Stack to one column at 390px.
+- Page action buttons go in a `.toolbar` (one swipeable row below 1280px, wraps above).
+- Quick-jump search (Ctrl/⌘ K, `/`) is available on every app page.
+- Touch targets are at least 40px; the tab bar respects the iPhone safe area.
 
 ## Motion
 Motion explains what changed and where things went. It never makes people wait.
@@ -53,6 +63,8 @@ Rules:
 - No looping attention-grabbers in the app. Loops are only allowed for loading and typing indicators.
 - One orchestrated moment per screen at most (e.g. the Plan progress ring). Everything else is subtle.
 - Never animate layout on every keystroke or data refresh.
+- Selection indicators (sidebar, tab bar, Hub tabs) slide with a shared spring (`layoutId`, stiffness 500, damping 38–40).
+- Buttons scale to 0.97 on press. Page loads show a thin top progress bar, never a full-screen spinner.
 
 ### The intro
 - **Where:** homepage, first visit only (remembered in the browser), never inside the app.

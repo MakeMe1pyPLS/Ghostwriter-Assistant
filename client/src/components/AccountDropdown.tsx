@@ -11,7 +11,7 @@ function getInitials(name: string) {
   return name.split(/\s+/).filter(Boolean).slice(0, 2).map(p => p[0]?.toUpperCase()).join('') || 'U';
 }
 
-export function AccountDropdown() {
+export function AccountDropdown({ compact = false }: { compact?: boolean } = {}) {
   const [, setLocation] = useLocation();
   const { currentUser, signOut } = useDashboardStore();
   const trial = getTrialStatus(currentUser);
@@ -20,11 +20,16 @@ export function AccountDropdown() {
     return (
       <Link
         href="/sign-in"
-        className="flex items-center gap-3 px-4 py-3 rounded-xl bg-slate-900 text-white hover:bg-slate-800 transition-all"
+        className={cn(
+          "flex items-center gap-3 h-10 rounded-xl bg-slate-900 text-white hover:bg-slate-800 transition-colors",
+          compact ? "justify-center" : "px-3",
+        )}
         data-testid="link-sign-in-sidebar"
+        aria-label="Sign in"
+        title={compact ? "Sign in" : undefined}
       >
-        <User className="w-4 h-4" />
-        <span className="text-xs font-black uppercase tracking-widest">Sign In</span>
+        <User className="w-4 h-4 shrink-0" />
+        {!compact && <span className="text-[13px] font-semibold">Sign in</span>}
       </Link>
     );
   }
@@ -37,12 +42,16 @@ export function AccountDropdown() {
       <DropdownMenuTrigger asChild>
         <button
           data-testid="button-account-dropdown"
-          className="w-full flex items-center gap-3 p-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 transition-all group text-left"
+          className={cn(
+            "w-full flex items-center gap-3 rounded-xl transition-all group text-left",
+            compact ? "justify-center p-1" : "p-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-200",
+          )}
+          aria-label={compact ? `Account: ${currentUser.fullName}` : undefined}
         >
           <div className="w-9 h-9 rounded-lg bg-slate-900 text-primary flex items-center justify-center shrink-0 font-black text-xs uppercase tracking-tighter">
             {getInitials(currentUser.fullName)}
           </div>
-          <div className="flex-1 min-w-0">
+          {!compact && <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5">
               <p className="text-xs font-black text-slate-900 truncate uppercase tracking-tight" data-testid="text-account-name">
                 {currentUser.fullName}
@@ -66,8 +75,8 @@ export function AccountDropdown() {
                 </span>
               )}
             </div>
-          </div>
-          <ChevronUp className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-700 shrink-0" />
+          </div>}
+          {!compact && <ChevronUp className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-700 shrink-0" />}
         </button>
       </DropdownMenuTrigger>
 

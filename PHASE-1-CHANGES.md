@@ -73,6 +73,19 @@ The rule-based analyst, dashboard generator, exporters, KPI library and plan bui
 - **Project brief** (`CLAUDE.md`) and **brand, design and motion spec** (`docs/BRAND.md`): the setup every developer and AI assistant works from.
 - **Homepage intro:** a 4-second interactive story (chain → bottleneck → fixed → logo), shown on the first visit only. Click, tap, Esc, Enter or "Skip intro" ends it; reduced-motion users never see it; `?nointro` turns it off.
 
+### Phase 1.3: works on every device, cleaner and more interactive
+- **Phones and tablets** get a bottom tab bar (Plan, Analyst, Bottlenecks, Hub, More) with the full menu one tap away. The header shows a search button and a soft shadow once you scroll.
+- **Laptops and landscape tablets (1024–1279px)** get a slim icon sidebar with labels on hover, so pages have room. Wide screens get the full sidebar. Either can be collapsed or expanded, and the choice is remembered.
+- **Quick-jump search:** press Ctrl/⌘ K or `/` (or tap the search icon) to jump to any page, run common actions (ask the analyst, import, export, start a collab, rebuild the plan, retake the tour) or find a step in your plan.
+- **Cleaner sidebar:** single-line page names, the business-mode switch folds into one compact row, and "Coming soon" items take one small block.
+- **Page action buttons** on Dashboard and Builder sit in one swipeable row on smaller screens instead of uneven wrapped rows.
+- **Builder and Dashboard grids** now reflow cleanly on tablets and phones (widgets used to end up staggered with gaps).
+- **Hub** is on by default, because "Discuss with partner" and Collabs depend on it. Hub stats fit on phones, and tabs have an animated indicator.
+- **The old "Set up your business structure" popup** no longer appears for people who finished the AI interview, or in the demo.
+- **The product tour** points at the tab bar on phones and places its card where it fits.
+- **Feel:** buttons respond to presses, focus rings are consistent, pages load with a thin progress bar instead of a full-screen spinner, and page code is prefetched once you're in the app, so switching pages is near-instant.
+- Pricing shows 2 columns up to 1279px wide so plans aren't squeezed on laptops. Toasts sit above the tab bar.
+
 ## Environment variables
 
 | Variable | Needed for | Default |
