@@ -201,6 +201,7 @@ Rules:
 - 2-4 concrete steps per phase. Each step says exactly what to do, who owns it and which KPI it moves.
 - If they named partners, include steps that use shared data and joint reviews with those partners.
 - Address every challenge they named somewhere in the plan.
+- Make the first step about their data: if they uploaded a file, check it and fill the gaps; if they will import later, name exactly which numbers to export; if they have no data yet, start a weekly tracking habit with the numbers listed.
 
 Return JSON with this exact shape:
 {

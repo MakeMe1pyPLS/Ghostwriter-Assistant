@@ -121,6 +121,15 @@ The rule-based analyst, dashboard generator, exporters, KPI library and plan bui
 - **Save:** a **Save** button, plus **Save layout** and **Done** in edit mode. You get a "Layout saved" confirmation with a **View dashboard** shortcut, a "Saved just now" status under the title, and a **View on dashboard** button. Changes still save automatically, so nothing is lost.
 - **Phone stacking** fills gaps, so a half-width card never leaves a hole beside it, and uses slightly shorter rows so cards fit without wasted space.
 
+### Interview: "Do you have this data already?"
+- After choosing their target number, the analyst lists the numbers it needs for that industry and goal, and what to record for each. For example, a restaurant fixing delivery needs on-time orders, ticket time, food cost and covers.
+- Three answers:
+  - **I have it. Upload now:** CSV, Excel or JSON, read in the browser. The analyst shows which needed numbers it found in the file and which are missing, and saves the file to Data Sources.
+  - **I have it. Add it later:** the plan lists exactly what to export.
+  - **Start fresh:** a ready-made weekly tracking sheet (Excel or CSV). It has a column for each number, 12 weeks of rows and a "How to use" tab.
+- Step 1 of the growth plan matches the answer: check the imported numbers, import the file, or start tracking weekly. The AI engines get the same information.
+- **Fixed:** every column imported from a CSV was getting " (2)" added to its name.
+
 ## Environment variables
 
 | Variable | Needed for | Default |

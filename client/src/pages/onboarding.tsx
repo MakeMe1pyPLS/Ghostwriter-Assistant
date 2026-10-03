@@ -6,8 +6,13 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  ArrowRight, Check, ChevronLeft, Loader2, Search, Sparkles, X, Target,
+  ArrowRight, Check, ChevronLeft, Loader2, Search, Sparkles, X, Target, Upload, FileSpreadsheet, Download, AlertCircle,
 } from "lucide-react";
+import Papa from "papaparse";
+import { parseDataFile, ACCEPTED_DATA_FILES, ImportError } from "@/lib/file-import";
+import { buildBasicWorkbook, downloadBlob } from "@/lib/client-export";
+import type { ImportPayload } from "@/components/DatasetImportResolver";
+import { dataNeedsFor, allInputs, matchColumns, trackingSheetRows, type DataNeed } from "@shared/data-needs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useDashboardStore, type Sector } from "@/hooks/use-dashboard-store";
@@ -15,13 +20,20 @@ import { useGrowthStore } from "@/hooks/use-growth-store";
 import { fetchGrowthPlan, ENGINE_LABELS } from "@/lib/intel-client";
 import {
   GOALS, COMPANY_SIZES, STAGES, CHALLENGES, pickKpisForGoal,
-  type GoalId, type CompanySize, type BusinessStage, type ChallengeId, type Timeframe, type GrowthProfile, type GrowthPlan,
+  type GoalId, type CompanySize, type BusinessStage, type ChallengeId, type Timeframe, type GrowthProfile, type GrowthPlan, type DataStatus,
 } from "@shared/growth";
 import { INDUSTRIES, INDUSTRY_GROUPS, getIndustry } from "@shared/kpi-industries";
 import { EASE_OUT } from "@/components/motion";
 
-type StepId = 'goal' | 'name' | 'industry' | 'size' | 'stage' | 'challenges' | 'kpi' | 'partners';
-const STEPS: StepId[] = ['goal', 'name', 'industry', 'size', 'stage', 'challenges', 'kpi', 'partners'];
+type StepId = 'goal' | 'name' | 'industry' | 'size' | 'stage' | 'challenges' | 'kpi' | 'data' | 'partners';
+const STEPS: StepId[] = ['goal', 'name', 'industry', 'size', 'stage', 'challenges', 'kpi', 'data', 'partners'];
+
+interface UploadState {
+  fileName: string;
+  payload: ImportPayload;
+  matched: { input: string; column: string }[];
+  missing: string[];
+}
 
 interface Draft {
   goal?: GoalId;
@@ -36,6 +48,8 @@ interface Draft {
   timeframeDays: Timeframe;
   hasPartners?: boolean;
   partners: string[];
+  dataStatus?: DataStatus;
+  upload?: UploadState;
 }
 
 const SECTOR_BY_INDUSTRY: Record<string, Sector> = {
@@ -105,7 +119,22 @@ function Chip({ selected, onClick, children, hint }: { selected?: boolean; onCli
   );
 }
 
-const QUESTIONS: Record<StepId, (d: Draft, firstName: string) => string> = {
+/** The KPIs the plan will track and the raw numbers behind each. */
+function DataNeedsList({ needs }: { needs: DataNeed[] }) {
+  if (!needs.length) return null;
+  return (
+    <ul className="space-y-2">
+      {needs.map((n) => (
+        <li key={n.kpi.id} className="rounded-xl bg-slate-50 border border-slate-100 px-3 py-2">
+          <p className="text-[14px] font-bold text-slate-900">{n.kpi.name}</p>
+          <p className="text-[12.5px] text-slate-500">{n.inputs.length ? `Record: ${n.inputs.join(' · ')}` : `Record it directly (${n.kpi.formula.toLowerCase()})`}</p>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+const QUESTIONS: Record<StepId, (d: Draft, firstName: string) => React.ReactNode> = {
   goal: (_d, n) => `Hi${n ? ' ' + n : ''}! I'm your AI Business Analyst. I'll ask a few quick questions, then build a step-by-step plan for your business. First: what's your main goal right now?`,
   name: () => 'Great. What’s the name of your business?',
   industry: (d) => `What kind of business is ${d.businessName.trim() || 'it'}?`,
@@ -113,6 +142,19 @@ const QUESTIONS: Record<StepId, (d: Draft, firstName: string) => string> = {
   stage: () => 'Which of these sounds most like where you are?',
   challenges: () => 'What’s getting in the way? Pick up to four.',
   kpi: (d) => `Which number would tell you "${GOALS.find((g) => g.id === d.goal)?.label.toLowerCase()}" is working? I’ve suggested the most useful ones for ${getIndustry(d.industryId)?.name.toLowerCase() ?? 'your industry'}.`,
+  data: (d) => {
+    const needs = d.industryId && d.goal ? dataNeedsFor(d.industryId, d.goal, d.targetKpi) : [];
+    const starting = d.stage === 'starting';
+    return (
+      <div className="space-y-3">
+        <p>{starting
+          ? `Since ${d.businessName.trim() || 'the business'} is just getting going, you may not have much data yet. That's fine. Here's what I'll need to track your goal:`
+          : `To track this for ${d.businessName.trim() || 'your business'}, here are the numbers I'll need:`}</p>
+        <DataNeedsList needs={needs} />
+        <p>Do you already keep these somewhere, like a POS, accounting app or spreadsheet? Or should we start fresh?</p>
+      </div>
+    );
+  },
   partners: () => 'Last one. Do you work closely with other businesses, like suppliers, carriers, distributors or an agency? ChainInsideIQ can connect you so you fix problems together.',
 };
 
@@ -125,6 +167,9 @@ function answerText(step: StepId, d: Draft): string {
     case 'stage': return STAGES.find((s) => s.id === d.stage)?.label ?? '';
     case 'challenges': return d.challenges.length ? d.challenges.map((c) => CHALLENGES.find((x) => x.id === c)?.label).join(', ') : 'Nothing major right now';
     case 'kpi': return `${d.targetKpi}${d.targetValue ? ` → ${d.targetValue}` : ''} in ${d.timeframeDays} days`;
+    case 'data': return d.dataStatus === 'uploaded' && d.upload
+      ? `Here's my data: ${d.upload.fileName} (${d.upload.payload.rowCount.toLocaleString()} rows)`
+      : d.dataStatus === 'later' ? 'I have it. I’ll add it later.' : 'Let’s start fresh with a tracking sheet.';
     case 'partners': return d.hasPartners ? (d.partners.length ? d.partners.join(', ') : 'Yes') : 'Not yet';
   }
 }
@@ -132,7 +177,7 @@ function answerText(step: StepId, d: Draft): string {
 export default function OnboardingPage() {
   const [, navigate] = useLocation();
   const currentUser = useDashboardStore((s) => s.currentUser);
-  const { completeSetup, setBusinessStructure, setSector, setSectorMode, setConnectedSectors, setDataSharingEnabled } = useDashboardStore();
+  const { completeSetup, setBusinessStructure, setSector, setSectorMode, setConnectedSectors, setDataSharingEnabled, addDataset } = useDashboardStore();
   const { profile: savedProfile, setProfile, setPlan, completeOnboarding, restartTour, aiEngine } = useGrowthStore();
   const firstName = currentUser?.fullName?.split(' ')[0] ?? '';
 
@@ -149,6 +194,7 @@ export default function OnboardingPage() {
     timeframeDays: savedProfile?.timeframeDays ?? 90,
     hasPartners: savedProfile ? savedProfile.partners.length > 0 : undefined,
     partners: savedProfile?.partners ?? [],
+    dataStatus: savedProfile?.dataStatus === 'uploaded' ? undefined : savedProfile?.dataStatus,
   }));
   const [stepIndex, setStepIndex] = useState(0);
   const [typing, setTyping] = useState(true);
@@ -157,6 +203,9 @@ export default function OnboardingPage() {
   const [plan, setPlanLocal] = useState<GrowthPlan | null>(null);
   const [industryQuery, setIndustryQuery] = useState('');
   const [partnerInput, setPartnerInput] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const step = STEPS[stepIndex];
@@ -183,6 +232,40 @@ export default function OnboardingPage() {
     [draft.industryId, draft.goal]
   );
 
+  const dataNeeds = useMemo(
+    () => (draft.industryId && draft.goal ? dataNeedsFor(draft.industryId, draft.goal, draft.targetKpi) : []),
+    [draft.industryId, draft.goal, draft.targetKpi]
+  );
+  const neededInputs = useMemo(() => allInputs(dataNeeds), [dataNeeds]);
+
+  const onFile = async (file?: File | null) => {
+    if (!file) return;
+    setUploadError(null);
+    setUploading(true);
+    try {
+      const payload = await parseDataFile(file);
+      if (!payload.rows.length) throw new ImportError('That file has no rows. Check you exported the data, not just the headers.');
+      const { matched, missing } = matchColumns(neededInputs, payload.columns.map((c) => c.name));
+      update({ dataStatus: 'uploaded', upload: { fileName: file.name, payload, matched, missing } });
+    } catch (e) {
+      setUploadError(e instanceof ImportError ? e.message : 'We couldn’t read that file. Try a CSV or an Excel (.xlsx) export.');
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = '';
+    }
+  };
+
+  const downloadTracker = async (format: 'xlsx' | 'csv') => {
+    const { tracker, guide } = trackingSheetRows(dataNeeds);
+    const base = `${(draft.businessName.trim() || 'my-business').toLowerCase().replace(/[^a-z0-9]+/g, '-')}-tracking-sheet`;
+    if (format === 'csv') {
+      downloadBlob(new Blob([Papa.unparse(tracker)], { type: 'text/csv;charset=utf-8' }), `${base}.csv`);
+    } else {
+      const blob = await buildBasicWorkbook([{ name: 'Weekly tracker', rows: tracker }, { name: 'How to use', rows: guide }]);
+      downloadBlob(blob, `${base}.xlsx`);
+    }
+  };
+
   const filteredIndustries = useMemo(() => {
     const q = industryQuery.trim().toLowerCase();
     const list = INDUSTRIES.filter((i) => i.id !== 'universal');
@@ -201,6 +284,7 @@ export default function OnboardingPage() {
     stage: !!draft.stage,
     challenges: true,
     kpi: !!draft.targetKpi,
+    data: !!draft.dataStatus && (draft.dataStatus !== 'uploaded' || !!draft.upload),
     partners: draft.hasPartners !== undefined,
   };
 
@@ -217,6 +301,13 @@ export default function OnboardingPage() {
       targetValue: draft.targetValue.trim() || undefined,
       timeframeDays: draft.timeframeDays,
       partners: draft.hasPartners ? draft.partners : [],
+      dataStatus: draft.dataStatus,
+      dataInputs: neededInputs,
+      dataSummary: draft.dataStatus === 'uploaded' && draft.upload
+        ? `${draft.upload.fileName} · ${draft.upload.payload.rowCount.toLocaleString()} rows` +
+          (draft.upload.matched.length ? ` · has ${draft.upload.matched.map((m) => m.input).join(', ')}` : '') +
+          (draft.upload.missing.length ? ` · missing ${draft.upload.missing.join(', ')}` : '')
+        : undefined,
     };
     setPhase('building');
     setBuildStage(0);
@@ -241,6 +332,10 @@ export default function OnboardingPage() {
     // start partnered as a seller + carrier pair, which they can change in Settings.
     const partneredPair: Sector[] = sector === 'custom' ? ['ecommerce', 'logistics'] : [sector, sector === 'logistics' ? 'ecommerce' : 'logistics'];
     setConnectedSectors(profile.partners.length ? partneredPair : [sector]);
+    if (draft.dataStatus === 'uploaded' && draft.upload) {
+      const p = draft.upload.payload;
+      addDataset({ name: p.defaultName || draft.upload.fileName, sector, columns: p.columns as any, rows: p.rows, rowCount: p.rowCount, sourceType: p.sourceType });
+    }
     completeSetup();
     completeOnboarding();
     restartTour();
@@ -360,6 +455,81 @@ export default function OnboardingPage() {
               placeholder="Or type a different metric" className="h-11 rounded-xl bg-white" maxLength={120} />
           </div>
         );
+      case 'data':
+        return (
+          <div className="space-y-3">
+            <input ref={fileRef} type="file" accept={ACCEPTED_DATA_FILES} className="hidden" onChange={(e) => onFile(e.target.files?.[0])} data-testid="input-onboarding-data" />
+            <div className="grid sm:grid-cols-3 gap-2">
+              <Chip selected={draft.dataStatus === 'uploaded'} hint="CSV, Excel or JSON from your POS, accounting app or spreadsheet"
+                onClick={() => { update({ dataStatus: 'uploaded' }); if (!draft.upload) fileRef.current?.click(); }}>I have it. Upload now</Chip>
+              <Chip selected={draft.dataStatus === 'later'} hint="Your plan will list exactly what to export"
+                onClick={() => update({ dataStatus: 'later' })}>I have it. Add it later</Chip>
+              <Chip selected={draft.dataStatus === 'new'} hint="Get a ready-made weekly sheet with the right columns"
+                onClick={() => update({ dataStatus: 'new' })}>Start fresh</Chip>
+            </div>
+
+            {draft.dataStatus === 'uploaded' && (
+              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-2">
+                {!draft.upload ? (
+                  <button type="button" onClick={() => fileRef.current?.click()}
+                    onDragOver={(e) => e.preventDefault()} onDrop={(e) => { e.preventDefault(); onFile(e.dataTransfer.files?.[0]); }}
+                    className="w-full rounded-2xl border-2 border-dashed border-slate-300 hover:border-primary bg-white px-4 py-5 text-center transition-colors">
+                    {uploading ? <Loader2 className="w-5 h-5 mx-auto animate-spin text-primary" /> : <Upload className="w-5 h-5 mx-auto text-slate-400" />}
+                    <p className="mt-1.5 text-sm font-bold text-slate-700">{uploading ? 'Reading your file…' : 'Choose a file or drop it here'}</p>
+                    <p className="text-xs text-slate-500">CSV, Excel (.xlsx) or JSON, up to 25 MB. It stays in your browser.</p>
+                  </button>
+                ) : (
+                  <div className="rounded-2xl border border-slate-200 bg-white p-4" data-testid="onboarding-upload-summary">
+                    <div className="flex items-start gap-3">
+                      <span className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0"><FileSpreadsheet className="w-5 h-5" /></span>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-bold text-slate-900 truncate">{draft.upload.fileName}</p>
+                        <p className="text-xs text-slate-500">{draft.upload.payload.rowCount.toLocaleString()} rows · {draft.upload.payload.columns.length} columns</p>
+                      </div>
+                      <Button type="button" variant="ghost" size="sm" className="text-slate-500 font-bold" onClick={() => fileRef.current?.click()}>Replace</Button>
+                    </div>
+                    {(draft.upload.matched.length > 0 || draft.upload.missing.length > 0) && (
+                      <div className="mt-3 grid sm:grid-cols-2 gap-3 text-[13px]">
+                        <div>
+                          <p className="font-bold text-emerald-700 mb-1">Found in your file</p>
+                          {draft.upload.matched.length ? draft.upload.matched.map((m) => (
+                            <p key={m.input} className="flex items-start gap-1.5 text-slate-600"><Check className="w-3.5 h-3.5 text-emerald-600 mt-0.5 shrink-0" />{m.input} <span className="text-slate-400 truncate">← {m.column}</span></p>
+                          )) : <p className="text-slate-500">No exact matches. The analyst will still read every column.</p>}
+                        </div>
+                        {draft.upload.missing.length > 0 && (
+                          <div>
+                            <p className="font-bold text-amber-700 mb-1">Not found yet</p>
+                            {draft.upload.missing.map((m) => (
+                              <p key={m} className="flex items-start gap-1.5 text-slate-600"><span className="w-3.5 h-3.5 rounded-full border-2 border-amber-400 mt-0.5 shrink-0" />{m}</p>
+                            ))}
+                            <p className="text-xs text-slate-400 mt-1">You can add these later. Your plan will remind you.</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+                {uploadError && <p className="flex items-start gap-1.5 text-sm text-rose-600"><AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />{uploadError}</p>}
+              </motion.div>
+            )}
+
+            {draft.dataStatus === 'new' && (
+              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}
+                className="rounded-2xl border border-teal-200 bg-teal-50/60 p-4">
+                <p className="text-sm font-bold text-slate-900">Your tracking sheet is ready</p>
+                <p className="text-xs text-slate-600 mt-0.5">12 weeks, one row per week, with a column for each number above and a "How to use" tab. Fill it in each Monday, then import it here.</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Button type="button" size="sm" className="rounded-xl font-bold" onClick={() => downloadTracker('xlsx')} data-testid="button-download-tracker">
+                    <Download className="w-4 h-4" /> Excel (.xlsx)
+                  </Button>
+                  <Button type="button" size="sm" variant="outline" className="rounded-xl font-bold bg-white" onClick={() => downloadTracker('csv')}>
+                    <Download className="w-4 h-4" /> CSV (Google Sheets)
+                  </Button>
+                </div>
+              </motion.div>
+            )}
+          </div>
+        );
       case 'partners':
         return (
           <div className="space-y-3">
@@ -476,6 +646,16 @@ export default function OnboardingPage() {
                     <p className="font-black text-slate-900">{plan.northStar.name}: {plan.northStar.target}</p>
                   </div>
                 </div>
+                {draft.dataStatus && (
+                  <div className="flex items-start gap-3 rounded-2xl bg-slate-50 border border-slate-200 p-4 text-sm" data-testid="onboarding-data-next">
+                    <FileSpreadsheet className="w-5 h-5 text-slate-500 mt-0.5 shrink-0" />
+                    <p className="text-slate-600">
+                      {draft.dataStatus === 'uploaded' ? <>Your file is saved in <button className="font-bold text-primary hover:underline" onClick={() => navigate('/data')}>Data Sources</button>. Step 1 of your plan is checking it.</>
+                        : draft.dataStatus === 'later' ? <>When you're ready, add your file in <button className="font-bold text-primary hover:underline" onClick={() => navigate('/data')}>Data Sources</button>. Step 1 of your plan lists exactly what to export.</>
+                        : <>Step 1 of your plan is filling in your tracking sheet weekly. <button className="font-bold text-primary hover:underline" onClick={() => downloadTracker('xlsx')}>Download it again</button> any time.</>}
+                    </p>
+                  </div>
+                )}
                 <ol className="grid sm:grid-cols-3 gap-3">
                   {plan.phases.map((ph, i) => (
                     <li key={ph.id} className="rounded-2xl border border-slate-200 p-4">

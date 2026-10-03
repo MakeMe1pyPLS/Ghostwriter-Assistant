@@ -77,7 +77,15 @@ export interface GrowthProfile {
   targetValue?: string;       // free text like "+20%" or "$50k/month"
   timeframeDays: Timeframe;
   partners: string[];         // partner company names or types
+  /** Whether they already have the data to track their goal (asked in the interview). */
+  dataStatus?: DataStatus;
+  /** e.g. "sales-2026.xlsx · 1,240 rows · has Revenue, Orders; missing Food cost". */
+  dataSummary?: string;
+  /** The raw numbers needed to track the goal (from shared/data-needs). */
+  dataInputs?: string[];
 }
+
+export type DataStatus = 'uploaded' | 'later' | 'new';
 
 export type StepOwner = 'Owner' | 'Operations' | 'Sales & marketing' | 'Finance' | 'Partner' | 'Team lead';
 export type Effort = 'low' | 'medium' | 'high';
@@ -340,6 +348,24 @@ export function buildRuleBasedGrowthPlan(p: GrowthProfile): GrowthPlan {
     target.steps.push({ ...step, owner: ownerFor(step.owner), id: id('step') });
   });
 
+  // Data comes first: you can't move a number you aren't measuring.
+  const inputsText = (p.dataInputs ?? []).slice(0, 8).join(', ');
+  const dataStep: Omit<PlanStep, 'id'> | null =
+    p.dataStatus === 'uploaded' ? {
+      title: 'Check your imported numbers',
+      detail: `${p.dataSummary ? p.dataSummary + '. ' : ''}Confirm the totals match your books, then fill any missing numbers so the analyst can track your goal.`,
+      owner: 'Owner', effort: 'low', kpi: p.targetKpi,
+    } : p.dataStatus === 'later' ? {
+      title: 'Import the numbers this plan needs',
+      detail: `Add a CSV or Excel export${inputsText ? ` with: ${inputsText}` : ''}. Most POS, accounting and e-commerce tools can export these. Data Sources accepts the file as-is.`,
+      owner: 'Owner', effort: 'low', kpi: p.targetKpi,
+    } : p.dataStatus === 'new' ? {
+      title: 'Start tracking your key numbers every week',
+      detail: `Use your tracking sheet${inputsText ? ` to record: ${inputsText}` : ''}. Fifteen minutes every Monday is enough; after 2–4 weeks you have a baseline to improve.`,
+      owner: 'Owner', effort: 'low', kpi: p.targetKpi,
+    } : null;
+  if (dataStep) phases[0].steps.unshift({ ...dataStep, owner: ownerFor(dataStep.owner), id: id('step') });
+
   if (p.partners.length && !p.challenges.includes('partner-coordination') && p.goal !== 'strengthen-partners') {
     phases[1].steps.push({ ...CHALLENGE_STEPS['partner-coordination'], id: id('step') });
   }
@@ -446,5 +472,7 @@ export function describeProfile(p: GrowthProfile): string {
     `Target metric: ${p.targetKpi}${p.targetValue ? `, target ${p.targetValue}` : ''} within ${p.timeframeDays} days`,
     `Challenges: ${challenges}`,
     `Partners they work with: ${p.partners.join(', ') || 'none named'}`,
-  ].join('\n');
+    p.dataStatus ? `Their data: ${p.dataStatus === 'uploaded' ? `uploaded (${p.dataSummary ?? 'file imported'})` : p.dataStatus === 'later' ? 'they have it and will import it later' : 'no data yet — they are starting a weekly tracking sheet'}` : '',
+    p.dataInputs?.length ? `Numbers needed to track the goal: ${p.dataInputs.slice(0, 10).join(', ')}` : '',
+  ].filter(Boolean).join('\n');
 }
