@@ -10,6 +10,8 @@ import { useToast } from "@/hooks/use-toast";
 import { WidgetRenderer } from "@/components/visualizations/WidgetRenderer";
 import { ExportDrawer } from "@/components/ExportDrawer";
 import { Link } from "wouter";
+import { motion } from "framer-motion";
+import { useGrowthStore } from "@/hooks/use-growth-store";
 import { AnalystPanel } from "@/components/analyst/AnalystPanel";
 import { AIAnalystPanel } from "@/components/analyst/AIAnalystPanel";
 import { ExecutiveCommandCenter } from "@/components/analyst/ExecutiveCommandCenter";
@@ -28,6 +30,11 @@ export default function DashboardPage() {
   const ensureDashboardLoaded = useDashboardStore((s) => s.ensureDashboardLoaded);
   const { toast } = useToast();
   const [aiPanelOpen, setAiPanelOpen] = useState(false);
+  const businessName = useGrowthStore((s) => s.profile?.businessName);
+  const greeting = useMemo(() => {
+    const h = new Date().getHours();
+    return h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening";
+  }, []);
 
   useEffect(() => {
     ensureDashboardLoaded(sector);
@@ -83,55 +90,60 @@ export default function DashboardPage() {
   return (
     <AppLayout>
       <div className="p-4 sm:p-6 md:p-10 max-w-[1600px] mx-auto min-h-0 flex flex-col">
-        <header className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 mb-6 md:mb-8 shrink-0">
-          <div className="flex items-center gap-4">
+        <header className="flex flex-col xl:flex-row justify-between items-start xl:items-end gap-4 mb-6 md:mb-8 shrink-0">
+          <div className="flex items-center gap-3 sm:gap-4 min-w-0">
             <Link href="/builder">
-              <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full bg-white shadow-sm border border-slate-200 text-slate-500 hover:text-slate-900 shrink-0">
+              <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full bg-white shadow-sm border border-slate-200 text-slate-500 hover:text-slate-900 shrink-0" aria-label="Back to Builder">
                 <ArrowLeft className="w-5 h-5" />
               </Button>
             </Link>
-            <div>
-              <h1 className="text-xl sm:text-2xl md:text-4xl font-black text-slate-900 tracking-tighter uppercase">Operations Center</h1>
-              <p className="text-slate-500 font-bold text-[10px] md:text-xs uppercase tracking-widest mt-1.5 flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                Live: {sectorLabel}
+            <div className="min-w-0">
+              <p className="text-[13px] font-medium text-slate-500 truncate">{greeting}{businessName ? `, ${businessName}` : ""}</p>
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 tracking-[-0.035em] leading-tight">Operations Center</h1>
+              <p className="mt-1 inline-flex items-center gap-2 text-[12.5px] font-semibold text-slate-500">
+                <span className="relative flex w-2 h-2">
+                  <span className="absolute inset-0 rounded-full bg-emerald-400 animate-ping opacity-60" />
+                  <span className="relative w-2 h-2 rounded-full bg-emerald-500" />
+                </span>
+                Live · {sectorLabel}
               </p>
             </div>
           </div>
           <div className="toolbar w-full xl:w-auto md:gap-3">
-            <div className="flex items-center bg-white rounded-xl border border-slate-200 shadow-sm p-1 gap-1">
-              <button
-                onClick={() => setAnalystMode(false)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${!analystMode ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-                data-testid="button-standard-mode"
-              >
-                <BarChart2 className="w-3 h-3" />
-                Standard
-              </button>
-              <button
-                onClick={() => setAnalystMode(true)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${analystMode ? 'bg-primary text-white shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-                data-testid="button-analyst-mode"
-              >
-                <BrainCircuit className="w-3 h-3" />
-                Analyst
-              </button>
+            <div className="flex items-center bg-white rounded-xl border border-slate-200 shadow-sm p-1 gap-1" role="radiogroup" aria-label="View">
+              {[
+                { on: !analystMode, set: false, label: "Standard", icon: BarChart2, id: "button-standard-mode" },
+                { on: analystMode, set: true, label: "Analyst", icon: BrainCircuit, id: "button-analyst-mode" },
+              ].map((o) => (
+                <button
+                  key={o.label}
+                  role="radio"
+                  aria-checked={o.on}
+                  onClick={() => setAnalystMode(o.set)}
+                  className={`relative flex items-center gap-1.5 px-3 h-8 rounded-lg text-[12.5px] font-semibold transition-colors ${o.on ? 'text-white' : 'text-slate-500 hover:text-slate-800'}`}
+                  data-testid={o.id}
+                >
+                  {o.on && <motion.span layoutId="dash-mode" className={`absolute inset-0 rounded-lg shadow-sm ${o.set ? 'bg-primary' : 'bg-slate-900'}`} transition={{ type: "spring", stiffness: 500, damping: 38 }} />}
+                  <o.icon className="relative w-3.5 h-3.5" />
+                  <span className="relative">{o.label}</span>
+                </button>
+              ))}
             </div>
 
             <Button
               variant="outline"
               onClick={() => setAiPanelOpen(true)}
-              className={`rounded-xl font-black text-[10px] uppercase tracking-widest h-9 md:h-10 px-4 shadow-sm border-slate-200 gap-2 ${aiPanelOpen ? 'border-primary/40 text-primary bg-primary/5' : ''}`}
+              className={`rounded-xl font-semibold text-[13px] h-10 px-4 shadow-sm border-slate-200 gap-2 ${aiPanelOpen ? 'border-primary/40 text-primary bg-primary/5' : ''}`}
               data-testid="button-ai-analyst"
             >
-              <BrainCircuit className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">AI Analyst</span>
+              <BrainCircuit className="w-4 h-4" />
+              <span className="hidden sm:inline">Ask AI Analyst</span>
             </Button>
 
             <ExportDrawer layout={rawLayout} widgets={widgets} sector={sector} dateRange={dateRange} metrics={metrics} chartData={chartData} donutData={donutData} allMetrics={allMetrics} />
 
-            <Button variant="outline" className="rounded-xl font-black text-[10px] uppercase tracking-widest h-9 md:h-10 px-4 shadow-sm border-slate-200">
-              <Share2 className="w-4 h-4 md:mr-2" /> <span className="hidden md:inline">Share View</span>
+            <Button variant="outline" className="rounded-xl font-semibold text-[13px] h-10 px-4 shadow-sm border-slate-200">
+              <Share2 className="w-4 h-4" /> <span className="hidden md:inline">Share view</span>
             </Button>
           </div>
         </header>
@@ -140,7 +152,7 @@ export default function DashboardPage() {
           <div className="flex items-center gap-2 mb-4 shrink-0">
             <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 border border-primary/20 rounded-xl">
               <BrainCircuit className="w-3.5 h-3.5 text-primary" />
-              <span className="text-[10px] font-black uppercase tracking-widest text-primary">Analyst Mode Active — Advanced breakdown panels enabled</span>
+              <span className="text-[12.5px] font-semibold text-primary">Analyst view on — advanced breakdown panels are shown below</span>
             </div>
           </div>
         )}
@@ -176,11 +188,12 @@ export default function DashboardPage() {
               isResizable={false}
               compactType={null}
             >
-              {widgets.map((w) => (
+              {widgets.map((w, i) => (
                 <div
                   key={w.id}
                   data-testid={`widget-${w.id}`}
-                  className={`flex flex-col overflow-hidden transition-shadow duration-300 hover:shadow-md ${getCardShellClasses(w.cardPreset || w.stylePreset, 'dashboard')}`}
+                  style={{ animationDelay: `${Math.min(i, 10) * 55}ms` }}
+                  className={`ciq-rise flex flex-col overflow-hidden transition-[box-shadow,border-color] duration-300 hover:shadow-[0_18px_40px_-20px_rgba(15,23,42,0.35)] hover:border-slate-300 ${getCardShellClasses(w.cardPreset || w.stylePreset, 'dashboard')}`}
                 >
                   {renderWidgetContent(w)}
                 </div>

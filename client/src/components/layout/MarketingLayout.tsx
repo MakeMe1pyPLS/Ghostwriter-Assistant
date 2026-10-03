@@ -1,9 +1,12 @@
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Zap, Menu, X, ArrowRight, LayoutDashboard } from "lucide-react";
-import { useState } from "react";
+import { Menu, X, ArrowRight, LayoutDashboard } from "lucide-react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useDashboardStore } from "@/hooks/use-dashboard-store";
+import { Logo } from "@/components/Logo";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { cn } from "@/lib/utils";
 
 function LinkedInIcon({ className }: { className?: string }) {
   return (
@@ -39,90 +42,80 @@ const socialLinks = [
 export function MarketingLayout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const currentUser = useDashboardStore(s => s.currentUser);
   const isAuthed = !!currentUser;
+
+  useEffect(() => {
+    const on = () => setScrolled(window.scrollY > 8);
+    on();
+    window.addEventListener("scroll", on, { passive: true });
+    return () => window.removeEventListener("scroll", on);
+  }, []);
+  useEffect(() => { setMobileMenuOpen(false); }, [location]);
 
   const navLinks = [
     { name: "Features", href: "/features" },
     { name: "Pricing", href: "/pricing" },
+    { name: "Demo", href: "/demo" },
+    { name: "Support", href: "/support" },
   ];
 
   return (
-    <div className="min-h-screen bg-[#F4F7FA] font-sans selection:bg-primary/20 selection:text-primary flex flex-col">
-      <div className="bg-slate-900 text-white py-2 overflow-hidden flex items-center shrink-0">
-        <div className="flex whitespace-nowrap animate-[marquee_30s_linear_infinite] motion-reduce:animate-none hover:[animation-play-state:paused]">
-          {[...Array(3)].map((_, i) => (
-            <div key={i} className="flex items-center gap-8 mx-4 text-[11px] font-black uppercase tracking-widest text-slate-300">
-              <span>Find the bottleneck. Fix it together.</span>
-              <span className="w-1.5 h-1.5 bg-primary rounded-full" />
-              <span className="text-primary">{isAuthed ? 'Your AI business analyst is ready.' : '14-day free trial. Your growth plan in 2 minutes.'}</span>
-              <span className="w-1.5 h-1.5 bg-primary rounded-full" />
-              <span>Share data with suppliers, carriers and partners.</span>
-              <span className="w-1.5 h-1.5 bg-primary rounded-full" />
-              <span>300+ KPIs across 45 industries.</span>
-              <span className="w-1.5 h-1.5 bg-primary rounded-full" />
-              <span>Powered by Claude, ChatGPT and Gemini.</span>
-              <span className="w-1.5 h-1.5 bg-primary rounded-full" />
-              <span>Export to Excel, Power BI, Google Sheets and more.</span>
-              <span className="w-1.5 h-1.5 bg-primary rounded-full" />
-              <span>Request custom dashboard setup.</span>
-              <span className="w-1.5 h-1.5 bg-primary rounded-full" />
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <style>{`
-        @keyframes marquee {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-33.33%); }
-        }
-      `}</style>
-
-      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-slate-200 shadow-sm shrink-0">
-        <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 md:h-20 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-slate-900 text-primary flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
-              <Zap size={20} fill="currentColor" />
-            </div>
-            <div className="flex flex-col">
-              <span className="font-black text-sm md:text-base text-slate-900 uppercase tracking-tighter leading-none">ChainInside</span>
-              <span className="text-[9px] md:text-[10px] font-black text-primary uppercase tracking-[0.2em] mt-0.5">Intelligence IQ</span>
-            </div>
+    <div className="min-h-screen bg-[#F4F7FA] font-sans flex flex-col">
+      <header className={cn(
+        "sticky top-0 z-50 shrink-0 transition-[background-color,border-color,box-shadow,backdrop-filter] duration-300 border-b",
+        scrolled || mobileMenuOpen
+          ? "bg-white/75 dark:bg-slate-950/70 backdrop-blur-xl border-slate-200/70 shadow-[0_8px_30px_-20px_rgba(15,23,42,0.35)]"
+          : "bg-transparent border-transparent",
+      )}>
+        <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 md:h-[72px] flex items-center gap-4">
+          <Link href="/" className="flex items-center rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40" aria-label="ChainInsideIQ home">
+            <Logo size={34} />
           </Link>
 
-          <nav className="hidden md:flex items-center gap-8">
-            {navLinks.map(link => (
-              <Link key={link.name} href={link.href} className={`text-sm font-bold uppercase tracking-wider transition-colors ${location === link.href ? 'text-primary' : 'text-slate-500 hover:text-slate-900'}`} data-testid={`nav-${link.name.toLowerCase()}`}>
-                {link.name}
-              </Link>
-            ))}
+          <nav className="hidden lg:flex items-center gap-1 ml-6" aria-label="Main">
+            {navLinks.map(link => {
+              const active = location === link.href;
+              return (
+                <Link key={link.name} href={link.href} aria-current={active ? "page" : undefined}
+                  className={cn("relative px-3.5 py-2 rounded-xl text-[14px] font-semibold transition-colors", active ? "text-slate-900" : "text-slate-500 hover:text-slate-900")}
+                  data-testid={`nav-${link.name.toLowerCase()}`}>
+                  {active && <motion.span layoutId="mk-nav" className="absolute inset-0 rounded-xl bg-slate-900/[0.06] dark:bg-white/[0.08]" transition={{ type: "spring", stiffness: 500, damping: 40 }} />}
+                  <span className="relative">{link.name}</span>
+                </Link>
+              );
+            })}
           </nav>
 
-          <div className="hidden md:flex items-center gap-3">
+          <div className="ml-auto hidden lg:flex items-center gap-2">
+            <ThemeToggle />
             {isAuthed ? (
-              <Link href="/dashboard">
-                <Button className="font-bold uppercase tracking-widest text-xs h-11 px-6 rounded-xl shadow-lg shadow-primary/20" data-testid="button-go-to-dashboard">
-                  <LayoutDashboard className="w-4 h-4 mr-2" /> My Dashboard
+              <Link href="/plan">
+                <Button className="font-semibold text-[14px] h-10 px-5 rounded-xl" data-testid="button-go-to-dashboard">
+                  <LayoutDashboard className="w-4 h-4 mr-1" /> Open the app
                 </Button>
               </Link>
             ) : (
               <>
                 <Link href="/sign-in">
-                  <Button variant="ghost" className="font-bold uppercase tracking-wider text-xs" data-testid="button-sign-in">Sign In</Button>
+                  <Button variant="ghost" className="font-semibold text-[14px] h-10 px-4 rounded-xl text-slate-600 hover:text-slate-900" data-testid="button-sign-in">Sign in</Button>
                 </Link>
                 <Link href="/sign-up">
-                  <Button className="font-bold uppercase tracking-widest text-xs h-11 px-6 rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:-translate-y-0.5 transition-all" data-testid="button-get-started">
-                    Get Started <ArrowRight className="w-4 h-4 ml-2" />
+                  <Button className="font-semibold text-[14px] h-10 px-5 rounded-xl bg-slate-900 text-white hover:bg-slate-800 dark:bg-teal-400 dark:text-slate-950 dark:hover:bg-teal-300" data-testid="button-get-started">
+                    Get started <ArrowRight className="w-4 h-4" />
                   </Button>
                 </Link>
               </>
             )}
           </div>
 
-          <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </Button>
+          <div className="ml-auto lg:hidden flex items-center gap-1">
+            <ThemeToggle />
+            <button className="w-10 h-10 rounded-xl flex items-center justify-center text-slate-700 hover:bg-slate-100" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} aria-label={mobileMenuOpen ? "Close menu" : "Open menu"} aria-expanded={mobileMenuOpen}>
+              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
         </div>
 
         <AnimatePresence>
@@ -131,30 +124,29 @@ export function MarketingLayout({ children }: { children: React.ReactNode }) {
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              className="md:hidden bg-white border-t border-slate-100 overflow-hidden"
+              transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+              className="lg:hidden overflow-hidden border-t border-slate-200/70"
             >
-              <div className="flex flex-col p-4 space-y-4">
-                {navLinks.map(link => (
-                  <Link key={link.name} href={link.href} onClick={() => setMobileMenuOpen(false)} className="text-sm font-bold uppercase tracking-wider text-slate-700 py-2 border-b border-slate-50">
-                    {link.name}
-                  </Link>
+              <div className="flex flex-col p-4 gap-1">
+                {navLinks.map((link, i) => (
+                  <motion.div key={link.name} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.04 * i }}>
+                    <Link href={link.href} className="block text-[16px] font-semibold text-slate-800 py-3 px-2 rounded-xl hover:bg-slate-100">
+                      {link.name}
+                    </Link>
+                  </motion.div>
                 ))}
-                <div className="flex flex-col gap-3 pt-2">
+                <div className="flex flex-col gap-2 pt-3">
                   {isAuthed ? (
-                    <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)}>
-                      <Button className="w-full font-bold uppercase tracking-widest h-11 rounded-xl shadow-lg shadow-primary/20">
-                        <LayoutDashboard className="w-4 h-4 mr-2" /> My Dashboard
-                      </Button>
+                    <Link href="/plan">
+                      <Button className="w-full font-semibold h-12 rounded-xl"><LayoutDashboard className="w-4 h-4 mr-1" /> Open the app</Button>
                     </Link>
                   ) : (
                     <>
-                      <Link href="/sign-in" onClick={() => setMobileMenuOpen(false)}>
-                        <Button variant="outline" className="w-full font-bold uppercase tracking-wider h-11 rounded-xl">Sign In</Button>
+                      <Link href="/sign-up">
+                        <Button className="w-full font-semibold h-12 rounded-xl bg-slate-900 text-white dark:bg-teal-400 dark:text-slate-950">Get started <ArrowRight className="w-4 h-4" /></Button>
                       </Link>
-                      <Link href="/sign-up" onClick={() => setMobileMenuOpen(false)}>
-                        <Button className="w-full font-bold uppercase tracking-widest h-11 rounded-xl shadow-lg shadow-primary/20">
-                          Get Started <ArrowRight className="w-4 h-4 ml-2" />
-                        </Button>
+                      <Link href="/sign-in">
+                        <Button variant="outline" className="w-full font-semibold h-12 rounded-xl">Sign in</Button>
                       </Link>
                     </>
                   )}
@@ -169,115 +161,47 @@ export function MarketingLayout({ children }: { children: React.ReactNode }) {
         {children}
       </main>
 
-      <footer className="bg-slate-900 pt-20 pb-10 px-4 md:px-6 mt-auto shrink-0 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-primary/10 blur-[120px] rounded-full translate-x-1/2 -translate-y-1/2 pointer-events-none" />
-
-        <div className="max-w-7xl mx-auto relative z-10">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 lg:gap-8 mb-16">
-            <div className="lg:col-span-2">
-              <Link href="/" className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 rounded-xl bg-white text-primary flex items-center justify-center shadow-lg">
-                  <Zap size={22} fill="currentColor" />
-                </div>
-                <div className="flex flex-col">
-                  <span className="font-black text-xl text-white uppercase tracking-tighter leading-none">ChainInside</span>
-                  <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mt-1">Intelligence IQ</span>
-                </div>
-              </Link>
-              <p className="text-slate-400 text-sm leading-relaxed max-w-sm mb-8">
-                The AI business tool that turns goals into step-by-step plans, spots bottlenecks and helps companies fix them with their partners. Dashboards export to Excel, Power BI, Google Sheets and beyond.
+      <footer className="relative isolate overflow-hidden mt-auto shrink-0 border-t border-slate-200/70 px-4 md:px-6 pt-16 pb-10">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-6 gap-10">
+            <div className="col-span-2 md:col-span-3">
+              <Logo size={36} />
+              <p className="mt-4 text-[14.5px] text-slate-500 leading-relaxed max-w-sm">
+                The AI business analyst that turns goals into plans, spots bottlenecks and helps you fix them with your partners.
               </p>
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-8">
-                {isAuthed ? (
-                  <>
-                    <Link href="/dashboard" className="w-full sm:w-auto">
-                      <Button className="w-full sm:w-auto font-black uppercase tracking-widest text-[10px] h-10 px-5 rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/30" data-testid="button-footer-open-dashboard">
-                        Open Dashboard
-                      </Button>
-                    </Link>
-                    <Link href="/insights" className="w-full sm:w-auto">
-                      <Button variant="outline" className="w-full sm:w-auto font-black uppercase tracking-widest text-[10px] h-10 px-5 rounded-xl border-slate-700 text-white hover:bg-slate-800 hover:text-white" data-testid="button-footer-open-ai-analyst">
-                        Open AI Analyst
-                      </Button>
-                    </Link>
-                  </>
-                ) : (
-                  <>
-                    <Link href="/sign-up" className="w-full sm:w-auto">
-                      <Button className="w-full sm:w-auto font-black uppercase tracking-widest text-[10px] h-10 px-5 rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/30" data-testid="button-footer-start-free-trial">
-                        Start Free Trial
-                      </Button>
-                    </Link>
-                    <Link href="/contact" className="w-full sm:w-auto">
-                      <Button variant="outline" className="w-full sm:w-auto font-black uppercase tracking-widest text-[10px] h-10 px-5 rounded-xl border-slate-700 text-white hover:bg-slate-800 hover:text-white" data-testid="button-footer-book-demo">
-                        Book Demo
-                      </Button>
-                    </Link>
-                  </>
-                )}
-              </div>
-
-              <div className="space-y-3">
-                <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Connect with ChainInsideIQ</p>
-                <div className="flex gap-3">
-                  {socialLinks.map(social => (
-                    <a
-                      key={social.name}
-                      href={social.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="w-9 h-9 rounded-lg bg-slate-800 hover:bg-primary/20 border border-slate-700 hover:border-primary/40 flex items-center justify-center text-slate-400 hover:text-primary transition-all"
-                      title={social.name}
-                      data-testid={`social-${social.name.toLowerCase().replace(/\s+/g, '-')}`}
-                    >
-                      <social.icon className="w-4 h-4" />
-                    </a>
-                  ))}
-                </div>
+              <div className="mt-6 flex gap-2">
+                {socialLinks.map(social => (
+                  <a key={social.name} href={social.href} target="_blank" rel="noopener noreferrer" title={social.name} aria-label={social.name}
+                    className="w-9 h-9 rounded-xl border border-slate-200 flex items-center justify-center text-slate-400 hover:text-primary hover:border-primary/40 transition-colors"
+                    data-testid={`social-${social.name.toLowerCase().replace(/\s+/g, '-')}`}>
+                    <social.icon className="w-4 h-4" />
+                  </a>
+                ))}
               </div>
             </div>
-
-            <div>
-              <h4 className="text-white font-black uppercase tracking-widest text-xs mb-6">Product</h4>
-              <ul className="space-y-4">
-                <li><Link href="/features" className="text-slate-400 hover:text-white text-sm font-medium transition-colors">Features</Link></li>
-                <li><Link href="/pricing" className="text-slate-400 hover:text-white text-sm font-medium transition-colors">Pricing</Link></li>
-                <li><Link href="/builder" className="text-slate-400 hover:text-white text-sm font-medium transition-colors">Interactive Demo</Link></li>
-                <li><Link href="/contact" className="text-slate-400 hover:text-white text-sm font-medium transition-colors">Request Setup</Link></li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="text-white font-black uppercase tracking-widest text-xs mb-6">Company</h4>
-              <ul className="space-y-4">
-                <li><Link href="/contact" className="text-slate-400 hover:text-white text-sm font-medium transition-colors">Contact Us</Link></li>
-                <li><Link href="/support" className="text-slate-400 hover:text-white text-sm font-medium transition-colors">Support</Link></li>
-                <li><Link href="/privacy" className="text-slate-400 hover:text-white text-sm font-medium transition-colors">Privacy Policy</Link></li>
-                <li><Link href="/terms" className="text-slate-400 hover:text-white text-sm font-medium transition-colors">Terms of Service</Link></li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="text-white font-black uppercase tracking-widest text-xs mb-6">Use Cases</h4>
-              <ul className="space-y-4">
-                <li className="text-slate-400 text-sm font-medium">E-commerce Operations</li>
-                <li className="text-slate-400 text-sm font-medium">Logistics & Fulfillment</li>
-                <li className="text-slate-400 text-sm font-medium">Manufacturing QA</li>
-                <li className="text-slate-400 text-sm font-medium">Unified Supply Chain</li>
-              </ul>
-            </div>
+            <FooterCol title="Product" links={[["Features", "/features"], ["Pricing", "/pricing"], ["Live demo", "/demo"], ["Request setup", "/contact"]]} />
+            <FooterCol title="Company" links={[["Contact", "/contact"], ["Support", "/support"], ["Privacy", "/privacy"], ["Terms", "/terms"]]} />
+            <FooterCol title="Get started" links={isAuthed ? [["Growth Plan", "/plan"], ["AI Analyst", "/insights"], ["Dashboard", "/dashboard"]] : [["Start free trial", "/sign-up"], ["Sign in", "/sign-in"], ["Build my plan", "/onboarding"]]} />
           </div>
-
-          <div className="pt-8 border-t border-slate-800 flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-slate-500 text-xs font-medium">&copy; {new Date().getFullYear()} ChainInsideIQ. All rights reserved.</p>
-            <div className="flex items-center gap-6">
-              <Link href="/privacy" className="text-slate-500 hover:text-slate-300 text-xs font-medium transition-colors">Privacy</Link>
-              <Link href="/terms" className="text-slate-500 hover:text-slate-300 text-xs font-medium transition-colors">Terms</Link>
-              <p className="text-slate-500 text-xs font-medium flex items-center gap-1">Built with <Zap className="w-3 h-3 text-primary fill-primary" /> for operations teams.</p>
-            </div>
+          <div className="mt-14 pt-6 border-t border-slate-200/70 flex flex-col sm:flex-row items-center justify-between gap-3 text-[13px] text-slate-400">
+            <p>&copy; {new Date().getFullYear()} ChainInsideIQ. All rights reserved.</p>
+            <p>Find the bottleneck. Fix it together.</p>
           </div>
         </div>
       </footer>
+    </div>
+  );
+}
+
+function FooterCol({ title, links }: { title: string; links: [string, string][] }) {
+  return (
+    <div>
+      <p className="text-[13px] font-semibold text-slate-900">{title}</p>
+      <ul className="mt-4 space-y-3">
+        {links.map(([label, href]) => (
+          <li key={href + label}><Link href={href} className="text-[14px] text-slate-500 hover:text-slate-900 transition-colors">{label}</Link></li>
+        ))}
+      </ul>
     </div>
   );
 }

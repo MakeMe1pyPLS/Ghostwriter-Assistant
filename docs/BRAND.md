@@ -8,6 +8,9 @@ The visual rules for the product. Pair with `CLAUDE.md`. Improve within these ru
 ## Personality
 Confident, clear, practical, warm. Like a senior consultant who explains things simply and gets to the point.
 
+## Logo
+Two interlocking chain links on an ink tile (`client/src/components/Logo.tsx`, `client/public/favicon.svg`). The white link is the business, the teal link is the partner and the fix, and the weave shows they're joined. Wordmark: **ChainInside** in ink plus **IQ** in teal, Inter Black with tight tracking. Use `<Logo />` or `<LogoMark />`; never redraw it.
+
 ## Color
 | Token | Value | Use |
 |---|---|---|
@@ -19,6 +22,12 @@ Confident, clear, practical, warm. Like a senior consultant who explains things 
 | Surface | `#FFFFFF` | Cards |
 | Line | `#E2E8F0` (slate-200) | Borders, dividers |
 | Status: good / warn / critical | emerald-600 / amber-500 / rose-600 | Severity and status only; never decorative |
+
+**Dark mode:** canvas `#070B13`, surfaces `#0D131E` → `#16202F`, lines `#1F2A3B`, ink panels lifted to `#16233A`, primary teal brightened.
+- Light-first slate and white classes are remapped automatically by `client/src/styles/dark-theme.css`, which is generated. Run `node script/gen-dark-theme.mjs` after adding new colour classes.
+- For new UI, prefer explicit `dark:` variants.
+- On always-dark panels use `text-white/70` instead of `text-slate-300`.
+- The theme logic is in `client/src/lib/theme.ts` and the switch is `<ThemeToggle />`.
 
 Rules: teal is the only brand accent. Status colors mean status. Dark panels (ink) are reserved for heroes and highlights, at most one per screen.
 
@@ -67,8 +76,13 @@ Rules:
 - Buttons scale to 0.97 on press. Page loads show a thin top progress bar, never a full-screen spinner.
 
 ### The intro
-- **Where:** homepage, first visit only (remembered in the browser), never inside the app.
-- **Story (≤ 4s):** scattered business nodes link into a chain → one link glows red (the bottleneck) → it snaps teal (fixed) → logo lockup with the tagline. The homepage then fades in.
+- **Where:** homepage, first visit only (remembered in the browser as `ciq_intro_seen_v2`), never inside the app.
+- **Story (about 4.7s):**
+  1. Particles stream in and ignite five nodes, and links draw between them.
+  2. Pulses jam at one link: it flares red with a shockwave and a small shake.
+  3. A teal beam sweeps through and snaps it fixed, with a teal flash and shockwave.
+  4. The chain folds into the logo, the wordmark sweeps in and the scene zooms through to the homepage.
+- **Performance:** dots use a small glow filter. Only the two straight lines use a full-area filter, because a percentage filter region makes straight lines vanish.
 - **Interactive:** nodes drift toward the pointer; tapping or clicking anywhere, Esc, Enter or "Skip" ends it immediately.
 - **Accessibility:** reduced-motion users skip it entirely. The homepage content is never blocked for more than 4s.
 
@@ -77,6 +91,12 @@ Rules:
 - Buttons say what happens ("Build my plan", "Send invite").
 - Errors explain what went wrong and how to fix it, without apologizing.
 - Never promise results. Say "businesses like yours often…", not "you will…".
+
+## Website
+- **Hero:** one interactive product moment (`marketing/HeroProduct.tsx`); everything else stays calm.
+- **Feature illustrations:** `marketing/FeatureVisuals.tsx`. They play once when scrolled into view and stay still with reduced motion.
+- **Shared pieces:** `marketing/primitives.tsx` (`CtaButton`, `SectionHeading`, `CountUp`, `GridBackdrop`).
+- **Never** use fabricated testimonials, customer logos or statistics. Numbers on the site must be true of the product.
 
 ## Video and motion graphics (marketing)
 Brand films and launch videos are built in code (Remotion or HyperFrames), from a brand folder that contains this file, the logo, screenshots and a short creative brief. Use the same colors, type and motion rules as above.

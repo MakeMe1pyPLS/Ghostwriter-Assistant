@@ -1,5 +1,6 @@
 import { fetchCommandCenter, ENGINE_LABELS } from "@/lib/intel-client";
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { useEffect, useMemo, useState, useCallback, useRef } from "react";
+import { AnimatePresence, animate, motion, useReducedMotion } from "framer-motion";
 import {
   Sparkles,
   RefreshCw,
@@ -45,32 +46,54 @@ function ringColor(score: number): string {
   return "#DC2626";
 }
 
+function useCountUp(target: number, duration = 1.1) {
+  const reduce = useReducedMotion();
+  const [v, setV] = useState(reduce ? target : 0);
+  const prev = useRef(reduce ? target : 0);
+  useEffect(() => {
+    if (reduce) { setV(target); return; }
+    const c = animate(prev.current, target, { duration, ease: [0.22, 1, 0.36, 1], onUpdate: (x) => setV(Math.round(x)) });
+    prev.current = target;
+    return () => c.stop();
+  }, [target, duration, reduce]);
+  return v;
+}
+
 function HealthRing({ score, grade }: { score: number; grade: string }) {
   const radius = 52;
   const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (score / 100) * circumference;
+  const shown = useCountUp(score);
+  const color = ringColor(score);
   return (
     <div className="relative w-[140px] h-[140px] shrink-0" data-testid="health-ring">
-      <svg className="w-full h-full -rotate-90" viewBox="0 0 140 140">
-        <circle cx="70" cy="70" r={radius} fill="none" stroke="#E2E8F0" strokeWidth="12" />
-        <circle
+      <div aria-hidden className="absolute inset-3 rounded-full blur-2xl opacity-30" style={{ backgroundColor: color }} />
+      <svg className="relative w-full h-full -rotate-90" viewBox="0 0 140 140">
+        <defs>
+          <linearGradient id="health-grad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stopColor={color} stopOpacity="0.65" />
+            <stop offset="1" stopColor={color} />
+          </linearGradient>
+        </defs>
+        <circle cx="70" cy="70" r={radius} fill="none" className="stroke-slate-200 dark:stroke-slate-700" strokeWidth="12" />
+        <motion.circle
           cx="70"
           cy="70"
           r={radius}
           fill="none"
-          stroke={ringColor(score)}
+          stroke="url(#health-grad)"
           strokeWidth="12"
           strokeLinecap="round"
           strokeDasharray={circumference}
-          strokeDashoffset={offset}
-          style={{ transition: "stroke-dashoffset 900ms cubic-bezier(0.4,0,0.2,1)" }}
+          initial={{ strokeDashoffset: circumference }}
+          animate={{ strokeDashoffset: circumference - (score / 100) * circumference }}
+          transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-4xl font-black text-slate-900 tabular-nums" data-testid="text-health-score">
-          {score}
+        <span className="text-4xl font-black text-slate-900 tabular-nums tracking-tight" data-testid="text-health-score">
+          {shown}
         </span>
-        <span className={`text-[10px] font-black uppercase tracking-widest ${gradeColor(grade)}`}>
+        <span className={`text-[11px] font-bold ${gradeColor(grade)}`}>
           {grade}
         </span>
       </div>
@@ -107,7 +130,15 @@ function PriorityCard({ priority, index }: { priority: TopPriority; index: numbe
         />
       </button>
 
+      <AnimatePresence initial={false}>
       {open && (
+        <motion.div
+          initial={{ height: 0, opacity: 0 }}
+          animate={{ height: "auto", opacity: 1 }}
+          exit={{ height: 0, opacity: 0 }}
+          transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+          className="overflow-hidden"
+        >
         <div className="px-4 pb-4 pt-1 space-y-3 border-t border-slate-50" data-testid={`priority-detail-${index}`}>
           <IntelRow icon={Activity} label="What happened" tone="slate" text={priority.whatHappened} />
           <IntelRow icon={Zap} label="Why it matters" tone="amber" text={priority.whyItMatters} />
@@ -121,7 +152,9 @@ function PriorityCard({ priority, index }: { priority: TopPriority; index: numbe
             </div>
           </div>
         </div>
+        </motion.div>
       )}
+      </AnimatePresence>
     </div>
   );
 }

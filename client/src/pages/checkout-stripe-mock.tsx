@@ -15,7 +15,10 @@ export default function CheckoutStripeMockPage() {
   const planId = params.get("plan") || "professional";
 
   const tier = getTierById(planId) ?? getTierByName("Professional")!;
-  const priceFormatted = `$${tier.price!.toFixed(2)}`;
+  const yearly = params.get("billing") === "yearly" && tier.priceAnnual != null;
+  const monthly = yearly ? tier.priceAnnual! : tier.price!;
+  const priceFormatted = `$${monthly.toFixed(2)}`;
+  const billingNote = yearly ? `billed yearly ($${(monthly * 12).toLocaleString()}/year)` : "billed monthly";
 
   const currentUser = useDashboardStore(s => s.currentUser);
   const signUp = useDashboardStore(s => s.signUp);
@@ -71,7 +74,7 @@ export default function CheckoutStripeMockPage() {
 
             <div className="flex items-baseline gap-2 mb-8 pb-8 border-b border-slate-800">
               <span className="text-5xl font-black tracking-tighter">{priceFormatted}</span>
-              <span className="text-sm font-bold text-slate-400">/ month</span>
+              <span className="text-sm font-bold text-slate-400">/ month · {billingNote}</span>
             </div>
 
             <ul className="space-y-4 text-sm font-medium text-slate-300">
@@ -124,7 +127,7 @@ export default function CheckoutStripeMockPage() {
                   </div>
                   <div className="text-right">
                     <p className="text-3xl font-black text-slate-900 tracking-tighter">{priceFormatted}</p>
-                    <p className="text-xs text-slate-400 font-medium">per month</p>
+                    <p className="text-xs text-slate-400 font-medium">per month, {billingNote}</p>
                   </div>
                 </div>
 
@@ -179,7 +182,7 @@ export default function CheckoutStripeMockPage() {
                 </button>
                 <h3 className="text-xl font-black text-slate-900 tracking-tight">Your details</h3>
                 <p className="text-xs text-slate-500 font-medium mt-1">
-                  Subscribing to <strong>{tier.name}</strong> at {priceFormatted}/month
+                  Subscribing to <strong>{tier.name}</strong> at {priceFormatted}/month ({billingNote})
                 </p>
               </div>
 

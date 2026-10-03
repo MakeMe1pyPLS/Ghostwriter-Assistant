@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#13213A"/><stop offset="1" stop-color="#070C16"/></linearGradient>
+    <linearGradient id="t" x1="12" y1="8" x2="28" y2="24" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#99F6E4"/><stop offset=".55" stop-color="#2DD4BF"/><stop offset="1" stop-color="#0D9488"/></linearGradient>
+    <radialGradient id="s" cx=".3" cy=".2" r=".9"><stop offset="0" stop-color="#2DD4BF" stop-opacity=".28"/><stop offset="1" stop-color="#2DD4BF" stop-opacity="0"/></radialGradient>
+    <clipPath id="c"><rect x="13.4" y="7.4" width="5.2" height="7.2"/></clipPath>
+    <mask id="m" maskUnits="userSpaceOnUse" x="-8" y="-8" width="48" height="48"><rect x="-8" y="-8" width="48" height="48" fill="#fff"/><rect x="4.6" y="11" width="14.2" height="10" rx="5" fill="none" stroke="#000" stroke-width="6" clip-path="url(#c)"/></mask>
+  </defs>
+  <rect width="32" height="32" rx="9" fill="url(#g)"/>
+  <rect width="32" height="32" rx="9" fill="url(#s)"/>
+  <g transform="rotate(-38 16 16)" fill="none" stroke-width="3.1" stroke-linecap="round">
+    <rect x="4.6" y="11" width="14.2" height="10" rx="5" stroke="#F8FAFC"/>
+    <rect x="13.2" y="11" width="14.2" height="10" rx="5" stroke="url(#t)" mask="url(#m)"/>
+    <rect x="4.6" y="11" width="14.2" height="10" rx="5" stroke="#F8FAFC" clip-path="url(#c)"/>
+  </g>
+</svg>

@@ -1,8 +1,15 @@
 export interface PricingTier {
   id: string;
   name: string;
+  /** Monthly price when billed monthly. */
   price: number | null;
+  /** Effective monthly price when billed yearly (about 20% less). */
+  priceAnnual: number | null;
   priceLabel: string;
+  /** Fair-use AI answers included per month (chat, plan rebuilds, analyses). */
+  aiAnswers: number | null;
+  /** Who it's sized for, used by the plan finder. */
+  bestFor: string;
   period: string;
   description: string;
   trial: string | null;
@@ -18,12 +25,24 @@ export interface PricingTier {
 
 // Keep these lists honest: a feature goes in `features` only once it ships.
 // Anything planned belongs in `comingSoon`, which the pricing page labels clearly.
+//
+// HOW THESE PRICES WERE SET (October 2026) — see docs/PRICING.md for the full model.
+// Supply (cost to serve): one AI answer ≈ 3.5k input + 1k output tokens.
+//   Claude Sonnet 5 ($2 / $10 per 1M) ≈ $0.017 · Gemini 3.8 Flash ($0.75 / $3.75) ≈ $0.006
+//   GPT-6 Luna ($0.10 / $0.50) ≈ $0.001. Allowances below keep worst-case AI cost
+//   (all-Claude) under ~17% of the plan price, so margins hold as usage grows.
+// Demand (what buyers compare against): Julius AI $20 (solo analyst), Databox
+//   $64–$399, Fathom $65 per company. Starter moves under $50 to win owner-operators;
+//   Business stays at $299 for multi-partner operations teams.
 export const PRICING_TIERS: PricingTier[] = [
   {
     id: 'starter',
     name: 'Starter',
-    price: 79,
-    priceLabel: '$79',
+    price: 49,
+    priceAnnual: 39,
+    priceLabel: '$49',
+    aiAnswers: 200,
+    bestFor: 'Solo owners and small teams',
     period: '/month',
     description: 'For owner-operators and small businesses getting started.',
     trial: '14-day free trial',
@@ -45,8 +64,11 @@ export const PRICING_TIERS: PricingTier[] = [
   {
     id: 'professional',
     name: 'Professional',
-    price: 149,
-    priceLabel: '$149',
+    price: 129,
+    priceAnnual: 99,
+    priceLabel: '$129',
+    aiAnswers: 1000,
+    bestFor: 'Growing teams with key partners',
     period: '/month',
     description: 'For growing businesses that work closely with partners.',
     trial: '14-day free trial',
@@ -74,7 +96,10 @@ export const PRICING_TIERS: PricingTier[] = [
     id: 'business',
     name: 'Business',
     price: 299,
+    priceAnnual: 249,
     priceLabel: '$299',
+    aiAnswers: 3000,
+    bestFor: 'Operations teams across a supply chain',
     period: '/month',
     description: 'For operations teams running a full supply chain.',
     trial: '14-day free trial',
@@ -100,7 +125,10 @@ export const PRICING_TIERS: PricingTier[] = [
     id: 'enterprise',
     name: 'Enterprise',
     price: null,
+    priceAnnual: null,
     priceLabel: 'Custom',
+    aiAnswers: null,
+    bestFor: 'Multi-location companies and networks',
     period: '',
     description: 'For multi-location companies and supply chain networks.',
     trial: null,
@@ -126,7 +154,7 @@ export const PRICING_TIERS: PricingTier[] = [
 ];
 
 export function getPricingSummary(): string {
-  return 'ChainInsideIQ offers four plans: Starter ($79/month), Professional ($149/month), Business ($299/month) and Enterprise (custom pricing). Starter, Professional and Business start with a 14-day free trial. Every plan includes the AI growth plan, AI Analyst chat, KPI Library and Excel/CSV/JSON import and export. Higher plans add bottleneck detection, AI engine choice, unlimited partner collabs, Teams and Google Chat updates, and supply-chain-wide analysis. Features marked "Coming soon" on the pricing page are not available yet.';
+  return 'ChainInsideIQ offers four plans: Starter ($49/month, or $39/month billed yearly), Professional ($129/month, or $99/month yearly), Business ($299/month, or $249/month yearly) and Enterprise (custom pricing). Starter, Professional and Business start with a 14-day free trial and include 200, 1,000 and 3,000 AI answers a month respectively. Every plan includes the AI growth plan, AI Analyst chat, KPI Library and Excel/CSV/JSON import and export. Higher plans add bottleneck detection, AI engine choice, unlimited partner collabs, Teams and Google Chat updates, and supply-chain-wide analysis. Features marked "Coming soon" on the pricing page are not available yet.';
 }
 
 export function getTierByName(name: string): PricingTier | undefined {

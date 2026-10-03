@@ -154,7 +154,7 @@ const docSections = [
     title: "Plans & Billing",
     color: "text-orange-600 bg-orange-50 border-orange-100",
     content: [
-      "Four plans are available: Starter ($79/mo), Professional ($149/mo), Business ($299/mo) and Enterprise (custom pricing). See the Pricing page for exactly what each includes and what's coming soon.",
+      "Four plans are available: Starter ($49/mo), Professional ($129/mo), Business ($299/mo) and Enterprise (custom pricing), with about 20% off when billed yearly. See the Pricing page for exactly what each includes and what's coming soon.",
       "Starter, Professional and Business begin with a 14-day free trial.",
       "Online billing is being finalized. Contact us for annual pricing or Enterprise invoicing.",
     ]
