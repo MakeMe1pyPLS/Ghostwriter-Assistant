@@ -5,6 +5,7 @@ import { Check, ArrowRight, Sparkles, Loader2, Mail, Clock, Minus, Wand2 } from 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, animate } from "framer-motion";
 import { PRICING_TIERS, type PricingTier } from "@/lib/pricing";
+import { KPI_COUNTS } from "@shared/kpi-stats";
 import { GridBackdrop, SectionHeading } from "@/components/marketing/primitives";
 import { Reveal, EASE_OUT } from "@/components/motion";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -214,12 +215,14 @@ const COMPARE: { label: string; plans: (boolean | string)[] }[] = [
   { label: "AI growth plan & action board", plans: [true, true, true, true] },
   { label: "AI Analyst chat", plans: [true, true, true, true] },
   { label: "AI answers per month", plans: ["200", "1,000", "3,000", "Custom"] },
-  { label: "KPI Library (314 metrics)", plans: [true, true, true, true] },
+  { label: `KPI Library (${KPI_COUNTS.kpis} metrics, ${KPI_COUNTS.aiKpis} for AI)`, plans: [true, true, true, true] },
+  { label: "AI Consultant sessions", plans: [true, true, true, true] },
   { label: "Import & export (CSV, Excel, JSON)", plans: [true, true, true, true] },
   { label: "Data collabs with partners", plans: ["1", "Unlimited", "Unlimited", "Unlimited"] },
   { label: "Bottleneck detection & recommendations", plans: [false, true, true, true] },
   { label: "Choose Claude, ChatGPT or Gemini", plans: [false, true, true, true] },
   { label: "Hub + Teams, Google Chat & Slack updates", plans: [false, true, true, true] },
+  { label: "Client workspaces & progress reports", plans: [false, true, true, true] },
   { label: "Operations Pipeline & unified supply chain", plans: [false, false, true, true] },
   { label: "Demand forecasts", plans: [false, false, true, true] },
   { label: "Guided onboarding & custom KPIs", plans: [false, false, false, true] },

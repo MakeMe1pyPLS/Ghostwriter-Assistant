@@ -43,6 +43,7 @@ If a feature doesn't help someone move through this loop, it waits.
 - Never commit API keys. Secrets come from environment variables.
 - New colour classes: support dark mode (prefer `dark:` variants) and re-run `node script/gen-dark-theme.mjs`.
 - Pricing lives in `client/src/lib/pricing.ts`; the reasoning is in `docs/PRICING.md`.
+- After adding or removing KPIs or industries, update the counts in `shared/kpi-stats.ts` (the app warns in the console when they drift).
 - Keep bundle weight in check. Prefer existing dependencies; lazy-load heavy ones (e.g. `exceljs`).
 
 ## Definition of done

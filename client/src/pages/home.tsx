@@ -14,6 +14,7 @@ import { PlanVisual, AnalystVisual, BottleneckVisual, CollabVisual, KpiVisual, E
 import { CountUp, SectionHeading, CtaButton, GridBackdrop } from "@/components/marketing/primitives";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { PRICING_TIERS } from "@/lib/pricing";
+import { KPI_COUNTS } from "@shared/kpi-stats";
 import { cn } from "@/lib/utils";
 
 const HEADLINE = ["Find", "the", "bottleneck."];
@@ -90,8 +91,8 @@ export default function HomePage() {
       <section className="px-4 md:px-6 py-12 border-y border-slate-200/70 bg-white/60 dark:bg-transparent">
         <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
           {[
-            { n: 314, suffix: "", label: "KPIs with formulas" },
-            { n: 46, suffix: "", label: "industries covered" },
+            { n: KPI_COUNTS.kpis, suffix: "", label: "KPIs with formulas" },
+            { n: KPI_COUNTS.industries, suffix: "", label: "industries covered" },
             { n: 3, suffix: "", label: "AI engines, your choice" },
             { n: 2, suffix: " min", label: "from goal to plan" },
           ].map((s) => (
@@ -116,7 +117,7 @@ export default function HomePage() {
             <Bento className="md:col-span-2" title="Bottlenecks, ranked" desc="See what slows you down, ordered by impact, with the root cause." visual={<BottleneckVisual />} />
             <Bento className="md:col-span-3" title="Ask your numbers anything" desc="The analyst knows your goal and your data. Pick Claude, ChatGPT or Gemini." visual={<AnalystVisual />} />
             <Bento className="md:col-span-3" title="Fix it with your partners" desc="Share just the numbers you both depend on, discuss in the Hub, track every fix to done." visual={<CollabVisual />} />
-            <Bento className="md:col-span-3" title="The right KPIs for your industry" desc="314 metrics across 46 industries, each with its formula and which way is better." visual={<KpiVisual />} />
+            <Bento className="md:col-span-3" title="The right KPIs for your industry" desc={`${KPI_COUNTS.kpis} metrics across ${KPI_COUNTS.industries} industries, including ${KPI_COUNTS.aiKpis} for tracking AI and automation. Each has its formula and which way is better.`} visual={<KpiVisual />} />
             <Bento className="md:col-span-3" title="Bring your data. Take it anywhere." desc="Import CSV, Excel and JSON. Export to Excel, CSV and JSON for Power BI and Sheets." visual={<ExportVisual />} />
           </div>
         </div>

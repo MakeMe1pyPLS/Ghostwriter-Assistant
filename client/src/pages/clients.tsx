@@ -21,7 +21,7 @@ import {
   type ClientRecord, type ClientStatus, type EngagementType, type WorkspaceStats, type WorkspaceSnapshot,
 } from "@/hooks/use-clients-store";
 import { useGrowthStore } from "@/hooks/use-growth-store";
-import { INDUSTRIES, getIndustry } from "@shared/kpi-industries";
+import { BUSINESS_INDUSTRIES, getIndustry } from "@shared/kpi-industries";
 import { Stagger, StaggerItem, EASE_OUT } from "@/components/motion";
 import { cn } from "@/lib/utils";
 
@@ -202,8 +202,8 @@ function ClientCard({ client, stats, active, onOpen, onDetails }: { client: Clie
 
 function IndustrySelect({ value, onChange, id }: { value?: string; onChange: (v: string | undefined) => void; id: string }) {
   const groups = useMemo(() => {
-    const m = new Map<string, typeof INDUSTRIES>();
-    for (const i of INDUSTRIES) m.set(i.group, [...(m.get(i.group) ?? []), i]);
+    const m = new Map<string, typeof BUSINESS_INDUSTRIES>();
+    for (const i of BUSINESS_INDUSTRIES) m.set(i.group, [...(m.get(i.group) ?? []), i]);
     return [...m.entries()];
   }, []);
   return (

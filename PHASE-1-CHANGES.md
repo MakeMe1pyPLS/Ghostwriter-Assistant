@@ -155,6 +155,23 @@ The rule-based analyst, dashboard generator, exporters, KPI library and plan bui
   - Client workspaces are saved in this browser on this device until accounts arrive. The page says so.
 - **Fixed:** the growth-plan endpoint now passes the interview's data answers (uploaded, later, or start fresh) to the AI engines. Before, they were dropped.
 
+### AI & automation metrics and the "AI project check"
+- **KPI Library grows from 314 to 347 metrics.**
+  - **New AI & automation set (22 KPIs)** for any business using AI, in four groups:
+    - is the AI right? (detection rate, false alarms, escape rate, forecast error, warning lead time, drift)
+    - is the operation better? (downtime avoided, scrap reduction, OEE change, hours saved)
+    - are people using it? (acceptance, overrides, active users, alert-to-action time)
+    - is it worth it? (ROI, payback, cost per prediction, data readiness, human review, incidents)
+  - New **AI** category filter. `/kpis?category=AI` opens straight on it.
+  - **Discrete manufacturing goes from 10 to 21 KPIs.** New ones include MTBF, MTTR, planned maintenance share, changeover time, rework, energy per unit, OTIF, work-in-progress days, labor productivity, recordable incident rate and maintenance cost per unit.
+- **New consult session: AI project check.**
+  - You enter what the AI does, the monthly cost of the problem before and after, what the AI costs, and (optionally) accuracy, how often staff follow it, data readiness and months live.
+  - It works out monthly savings, net return, ROI and payback.
+  - It names the weak link (accuracy, adoption or data) and recommends scaling it, fixing the weak link, or pausing it.
+  - It's recommended automatically for manufacturing, food production, construction, agriculture and energy businesses.
+- **KPI counts on the home, pricing, features and KPI Library pages now come from one place** (`shared/kpi-stats.ts`), so they can't disagree. The home page used to say 46 industries while the library said 45. The real count is 45, plus the cross-industry sets. The app warns in the console if the counts drift from the data.
+- The industry pickers (interview, add client) no longer list the cross-industry sets as an industry.
+
 ## Environment variables
 
 | Variable | Needed for | Default |

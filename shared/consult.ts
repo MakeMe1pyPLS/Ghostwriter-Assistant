@@ -7,7 +7,7 @@
 // the same templates and must return the same shape (see sanitizeConsult).
 import type { StepOwner, GrowthProfile } from './growth';
 
-export type SessionKind = 'health-check' | 'swot' | 'pricing' | 'cash-flow' | 'growth' | 'bottleneck' | 'partners' | 'hiring';
+export type SessionKind = 'health-check' | 'swot' | 'pricing' | 'cash-flow' | 'growth' | 'bottleneck' | 'partners' | 'hiring' | 'ai-check';
 export type Level = 'low' | 'medium' | 'high';
 export type Tone = 'good' | 'warn' | 'bad' | 'neutral';
 
@@ -136,6 +136,21 @@ export const SESSION_TEMPLATES: SessionTemplate[] = [
     ],
   },
   {
+    id: 'ai-check', title: 'AI project check', icon: 'Cpu', minutes: 5,
+    blurb: 'Is your AI or automation paying off? Get the ROI, payback and the weak link, then decide to scale, fix or stop.',
+    fields: [
+      { id: 'useCase', label: 'What the AI does', type: 'choice', options: ['Quality inspection', 'Predictive maintenance', 'Demand forecasting', 'Scheduling & planning', 'Customer service', 'Office automation', 'Other'] },
+      { id: 'before', label: 'Monthly cost of the problem before AI', type: 'money', placeholder: '20000', help: 'Downtime, scrap, overtime or manual hours, in dollars a month' },
+      { id: 'after', label: 'Same cost per month now', type: 'money', placeholder: '14000' },
+      { id: 'monthlyCost', label: 'Monthly cost of the AI', type: 'money', placeholder: '2500', help: 'Software, cloud, support and upkeep' },
+      { id: 'setupCost', label: 'One-time setup cost', type: 'money', placeholder: '30000', optional: true, help: 'Sensors, cameras, integration and training' },
+      { id: 'accuracy', label: 'How often the AI is right', type: 'percent', placeholder: '92', optional: true },
+      { id: 'acceptance', label: 'Recommendations staff actually follow', type: 'percent', placeholder: '70', optional: true },
+      { id: 'dataReady', label: 'Machines or processes with clean, connected data', type: 'percent', placeholder: '60', optional: true },
+      { id: 'months', label: 'Months since it went live', type: 'number', placeholder: '4', optional: true },
+    ],
+  },
+  {
     id: 'swot', title: 'SWOT & strategy', icon: 'Grid2x2', minutes: 6,
     blurb: 'Turn your strengths, weaknesses, opportunities and threats into three concrete strategies.',
     fields: [
@@ -165,6 +180,7 @@ const CHALLENGE_SESSION: Record<string, { kind: SessionKind; why: string }> = {
   'customer-churn': { kind: 'growth', why: 'Repeat business is a growth lever.' },
   visibility: { kind: 'health-check', why: 'A health check gives you a clear baseline.' },
 };
+const MAKERS = ['manufacturing', 'food-production', 'construction', 'agriculture', 'energy'];
 const GOAL_SESSION: Record<string, SessionKind> = {
   'grow-revenue': 'growth', 'improve-profit': 'pricing', 'cut-costs': 'pricing', 'fix-operations': 'bottleneck',
   'retain-customers': 'growth', 'expand-markets': 'swot', 'strengthen-partners': 'partners', 'prepare-to-scale': 'hiring',
@@ -177,6 +193,7 @@ export function recommendSessions(profile?: GrowthProfile | null, done: SessionK
   if (!done.includes('health-check')) add('health-check', 'Start with a baseline across sales, profit, customers and cash.');
   for (const c of profile?.challenges ?? []) { const m = CHALLENGE_SESSION[c]; if (m) add(m.kind, m.why); }
   if (profile?.goal && GOAL_SESSION[profile.goal]) add(GOAL_SESSION[profile.goal], 'It matches your main goal.');
+  if (profile?.industryId && MAKERS.includes(profile.industryId)) add('ai-check', 'Using AI or automation on the line? Check it is paying off.');
   add('growth', 'Break your target into the levers that move it.');
   add('cash-flow', 'Know your runway before you invest.');
   return out.slice(0, 3);
@@ -439,6 +456,79 @@ export function buildRuleBasedConsult(req: ConsultRequest): ConsultResult {
         ],
         recommendedOptionId: rec,
         followUp: 'What would you do with the hours this hire gives back? Make sure that work grows the business.',
+      });
+    }
+
+    case 'ai-check': {
+      const useCase = str(a, 'useCase') || 'your AI project';
+      const before = num(a, 'before') ?? 0, after = num(a, 'after') ?? before, cost = num(a, 'monthlyCost') ?? 0;
+      const setup = num(a, 'setupCost'), accuracy = num(a, 'accuracy'), acceptance = num(a, 'acceptance'), data = num(a, 'dataReady'), months = num(a, 'months');
+      const savings = before - after;
+      const net = savings - cost;
+      const roi = cost > 0 ? (net / cost) * 100 : undefined;
+      const payback = setup && net > 0 ? setup / net : undefined;
+      // The weakest of the three things AI value depends on: being right, being used, having data.
+      const links = [
+        accuracy !== undefined && accuracy < 85 ? { id: 'accuracy', score: accuracy / 85, label: 'Accuracy', why: `It is right ${pct(accuracy)} of the time, so people double-check or ignore it.` } : null,
+        acceptance !== undefined && acceptance < 60 ? { id: 'adoption', score: acceptance / 60, label: 'Adoption', why: `Staff follow only ${pct(acceptance)} of its recommendations, so most of the value is left on the table.` } : null,
+        data !== undefined && data < 60 ? { id: 'data', score: data / 60, label: 'Data', why: `Only ${pct(data)} of machines or processes feed it clean data, which limits how far it can go.` } : null,
+      ].filter((x): x is NonNullable<typeof x> => !!x).sort((x, y) => x.score - y.score);
+      const weak = links[0];
+      const early = months !== undefined && months < 3;
+      const rec = net > 0 ? (weak ? 'fix' : 'scale') : (weak || early ? 'fix' : 'stop');
+      const fixSteps: Record<string, ConsultStep[]> = {
+        accuracy: [
+          { title: 'Collect 50 cases the AI got wrong', detail: 'Note what it saw and what was actually true. Patterns show what to retrain on.', owner: 'Operations', weeks: 2 },
+          { title: 'Retrain or retune with your vendor', detail: 'Share the wrong cases and agree an accuracy target in writing.', owner: 'Partner', weeks: 5 },
+          { title: 'Re-measure accuracy for 4 weeks', detail: 'Same method as before, so the comparison is fair.', owner: 'Operations', weeks: 9 },
+        ],
+        adoption: [
+          { title: 'Ask 5 operators why they override it', detail: 'Short conversations on the floor. The reasons are usually trust, timing or extra clicks.', owner: 'Team lead', weeks: 1 },
+          { title: 'Fix the top reason and retrain the shift', detail: 'Show real examples where the AI was right and saved time or money.', owner: 'Team lead', weeks: 3 },
+          { title: 'Track acceptance weekly', detail: 'Aim for 70%+ of recommendations followed or a written reason when not.', owner: 'Operations', weeks: 6 },
+        ],
+        data: [
+          { title: 'List the machines or steps with missing data', detail: 'Rank them by how much downtime, scrap or cost they cause.', owner: 'Operations', weeks: 2 },
+          { title: 'Connect the top 3 first', detail: 'Sensors, exports or a simple daily log. Clean data beats more data.', owner: 'Operations', weeks: 6 },
+        ],
+        none: [
+          { title: 'Write down the baseline you are comparing to', detail: 'Same metric, same period length, before and after go-live.', owner: 'Owner', weeks: 1 },
+          { title: 'Agree success targets with the vendor', detail: 'Accuracy, savings per month and a review date.', owner: 'Partner', weeks: 3 },
+        ],
+      };
+      const fixKey = weak?.id ?? 'none';
+      return base({
+        headline: rec === 'scale' ? `${useCase} is paying off. Scale it carefully.`
+          : rec === 'fix' ? (weak ? `${weak.label} is the weak link. Fix it before you spend more.` : 'Too early to judge. Lock in a baseline and targets.')
+          : 'It costs more than it saves. Pause and redirect the budget.',
+        findings: [
+          { label: 'Monthly savings', value: `${savings >= 0 ? '+' : '−'}${money(Math.abs(savings))}/mo`, tone: savings > 0 ? 'good' : 'bad', detail: `The problem cost ${money(before)} a month before and ${money(after)} now.` },
+          { label: 'After the AI’s own cost', value: `${net >= 0 ? '+' : '−'}${money(Math.abs(net))}/mo`, tone: net > 0 ? 'good' : net === 0 ? 'warn' : 'bad', detail: roi !== undefined ? `Return of ${roi < 0 ? '−' : ''}${pct(Math.abs(roi))} on the ${money(cost)} it costs each month.` : 'Add its monthly cost to see the return.' },
+          ...(payback !== undefined ? [{ label: 'Payback on setup', value: payback < 1 ? 'Under a month' : `${payback.toFixed(1)} months`, tone: (payback <= 12 ? 'good' : payback <= 24 ? 'warn' : 'bad') as Tone, detail: `${money(setup!)} setup recovered from ${money(net)} a month in net savings.` }] : []),
+          ...(accuracy !== undefined ? [{ label: weak?.id === 'accuracy' ? 'Accuracy: the weak link' : 'Accuracy', value: pct(accuracy), tone: (accuracy >= 90 ? 'good' : accuracy >= 85 ? 'warn' : 'bad') as Tone, detail: 'How often the AI is right. Below about 85%, people stop trusting it.' }] : []),
+          ...(acceptance !== undefined ? [{ label: weak?.id === 'adoption' ? 'Adoption: the weak link' : 'Adoption', value: pct(acceptance), tone: (acceptance >= 70 ? 'good' : acceptance >= 60 ? 'warn' : 'bad') as Tone, detail: 'Share of AI recommendations staff follow. An ignored AI saves nothing.' }] : []),
+          ...(data !== undefined ? [{ label: weak?.id === 'data' ? 'Data: the weak link' : 'Data readiness', value: pct(data), tone: (data >= 80 ? 'good' : data >= 60 ? 'warn' : 'bad') as Tone, detail: 'Share of machines or processes with clean, connected data.' }] : []),
+        ],
+        options: [
+          opt('scale', { title: 'Scale it to the next line or site', summary: 'Copy what works to the next most similar line, with the same measures.', impact: 'high', effort: 'high',
+            pros: ['Multiplies proven savings', 'Setup is faster the second time'], cons: ['More cost before more savings', 'Spreads any weak link further'],
+            steps: [
+              { title: 'Pick the next most similar line or site', detail: 'Same machines, products or process, so results carry over.', owner: 'Operations', weeks: 1 },
+              { title: 'Set its baseline before go-live', detail: 'Measure the same cost for 4 weeks first.', owner: 'Operations', weeks: 4 },
+              { title: 'Go live and review at 90 days', detail: 'Compare savings, accuracy and adoption with the first line.', owner: 'Owner', weeks: 13 },
+            ] }),
+          opt('fix', { title: weak ? `Fix the weak link: ${weak.label.toLowerCase()}` : 'Lock in a baseline and targets', summary: weak ? weak.why : 'Without a clear before-and-after you cannot tell if it works.', impact: 'high', effort: 'medium',
+            pros: ['Cheapest way to more value', 'Makes scaling safer later'], cons: ['Takes 1–3 months to show results'],
+            steps: fixSteps[fixKey] }),
+          opt('stop', { title: 'Pause it and redirect the budget', summary: `Free up ${money(cost)} a month for a problem with a clearer payoff.`, impact: net < 0 ? 'medium' : 'low', effort: 'low',
+            pros: ['Stops the monthly loss', 'Lessons carry into the next project'], cons: ['Setup money is already spent', 'Team may be wary of the next AI project'],
+            steps: [
+              { title: 'Write down what you learned', detail: 'What worked, what did not, and which data was missing.', owner: 'Owner', weeks: 1 },
+              { title: 'Check the contract for exit terms', detail: 'Notice period, data export and any fees.', owner: 'Finance', weeks: 2 },
+            ] }),
+        ],
+        recommendedOptionId: rec,
+        followUp: rec === 'scale' ? 'Which line or site is most like the one where it works today?' : 'Who on the floor trusts it least, and what would change their mind?',
       });
     }
 

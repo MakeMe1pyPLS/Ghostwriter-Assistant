@@ -6,7 +6,7 @@ import { Command } from "cmdk";
 import { useLocation } from "wouter";
 import {
   Search, CornerDownLeft, BrainCircuit, Upload, Download, Handshake, RotateCcw, Compass,
-  CheckCircle2, Circle, CircleDot, Target, Tag, Wallet, Briefcase, Building,
+  CheckCircle2, Circle, CircleDot, Target, Tag, Wallet, Briefcase, Building, Cpu,
 } from "lucide-react";
 import { ALL_NAV_ITEMS, NAV_GROUPS, SETTINGS_ITEM } from "@/lib/nav";
 import { useGrowthStore } from "@/hooks/use-growth-store";
@@ -76,6 +76,7 @@ export function CommandPalette() {
     { id: "export", label: "Export to Excel, CSV or Power BI", icon: Download, run: () => go("/exports"), keywords: "download" },
     { id: "pricing", label: "Run a pricing review", icon: Tag, run: () => go("/consult/pricing"), keywords: "consultant session price raise margin" },
     { id: "cash", label: "Check my cash flow and runway", icon: Wallet, run: () => go("/consult/cash-flow"), keywords: "consultant session cash runway" },
+    { id: "ai-check", label: "Check if our AI is paying off", icon: Cpu, run: () => go("/consult/ai-check"), keywords: "consultant session ai automation roi payback manufacturing" },
     { id: "client", label: "Add a client", icon: Briefcase, run: () => go("/clients"), keywords: "consultant agency workspace" },
     { id: "collab", label: "Start a data collab with a partner", icon: Handshake, run: () => go("/collabs"), keywords: "share supplier invite" },
     { id: "replan", label: plan ? "Rebuild my growth plan" : "Build my growth plan", icon: RotateCcw, run: () => go("/onboarding"), keywords: "interview goal restart" },

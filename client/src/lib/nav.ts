@@ -23,7 +23,7 @@ export const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
     items: [
       { name: "Growth Plan", href: "/plan", icon: Target, description: "Goals & action board", tour: "plan", keywords: "goal steps actions board tasks" },
       { name: "AI Analyst", href: "/insights", icon: BrainCircuit, description: "Ask anything about your numbers", tour: "analyst", keywords: "chat ask question forecast" },
-      { name: "KPI Library", href: "/kpis", icon: BookOpen, description: "Metrics for every industry", tour: "kpis", keywords: "metrics measures north star" },
+      { name: "KPI Library", href: "/kpis", icon: BookOpen, description: "Metrics for every industry", tour: "kpis", keywords: "metrics measures north star ai automation" },
     ],
   },
   {
