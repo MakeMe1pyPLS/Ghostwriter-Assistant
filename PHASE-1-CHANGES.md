@@ -130,6 +130,31 @@ The rule-based analyst, dashboard generator, exporters, KPI library and plan bui
 - Step 1 of the growth plan matches the answer: check the imported numbers, import the file, or start tracking weekly. The AI engines get the same information.
 - **Fixed:** every column imported from a CSV was getting " (2)" added to its name.
 
+### Business consultant: AI Consultant sessions and client workspaces
+- **AI Consultant** (new "Consult" section in the menu). Eight short sessions, each 4 to 6 minutes:
+  - business health check, pricing review, cash flow check, growth strategy
+  - bottleneck deep-dive, partner and vendor review, hiring readiness, SWOT and strategy
+  - Each session asks for a few numbers and returns findings, 2 or 3 options with pros, cons, impact and effort, and a recommendation.
+  - Pick an option and its steps become actions on the board, with owners and due dates.
+  - Sessions are saved with the decision, so you can reopen them. The summary can be copied for email or Teams, and each session ends with a follow-up question you can take to the AI Analyst.
+  - The page recommends sessions from your goal and the challenges you named.
+- **The built-in consultant does real calculations**, so every session answers with no AI engine connected. Examples:
+  - how much volume a price rise can lose before profit drops
+  - runway and the cash conversion cycle
+  - the monthly growth rate needed to hit a target
+  - capacity gap at a bottleneck
+  - partner score
+  - hire payback
+  When Claude, ChatGPT or Gemini is connected, it gets the same figures and must answer in the same format, so it falls back cleanly. New endpoint: `POST /api/ai/consult`.
+- **Clients** (for consultants and agencies, Professional plan):
+  - Add a client with industry, contact, engagement type and first review date, then run the AI interview for them.
+  - Each client has a separate workspace: plan, actions, Hub, collabs, consult sessions, datasets and dashboards.
+  - Switch between workspaces from the sidebar, the client list or Ctrl K. A purple bar shows whose workspace you're in, with a one-tap way back to your own business.
+  - The client list shows progress, overdue actions, status and next review date, plus notes for each client.
+  - **Printable progress report** for each client: goal, plan progress, work done in the last 30 days, consulting decisions, next actions, and optional notes. Print it or save it as a PDF.
+  - Client workspaces are saved in this browser on this device until accounts arrive. The page says so.
+- **Fixed:** the growth-plan endpoint now passes the interview's data answers (uploaded, later, or start fresh) to the AI engines. Before, they were dropped.
+
 ## Environment variables
 
 | Variable | Needed for | Default |

@@ -19,6 +19,7 @@ import { engineStatus } from "./services/ai/engines";
 import type { CommandCenterRequest, AnalystChatRequest, AIEnginePreference } from "@shared/ai-types";
 import type { GrowthProfile } from "@shared/growth";
 import { GOALS, COMPANY_SIZES, STAGES, CHALLENGES } from "@shared/growth";
+import { SESSION_TEMPLATES, type ConsultRequest } from "@shared/consult";
 import { rateLimit } from "./services/rate-limit";
 import { assertPublicHttpUrl, isAllowedWebhook, postWebhook } from "./services/integrations/webhooks";
 
@@ -271,6 +272,9 @@ export async function registerRoutes(
     targetValue: z.string().trim().max(80).optional(),
     timeframeDays: z.union([z.literal(30), z.literal(90), z.literal(180), z.literal(365)]),
     partners: z.array(z.string().trim().max(120)).max(10).default([]),
+    dataStatus: z.enum(['uploaded', 'later', 'new']).optional(),
+    dataSummary: z.string().trim().max(300).optional(),
+    dataInputs: z.array(z.string().trim().max(120)).max(16).optional(),
   });
 
   app.post('/api/ai/growth-plan', async (req, res) => {
@@ -284,6 +288,27 @@ export async function registerRoutes(
     } catch (err) {
       console.error('[growth-plan] error:', err);
       res.status(500).json({ error: 'Failed to build growth plan' });
+    }
+  });
+
+  // AI consultant session: answers to a session template → findings, options, recommendation.
+  const consultSchema = z.object({
+    kind: z.enum(SESSION_TEMPLATES.map((t) => t.id) as [string, ...string[]]),
+    answers: z.record(z.string().max(40), z.union([z.string().max(600), z.number()])).default({}),
+    businessContext: z.string().max(4000).optional(),
+  });
+
+  app.post('/api/ai/consult', async (req, res) => {
+    const parsed = consultSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ error: 'Invalid consult request', details: parsed.error.flatten() });
+    }
+    try {
+      const result = await getIntelligenceProvider(enginePref(req.body)).generateConsult(parsed.data as ConsultRequest);
+      res.json(result);
+    } catch (err) {
+      console.error('[consult] error:', err);
+      res.status(500).json({ error: 'Failed to run consult session' });
     }
   });
 

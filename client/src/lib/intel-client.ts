@@ -13,6 +13,7 @@ import type {
 import { RuleBasedIntelligenceProvider, buildRuleBasedAnalystResponse } from '@shared/intelligence';
 import { buildRuleBasedGrowthPlan, type GrowthProfile, type GrowthPlan } from '@shared/growth';
 import { useGrowthStore } from '@/hooks/use-growth-store';
+import { buildRuleBasedConsult, type ConsultRequest, type ConsultResult } from '@shared/consult';
 
 const rules = new RuleBasedIntelligenceProvider();
 
@@ -55,6 +56,16 @@ export async function fetchGrowthPlan(profile: GrowthProfile, engineOverride?: A
     // Small delay so the "building your plan" moment reads as intentional.
     await new Promise((r) => setTimeout(r, 900));
     return buildRuleBasedGrowthPlan(profile);
+  }
+}
+
+export async function fetchConsult(req: ConsultRequest): Promise<ConsultResult> {
+  const withContext = { ...req, businessContext: req.businessContext ?? context() };
+  try {
+    return await postJson<ConsultResult>('/api/ai/consult', { ...withContext, engine: engine() }, 60_000);
+  } catch {
+    await new Promise((r) => setTimeout(r, 700));
+    return buildRuleBasedConsult(withContext);
   }
 }
 

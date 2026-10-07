@@ -57,4 +57,6 @@ Note: AI allowances are plan terms today. Metering and enforcing them needs serv
 | Business | $299 | $249 | 3,000 |
 | Enterprise | Custom | Custom | Custom |
 
+AI Consultant sessions are in every plan. A session answered by an AI engine costs about the same as one AI answer (the prompt is a little longer, the reply a little shorter). The built-in consultant has no AI cost. Client workspaces for consultants and agencies start at Professional, the same tier that unlocks AI engine choice and unlimited collabs. Agencies usually run several clients at once, so they get most of their value from those features.
+
 The source of truth is `client/src/lib/pricing.ts`. This is a pricing model, not financial advice. Validate it with real customer conversations and conversion data.

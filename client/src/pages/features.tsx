@@ -2,7 +2,7 @@ import { MarketingLayout } from "@/components/layout/MarketingLayout";
 import { Link } from "wouter";
 import { ArrowRight, Check } from "lucide-react";
 import { motion } from "framer-motion";
-import { PlanVisual, AnalystVisual, BottleneckVisual, CollabVisual, KpiVisual, ExportVisual } from "@/components/marketing/FeatureVisuals";
+import { PlanVisual, AnalystVisual, ConsultVisual, BottleneckVisual, CollabVisual, KpiVisual, ExportVisual } from "@/components/marketing/FeatureVisuals";
 import { CtaButton, GridBackdrop } from "@/components/marketing/primitives";
 import { Reveal, EASE_OUT } from "@/components/motion";
 import { cn } from "@/lib/utils";
@@ -20,6 +20,12 @@ const FEATURES = [
     desc: "Ask why a number moved or what to do next. Answers use your plan and your data, and end with a step you can take this week.",
     points: ["Runs on Claude, ChatGPT or Gemini — switches automatically if one is down", "A built-in analyst answers even with no engines connected", "Follows one shared method, so every engine gives consistent advice"],
     href: "/insights", cta: "Ask the analyst", visual: <AnalystVisual />,
+  },
+  {
+    id: "consult", nav: "AI Consultant", eyebrow: "Decide", title: "A consultant for the big decisions",
+    desc: "Run short sessions on your health, pricing, cash flow, growth, bottlenecks, partners, hiring or strategy. Each one gives findings, two or three options with honest trade-offs and a recommendation.",
+    points: ["Turn the option you pick into actions with owners and due dates", "Real calculations on your numbers, even with no AI engine connected", "Consultants and agencies get a separate workspace and printable report for every client"],
+    href: "/consult", cta: "Start a session", visual: <ConsultVisual />,
   },
   {
     id: "bottlenecks", nav: "Bottlenecks", eyebrow: "Spot & fix", title: "See what’s slowing you down",

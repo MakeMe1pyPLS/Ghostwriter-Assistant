@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useDashboardStore, type Sector } from "@/hooks/use-dashboard-store";
 import { useGrowthStore } from "@/hooks/use-growth-store";
+import { useClientsStore } from "@/hooks/use-clients-store";
 import { fetchGrowthPlan, ENGINE_LABELS } from "@/lib/intel-client";
 import {
   GOALS, COMPANY_SIZES, STAGES, CHALLENGES, pickKpisForGoal,
@@ -181,11 +182,13 @@ export default function OnboardingPage() {
   const { profile: savedProfile, setProfile, setPlan, completeOnboarding, restartTour, aiEngine } = useGrowthStore();
   const firstName = currentUser?.fullName?.split(' ')[0] ?? '';
 
+  // In a client workspace, start from what the consultant already entered.
+  const activeClient = useClientsStore((s) => s.activeClient());
   const [draft, setDraft] = useState<Draft>(() => ({
     goal: savedProfile?.goal,
     goalDetail: savedProfile?.goalDetail ?? '',
-    businessName: savedProfile?.businessName ?? '',
-    industryId: savedProfile?.industryId,
+    businessName: savedProfile?.businessName ?? activeClient?.name ?? '',
+    industryId: savedProfile?.industryId ?? activeClient?.industryId,
     size: savedProfile?.size,
     stage: savedProfile?.stage,
     challenges: savedProfile?.challenges ?? [],
@@ -319,6 +322,13 @@ export default function OnboardingPage() {
     // Carry the answers into the rest of the workspace.
     setProfile(profile);
     setPlan(result);
+    const client = useClientsStore.getState().activeClient();
+    if (client) {
+      useClientsStore.getState().updateClient(client.id, {
+        industryId: client.industryId ?? profile.industryId,
+        status: client.status === 'Onboarding' ? 'Active' : client.status,
+      });
+    }
     const sector = SECTOR_BY_INDUSTRY[profile.industryId] ?? 'custom';
     if (profile.partners.length) {
       setBusinessStructure('partnered');
@@ -585,6 +595,11 @@ export default function OnboardingPage() {
             </div>
           </div>
           <div className="ml-auto flex items-center gap-2">
+            {activeClient && (
+              <span className="inline-flex items-center max-w-[140px] sm:max-w-[220px] h-7 px-2.5 rounded-full bg-violet-50 text-violet-700 text-[11px] font-bold" title={`Client workspace: ${activeClient.name}`}>
+                <span className="truncate">Client: {activeClient.name}</span>
+              </span>
+            )}
             <span className="hidden sm:inline text-[10px] font-bold uppercase tracking-widest text-slate-400">
               Engine: {ENGINE_LABELS[aiEngine]}
             </span>

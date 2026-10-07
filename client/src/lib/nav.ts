@@ -3,7 +3,7 @@
 import {
   Target, BrainCircuit, BookOpen, LayoutDashboard, AlertOctagon, Lightbulb, Workflow,
   Handshake, MessageSquare, Wrench, Sparkles, Wand2, Database, Plug, Download,
-  Users, Bell, Activity, KeyRound, Settings,
+  Users, Bell, Activity, KeyRound, Settings, Presentation, Briefcase,
 } from "lucide-react";
 import type { FeatureKey } from "@/lib/pricing";
 
@@ -24,6 +24,13 @@ export const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
       { name: "Growth Plan", href: "/plan", icon: Target, description: "Goals & action board", tour: "plan", keywords: "goal steps actions board tasks" },
       { name: "AI Analyst", href: "/insights", icon: BrainCircuit, description: "Ask anything about your numbers", tour: "analyst", keywords: "chat ask question forecast" },
       { name: "KPI Library", href: "/kpis", icon: BookOpen, description: "Metrics for every industry", tour: "kpis", keywords: "metrics measures north star" },
+    ],
+  },
+  {
+    label: "Consult",
+    items: [
+      { name: "AI Consultant", href: "/consult", icon: Presentation, description: "Pricing, cash, growth & more sessions", keywords: "consultant session swot pricing cash flow hiring strategy advice" },
+      { name: "Clients", href: "/clients", icon: Briefcase, description: "Workspaces for each client", feature: "client-workspaces", keywords: "consultant agency client workspace report engagement" },
     ],
   },
   {
@@ -70,15 +77,11 @@ export const UPCOMING_ITEMS = [
 ];
 
 /** The phone/tablet tab bar: the core loop in four taps, plus "More". */
-export const TAB_ITEMS: NavItem[] = [
-  NAV_GROUPS[0].items[0], // Growth Plan
-  NAV_GROUPS[0].items[1], // AI Analyst
-  NAV_GROUPS[1].items[1], // Bottlenecks
-  NAV_GROUPS[2].items[1], // Hub
-];
+const byHref = (href: string) => NAV_GROUPS.flatMap((g) => g.items).find((i) => i.href === href)!;
+export const TAB_ITEMS: NavItem[] = ["/plan", "/insights", "/bottlenecks", "/hub"].map(byHref);
 
 export const ALL_NAV_ITEMS: NavItem[] = [...NAV_GROUPS.flatMap((g) => g.items), SETTINGS_ITEM];
 
 export function isActivePath(location: string, href: string): boolean {
-  return location === href || (location === "/app" && href === "/plan");
+  return location === href || (location === "/app" && href === "/plan") || ((href === "/consult" || href === "/clients") && location.startsWith(href + "/"));
 }

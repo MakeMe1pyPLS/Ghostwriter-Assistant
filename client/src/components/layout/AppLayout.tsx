@@ -13,6 +13,8 @@ import { useLocation, Link } from "wouter";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/Logo";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { useClientsStore } from "@/hooks/use-clients-store";
+import { Briefcase } from "lucide-react";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -113,6 +115,7 @@ export function AppLayout({ children }: AppLayoutProps) {
           <div className="hidden lg:block shrink-0">
             <TopBar scrolled={scrolled} />
           </div>
+          <ClientBanner />
 
           <main
             ref={mainRef}
@@ -130,6 +133,24 @@ export function AppLayout({ children }: AppLayoutProps) {
       <CommandPalette />
       <OnboardingModal />
       <ProductTour />
+    </div>
+  );
+}
+
+/** Reminds a consultant whose workspace they are in, with a one-tap way back. */
+function ClientBanner() {
+  const client = useClientsStore((s) => s.activeClient());
+  const switchTo = useClientsStore((s) => s.switchTo);
+  const [location, navigate] = useLocation();
+  if (!client) return null;
+  return (
+    <div className="shrink-0 flex items-center gap-2 px-3 sm:px-5 h-10 bg-violet-600 text-white text-[13px]" role="status" data-testid="client-banner">
+      <Briefcase className="w-4 h-4 shrink-0" aria-hidden />
+      <p className="min-w-0 truncate"><span className="text-white/75">Client workspace:</span> <span className="font-bold">{client.name}</span></p>
+      {location !== "/clients" && <Link href="/clients" className="hidden sm:inline ml-2 font-semibold text-white/85 hover:text-white underline-offset-2 hover:underline">All clients</Link>}
+      <button onClick={() => { switchTo(null); navigate("/plan"); }} className="ml-auto shrink-0 h-8 px-3 rounded-lg bg-white/15 hover:bg-white/25 font-bold transition-colors">
+        Back to my business
+      </button>
     </div>
   );
 }
