@@ -361,7 +361,11 @@ export const useDashboardStore = create<DashboardState>()(
         set({ currentUser: user, isDemoMode: false });
         return user;
       },
-      signOut: () => set({ currentUser: null, isDemoMode: false }),
+      signOut: () => {
+        set({ currentUser: null, isDemoMode: false });
+        // Account sync (lib/cloud-sync) listens for this to end the server session and clear this browser.
+        if (typeof window !== 'undefined') window.dispatchEvent(new Event('ciq-sign-out'));
+      },
       verifyEmail: () => set(state => ({
         currentUser: state.currentUser ? { ...state.currentUser, emailVerified: true } : null,
       })),

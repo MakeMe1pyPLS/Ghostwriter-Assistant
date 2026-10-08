@@ -172,6 +172,24 @@ The rule-based analyst, dashboard generator, exporters, KPI library and plan bui
 - **KPI counts on the home, pricing, features and KPI Library pages now come from one place** (`shared/kpi-stats.ts`), so they can't disagree. The home page used to say 46 industries while the library said 45. The real count is 45, plus the cross-industry sets. The app warns in the console if the counts drift from the data.
 - The industry pickers (interview, add client) no longer list the cross-industry sets as an industry.
 
+### Phase 2, part 1: real accounts (Supabase)
+- **Real sign-up and sign-in.** Accounts are created in Supabase Auth with your email and password, replacing the pretend login.
+  - A confirmation email is sent, and its link signs you in.
+  - "Forgot password?" sends a reset link. The new **/reset-password** page sets a new password.
+  - Clear messages for a wrong password, an unconfirmed email, an email that's already registered, and too many attempts.
+- **Your workspaces are saved to your account:** your business, every client workspace, plans, actions, consult sessions, datasets and dashboards.
+  - Changes save a couple of seconds after you make them. Settings and the account menu show "Saved to your account".
+  - Sign in on another device and everything is there.
+  - The first time you sign in, anything you built before having an account is moved into it. A different account's data is never mixed in.
+  - Signing out removes this browser's copy, so the next person on the computer can't see it.
+  - Offline edits save when you reconnect.
+- **Security:** each table has row-level security, so an account can only read or change its own rows. Your plan and trial dates can't be changed from the app; billing will set them.
+- Without an account (the demo, or with `VITE_SUPABASE_URL=off`), everything still works in the browser as before.
+- The Privacy Policy now says where data is stored (Supabase, United States) and that signing out clears the browser's copy. The Clients page now says client workspaces are saved to your account when you're signed in.
+- **Before launch:**
+  - Set up custom SMTP in Supabase. Its built-in email service only delivers to members of your Supabase team and sends only a few emails an hour.
+  - Set the Auth Site URL and redirect URLs in the Supabase dashboard.
+
 ## Environment variables
 
 | Variable | Needed for | Default |

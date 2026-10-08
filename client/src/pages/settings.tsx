@@ -11,6 +11,7 @@ import {
   Layers, CheckCircle2, Puzzle, ArrowRight, AlertCircle, User, LogOut, ShieldCheck,
   Mail, Sparkles, CreditCard
 } from "lucide-react";
+import { SyncBadge } from "@/components/SyncBadge";
 import { useDashboardStore, getTrialStatus, type BusinessStructure, type Sector } from "@/hooks/use-dashboard-store";
 import { DataShareRequestsPanel, DataShareModal } from "@/components/DataShareModal";
 import { useState } from "react";
@@ -113,6 +114,7 @@ export default function SettingsPage() {
                       )}
                     </div>
                     <p className="text-xs text-slate-500 font-medium mt-0.5">{currentUser.email}</p>
+                    <SyncBadge className="mt-1" />
                   </div>
                 </div>
 
