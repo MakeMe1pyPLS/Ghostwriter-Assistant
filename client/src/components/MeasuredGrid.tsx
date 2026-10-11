@@ -1,5 +1,6 @@
 import React from "react";
-import { Responsive as ResponsiveGridLayout } from "react-grid-layout";
+// react-grid-layout v2 API: drag/resize/compaction are passed as config objects.
+import { Responsive as ResponsiveGridLayout, getCompactor, setTransform } from "react-grid-layout";
 import type { Layout } from "react-grid-layout";
 
 type Layouts = { [P: string]: Layout[] };
@@ -19,6 +20,15 @@ type Props = {
   draggableHandle?: string;
   margin?: [number, number];
   compactType?: 'horizontal' | 'vertical' | null;
+  /**
+   * Render the grid at this fixed width and scale it to fit (used to edit the
+   * full desktop layout on a phone). Omit to fill the available width.
+   */
+  designWidth?: number;
+  /** Scale for designWidth: a number, or "fit" to fill the available width. */
+  zoom?: number | 'fit';
+  /** Draw the column guides behind the cards (edit mode). */
+  showGuides?: boolean;
 };
 
 /**
@@ -85,10 +95,28 @@ export default function MeasuredGrid({
   draggableHandle = ".drag-handle",
   margin = [12, 12],
   compactType = null,
+  designWidth,
+  zoom = 'fit',
+  showGuides = false,
 }: Props) {
   const ref = React.useRef<HTMLDivElement | null>(null);
+  const innerRef = React.useRef<HTMLDivElement | null>(null);
+  const gridRef = React.useRef<HTMLDivElement | null>(null);
   // null until measured, so the grid never renders (or reports) a wrong breakpoint first.
-  const [width, setWidth] = React.useState<number | null>(null);
+  const [measured, setWidth] = React.useState<number | null>(null);
+  const [innerHeight, setInnerHeight] = React.useState(0);
+  const width = designWidth ?? measured;
+  const scale = designWidth && measured ? (zoom === 'fit' ? Math.min(1, measured / designWidth) : zoom) : 1;
+
+  // With a scaled canvas the outer box takes the scaled height, so the page scrolls normally.
+  React.useEffect(() => {
+    if (!designWidth || !innerRef.current) return;
+    const el = innerRef.current;
+    const ro = new ResizeObserver(() => setInnerHeight(el.offsetHeight));
+    ro.observe(el);
+    setInnerHeight(el.offsetHeight);
+    return () => ro.disconnect();
+  }, [designWidth, width]);
 
   React.useEffect(() => {
     if (!ref.current) return;
@@ -144,9 +172,27 @@ export default function MeasuredGrid({
     onBreakpointChange?.(bp, (colMap as any)[bp]);
   };
 
-  return (
-    <div ref={ref} className={className} style={{ width: "100%" }}>
-      {width !== null && <ResponsiveGridLayout
+  // Scaled canvas: positions must be measured relative to the grid, in unscaled
+  // pixels. (The library's built-in scaled strategy uses page coordinates.)
+  const positionStrategy = React.useMemo(() => (scale === 1 ? undefined : {
+    type: 'transform' as const,
+    scale,
+    calcStyle: (pos: any) => setTransform(pos),
+    calcDragPosition: (clientX: number, clientY: number, offsetX: number, offsetY: number) => {
+      const r = gridRef.current?.getBoundingClientRect() ?? { left: 0, top: 0 };
+      return { left: (clientX - offsetX - r.left) / scale, top: (clientY - offsetY - r.top) / scale };
+    },
+  }), [scale]);
+  const compactor = React.useMemo(() => getCompactor(compactType as any, false, false), [compactType]);
+
+  const cols12 = currentBp ? (colMap as any)[currentBp] as number : 12;
+  const guides = showGuides && width !== null ? (
+    <div aria-hidden className="ciq-grid-guides absolute inset-0 pointer-events-none flex" style={{ gap: margin[0], padding: margin[0] }}>
+      {Array.from({ length: cols12 }, (_, i) => <div key={i} className="flex-1 rounded-lg" />)}
+    </div>
+  ) : null;
+
+  const grid = width !== null && <ResponsiveGridLayout
         className="layout"
         layouts={fullLayouts}
         breakpoints={breakpoints}
@@ -159,16 +205,32 @@ export default function MeasuredGrid({
         containerPadding={margin}
         onLayoutChange={(l, all) => { reportBp(currentBp); onLayoutChange?.(l as any, all as any); }}
         onBreakpointChange={(bp) => reportBp(bp)}
-        // @ts-ignore - react-grid-layout types don't correctly extend base props
-        preventCollision={false}
-        compactType={compactType}
-        useCSSTransforms={true}
-        draggableHandle={draggableHandle}
-        isDraggable={isDraggable}
-        isResizable={isResizable}
+        compactor={compactor}
+        dragConfig={{ enabled: isDraggable, handle: draggableHandle, bounded: false, threshold: 3 }}
+        resizeConfig={{ enabled: isResizable, handles: ['se'] }}
+        positionStrategy={positionStrategy}
+        innerRef={gridRef}
       >
         {children}
-      </ResponsiveGridLayout>}
+      </ResponsiveGridLayout>;
+
+  if (designWidth) {
+    return (
+      <div ref={ref} className={className} style={{ width: "100%", overflowX: scale * designWidth > (measured ?? 0) + 1 ? "auto" : "hidden" }}>
+        <div style={{ width: designWidth * scale, height: innerHeight * scale }}>
+          <div ref={innerRef} className="relative" style={{ width: designWidth, transform: `scale(${scale})`, transformOrigin: "0 0" }}>
+            {guides}
+            {grid}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div ref={ref} className={`relative ${className ?? ""}`} style={{ width: "100%" }}>
+      {guides}
+      {grid}
     </div>
   );
 }

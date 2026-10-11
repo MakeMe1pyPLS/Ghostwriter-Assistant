@@ -190,6 +190,28 @@ The rule-based analyst, dashboard generator, exporters, KPI library and plan bui
   - Set up custom SMTP in Supabase. Its built-in email service only delivers to members of your Supabase team and sends only a few emails an hour.
   - Set the Auth Site URL and redirect URLs in the Supabase dashboard.
 
+### Builder as an open grid, exports that keep your layout, and layout fixes on every device
+- **The Builder is now the page, not a box.** The grid scrolls with the page instead of inside its own window.
+  - In edit mode it shows dashed column guides. The widget library stays beside the grid as you scroll.
+- **Toolbars never cut off buttons.** Every toolbar now wraps onto a second line instead of hiding buttons off-screen; this was why the last Builder button was cut off. The Builder keeps its main actions in view (Edit layout, Save, Export, View dashboard). Generate, Enhance, Templates and the JSON spec are under **More**.
+- **Two ways to arrange cards:**
+  - **Locked to grid:** cards snap into rows and gaps close automatically. This is the default.
+  - **Free:** cards stay exactly where you drop them.
+
+  The choice is saved with the dashboard.
+- **Edit on any device.** On phones you now edit the full desktop layout on a scaled canvas, with **Fit / 60% / 100%** zoom. Cards land in the same spot as on a computer, so the Dashboard and exports match. Resize handles are bigger on touch screens.
+- **Fixed:** the grid ignored some settings, so finished dashboards could be dragged, cards moved from anywhere instead of their top bar, and arranging didn't behave as set. These now work as intended. The Builder also no longer shows the old message that moving cards only works on a computer.
+- **Cards fit their content:** KPI numbers and badges size themselves to the card's width. The AI Insights card no longer scrolls inside itself; its sections sit side by side on wide cards.
+- **Templates now give different layouts:** Excel, Google Sheets, Power BI, Tableau and SQL each have their own arrangement. Before, they all produced the same three cards. Template descriptions no longer claim live or real-time features.
+- **Exports that keep your layout** (built in the browser, so they work on the live site):
+  - **Excel:** each card is placed where it sits on the grid, and AI cards come through as text. KPI numbers are formulas that read the Data sheet, so editing the data updates the dashboard. The dashboard prints as one landscape page.
+  - **Google Sheets:** the same workbook. Upload it to Google Drive and open it with Google Sheets.
+  - **Power BI starter pack:** named data tables (KPIs, Trend, Breakdown), a Layout sheet with each card's position on a 1280×720 page, a How to use sheet, and a matching colour theme (.json). It does not create .pbix files, and the export drawer says so.
+- **Scrolling and fit across devices:**
+  - The **Hub** scrolls as a normal page on phones, tablets and desktops, with the post form staying beside it on large screens.
+  - Hub tabs, KPI Library category filters and AI Analyst suggestions wrap instead of hiding off-screen.
+  - Every app page was checked at 390, 820, 1024 and 1366 px. None scrolls sideways, has buttons cut off, or has a box that scrolls inside the page.
+
 ## Environment variables
 
 | Variable | Needed for | Default |

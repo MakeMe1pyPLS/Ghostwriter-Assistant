@@ -118,7 +118,7 @@ export default function HomePage() {
             <Bento className="md:col-span-3" title="Ask your numbers anything" desc="The analyst knows your goal and your data. Pick Claude, ChatGPT or Gemini." visual={<AnalystVisual />} />
             <Bento className="md:col-span-3" title="Fix it with your partners" desc="Share just the numbers you both depend on, discuss in the Hub, track every fix to done." visual={<CollabVisual />} />
             <Bento className="md:col-span-3" title="The right KPIs for your industry" desc={`${KPI_COUNTS.kpis} metrics across ${KPI_COUNTS.industries} industries, including ${KPI_COUNTS.aiKpis} for tracking AI and automation. Each has its formula and which way is better.`} visual={<KpiVisual />} />
-            <Bento className="md:col-span-3" title="Bring your data. Take it anywhere." desc="Import CSV, Excel and JSON. Export to Excel, CSV and JSON for Power BI and Sheets." visual={<ExportVisual />} />
+            <Bento className="md:col-span-3" title="Bring your data. Take it anywhere." desc="Import CSV, Excel and JSON. Export your dashboard to Excel or Google Sheets, or as a Power BI starter pack." visual={<ExportVisual />} />
           </div>
         </div>
       </section>

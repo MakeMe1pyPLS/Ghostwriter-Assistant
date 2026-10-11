@@ -27,14 +27,21 @@ import {
   Save,
   Eye,
   CheckCircle2,
+  Lock,
+  Move,
+  MoreHorizontal,
+  RotateCcw,
+  Upload,
+  GripHorizontal,
 } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useSectorData } from "@/hooks/use-sector-data";
 import { useDashboardStore } from "@/hooks/use-dashboard-store";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { motion, AnimatePresence } from "framer-motion";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { TemplateGallery } from "@/components/TemplateGallery";
+import { TemplateGallery, buildTemplate } from "@/components/TemplateGallery";
 import { ExportDrawer } from "@/components/ExportDrawer";
 import { WidgetInspector } from "@/components/WidgetInspector";
 import { WidgetLibraryContent, WidgetLibraryMobile, widgetCategories } from "@/components/WidgetLibrary";
@@ -43,7 +50,7 @@ import { useToast } from "@/hooks/use-toast";
 import { buildSpecFromState, buildStateFromSpec, downloadSpecJson } from "@/lib/dashboard-spec";
 import { Link } from "wouter";
 import { Sparkles, Wand2 } from "lucide-react";
-import { GRID_COLS, GRID_BREAKPOINTS, GRID_ROW_HEIGHT, GRID_MARGIN, EDITABLE_COLS, defaultDashboard } from "@/lib/dashboard-grid";
+import { GRID_COLS, GRID_BREAKPOINTS, GRID_ROW_HEIGHT, GRID_MARGIN, EDITABLE_COLS, DESIGN_WIDTH, defaultDashboard } from "@/lib/dashboard-grid";
 import { ToastAction } from "@/components/ui/toast";
 import { useLocation } from "wouter";
 
@@ -76,6 +83,22 @@ export default function BuilderPage() {
   const savedAt = useDashboardStore((s) => s.dashboards[sector]?.savedAt);
   const [, navigate] = useLocation();
   const [, setTick] = useState(0);
+  const [templatesOpen, setTemplatesOpen] = useState(false);
+  const [arrange, setArrange] = useState<'locked' | 'free'>(() => useDashboardStore.getState().dashboards[sector]?.arrange ?? 'locked');
+  const [zoom, setZoom] = useState<number | 'fit'>('fit');
+  // Width of the grid area, to know when to switch to the scaled desktop canvas.
+  const canvasRef = useRef<HTMLElement | null>(null);
+  const [canvasWidth, setCanvasWidth] = useState<number>(() => (typeof window !== 'undefined' ? window.innerWidth : 1200));
+  useEffect(() => {
+    const el = canvasRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(([e]) => setCanvasWidth(Math.round(e.contentRect.width)));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  // Narrower than the 12-column grid: editing uses the full desktop canvas, scaled to fit.
+  const narrow = canvasWidth < GRID_BREAKPOINTS.lg + 8;
+  const designMode = editMode && narrow;
   useEffect(() => { const id = setInterval(() => setTick((t) => t + 1), 30000); return () => clearInterval(id); }, []);
 
   // Hydrate local editing state from the store (the single source of truth),
@@ -88,6 +111,7 @@ export default function BuilderPage() {
       setLayout(dash.layout);
       setLayouts({ lg: dash.layout });
       setWidgets(dash.widgets);
+      setArrange(dash.arrange ?? 'locked');
     }
     setTimeout(() => setLoading(false), 400);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -186,23 +210,12 @@ export default function BuilderPage() {
   };
 
   const applyTemplate = (templateId: string) => {
-    const templateWidgets = [
-      { id: `kpi-${Date.now()}-1`, type: 'kpi', metricIndex: 0, title: 'Key Metric 1' },
-      { id: `kpi-${Date.now()}-2`, type: 'kpi', metricIndex: 1, title: 'Key Metric 2' },
-      { id: `trend-${Date.now()}-1`, type: 'trend', title: 'Overall Performance' },
-    ];
-    
-    const templateLayout = [
-      { i: templateWidgets[0].id, x: 0, y: 0, w: 6, h: 2 },
-      { i: templateWidgets[1].id, x: 6, y: 0, w: 6, h: 2 },
-      { i: templateWidgets[2].id, x: 0, y: 2, w: 12, h: 4 },
-    ];
-
+    const { widgets: templateWidgets, layout: templateLayout } = buildTemplate(templateId);
     setWidgets(templateWidgets);
     setLayout(templateLayout);
     setLayouts({ lg: templateLayout });
     persist(templateLayout, templateWidgets);
-    toast({ title: "Template Applied" });
+    toast({ title: "Template applied", description: "Rearrange anything with Edit layout." });
   };
 
   const getBadgeColors = (color: string) => {
@@ -219,259 +232,257 @@ export default function BuilderPage() {
     return <WidgetRenderer widget={widget} data={{ metrics, chartData, donutData, allMetrics }} sector={sector} loading={loading} />;
   };
 
-    return (
-      <AppLayout>
-        <div className="p-4 md:p-6 lg:p-8 pb-24 lg:pb-8 max-w-[1600px] mx-auto min-h-full lg:h-full flex flex-col gap-4 md:gap-6 lg:gap-8">
-          <header className="flex flex-col xl:flex-row justify-between items-start xl:items-end gap-4 shrink-0">
-            <div>
+  const importSpec = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'application/json';
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const spec = JSON.parse(event.target?.result as string);
+          if (spec.version === "1.0.0" && spec.widgets) {
+            const { widgets: newWidgets, layouts: newLayouts } = buildStateFromSpec(spec);
+            const importedLayout = newLayouts.lg || [];
+            setWidgets(newWidgets);
+            setLayout(importedLayout);
+            setLayouts({ lg: importedLayout });
+            persist(importedLayout, newWidgets);
+            toast({ title: "Blueprint imported", description: "Dashboard updated from the spec file." });
+          } else {
+            toast({ title: "Invalid spec", description: "That file isn't a v1.0.0 Dashboard Blueprint.", variant: "destructive" });
+          }
+        } catch {
+          toast({ title: "Import failed", description: "Couldn't read that JSON file.", variant: "destructive" });
+        }
+      };
+      reader.readAsText(file);
+    };
+    input.click();
+  };
+
+  const exportSpec = () => {
+    const spec = buildSpecFromState("My Dashboard", sector, widgets, layouts);
+    downloadSpecJson(spec);
+    toast({ title: "Blueprint exported", description: "Your dashboard spec (JSON) has been downloaded." });
+  };
+
+  const setArrangeMode = (mode: 'locked' | 'free') => {
+    setArrange(mode);
+    saveDashboard(sector, layout, widgets, { arrange: mode });
+  };
+
+  const btn = "rounded-xl shadow-sm font-semibold text-[13px] h-10 px-3.5 border-slate-200 bg-white";
+
+  return (
+    <AppLayout>
+      <div className="p-4 md:p-6 lg:p-8 pb-28 lg:pb-10 max-w-[1600px] mx-auto w-full flex flex-col gap-4 md:gap-5">
+        <header className="flex flex-col gap-4">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-3">
+            <div className="min-w-0">
               <h1 className="text-2xl lg:text-3xl font-black text-slate-900 tracking-tighter uppercase">Dashboard Builder</h1>
-              <p className="text-slate-500 font-bold text-[10px] md:text-xs uppercase tracking-widest mt-1">Configure your supply chain command center.</p>
+              <p className="text-slate-500 font-bold text-[10px] md:text-xs uppercase tracking-widest mt-1">Arrange your KPI cards on the grid. Export it to Excel, Google Sheets or Power BI.</p>
               <p className="mt-2 inline-flex items-center gap-1.5 text-[12.5px] font-semibold text-slate-500" data-testid="text-save-status" aria-live="polite">
                 <CheckCircle2 className="w-4 h-4 text-emerald-500" />
                 {savedAt ? `Saved ${timeAgo(savedAt)} · changes save automatically` : "Changes save automatically"}
               </p>
             </div>
-            <div className="toolbar w-full xl:w-auto">
-               {!editMode && (
-                 <div className="flex gap-1.5">
-                   <Link href="/generate">
-                     <Button variant="outline" className="rounded-xl shadow-sm font-bold text-[10px] md:text-xs uppercase tracking-wider h-9 md:h-10 border-slate-200 bg-white px-3 md:px-4" data-testid="button-header-generate">
-                       <Sparkles className="w-3.5 h-3.5 mr-1.5 text-primary" /> Generate
-                     </Button>
-                   </Link>
-                   <Link href="/enhance">
-                     <Button variant="outline" className="rounded-xl shadow-sm font-bold text-[10px] md:text-xs uppercase tracking-wider h-9 md:h-10 border-slate-200 bg-white px-3 md:px-4" data-testid="button-header-enhance">
-                       <Wand2 className="w-3.5 h-3.5 mr-1.5 text-indigo-500" /> Enhance
-                     </Button>
-                   </Link>
-                 </div>
-               )}
-               {editMode && (
-                 <Button variant="outline" onClick={() => resetLayout(true)} className="rounded-xl shadow-sm font-bold text-[10px] md:text-xs uppercase tracking-wider h-9 md:h-10 border-slate-200 bg-white px-3 md:px-4">
-                   Reset
-                 </Button>
-               )}
-                              {!editMode && (
-                 <>
-                 <Button variant="outline" onClick={() => {
-                   const input = document.createElement('input');
-                   input.type = 'file';
-                   input.accept = 'application/json';
-                   input.onchange = (e) => {
-                     const file = (e.target as HTMLInputElement).files?.[0];
-                     if (!file) return;
-                     const reader = new FileReader();
-                     reader.onload = (event) => {
-                       try {
-                         const spec = JSON.parse(event.target?.result as string);
-                         if (spec.version === "1.0.0" && spec.widgets) {
-                                                      const { widgets: newWidgets, layouts: newLayouts } = buildStateFromSpec(spec);
-                           const importedLayout = newLayouts.lg || [];
-                           setWidgets(newWidgets);
-                           setLayout(importedLayout);
-                           setLayouts({ lg: importedLayout });
-                           persist(importedLayout, newWidgets);
-                           toast({ title: "Blueprint Imported", description: "Dashboard updated from spec." });
-                         } else {
-                           toast({ title: "Invalid Spec", description: "The uploaded file is not a valid v1.0.0 Dashboard Blueprint.", variant: "destructive" });
-                         }
-                       } catch (e) {
-                         toast({ title: "Import Failed", description: "Failed to parse JSON blueprint.", variant: "destructive" });
-                       }
-                     };
-                     reader.readAsText(file);
-                   };
-                   input.click();
-                 }} className="rounded-xl shadow-sm font-bold text-[10px] md:text-xs uppercase tracking-wider h-9 md:h-10 border-slate-200 bg-white px-3 md:px-4">
-                   Import Spec
-                 </Button>
-                 <Button variant="outline" onClick={() => {
-                   const spec = buildSpecFromState("My Dashboard", sector, widgets, layouts);
-                   downloadSpecJson(spec);
-                   toast({ title: "Blueprint Exported", description: "Your Dashboard JSON spec has been downloaded." });
-                 }} className="rounded-xl shadow-sm font-bold text-[10px] md:text-xs uppercase tracking-wider h-9 md:h-10 border-slate-200 bg-white px-3 md:px-4">
-                   <Download className="w-3.5 h-3.5 mr-1.5" /> Export Spec
-                 </Button>
-                 </>
-               )}
-               {!editMode && <div><TemplateGallery onSelect={applyTemplate} /></div>}
-               {!editMode && <div><ExportDrawer layout={layout} widgets={widgets} sector={sector} dateRange={dateRange} metrics={metrics} chartData={chartData} donutData={donutData} /></div>}
-               {editMode ? (
-                 <>
-                   <Button variant="outline" onClick={() => setEditMode(false)} className="rounded-xl shadow-sm font-semibold text-[13px] h-10 px-4 border-slate-200 bg-white" data-testid="button-done-editing">
-                     <Settings2 className="w-4 h-4" /> Done
-                   </Button>
-                   <Button onClick={() => saveNow(true)} className="rounded-xl shadow-sm font-semibold text-[13px] h-10 px-4" data-testid="button-save-layout">
-                     <Save className="w-4 h-4" /> Save layout
-                   </Button>
-                 </>
-               ) : (
-                 <>
-                   <Button variant="outline" className="rounded-xl shadow-sm font-semibold text-[13px] h-10 px-4 border-slate-200 bg-white" onClick={() => setEditMode(true)} data-testid="button-edit-mode">
-                     <Edit3 className="w-4 h-4" /> Edit layout
-                   </Button>
-                   <Button onClick={() => saveNow(false)} className="rounded-xl shadow-sm font-semibold text-[13px] h-10 px-4" data-testid="button-save-layout">
-                     <Save className="w-4 h-4" /> Save
-                   </Button>
-                   <Link href="/dashboard">
-                     <Button variant="outline" className="rounded-xl shadow-sm font-semibold text-[13px] h-10 px-4 border-slate-200 bg-white" data-testid="button-view-dashboard">
-                       <Eye className="w-4 h-4" /> View on dashboard
-                     </Button>
-                   </Link>
-                 </>
-               )}
-            </div>
-          </header>
-
-          {editMode && !canArrange && (
-            <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 shrink-0" data-testid="builder-mobile-hint">
-              <Info className="w-4 h-4 mt-0.5 shrink-0" />
-              <p className="text-[12.5px] font-semibold leading-relaxed">
-                Moving and resizing widgets works on a tablet or computer, so the layout you save is the one your Dashboard shows. Here you can tap a widget to configure it, or use the + button to add one.
-              </p>
-            </div>
-          )}
-
-        <div className="flex-1 flex flex-col lg:flex-row gap-6 md:gap-8 lg:overflow-hidden lg:min-h-0 relative">
-          <div className={`flex-1 bg-white rounded-2xl border ${editMode ? 'border-primary/20 ring-4 ring-primary/5' : 'border-slate-200'} shadow-[0_8px_30px_rgb(0,0,0,0.04)] min-h-[320px] lg:min-h-0 lg:overflow-y-auto p-2 md:p-4 custom-scrollbar relative transition-all`}>
-            <AnimatePresence mode="wait">
-              {loading ? (
-                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full flex items-center justify-center">
-                   <div className="flex flex-col items-center gap-4">
-                     <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
-                     <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Hydrating Dashboard...</span>
-                   </div>
-                 </motion.div>
-              ) : widgets.length === 0 ? (
-                <div className="h-full flex flex-col items-center justify-center text-center">
-                  <div className="w-24 h-24 bg-slate-50 border border-slate-100 rounded-full flex items-center justify-center mb-6 shadow-sm">
-                    <LayoutTemplate className="w-12 h-12 text-slate-300" />
-                  </div>
-                  <h3 className="text-2xl font-black text-slate-900 tracking-tight">Start your Command Center</h3>
-                  <p className="text-slate-500 font-medium max-w-sm mt-3 mb-8">Choose how you want to create your dashboard.</p>
-                  <div className="flex flex-col sm:flex-row gap-3 w-full max-w-lg">
-                    <Link href="/generate" className="flex-1">
-                      <Button size="lg" className="w-full rounded-xl font-black shadow-lg shadow-primary/20 hover:shadow-xl transition-all text-xs uppercase tracking-widest h-12" data-testid="button-generate-for-me">
-                        <Sparkles className="w-4 h-4 mr-2" /> Generate For Me
-                      </Button>
-                    </Link>
-                    <Link href="/enhance" className="flex-1">
-                      <Button size="lg" variant="outline" className="w-full rounded-xl font-black shadow-sm hover:shadow-md transition-all text-xs uppercase tracking-widest h-12 border-slate-200" data-testid="button-enhance-dashboard">
-                        <Wand2 className="w-4 h-4 mr-2" /> Enhance Dashboard
-                      </Button>
-                    </Link>
-                  </div>
-                  <div className="flex items-center gap-3 mt-4">
-                    <div className="h-px bg-slate-200 w-12" />
-                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">or build manually</span>
-                    <div className="h-px bg-slate-200 w-12" />
-                  </div>
-                  {editMode ? (
-                     <Button size="lg" variant="outline" className="rounded-xl font-bold shadow-sm mt-4 border-slate-200" onClick={() => addWidget(widgetCategories[0].items[0])}>
-                       <Plus className="w-4 h-4 mr-2" /> Add First Widget
-                     </Button>
-                  ) : (
-                     <Button size="lg" variant="outline" className="rounded-xl font-bold shadow-sm mt-4 border-slate-200" onClick={() => setEditMode(true)}>
-                       <Edit3 className="w-4 h-4 mr-2" /> Enter Edit Mode
-                     </Button>
-                  )}
-                </div>
-              ) : (
-                <MeasuredGrid
-                  className="layout"
-                  layouts={layouts}
-                  cols={GRID_COLS}
-                  breakpoints={GRID_BREAKPOINTS}
-                  rowHeight={GRID_ROW_HEIGHT}
-                  onLayoutChange={onLayoutChange}
-                  onBreakpointChange={(_bp, cols) => { colsRef.current = cols; setGridCols(cols); }}
-                  draggableHandle=".widget-handle"
-                  margin={GRID_MARGIN}
-                  isDraggable={editMode && canArrange}
-                  isResizable={editMode && canArrange}
-                  compactType={null}
-                >
-                  {widgets.map((w) => (
-                    <div 
-                      key={w.id} 
-                      className={`${getCardShellClasses(w.cardPreset || w.stylePreset, 'builder')} ${editMode ? 'ring-2 ring-primary/20' : 'hover:shadow-md'} group transition-all duration-200 flex flex-col overflow-hidden relative`}
-                      onClick={(e) => {
-                        // Prevent triggering inspector if clicking handle or its children
-                        if ((e.target as HTMLElement).closest('.widget-handle')) return;
-                        if ((e.target as HTMLElement).closest('.widget-action')) return;
-                        if (editMode) {
-                          setInspectedWidgetId(w.id);
-                        }
-                      }}
-                    >
-                      {editMode && (
-                        <div className="h-9 flex items-center justify-between px-3 bg-slate-50/90 widget-handle cursor-move border-b border-slate-100">
-                           <div className="flex items-center gap-2">
-                             <div className="flex gap-1 opacity-50">
-                               <div className="w-1 h-1 rounded-full bg-slate-400" />
-                               <div className="w-1 h-1 rounded-full bg-slate-400" />
-                               <div className="w-1 h-1 rounded-full bg-slate-400" />
-                             </div>
-                             <div className="text-[10px] uppercase font-bold text-slate-500 tracking-widest pointer-events-none truncate max-w-[60px] md:max-w-none">
-                                {w.name || w.type}
-                             </div>
-                           </div>
-                           <div className="flex items-center gap-0.5">
-                             <Button variant="ghost" size="icon" className="h-6 w-6 widget-action hover:bg-slate-200 hidden sm:flex" onClick={(e) => { e.stopPropagation(); moveWidget(w.id, 'up'); }}>
-                               <ArrowUpToLine className="w-3 h-3 text-slate-500" />
-                             </Button>
-                             <Button variant="ghost" size="icon" className="h-6 w-6 widget-action hover:bg-slate-200 hidden sm:flex" onClick={(e) => { e.stopPropagation(); moveWidget(w.id, 'down'); }}>
-                               <ArrowDownToLine className="w-3 h-3 text-slate-500" />
-                             </Button>
-                             <div className="w-px h-4 bg-slate-200 mx-1 hidden sm:block" />
-                             <Button variant="ghost" size="icon" className="h-6 w-6 widget-action hover:bg-slate-200" onClick={(e) => { e.stopPropagation(); duplicateWidget(w.id); }}>
-                               <Copy className="w-3 h-3 text-slate-500" />
-                             </Button>
-                             <Button variant="ghost" size="icon" className="h-6 w-6 widget-action hover:bg-slate-200" onClick={(e) => { e.stopPropagation(); setInspectedWidgetId(w.id); }}>
-                               <Edit3 className="w-3 h-3 text-slate-500" />
-                             </Button>
-                             <Button variant="ghost" size="icon" className="h-6 w-6 widget-action hover:bg-rose-100" onClick={(e) => { e.stopPropagation(); removeWidget(w.id); }}>
-                               <Trash2 className="w-3 h-3 text-rose-500" />
-                             </Button>
-                           </div>
-                        </div>
-                      )}
-                      <div className={`flex-1 p-3 md:p-5 ${editMode ? 'pt-2' : ''} min-h-0 pointer-events-none ${editMode ? '' : 'pointer-events-auto'}`}>
-                        {renderWidgetContent(w)}
-                      </div>
-                      
-                      {/* View mode subtle hover indicator for clickable widgets if needed, but keeping it clean */}
-                      {!editMode && <div className="absolute inset-0 border-2 border-transparent group-hover:border-slate-100/50 rounded-2xl pointer-events-none transition-colors" />}
-                    </div>
-                  ))}
-                </MeasuredGrid>
-              )}
-            </AnimatePresence>
           </div>
 
-          {editMode && (
-            <>
-              {/* Desktop Widget Library */}
-              <aside className="hidden lg:flex w-80 flex-col gap-6 animate-in slide-in-from-right-8 duration-300">
-                <Card className="rounded-2xl border-slate-200 shadow-sm overflow-hidden flex-1">
-                  <WidgetLibraryContent onAdd={addWidget} />
-                </Card>
-
-                <div className="bg-slate-900 rounded-2xl p-5 md:p-6 text-white shadow-xl relative overflow-hidden group shrink-0">
-                   <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 blur-3xl rounded-full translate-x-1/2 -translate-y-1/2 group-hover:scale-150 transition-transform duration-700" />
-                   <h4 className="text-sm font-black uppercase tracking-widest mb-2 relative z-10">Pro Tip</h4>
-                   <p className="text-xs text-slate-400 leading-relaxed relative z-10">Drag the handles to move widgets. Resize from the bottom right corner. Click the Edit icon on any widget to configure its data source.</p>
+          {/* Actions wrap onto a second line instead of disappearing off-screen. */}
+          <div className="toolbar" data-testid="builder-toolbar">
+            {editMode ? (
+              <>
+                <div className="inline-flex items-center rounded-xl border border-slate-200 bg-white p-1 shadow-sm" role="radiogroup" aria-label="How cards are arranged">
+                  {([
+                    { id: 'locked', label: 'Locked to grid', icon: Lock, hint: 'Cards snap into rows and close gaps automatically.' },
+                    { id: 'free', label: 'Free', icon: Move, hint: 'Cards stay exactly where you drop them, gaps and all.' },
+                  ] as const).map((m) => (
+                    <Tooltip key={m.id}>
+                      <TooltipTrigger asChild>
+                        <button role="radio" aria-checked={arrange === m.id} onClick={() => setArrangeMode(m.id)}
+                          className={`h-8 px-3 rounded-lg text-[12.5px] font-bold inline-flex items-center gap-1.5 transition-colors ${arrange === m.id ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100'}`}
+                          data-testid={`arrange-${m.id}`}>
+                          <m.icon className="w-3.5 h-3.5" /> {m.label}
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent>{m.hint}</TooltipContent>
+                    </Tooltip>
+                  ))}
                 </div>
-              </aside>
-              
-            </>
+                {narrow && (
+                  <div className="inline-flex items-center rounded-xl border border-slate-200 bg-white p-1 shadow-sm" role="radiogroup" aria-label="Zoom">
+                    {([['fit', 'Fit'], [0.6, '60%'], [1, '100%']] as const).map(([z, label]) => (
+                      <button key={label} role="radio" aria-checked={zoom === z} onClick={() => setZoom(z)}
+                        className={`h-8 px-3 rounded-lg text-[12.5px] font-bold transition-colors ${zoom === z ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100'}`}>{label}</button>
+                    ))}
+                  </div>
+                )}
+                <Button variant="outline" onClick={() => resetLayout(true)} className={btn}>
+                  <RotateCcw className="w-4 h-4" /> Reset
+                </Button>
+                <Button variant="outline" onClick={() => setEditMode(false)} className={btn} data-testid="button-done-editing">
+                  <Settings2 className="w-4 h-4" /> Done
+                </Button>
+                <Button onClick={() => saveNow(true)} className="rounded-xl shadow-sm font-semibold text-[13px] h-10 px-4" data-testid="button-save-layout">
+                  <Save className="w-4 h-4" /> Save layout
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button variant="outline" className={btn} onClick={() => setEditMode(true)} data-testid="button-edit-mode">
+                  <Edit3 className="w-4 h-4" /> Edit layout
+                </Button>
+                <Button onClick={() => saveNow(false)} className="rounded-xl shadow-sm font-semibold text-[13px] h-10 px-4" data-testid="button-save-layout">
+                  <Save className="w-4 h-4" /> Save
+                </Button>
+                <ExportDrawer layout={layout} widgets={widgets} sector={sector} dateRange={dateRange} metrics={metrics} chartData={chartData} donutData={donutData} allMetrics={allMetrics} />
+                <Link href="/dashboard">
+                  <Button variant="outline" className={btn} data-testid="button-view-dashboard">
+                    <Eye className="w-4 h-4" /> View dashboard
+                  </Button>
+                </Link>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className={btn} data-testid="button-builder-more">
+                      <MoreHorizontal className="w-4 h-4" /> More
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56 rounded-xl">
+                    <DropdownMenuItem onSelect={() => navigate('/generate')} className="gap-2"><Sparkles className="w-4 h-4 text-primary" /> Generate with AI</DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => navigate('/enhance')} className="gap-2"><Wand2 className="w-4 h-4 text-indigo-500" /> Enhance a dashboard</DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => setTemplatesOpen(true)} className="gap-2" data-testid="menu-templates"><LayoutTemplate className="w-4 h-4" /> Templates</DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onSelect={importSpec} className="gap-2"><Upload className="w-4 h-4" /> Import spec (JSON)</DropdownMenuItem>
+                    <DropdownMenuItem onSelect={exportSpec} className="gap-2"><Download className="w-4 h-4" /> Export spec (JSON)</DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
+            )}
+          </div>
+          <TemplateGallery onSelect={applyTemplate} open={templatesOpen} onOpenChange={setTemplatesOpen} hideTrigger />
+
+          {editMode && (
+            <p className="flex items-start gap-2 text-[12.5px] font-semibold text-slate-500" data-testid="builder-edit-hint">
+              <Info className="w-4 h-4 mt-0.5 shrink-0 text-primary" />
+              {narrow
+                ? "You're editing the full desktop layout, so it matches your Dashboard and exports. Drag a card by its top bar; resize from the corner. Zoom in for precise moves."
+                : "Drag a card by its top bar, resize from the bottom-right corner, and tap a card to change its data or style."}
+            </p>
           )}
-          {/* Phones & tablets: the + button is always available (the tip above points to it) */}
-          <WidgetLibraryMobile onAdd={addWidget} />
+        </header>
+
+        <div className="flex gap-6 items-start">
+          {/* The grid is the page: no inner scroll box. */}
+          <section ref={canvasRef} aria-label="Dashboard grid"
+            className={`flex-1 min-w-0 rounded-2xl transition-colors ${editMode ? 'bg-slate-50 border-2 border-dashed border-primary/25' : 'bg-transparent border-2 border-transparent'}`}>
+            <AnimatePresence mode="wait">
+              {loading ? (
+                <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-80 flex items-center justify-center">
+                  <div className="flex flex-col items-center gap-4">
+                    <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+                    <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Loading your dashboard…</span>
+                  </div>
+                </motion.div>
+              ) : widgets.length === 0 ? (
+                <div key="empty" className="py-16 px-4 flex flex-col items-center justify-center text-center">
+                  <div className="w-24 h-24 bg-white border border-slate-100 rounded-full flex items-center justify-center mb-6 shadow-sm">
+                    <LayoutTemplate className="w-12 h-12 text-slate-300" />
+                  </div>
+                  <h3 className="text-2xl font-black text-slate-900 tracking-tight">Start your dashboard</h3>
+                  <p className="text-slate-500 font-medium max-w-sm mt-3 mb-8">Pick a template, let the AI build one, or add cards yourself.</p>
+                  <div className="flex flex-col sm:flex-row gap-3 w-full max-w-lg">
+                    <Button size="lg" onClick={() => setTemplatesOpen(true)} className="flex-1 rounded-xl font-black text-xs uppercase tracking-widest h-12">
+                      <LayoutTemplate className="w-4 h-4 mr-2" /> Templates
+                    </Button>
+                    <Link href="/generate" className="flex-1">
+                      <Button size="lg" variant="outline" className="w-full rounded-xl font-black text-xs uppercase tracking-widest h-12 border-slate-200" data-testid="button-generate-for-me">
+                        <Sparkles className="w-4 h-4 mr-2" /> Generate for me
+                      </Button>
+                    </Link>
+                  </div>
+                  <Button size="lg" variant="outline" className="rounded-xl font-bold shadow-sm mt-4 border-slate-200"
+                    onClick={() => { setEditMode(true); addWidget(widgetCategories[0].items[0]); }}>
+                    <Plus className="w-4 h-4 mr-2" /> Add a card
+                  </Button>
+                </div>
+              ) : (
+                <motion.div key="grid" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                  <MeasuredGrid
+                    key={designMode ? 'design' : 'fluid'}
+                    className="layout"
+                    layouts={layouts}
+                    cols={GRID_COLS}
+                    breakpoints={GRID_BREAKPOINTS}
+                    rowHeight={GRID_ROW_HEIGHT}
+                    onLayoutChange={onLayoutChange}
+                    onBreakpointChange={(_bp, cols) => { colsRef.current = cols; setGridCols(cols); }}
+                    draggableHandle=".widget-handle"
+                    margin={GRID_MARGIN}
+                    isDraggable={editMode && canArrange}
+                    isResizable={editMode && canArrange}
+                    compactType={editMode && arrange === 'locked' ? 'vertical' : null}
+                    designWidth={designMode ? DESIGN_WIDTH : undefined}
+                    zoom={zoom}
+                    showGuides={editMode}
+                  >
+                    {widgets.map((w) => (
+                      <div
+                        key={w.id}
+                        className={`${getCardShellClasses(w.cardPreset || w.stylePreset, 'builder')} ${editMode ? 'ring-2 ring-primary/20 shadow-md' : 'hover:shadow-md'} group transition-shadow duration-200 flex flex-col overflow-hidden relative`}
+                        onClick={(e) => {
+                          if ((e.target as HTMLElement).closest('.widget-handle')) return;
+                          if ((e.target as HTMLElement).closest('.widget-action')) return;
+                          if (editMode) setInspectedWidgetId(w.id);
+                        }}
+                      >
+                        {editMode && (
+                          <div className="h-9 flex items-center justify-between gap-1 px-2.5 bg-slate-50/95 widget-handle cursor-move border-b border-slate-100 touch-none select-none">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <GripHorizontal className="w-4 h-4 text-slate-400 shrink-0" aria-hidden />
+                              <div className="text-[10px] uppercase font-bold text-slate-500 tracking-widest pointer-events-none truncate">
+                                {w.title || w.name || w.type}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-0.5 shrink-0">
+                              <Button variant="ghost" size="icon" aria-label="Duplicate card" className="h-7 w-7 widget-action hover:bg-slate-200" onClick={(e) => { e.stopPropagation(); duplicateWidget(w.id); }}>
+                                <Copy className="w-3.5 h-3.5 text-slate-500" />
+                              </Button>
+                              <Button variant="ghost" size="icon" aria-label="Edit card" className="h-7 w-7 widget-action hover:bg-slate-200" onClick={(e) => { e.stopPropagation(); setInspectedWidgetId(w.id); }}>
+                                <Edit3 className="w-3.5 h-3.5 text-slate-500" />
+                              </Button>
+                              <Button variant="ghost" size="icon" aria-label="Remove card" className="h-7 w-7 widget-action hover:bg-rose-100" onClick={(e) => { e.stopPropagation(); removeWidget(w.id); }}>
+                                <Trash2 className="w-3.5 h-3.5 text-rose-500" />
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                        <div className={`ciq-cq flex-1 p-3 md:p-4 ${editMode ? 'pt-2 pointer-events-none' : ''} min-h-0`}>
+                          {renderWidgetContent(w)}
+                        </div>
+                      </div>
+                    ))}
+                  </MeasuredGrid>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </section>
+
+          {editMode && (
+            <aside className="hidden lg:flex w-72 xl:w-80 shrink-0 flex-col gap-4 sticky top-4 self-start max-h-[calc(100dvh-7rem)] animate-in slide-in-from-right-8 duration-300">
+              <Card className="rounded-2xl border-slate-200 shadow-sm overflow-hidden flex-1 min-h-0 flex flex-col">
+                <WidgetLibraryContent onAdd={addWidget} />
+              </Card>
+            </aside>
+          )}
         </div>
+        {/* Phones & tablets: the + button is always available */}
+        <WidgetLibraryMobile onAdd={(w) => { if (!editMode) setEditMode(true); addWidget(w); }} />
       </div>
-      
-      <WidgetInspector 
+
+      <WidgetInspector
         widget={widgets.find(w => w.id === inspectedWidgetId)}
         layoutItem={layout.find(l => l.i === inspectedWidgetId)}
         open={!!inspectedWidgetId}
@@ -485,13 +496,13 @@ export default function BuilderPage() {
         }}
         onDelete={removeWidget}
         onDuplicate={(id) => {
-            duplicateWidget(id);
-            setInspectedWidgetId(null);
+          duplicateWidget(id);
+          setInspectedWidgetId(null);
         }}
       />
-      
+
       <style>{`
-        .react-grid-placeholder { background: #0F766E !important; opacity: 0.1 !important; border-radius: 1rem !important; }
+        .react-grid-placeholder { background: #0F766E !important; opacity: 0.12 !important; border-radius: 1rem !important; }
       `}</style>
     </AppLayout>
   );

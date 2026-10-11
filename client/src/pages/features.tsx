@@ -49,7 +49,7 @@ const FEATURES = [
   {
     id: "data", nav: "Import & export", eyebrow: "Data", title: "Bring your data. Take it anywhere.",
     desc: "Import CSV, Excel and JSON in the browser — the Excel importer finds the right sheet and header row for you. Export dashboards and data whenever you need them.",
-    points: ["Import from public Google Sheets and JSON APIs", "Export to formatted Excel, CSV and JSON", "Enhance an existing dashboard by uploading its file"],
+    points: ["Export the dashboard you arranged to Excel or Google Sheets, with KPI numbers that update from the data", "Power BI starter pack: data tables, card positions and a matching theme", "Import from public Google Sheets and JSON APIs"],
     href: "/data", cta: "Import data", visual: <ExportVisual />,
   },
 ];

@@ -37,28 +37,29 @@ const InsightsWidgetContent = memo(function InsightsWidgetContent({ sector, titl
   }
 
   return (
-    <div className="h-full flex flex-col p-1">
-      <div className="flex items-center gap-2 mb-4 shrink-0">
+    <div className="h-full flex flex-col p-1 overflow-hidden">
+      <div className="flex items-center gap-2 mb-2.5 shrink-0">
         <BrainCircuit className="w-4 h-4 text-primary" />
-        <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">{title || 'AI Recommendations'}</h3>
+        <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider truncate">{title || 'AI Recommendations'}</h3>
       </div>
-      <div className="space-y-3 overflow-y-auto flex-1 pr-1 custom-scrollbar">
-        <div className="p-3 bg-slate-50 rounded-lg border border-slate-100">
-          <p className="text-xs font-bold text-slate-700 mb-2">Impact Assessment</p>
-          <ul className="text-[11px] text-slate-500 leading-relaxed list-disc pl-3 space-y-1">
-            {insights.what_changed?.map((c: string, i: number) => <li key={i}>{c}</li>)}
+      {/* Fits the card: sections sit side by side when the card is wide, and lines are clamped instead of scrolling. */}
+      <div className="grid gap-2 flex-1 min-h-0 content-start @[560px]:grid-cols-3">
+        <div className="p-2.5 bg-slate-50 rounded-lg border border-slate-100 min-w-0">
+          <p className="text-[11px] font-bold text-slate-700 mb-1">What changed</p>
+          <ul className="text-[11px] text-slate-500 leading-snug list-disc pl-3 space-y-0.5">
+            {insights.what_changed?.slice(0, 3).map((c: string, i: number) => <li key={i} className="line-clamp-2">{c}</li>)}
           </ul>
         </div>
-        <div className="p-3 bg-teal-50/50 rounded-lg border border-teal-100">
-          <p className="text-xs font-bold text-teal-700 mb-2">Recommended Actions</p>
-          <ul className="text-[11px] text-teal-700/80 leading-relaxed list-disc pl-3 space-y-1">
-            {insights.actions?.slice(0, 2).map((a: string, i: number) => <li key={i}>{a}</li>)}
+        <div className="p-2.5 bg-teal-50/50 rounded-lg border border-teal-100 min-w-0">
+          <p className="text-[11px] font-bold text-teal-700 mb-1">Recommended actions</p>
+          <ul className="text-[11px] text-teal-700/80 leading-snug list-disc pl-3 space-y-0.5">
+            {insights.actions?.slice(0, 2).map((a: string, i: number) => <li key={i} className="line-clamp-2">{a}</li>)}
           </ul>
         </div>
         {insights.forecast_note && (
-          <div className="p-3 bg-indigo-50/50 rounded-lg border border-indigo-100">
-            <p className="text-xs font-bold text-indigo-700 mb-1">Forecast Note</p>
-            <p className="text-[11px] text-indigo-700/80 leading-relaxed">{insights.forecast_note}</p>
+          <div className="p-2.5 bg-indigo-50/50 rounded-lg border border-indigo-100 min-w-0">
+            <p className="text-[11px] font-bold text-indigo-700 mb-0.5">Forecast</p>
+            <p className="text-[11px] text-indigo-700/80 leading-snug line-clamp-3">{insights.forecast_note}</p>
           </div>
         )}
       </div>
@@ -238,10 +239,11 @@ function WidgetRendererInner({ widget, data, sector, loading, presentationMode =
       const isCompact = presetId === 'compact-grid';
       const dataDensity = widget.dataDensity || 'standard';
 
-      const valueSizeClass = preset.valueEmphasis === 'xl' ? (presentationMode ? 'text-5xl' : 'text-3xl')
-        : preset.valueEmphasis === 'lg' ? (presentationMode ? 'text-4xl' : 'text-2xl')
-        : preset.valueEmphasis === 'md' ? (presentationMode ? 'text-3xl' : 'text-xl')
-        : (presentationMode ? 'text-2xl' : 'text-lg');
+      // Sizes follow the card's own width, so a narrow card never clips its number.
+      const valueSizeClass = preset.valueEmphasis === 'xl' ? (presentationMode ? 'text-2xl @[200px]:text-4xl @[300px]:text-5xl' : 'text-xl @[200px]:text-3xl')
+        : preset.valueEmphasis === 'lg' ? (presentationMode ? 'text-2xl @[220px]:text-4xl' : 'text-xl @[200px]:text-2xl')
+        : preset.valueEmphasis === 'md' ? (presentationMode ? 'text-xl @[220px]:text-3xl' : 'text-lg @[200px]:text-xl')
+        : (presentationMode ? 'text-lg @[220px]:text-2xl' : 'text-base @[200px]:text-lg');
 
       const accentColor = metric?.isPositive ? 'rgb(16, 185, 129)' : 'rgb(244, 63, 94)';
       const borderRadius = BORDER_RADIUS_MAP[widget.borderRadius || 'lg'] || '';
@@ -300,7 +302,7 @@ function WidgetRendererInner({ widget, data, sector, loading, presentationMode =
                 );
               })()}
               {preset.statusBadgeVisible && widget.showBadge !== false && metric?.isPositive !== undefined && (
-                <div className={`px-1.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider ${metric.isPositive ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
+                <div className={`hidden @[170px]:block px-1.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider ${metric.isPositive ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
                   {metric.isPositive ? 'On Track' : 'At Risk'}
                 </div>
               )}
@@ -321,15 +323,15 @@ function WidgetRendererInner({ widget, data, sector, loading, presentationMode =
               <div className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold ${isCompact ? 'mt-0.5' : 'mt-1'} w-fit ${metric.isPositive ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
                 {metric.isPositive ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
                 {metric.trend}
-                {preset.comparisonLabelVisible && widget.showComparison !== false && <span className="text-slate-400 ml-1">vs prev</span>}
+                {preset.comparisonLabelVisible && widget.showComparison !== false && <span className="text-slate-400 ml-1 hidden @[220px]:inline">vs prev</span>}
               </div>
             )}
             {presentationMode && !isCompact && (() => {
               const intel = SECTOR_KPI_INTEL[sector]?.[metric?.label || ''];
               if (!intel) return null;
               return (
-                <div className="mt-2 pt-2 border-t border-slate-50 space-y-1">
-                  <p className="text-[10px] text-slate-400 font-medium leading-snug">{intel.comparison}</p>
+                <div className="mt-2 pt-2 border-t border-slate-50 space-y-1 hidden [@container(min-height:200px)]:block">
+                  <p className="text-[10px] text-slate-400 font-medium leading-snug line-clamp-1">{intel.comparison}</p>
                   <div className="flex items-center justify-between gap-1">
                     <div className="flex items-center gap-1 min-w-0">
                       <ArrowUpRight className="w-3 h-3 text-primary shrink-0" />

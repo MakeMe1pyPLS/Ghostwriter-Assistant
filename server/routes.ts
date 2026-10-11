@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { z } from "zod";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { generateExcelDashboard } from "./excel/excel-renderer";
+import { generateExcelDashboard } from "@shared/excel/excel-renderer";
 import { generateCsvExport } from "./services/exports/csv-exporter";
 import { generateJsonExport } from "./services/exports/json-exporter";
 import { generateDatasetExport, generateDatasetCsv } from "./services/exports/dataset-exporter";
@@ -355,7 +355,7 @@ export async function registerRoutes(
       const filename = exportFilename('dashboard_excel', sector || 'unified', 'xlsx');
       res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
       res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-      res.send(buffer);
+      res.send(Buffer.from(buffer));
     } catch (err: any) {
       console.error('Excel export error:', err);
       res.status(500).json({ error: 'Failed to generate Excel workbook', details: err.message });

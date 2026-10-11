@@ -100,7 +100,7 @@ interface DashboardState {
 
   // Dashboard layout/widget persistence
   ensureDashboardLoaded: (sector: string) => void;
-  saveDashboard: (sector: string, layout: any[], widgets: any[]) => void;
+  saveDashboard: (sector: string, layout: any[], widgets: any[], opts?: { arrange?: 'locked' | 'free' }) => void;
   resetDashboard: (sector: string) => void;
 
   // Auth actions
@@ -308,8 +308,8 @@ export const useDashboardStore = create<DashboardState>()(
         }
         set(state => ({ dashboards: { ...state.dashboards, [sector]: data! } }));
       },
-      saveDashboard: (sector, layout, widgets) => {
-        set(state => ({ dashboards: { ...state.dashboards, [sector]: { layout, widgets, savedAt: Date.now() } } }));
+      saveDashboard: (sector, layout, widgets, opts) => {
+        set(state => ({ dashboards: { ...state.dashboards, [sector]: { ...state.dashboards[sector], layout, widgets, savedAt: Date.now(), ...(opts?.arrange ? { arrange: opts.arrange } : {}) } } }));
         // Mirror to the legacy keys so the Export Center and dashboard-spec readers
         // that still read raw localStorage keep working.
         try {

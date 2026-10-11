@@ -19,7 +19,12 @@ export interface DashboardData {
   widgets: any[];
   /** When the layout was last saved (ms). */
   savedAt?: number;
+  /** Builder arrange mode: "locked" packs cards into rows; "free" keeps them where dropped. */
+  arrange?: 'locked' | 'free';
 }
+
+/** Width of the desktop canvas used to edit the full layout on narrow screens. */
+export const DESIGN_WIDTH = 1024;
 
 // Canonical default dashboard used when a sector has no saved configuration.
 // Shared by the Builder reset action and the migration fallback so both pages
@@ -29,8 +34,8 @@ export const DEFAULT_LAYOUT = [
   { i: 'kpi-1', x: 3, y: 0, w: 3, h: 2 },
   { i: 'kpi-2', x: 6, y: 0, w: 3, h: 2 },
   { i: 'kpi-3', x: 9, y: 0, w: 3, h: 2 },
-  { i: 'trend-1', x: 0, y: 2, w: 8, h: 4 },
-  { i: 'insights-1', x: 8, y: 2, w: 4, h: 4 },
+  { i: 'trend-1', x: 0, y: 2, w: 8, h: 5 },
+  { i: 'insights-1', x: 8, y: 2, w: 4, h: 5 },
 ];
 
 export const DEFAULT_WIDGETS = [

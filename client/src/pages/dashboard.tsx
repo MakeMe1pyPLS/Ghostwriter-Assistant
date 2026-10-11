@@ -195,7 +195,7 @@ export default function DashboardPage() {
                   style={{ animationDelay: `${Math.min(i, 10) * 55}ms` }}
                   className={`ciq-rise flex flex-col overflow-hidden transition-[box-shadow,border-color] duration-300 hover:shadow-[0_18px_40px_-20px_rgba(15,23,42,0.35)] hover:border-slate-300 ${getCardShellClasses(w.cardPreset || w.stylePreset, 'dashboard')}`}
                 >
-                  {renderWidgetContent(w)}
+                  <div className="ciq-cq flex-1 min-h-0 flex flex-col">{renderWidgetContent(w)}</div>
                 </div>
               ))}
             </MeasuredGrid>
