@@ -59,11 +59,11 @@ const CONNECTOR_CATEGORIES = [
 ];
 
 const CONNECTORS = [
-  { id: "excel", name: "Microsoft Excel", category: "spreadsheet", description: "Connect via OneDrive or upload static files directly.", icon: FileSpreadsheet, color: "text-green-600 bg-green-100", status: "connected", lastSync: "2 hours ago" },
-  { id: "gsheets", name: "Google Sheets", category: "spreadsheet", description: "Live sync your Google Workspace spreadsheets.", icon: FileSpreadsheet, color: "text-emerald-600 bg-emerald-100", status: "available" },
+  { id: "excel", name: "Microsoft Excel", category: "spreadsheet", description: "Connect via OneDrive or upload static files directly.", icon: FileSpreadsheet, color: "text-green-700 bg-green-100", status: "connected", lastSync: "2 hours ago" },
+  { id: "gsheets", name: "Google Sheets", category: "spreadsheet", description: "Live sync your Google Workspace spreadsheets.", icon: FileSpreadsheet, color: "text-emerald-700 bg-emerald-100", status: "available" },
   { id: "airtable", name: "Airtable", category: "spreadsheet", description: "Sync bases and grid views into datasets.", icon: Database, color: "text-yellow-500 bg-yellow-100", status: "available" },
-  { id: "postgres", name: "PostgreSQL", category: "data", description: "Direct connection to your Postgres instance.", icon: Database, color: "text-blue-600 bg-blue-100", status: "available" },
-  { id: "mysql", name: "MySQL", category: "data", description: "Connect to your MySQL databases.", icon: Database, color: "text-sky-600 bg-sky-100", status: "available" },
+  { id: "postgres", name: "PostgreSQL", category: "data", description: "Direct connection to your Postgres instance.", icon: Database, color: "text-blue-700 bg-blue-100", status: "available" },
+  { id: "mysql", name: "MySQL", category: "data", description: "Connect to your MySQL databases.", icon: Database, color: "text-sky-700 bg-sky-100", status: "available" },
   { id: "snowflake", name: "Snowflake", category: "data", description: "Connect to your Snowflake data warehouse.", icon: CloudCog, color: "text-sky-500 bg-sky-100", status: "available" },
   { id: "bigquery", name: "BigQuery", category: "data", description: "Import datasets from Google BigQuery.", icon: HardDrive, color: "text-blue-500 bg-blue-100", status: "available" },
   { id: "redshift", name: "Amazon Redshift", category: "data", description: "Query your Redshift data clusters.", icon: Database, color: "text-orange-500 bg-orange-100", status: "available" },
@@ -72,12 +72,12 @@ const CONNECTORS = [
   { id: "tableau", name: "Tableau", category: "bi", description: "Connect your Tableau Cloud data sources.", icon: CloudCog, color: "text-indigo-600 bg-indigo-100", status: "available" },
   { id: "looker", name: "Looker", category: "bi", description: "Import explores and views from Looker.", icon: BarChart, color: "text-purple-600 bg-purple-100", status: "available" },
   { id: "metabase", name: "Metabase", category: "bi", description: "Sync your Metabase questions and dashboards.", icon: BarChart, color: "text-blue-500 bg-blue-100", status: "available" },
-  { id: "shopify", name: "Shopify", category: "platform", description: "Sync orders, inventory, and fulfillment data.", icon: ShoppingCart, color: "text-emerald-500 bg-emerald-100", status: "connected", lastSync: "15 mins ago" },
+  { id: "shopify", name: "Shopify", category: "platform", description: "Sync orders, inventory, and fulfillment data.", icon: ShoppingCart, color: "text-emerald-700 bg-emerald-100", status: "connected", lastSync: "15 mins ago" },
   { id: "amazon", name: "Amazon Seller Central", category: "platform", description: "Import FBA inventory and sales data.", icon: ShoppingCart, color: "text-orange-500 bg-orange-100", status: "available" },
   { id: "stripe", name: "Stripe", category: "platform", description: "Import financial transaction and revenue metrics.", icon: CreditCard, color: "text-indigo-500 bg-indigo-100", status: "available" },
-  { id: "salesforce", name: "Salesforce", category: "platform", description: "Connect CRM data and pipeline metrics.", icon: CloudCog, color: "text-sky-600 bg-sky-100", status: "available" },
-  { id: "quickbooks", name: "QuickBooks", category: "platform", description: "Sync invoices, expenses, and accounting data.", icon: Building, color: "text-green-600 bg-green-100", status: "available" },
-  { id: "hubspot", name: "HubSpot", category: "platform", description: "Import marketing and sales pipeline metrics.", icon: CloudCog, color: "text-orange-600 bg-orange-100", status: "available" },
+  { id: "salesforce", name: "Salesforce", category: "platform", description: "Connect CRM data and pipeline metrics.", icon: CloudCog, color: "text-sky-700 bg-sky-100", status: "available" },
+  { id: "quickbooks", name: "QuickBooks", category: "platform", description: "Sync invoices, expenses, and accounting data.", icon: Building, color: "text-green-700 bg-green-100", status: "available" },
+  { id: "hubspot", name: "HubSpot", category: "platform", description: "Import marketing and sales pipeline metrics.", icon: CloudCog, color: "text-orange-700 bg-orange-100", status: "available" },
   { id: "slack", name: "Slack", category: "comm", description: "Send alerts and updates to channels.", icon: MessageSquare, color: "text-purple-600 bg-purple-100", status: "available" },
   { id: "teams", name: "Microsoft Teams", category: "comm", description: "Post updates directly to Teams channels.", icon: MessageSquare, color: "text-indigo-600 bg-indigo-100", status: "available" },
   { id: "email", name: "Email Notifications", category: "comm", description: "Configure automated email report delivery.", icon: Mail, color: "text-slate-600 bg-slate-100", status: "connected", lastSync: "System Default" }
@@ -406,7 +406,7 @@ function CustomApiDrawer({ open, onClose }: { open: boolean; onClose: () => void
                     <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-500">Results</h3>
                     {connectionResult && (
                       <div className={`p-3 rounded-xl border flex items-center gap-3 ${connectionResult === 'success' ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200'}`}>
-                        {connectionResult === 'success' ? <Wifi className="w-4 h-4 text-emerald-600 shrink-0" /> : <WifiOff className="w-4 h-4 text-red-600 shrink-0" />}
+                        {connectionResult === 'success' ? <Wifi className="w-4 h-4 text-emerald-700 shrink-0" /> : <WifiOff className="w-4 h-4 text-red-700 shrink-0" />}
                         <div>
                           <p className="text-xs font-bold text-slate-900">{connectionResult === 'success' ? 'Connection successful' : 'Connection failed'}</p>
                           <p className="text-[10px] text-slate-500">{connectionResult === 'success' ? 'Endpoint is reachable and responding.' : 'Check URL format and try again.'}</p>
@@ -416,7 +416,7 @@ function CustomApiDrawer({ open, onClose }: { open: boolean; onClose: () => void
                     {sendResult && (
                       <div className={`p-3 rounded-xl border ${sendResult.success ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200'}`}>
                         <div className="flex items-center gap-2 mb-1">
-                          {sendResult.success ? <CheckCircle2 className="w-4 h-4 text-emerald-600" /> : <AlertCircle className="w-4 h-4 text-red-600" />}
+                          {sendResult.success ? <CheckCircle2 className="w-4 h-4 text-emerald-700" /> : <AlertCircle className="w-4 h-4 text-red-700" />}
                           <p className="text-xs font-bold text-slate-900">{sendResult.success ? 'Payload sent successfully' : 'Send failed'}</p>
                         </div>
                         <p className="text-[10px] text-slate-500">{sendResult.message}</p>
@@ -549,7 +549,7 @@ export default function ConnectorsPage() {
                   {filteredConnectors.map((connector) => (
                     <Card key={connector.id} className={`border-slate-200 shadow-sm hover:shadow-md transition-all relative overflow-hidden group ${connector.status === 'connected' ? 'border-primary/20 ring-1 ring-primary/5' : ''}`}>
                       {connector.status === 'connected' && (
-                        <div className="absolute top-0 right-0 w-16 h-16 bg-emerald-50 border-b border-l border-emerald-100 text-emerald-600 flex justify-center items-center rounded-bl-3xl">
+                        <div className="absolute top-0 right-0 w-16 h-16 bg-emerald-50 border-b border-l border-emerald-100 text-emerald-700 flex justify-center items-center rounded-bl-3xl">
                           <CheckCircle2 className="w-5 h-5 -mt-2 -mr-2" />
                         </div>
                       )}
@@ -568,7 +568,7 @@ export default function ConnectorsPage() {
                         {connector.status === 'connected' ? (
                           <div className="flex items-center justify-between mt-2 pt-4 border-t border-slate-100">
                             <div className="flex flex-col">
-                              <span className="text-[9px] font-black uppercase tracking-widest text-emerald-600 mb-0.5">Connected</span>
+                              <span className="text-[9px] font-black uppercase tracking-widest text-emerald-700 mb-0.5">Connected</span>
                               <span className="text-[10px] font-bold text-slate-400 flex items-center gap-1">
                                 <ClockIcon className="w-3 h-3" /> Sync: {connector.lastSync}
                               </span>

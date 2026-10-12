@@ -312,7 +312,7 @@ export default function BuilderPage() {
             <h1 className="text-2xl lg:text-3xl font-black text-slate-900 tracking-tighter uppercase">Dashboard Builder</h1>
             <p className="text-slate-500 font-bold text-[10px] md:text-xs uppercase tracking-widest mt-1">Arrange your KPI cards on the grid. Export it to Excel, Google Sheets or Power BI.</p>
             <p className="mt-2 inline-flex items-center gap-1.5 text-[12.5px] font-semibold text-slate-500" data-testid="text-save-status" aria-live="polite">
-              <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+              <CheckCircle2 className="w-4 h-4 text-emerald-700" />
               {savedAt ? `Saved ${timeAgo(savedAt)} · changes save automatically` : "Changes save automatically"}
             </p>
           </div>
@@ -349,9 +349,9 @@ export default function BuilderPage() {
                 <Button variant="outline" className={btn} onClick={() => setEditMode(true)} data-testid="button-edit-mode"><Edit3 className="w-4 h-4" /> Edit layout</Button>
                 <Button onClick={() => saveNow(false)} className="rounded-xl shadow-sm font-semibold text-[13px] h-10 px-4" data-testid="button-save-layout"><Save className="w-4 h-4" /> Save</Button>
                 <ExportDrawer layout={fineToClassic(layout, true)} widgets={widgets} sector={sector} dateRange={dateRange} metrics={metrics} chartData={chartData} donutData={donutData} allMetrics={allMetrics} />
-                <Link href="/dashboard">
-                  <Button variant="outline" className={btn} data-testid="button-view-dashboard"><Eye className="w-4 h-4" /> View dashboard</Button>
-                </Link>
+                <Button variant="outline" className={btn} data-testid="button-view-dashboard" asChild>
+                  <Link href="/dashboard"><Eye className="w-4 h-4" /> View dashboard</Link>
+                </Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="outline" className={btn} data-testid="button-builder-more"><MoreHorizontal className="w-4 h-4" /> More</Button>
@@ -405,9 +405,9 @@ export default function BuilderPage() {
                 <p className="text-slate-500 font-medium max-w-sm mt-3 mb-8">Pick a template, let the AI build one, or add cards yourself.</p>
                 <div className="flex flex-col sm:flex-row gap-3 w-full max-w-lg">
                   <Button size="lg" onClick={() => setTemplatesOpen(true)} className="flex-1 rounded-xl font-black text-xs uppercase tracking-widest h-12"><LayoutTemplate className="w-4 h-4 mr-2" /> Templates</Button>
-                  <Link href="/generate" className="flex-1">
-                    <Button size="lg" variant="outline" className="w-full rounded-xl font-black text-xs uppercase tracking-widest h-12 border-slate-200" data-testid="button-generate-for-me"><Sparkles className="w-4 h-4 mr-2" /> Generate for me</Button>
-                  </Link>
+                  <Button size="lg" variant="outline" className="w-full rounded-xl font-black text-xs uppercase tracking-widest h-12 border-slate-200" data-testid="button-generate-for-me" asChild>
+                    <Link href="/generate" className="flex-1"><Sparkles className="w-4 h-4 mr-2" /> Generate for me</Link>
+                  </Button>
                 </div>
                 <Button size="lg" variant="outline" className="rounded-xl font-bold shadow-sm mt-4 border-slate-200" onClick={() => { setEditMode(true); addWidget(widgetCategories[0].items[0]); }}>
                   <Plus className="w-4 h-4 mr-2" /> Add a card

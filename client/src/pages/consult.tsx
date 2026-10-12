@@ -554,8 +554,8 @@ function OptionCard({ option: o, recommended, onChoose }: { option: ConsultOptio
         <span className="rounded-md bg-slate-100 text-slate-600 px-2 py-0.5">Effort: {LEVEL_LABEL[o.effort]}</span>
       </div>
       <div className="grid grid-cols-1 gap-2 mt-3 text-[13px] flex-1">
-        {o.pros.length > 0 && <ul className="space-y-1">{o.pros.map((p) => <li key={p} className="flex gap-1.5 text-slate-700"><Check className="w-3.5 h-3.5 mt-0.5 text-emerald-600 shrink-0" aria-label="Pro" />{p}</li>)}</ul>}
-        {o.cons.length > 0 && <ul className="space-y-1">{o.cons.map((c) => <li key={c} className="flex gap-1.5 text-slate-500"><Minus className="w-3.5 h-3.5 mt-0.5 text-rose-500 shrink-0" aria-label="Con" />{c}</li>)}</ul>}
+        {o.pros.length > 0 && <ul className="space-y-1">{o.pros.map((p) => <li key={p} className="flex gap-1.5 text-slate-700"><Check className="w-3.5 h-3.5 mt-0.5 text-emerald-700 shrink-0" aria-label="Pro" />{p}</li>)}</ul>}
+        {o.cons.length > 0 && <ul className="space-y-1">{o.cons.map((c) => <li key={c} className="flex gap-1.5 text-slate-500"><Minus className="w-3.5 h-3.5 mt-0.5 text-rose-600 shrink-0" aria-label="Con" />{c}</li>)}</ul>}
         <p className="text-[11px] font-bold text-slate-400 mt-1">{o.steps.length} step{o.steps.length === 1 ? "" : "s"} · first due in {o.steps[0].weeks === 1 ? "1 week" : `${o.steps[0].weeks} weeks`}</p>
       </div>
       <Button onClick={onChoose} variant={recommended ? "default" : "outline"} className="mt-4 h-11 rounded-xl font-bold w-full">

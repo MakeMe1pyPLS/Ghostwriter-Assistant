@@ -48,7 +48,7 @@ export function AIEngineSection() {
               <span className="flex items-center gap-2">
                 <span className="font-black text-slate-900">{ENGINE_LABELS[e]}</span>
                 {e !== 'auto' && status !== undefined && (
-                  ok ? <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-emerald-600"><CheckCircle2 className="w-3 h-3" /> Connected</span>
+                  ok ? <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-emerald-700"><CheckCircle2 className="w-3 h-3" /> Connected</span>
                      : <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-slate-400"><CircleDashed className="w-3 h-3" /> Not connected</span>
                 )}
               </span>
@@ -113,7 +113,7 @@ export function IntegrationsSection() {
           <div key={c} className="rounded-xl border border-slate-200 p-4 space-y-2">
             <div className="flex items-center gap-2">
               <span className="font-black text-slate-900">{CHANNEL_LABELS[c]}</span>
-              {saved && <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-emerald-600"><CheckCircle2 className="w-3 h-3" /> Connected</span>}
+              {saved && <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-emerald-700"><CheckCircle2 className="w-3 h-3" /> Connected</span>}
             </div>
             <p className="text-xs text-slate-500">{CHANNEL_HELP[c].how}</p>
             <div className="flex flex-col sm:flex-row gap-2">

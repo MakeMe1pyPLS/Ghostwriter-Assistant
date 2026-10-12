@@ -222,9 +222,9 @@ export default function SignUpPage() {
         </Button>
 
         <div className="grid grid-cols-3 gap-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-center">
-          <div className="flex items-center justify-center gap-1"><Check className="w-3 h-3 text-emerald-500" /> 14-Day Trial</div>
-          <div className="flex items-center justify-center gap-1"><Check className="w-3 h-3 text-emerald-500" /> No Card</div>
-          <div className="flex items-center justify-center gap-1"><Check className="w-3 h-3 text-emerald-500" /> Cancel Anytime</div>
+          <div className="flex items-center justify-center gap-1"><Check className="w-3 h-3 text-emerald-700" /> 14-Day Trial</div>
+          <div className="flex items-center justify-center gap-1"><Check className="w-3 h-3 text-emerald-700" /> No Card</div>
+          <div className="flex items-center justify-center gap-1"><Check className="w-3 h-3 text-emerald-700" /> Cancel Anytime</div>
         </div>
 
         <p className="text-center text-xs text-slate-500 font-medium">

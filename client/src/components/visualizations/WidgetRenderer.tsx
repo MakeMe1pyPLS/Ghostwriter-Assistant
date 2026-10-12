@@ -70,9 +70,9 @@ const InsightsWidgetContent = memo(function InsightsWidgetContent({ sector, titl
 
 const SEVERITY_STYLES: Record<string, { bg: string; border: string; icon: string }> = {
   risk: { bg: 'bg-rose-50', border: 'border-rose-200', icon: 'text-rose-600' },
-  opportunity: { bg: 'bg-emerald-50', border: 'border-emerald-200', icon: 'text-emerald-600' },
-  urgent: { bg: 'bg-amber-50', border: 'border-amber-200', icon: 'text-amber-600' },
-  action: { bg: 'bg-blue-50', border: 'border-blue-200', icon: 'text-blue-600' },
+  opportunity: { bg: 'bg-emerald-50', border: 'border-emerald-200', icon: 'text-emerald-700' },
+  urgent: { bg: 'bg-amber-50', border: 'border-amber-200', icon: 'text-amber-700' },
+  action: { bg: 'bg-blue-50', border: 'border-blue-200', icon: 'text-blue-700' },
   forecast: { bg: 'bg-indigo-50', border: 'border-indigo-200', icon: 'text-indigo-600' },
 };
 
@@ -196,8 +196,8 @@ const SECTOR_KPI_INTEL: Record<string, Record<string, KpiIntel>> = {
 
 function getRiskBadge(risk: 'low' | 'medium' | 'high') {
   if (risk === 'high') return 'bg-rose-50 text-rose-600 border border-rose-200';
-  if (risk === 'medium') return 'bg-amber-50 text-amber-600 border border-amber-200';
-  return 'bg-emerald-50 text-emerald-600 border border-emerald-200';
+  if (risk === 'medium') return 'bg-amber-50 text-amber-700 border border-amber-200';
+  return 'bg-emerald-50 text-emerald-700 border border-emerald-200';
 }
 function getRiskLabel(risk: 'low' | 'medium' | 'high') {
   if (risk === 'high') return 'High Risk';
@@ -206,7 +206,7 @@ function getRiskLabel(risk: 'low' | 'medium' | 'high') {
 }
 
 function KpiIntelRow({ label, text, tone }: { label: string; text: string; tone: 'slate' | 'indigo' | 'amber' }) {
-  const toneMap = { slate: 'text-slate-500', indigo: 'text-indigo-600', amber: 'text-amber-600' } as const;
+  const toneMap = { slate: 'text-slate-500', indigo: 'text-indigo-600', amber: 'text-amber-700' } as const;
   return (
     <div>
       <span className={`text-[9px] font-black uppercase tracking-widest ${toneMap[tone]}`}>{label}</span>
@@ -327,7 +327,7 @@ function WidgetRendererInner({ widget, data, sector, loading, presentationMode =
                 );
               })()}
               {preset.statusBadgeVisible && widget.showBadge !== false && metric?.isPositive !== undefined && (
-                <div className={`hidden @[170px]:block px-1.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider ${metric.isPositive ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
+                <div className={`hidden @[170px]:block px-1.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider ${metric.isPositive ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-600'}`}>
                   {metric.isPositive ? 'On Track' : 'At Risk'}
                 </div>
               )}
@@ -374,7 +374,7 @@ function WidgetRendererInner({ widget, data, sector, loading, presentationMode =
                 )}
                 {intel?.action && (
                   <div className="hidden @[220px]:block"><p className="hidden [@container(min-height:236px)]:flex items-start gap-1.5 rounded-lg bg-teal-50/70 border border-teal-100 px-2 py-1.5 text-[11px] leading-snug text-slate-700 font-semibold">
-                    <ArrowUpRight className="w-3.5 h-3.5 mt-px text-teal-600 shrink-0" aria-hidden />
+                    <ArrowUpRight className="w-3.5 h-3.5 mt-px text-teal-700 shrink-0" aria-hidden />
                     <span className="line-clamp-2"><span className="text-teal-700">Next step: </span>{intel.action}</span>
                   </p></div>
                 )}
@@ -417,7 +417,7 @@ function WidgetRendererInner({ widget, data, sector, loading, presentationMode =
                 </div>
                 <div className="text-[10px]">
                   <span className="text-slate-400 font-medium block">Status</span>
-                  <span className={`font-bold ${metric?.isPositive ? 'text-emerald-600' : 'text-rose-600'}`}>{metric?.isPositive ? 'On Track' : 'At Risk'}</span>
+                  <span className={`font-bold ${metric?.isPositive ? 'text-emerald-700' : 'text-rose-600'}`}>{metric?.isPositive ? 'On Track' : 'At Risk'}</span>
                 </div>
               </div>
             )}
@@ -581,7 +581,7 @@ function WidgetRendererInner({ widget, data, sector, loading, presentationMode =
                    <tr key={i} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
                      <td className="p-2 text-slate-700 font-medium">{m.label}</td>
                      <td className="p-2 font-bold text-slate-900">{m.value}</td>
-                     <td className={`p-2 font-bold ${m.isPositive ? 'text-emerald-600' : 'text-rose-600'}`}>{m.trend}</td>
+                     <td className={`p-2 font-bold ${m.isPositive ? 'text-emerald-700' : 'text-rose-600'}`}>{m.trend}</td>
                    </tr>
                  ))}
                </tbody>
@@ -616,7 +616,7 @@ function WidgetRendererInner({ widget, data, sector, loading, presentationMode =
       return (
         <div className={`h-full flex flex-col justify-center ${containerPadding}`}>
           <h3 className="text-sm font-black text-slate-900 mb-2 uppercase tracking-widest">{widget.title || 'Executive Summary'}</h3>
-          <p className={`${presentationMode ? 'text-[15px]' : 'text-sm'} text-slate-600 leading-relaxed`}>Overall performance in {sector} is showing a <strong className={metrics[0]?.isPositive ? 'text-emerald-600 bg-emerald-50 px-1 rounded' : 'text-rose-600 bg-rose-50 px-1 rounded'}>{metrics[0]?.trend || 'stable'}</strong> trend. Key indicators suggest strong operational health despite minor localized disruptions. Focus should remain on sustaining current throughput and mitigating identified supply chain risks.</p>
+          <p className={`${presentationMode ? 'text-[15px]' : 'text-sm'} text-slate-600 leading-relaxed`}>Overall performance in {sector} is showing a <strong className={metrics[0]?.isPositive ? 'text-emerald-700 bg-emerald-50 px-1 rounded' : 'text-rose-600 bg-rose-50 px-1 rounded'}>{metrics[0]?.trend || 'stable'}</strong> trend. Key indicators suggest strong operational health despite minor localized disruptions. Focus should remain on sustaining current throughput and mitigating identified supply chain risks.</p>
         </div>
       );
       

@@ -77,7 +77,7 @@ export function WidgetInspector({
                 Widget Settings
               </div>
               {saveStatus === 'saved' ? (
-                <span className="text-[9px] text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full flex items-center gap-1 transition-all"><CheckCircle2 className="w-3 h-3" /> Auto-saved</span>
+                <span className="text-[9px] text-emerald-700 bg-emerald-50 px-2 py-1 rounded-full flex items-center gap-1 transition-all"><CheckCircle2 className="w-3 h-3" /> Auto-saved</span>
               ) : (
                 <span className="text-[9px] text-slate-500 bg-slate-100 px-2 py-1 rounded-full transition-all">Saving...</span>
               )}

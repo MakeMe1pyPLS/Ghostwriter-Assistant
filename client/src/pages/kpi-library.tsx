@@ -44,7 +44,7 @@ function KpiCard({ kpi, industryName }: { kpi: IndustryKpi; industryName: string
           <p className="text-[11px] font-bold text-slate-400 mt-0.5 truncate">{industryName}</p>
         </div>
         <button onClick={() => toggleKpiWatch(kpi.id)} aria-pressed={watched} aria-label={watched ? 'Stop tracking' : 'Track this KPI'}
-          className={`p-1.5 rounded-lg transition-colors ${watched ? 'text-amber-500' : 'text-slate-300 hover:text-slate-500'}`}>
+          className={`p-1.5 rounded-lg transition-colors ${watched ? 'text-amber-700' : 'text-slate-300 hover:text-slate-500'}`}>
           <Star className="w-5 h-5" fill={watched ? 'currentColor' : 'none'} />
         </button>
       </div>
@@ -65,7 +65,7 @@ function KpiCard({ kpi, industryName }: { kpi: IndustryKpi; industryName: string
         <Button size="sm" variant="ghost" className="h-8 rounded-lg font-bold text-xs ml-auto" onClick={async () => {
           try { await navigator.clipboard.writeText(`${kpi.name} = ${kpi.formula}`); setCopied(true); setTimeout(() => setCopied(false), 1200); } catch { /* ignore */ }
         }}>
-          {copied ? <Check className="w-3.5 h-3.5 mr-1 text-emerald-600" /> : <Copy className="w-3.5 h-3.5 mr-1" />} Formula
+          {copied ? <Check className="w-3.5 h-3.5 mr-1 text-emerald-700" /> : <Copy className="w-3.5 h-3.5 mr-1" />} Formula
         </Button>
       </div>
     </motion.article>
@@ -154,7 +154,7 @@ export default function KpiLibraryPage() {
             <BookOpen className="w-10 h-10 text-slate-300 mx-auto" />
             <p className="font-black text-slate-900 mt-3">No KPIs match</p>
             <p className="text-sm text-slate-500 mt-1">Try another word, or ask the analyst which metric fits your situation.</p>
-            <Link href={`/insights?ask=${encodeURIComponent(`Which KPI should I track for: ${query || 'my business'}?`)}`}><Button variant="outline" className="mt-4 rounded-xl font-bold">Ask the analyst</Button></Link>
+            <Button variant="outline" className="mt-4 rounded-xl font-bold" asChild><Link href={`/insights?ask=${encodeURIComponent(`Which KPI should I track for: ${query || 'my business'}?`)}`}>Ask the analyst</Link></Button>
           </div>
         )}
       </div>

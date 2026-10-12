@@ -47,7 +47,7 @@ export function AccountDropdown() {
                 {currentUser.fullName}
               </p>
               {currentUser.emailVerified && (
-                <ShieldCheck className="w-3 h-3 text-emerald-500 shrink-0" />
+                <ShieldCheck className="w-3 h-3 text-emerald-700 shrink-0" />
               )}
             </div>
             <div className="flex items-center gap-1.5 mt-0.5">
@@ -86,7 +86,7 @@ export function AccountDropdown() {
               className="cursor-pointer"
               data-testid="menu-verify-email"
             >
-              <Mail className="w-4 h-4 mr-2 text-amber-600" />
+              <Mail className="w-4 h-4 mr-2 text-amber-700" />
               <span className="text-amber-700 font-semibold">Verify your email</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />

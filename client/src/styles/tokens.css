@@ -1,0 +1,147 @@
+/* ChainInsideIQ design tokens — the one place colours, type, spacing, radius,
+   shadows, layers and motion are defined. Components use them through Tailwind
+   classes (bg-primary, text-muted-foreground, shadow-card, rounded-card…) or
+   var(--…) directly. Rules for using them live in docs/BRAND.md.
+
+   Colour rules: body text ≥ 4.5:1 and large text ≥ 3:1 against the surface it
+   sits on (WCAG AA), in light and dark. */
+
+/* ---------------------------------------------------------------- Fonts --- */
+/* Inter (SIL Open Font License, see /fonts/OFL.txt), self-hosted: one variable
+   file, Latin subset, weights 400–900. "Inter Fallback" is Arial tuned to Inter's
+   metrics so text doesn't jump when the font arrives. */
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url("/fonts/inter-latin-var.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Inter Fallback";
+  src: local("Arial"), local("Helvetica Neue"), local("Helvetica");
+  ascent-override: 90.49%;
+  descent-override: 22.56%;
+  line-gap-override: 0%;
+  size-adjust: 107.06%;
+}
+
+/* ------------------------------------------------- Tailwind theme values --- */
+@theme {
+  --font-sans: "Inter", "Inter Fallback", ui-sans-serif, system-ui, sans-serif;
+
+  /* Neutral text greys, tuned so secondary text passes AA on white and on the
+     page background (#F4F7FA). Dark mode maps these separately. */
+  --color-slate-400: #5f6f86; /* 5.1:1 on white, 4.8:1 on the page */
+  --color-slate-500: #4f5e74; /* 6.6:1 on white */
+
+  /* Fluid type for headings: smaller on phones, the same on desktop. */
+  --text-3xl: clamp(1.5rem, 1.2rem + 1.2vw, 1.875rem);
+  --text-3xl--line-height: 1.2;
+  --text-4xl: clamp(1.75rem, 1.35rem + 1.6vw, 2.25rem);
+  --text-4xl--line-height: 1.15;
+  --text-5xl: clamp(2.125rem, 1.5rem + 2.6vw, 3rem);
+  --text-5xl--line-height: 1.08;
+  --text-6xl: clamp(2.5rem, 1.6rem + 3.6vw, 3.75rem);
+  --text-6xl--line-height: 1.05;
+  --text-7xl: clamp(2.75rem, 1.6rem + 4.6vw, 4.5rem);
+  --text-7xl--line-height: 1.02;
+
+  /* Shadows */
+  --shadow-card: 0 1px 2px rgb(15 23 42 / 0.04), 0 8px 24px -12px rgb(15 23 42 / 0.12);
+  --shadow-pop: 0 12px 32px -12px rgb(15 23 42 / 0.28), 0 2px 6px rgb(15 23 42 / 0.06);
+  --shadow-overlay: 0 30px 80px -24px rgb(15 23 42 / 0.45);
+
+  /* Radius */
+  --radius-card: 1.25rem;
+  --radius-control: 0.75rem;
+  --radius-pill: 999px;
+
+  /* Motion */
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* --------------------------------------------------------- Raw tokens --- */
+:root {
+  /* Brand */
+  --ciq-brand: #0f766e;        /* teal-700: buttons, links, focus. White text 5.5:1 */
+  --ciq-brand-strong: #115e59; /* hover/pressed */
+  --ciq-accent: #14b8a6;       /* teal-500: highlights, charts, never small text */
+  --ciq-ink: #0f172a;          /* headings and primary text */
+
+  /* Semantic: foreground (text/icons), soft background, border */
+  --ciq-success: #047857; --ciq-success-bg: #ecfdf5; --ciq-success-line: #a7f3d0;
+  --ciq-warning: #b45309; --ciq-warning-bg: #fffbeb; --ciq-warning-line: #fde68a;
+  --ciq-danger:  #be123c; --ciq-danger-bg:  #fff1f2; --ciq-danger-line:  #fecdd3;
+  --ciq-info:    #0369a1; --ciq-info-bg:    #f0f9ff; --ciq-info-line:    #bae6fd;
+
+  /* Spacing: Tailwind's 4px scale (p-1 = 4px, p-2 = 8px …). Use these steps for
+     layout: */
+  --space-section: clamp(3.5rem, 2rem + 6vw, 7rem); /* between page sections */
+  --space-card: 1.25rem;     /* inside cards (p-5) */
+  --space-gap: 1rem;         /* between cards (gap-4) */
+
+  /* Layers (z-index) — use z-(--z-…) */
+  --z-sticky: 30;
+  --z-header: 50;
+  --z-dropdown: 60;
+  --z-overlay: 80;
+  --z-modal: 90;
+  --z-toast: 95;
+  --z-intro: 100;
+
+  /* Motion durations */
+  --dur-fast: 150ms;   /* hover, press */
+  --dur-base: 200ms;   /* open/close, small moves */
+  --dur-slow: 250ms;   /* panels, page elements */
+}
+
+.dark {
+  --ciq-brand: #14807a;        /* white text 4.8:1, still distinct on the dark canvas */
+  --ciq-brand-strong: #0f766e;
+  --ciq-accent: #2dd4bf;
+  --ciq-ink: #eef2f8;
+
+  --ciq-success: #6ee7b7; --ciq-success-bg: rgb(16 185 129 / 0.14); --ciq-success-line: rgb(52 211 153 / 0.3);
+  --ciq-warning: #fcd34d; --ciq-warning-bg: rgb(245 158 11 / 0.14); --ciq-warning-line: rgb(251 191 36 / 0.3);
+  --ciq-danger:  #fda4af; --ciq-danger-bg:  rgb(244 63 94 / 0.14);  --ciq-danger-line:  rgb(251 113 133 / 0.3);
+  --ciq-info:    #7dd3fc; --ciq-info-bg:    rgb(14 165 233 / 0.14); --ciq-info-line:    rgb(56 189 248 / 0.3);
+
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.3), 0 8px 24px -12px rgb(0 0 0 / 0.5);
+}
+
+/* Tailwind colour names for the semantic tokens (text-success, bg-warning-soft…) */
+@theme inline {
+  --color-brand: var(--ciq-brand);
+  --color-brand-strong: var(--ciq-brand-strong);
+  --color-success: var(--ciq-success);
+  --color-success-soft: var(--ciq-success-bg);
+  --color-success-line: var(--ciq-success-line);
+  --color-warning: var(--ciq-warning);
+  --color-warning-soft: var(--ciq-warning-bg);
+  --color-warning-line: var(--ciq-warning-line);
+  --color-danger: var(--ciq-danger);
+  --color-danger-soft: var(--ciq-danger-bg);
+  --color-danger-line: var(--ciq-danger-line);
+  --color-info: var(--ciq-info);
+  --color-info-soft: var(--ciq-info-bg);
+  --color-info-line: var(--ciq-info-line);
+}
+
+/* Phones: form fields at 16px so iOS doesn't zoom in when you tap one.
+   Unlayered on purpose, so it wins over text-sm on a field. */
+@media (max-width: 767px) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
+/* Dark mode: the brand teal is darkened for button backgrounds (white text on
+   it), so brand-coloured text uses a lighter teal to stay readable. */
+@layer utilities {
+  :where(.dark) .text-primary,
+  :where(.dark) .hover\:text-primary:hover,
+  :where(.dark) .group:hover .group-hover\:text-primary { color: #2dd4bf; }
+}

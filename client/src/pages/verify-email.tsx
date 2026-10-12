@@ -54,17 +54,17 @@ function CloudVerifyEmail() {
       <AuthLayout title="You're all set" subtitle="Your email is confirmed and your account is ready." side="verify">
         <div className="flex flex-col items-center text-center space-y-6 py-4" data-testid="verify-email-done">
           <div className="w-20 h-20 rounded-full bg-emerald-100 border border-emerald-200 flex items-center justify-center">
-            <CheckCircle2 className="w-10 h-10 text-emerald-600" />
+            <CheckCircle2 className="w-10 h-10 text-emerald-700" />
           </div>
           <div>
             <h3 className="text-xl font-black text-slate-900 mb-2">Email confirmed</h3>
             <p className="text-sm text-slate-500">{currentUser.email}</p>
           </div>
-          <Link href="/onboarding" className="w-full">
-            <Button className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs" data-testid="button-continue">
+          <Button className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs" data-testid="button-continue" asChild>
+            <Link href="/onboarding" className="w-full">
               Build my growth plan <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
-          </Link>
+            </Link>
+          </Button>
         </div>
       </AuthLayout>
     );
@@ -149,17 +149,17 @@ function LocalVerifyEmail() {
       <AuthLayout title="You're all set" subtitle="Your email is verified and your workspace is fully active." side="verify">
         <div className="flex flex-col items-center text-center space-y-6 py-4">
           <div className="w-20 h-20 rounded-full bg-emerald-100 border border-emerald-200 flex items-center justify-center">
-            <CheckCircle2 className="w-10 h-10 text-emerald-600" />
+            <CheckCircle2 className="w-10 h-10 text-emerald-700" />
           </div>
           <div>
             <h3 className="text-xl font-black text-slate-900 mb-2">Email verified successfully</h3>
             <p className="text-sm text-slate-500">{currentUser.email}</p>
           </div>
-          <Link href="/onboarding" className="w-full">
-            <Button className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs" data-testid="button-continue">
+          <Button className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs" data-testid="button-continue" asChild>
+            <Link href="/onboarding" className="w-full">
               Continue to Workspace <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
-          </Link>
+            </Link>
+          </Button>
         </div>
       </AuthLayout>
     );

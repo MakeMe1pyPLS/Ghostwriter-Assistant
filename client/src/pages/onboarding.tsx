@@ -491,7 +491,7 @@ export default function OnboardingPage() {
                 ) : (
                   <div className="rounded-2xl border border-slate-200 bg-white p-4" data-testid="onboarding-upload-summary">
                     <div className="flex items-start gap-3">
-                      <span className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0"><FileSpreadsheet className="w-5 h-5" /></span>
+                      <span className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0"><FileSpreadsheet className="w-5 h-5" /></span>
                       <div className="min-w-0 flex-1">
                         <p className="text-sm font-bold text-slate-900 truncate">{draft.upload.fileName}</p>
                         <p className="text-xs text-slate-500">{draft.upload.payload.rowCount.toLocaleString()} rows · {draft.upload.payload.columns.length} columns</p>
@@ -503,7 +503,7 @@ export default function OnboardingPage() {
                         <div>
                           <p className="font-bold text-emerald-700 mb-1">Found in your file</p>
                           {draft.upload.matched.length ? draft.upload.matched.map((m) => (
-                            <p key={m.input} className="flex items-start gap-1.5 text-slate-600"><Check className="w-3.5 h-3.5 text-emerald-600 mt-0.5 shrink-0" />{m.input} <span className="text-slate-400 truncate">← {m.column}</span></p>
+                            <p key={m.input} className="flex items-start gap-1.5 text-slate-600"><Check className="w-3.5 h-3.5 text-emerald-700 mt-0.5 shrink-0" />{m.input} <span className="text-slate-400 truncate">← {m.column}</span></p>
                           )) : <p className="text-slate-500">No exact matches. The analyst will still read every column.</p>}
                         </div>
                         {draft.upload.missing.length > 0 && (
@@ -636,7 +636,7 @@ export default function OnboardingPage() {
                 <ul className="space-y-1.5">
                   {buildStages.map((label, i) => (
                     <li key={label} className="flex items-center gap-2 text-sm">
-                      {buildStage > i ? <Check className="w-4 h-4 text-emerald-600" /> : buildStage === i ? <Loader2 className="w-4 h-4 animate-spin text-primary" /> : <span className="w-4 h-4 rounded-full border-2 border-slate-200" />}
+                      {buildStage > i ? <Check className="w-4 h-4 text-emerald-700" /> : buildStage === i ? <Loader2 className="w-4 h-4 animate-spin text-primary" /> : <span className="w-4 h-4 rounded-full border-2 border-slate-200" />}
                       <span className={buildStage >= i ? 'text-slate-700' : 'text-slate-400'}>{label}</span>
                     </li>
                   ))}

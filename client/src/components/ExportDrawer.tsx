@@ -125,7 +125,7 @@ export function ExportDrawer({ layout, widgets, sector, dateRange = '30d', metri
         variant="secondary"
         className={`h-auto min-h-24 py-3 flex flex-col gap-2 rounded-xl border border-transparent transition-all relative overflow-hidden whitespace-normal ${className}`}
       >
-        {s === 'loading' ? <Loader2 className="w-6 h-6 animate-spin" /> : s === 'success' ? <CheckCircle2 className="w-6 h-6 text-emerald-500" /> : icon}
+        {s === 'loading' ? <Loader2 className="w-6 h-6 animate-spin" /> : s === 'success' ? <CheckCircle2 className="w-6 h-6 text-emerald-700" /> : icon}
         <span className="text-[11px] uppercase font-black tracking-widest">{s === 'loading' ? 'Exporting…' : label}</span>
         {sub && <span className="text-[10.5px] font-medium normal-case tracking-normal opacity-75 leading-snug">{sub}</span>}
       </Button>
@@ -151,18 +151,18 @@ export function ExportDrawer({ layout, widgets, sector, dateRange = '30d', metri
               <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Dashboard for your tool</h4>
               <p className="text-xs text-slate-500 mb-3">Cards land where you placed them in the Builder.</p>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {renderButton('excel', 'Excel', <FileSpreadsheet className="w-6 h-6 text-green-600" />, handleExcelExport, 'bg-green-50 hover:bg-green-100/50 hover:border-green-200 text-green-800', 'Dashboard sheet + data; KPI numbers update from the Data tab')}
-                {renderButton('sheets', 'Google Sheets', <Sheet className="w-6 h-6 text-emerald-600" />, handleSheetsExport, 'bg-emerald-50 hover:bg-emerald-100/50 hover:border-emerald-200 text-emerald-800', 'Same workbook; open it from Google Drive')}
-                {renderButton('powerbi', 'Power BI', <BarChart3 className="w-6 h-6 text-amber-600" />, handlePowerBiExport, 'bg-amber-50 hover:bg-amber-100/50 hover:border-amber-200 text-amber-900', 'Data tables, layout guide and colour theme')}
+                {renderButton('excel', 'Excel', <FileSpreadsheet className="w-6 h-6 text-green-700" />, handleExcelExport, 'bg-green-50 hover:bg-green-100/50 hover:border-green-200 text-green-800', 'Dashboard sheet + data; KPI numbers update from the Data tab')}
+                {renderButton('sheets', 'Google Sheets', <Sheet className="w-6 h-6 text-emerald-700" />, handleSheetsExport, 'bg-emerald-50 hover:bg-emerald-100/50 hover:border-emerald-200 text-emerald-800', 'Same workbook; open it from Google Drive')}
+                {renderButton('powerbi', 'Power BI', <BarChart3 className="w-6 h-6 text-amber-700" />, handlePowerBiExport, 'bg-amber-50 hover:bg-amber-100/50 hover:border-amber-200 text-amber-900', 'Data tables, layout guide and colour theme')}
               </div>
             </div>
 
             <div>
               <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Data & spec</h4>
               <div className="grid grid-cols-3 gap-3">
-                {renderButton('csv', 'CSV', <Table2 className="w-6 h-6 text-emerald-600" />, handleCsvExport, 'bg-slate-50 hover:bg-emerald-50 text-slate-700')}
+                {renderButton('csv', 'CSV', <Table2 className="w-6 h-6 text-emerald-700" />, handleCsvExport, 'bg-slate-50 hover:bg-emerald-50 text-slate-700')}
                 {renderButton('json', 'Spec', <FileJson className="w-6 h-6 text-primary" />, handleJsonExport, 'bg-slate-50 hover:bg-primary/5 text-slate-700')}
-                {renderButton('dataset', 'Dataset', <Database className="w-6 h-6 text-blue-600" />, handleDatasetExport, 'bg-slate-50 hover:bg-blue-50 text-slate-700')}
+                {renderButton('dataset', 'Dataset', <Database className="w-6 h-6 text-blue-700" />, handleDatasetExport, 'bg-slate-50 hover:bg-blue-50 text-slate-700')}
               </div>
             </div>
 

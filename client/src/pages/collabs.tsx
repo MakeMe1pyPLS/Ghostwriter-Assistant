@@ -275,7 +275,7 @@ function CollabCard({ collab, onEdit }: { collab: Collab; onEdit: () => void }) 
           <span key={p.id} className="inline-flex items-center gap-2 pl-1 pr-3 py-1 rounded-full bg-slate-100 text-sm font-bold text-slate-700">
             <span className="w-6 h-6 rounded-full bg-white border border-slate-200 text-[10px] font-black flex items-center justify-center">{p.name.slice(0, 2).toUpperCase()}</span>
             {p.name}<span className="text-slate-400 font-medium">· {p.role}</span>
-            {p.status === 'invited' && <span className="text-[9px] font-black uppercase tracking-widest text-amber-600">Invited</span>}
+            {p.status === 'invited' && <span className="text-[9px] font-black uppercase tracking-widest text-amber-700">Invited</span>}
           </span>
         ))}
       </div>
@@ -359,7 +359,7 @@ export default function CollabsPage() {
             <p className="font-black">Partners see the same data in real time once shared accounts launch.</p>
             <p className="text-sm text-slate-300 mt-1">Today, collabs are saved in this workspace and invites go out by email. Approved data requests are tracked under Settings → Data sharing.</p>
           </div>
-          <Link href="/settings"><Button variant="outline" className="rounded-xl font-bold bg-white/10 border-white/15 text-white hover:bg-white/15 hover:text-white">Data sharing settings</Button></Link>
+          <Button variant="outline" className="rounded-xl font-bold bg-white/10 border-white/15 text-white hover:bg-white/15 hover:text-white" asChild><Link href="/settings">Data sharing settings</Link></Button>
         </div>
       </div>
       {editorOpen && <CollabEditor key={editorKey} open={editorOpen} onOpenChange={setEditorOpen} initial={editing} />}

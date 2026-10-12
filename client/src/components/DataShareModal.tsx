@@ -163,7 +163,7 @@ export function DataShareRequestsPanel() {
             {req.message && <p className="text-xs text-slate-500 italic mb-3">"{req.message}"</p>}
             {req.status === 'pending' && (
               <div className="flex gap-2">
-                <Button size="sm" variant="outline" onClick={() => updateDataShareRequestStatus(req.id, 'approved')} className="h-8 rounded-lg text-[10px] font-bold text-emerald-600 border-emerald-200 hover:bg-emerald-50" data-testid={`approve-${req.id}`}>
+                <Button size="sm" variant="outline" onClick={() => updateDataShareRequestStatus(req.id, 'approved')} className="h-8 rounded-lg text-[10px] font-bold text-emerald-700 border-emerald-200 hover:bg-emerald-50" data-testid={`approve-${req.id}`}>
                   <CheckCircle2 className="w-3 h-3 mr-1" /> Approve
                 </Button>
                 <Button size="sm" variant="outline" onClick={() => updateDataShareRequestStatus(req.id, 'rejected')} className="h-8 rounded-lg text-[10px] font-bold text-rose-600 border-rose-200 hover:bg-rose-50" data-testid={`reject-${req.id}`}>

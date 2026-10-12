@@ -8,7 +8,7 @@ export function ExcelIntegrationPanel() {
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-green-100 text-green-600 flex items-center justify-center border border-green-200">
+            <div className="w-10 h-10 rounded-xl bg-green-100 text-green-700 flex items-center justify-center border border-green-200">
               <FileSpreadsheet className="w-5 h-5" />
             </div>
             <div>

@@ -174,7 +174,7 @@ function CustomApiModal({ open, onOpenChange, sector, dateRange, metrics, chartD
           {result && (
             <div className={`p-4 rounded-xl border ${result.success ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200'}`}>
               <div className="flex items-center gap-2 mb-2">
-                {result.success ? <CheckCircle2 className="w-4 h-4 text-emerald-600" /> : <AlertCircle className="w-4 h-4 text-red-600" />}
+                {result.success ? <CheckCircle2 className="w-4 h-4 text-emerald-700" /> : <AlertCircle className="w-4 h-4 text-red-700" />}
                 <span className={`text-xs font-black uppercase tracking-widest ${result.success ? 'text-emerald-700' : 'text-red-700'}`}>
                   {result.success ? 'Success' : 'Failed'}
                 </span>
@@ -203,23 +203,23 @@ function CustomApiModal({ open, onOpenChange, sector, dateRange, metrics, chartD
 
 const EXPORT_ITEMS = {
   dashboardFiles: [
-    { id: "excel", title: "Export Excel", desc: "Fully formatted Excel workbook with KPI cards, charts, and data tables reflecting your current dashboard.", icon: FileSpreadsheet, ext: ".xlsx", color: "text-green-600 bg-green-50 border-green-100", available: true },
-    { id: "csv", title: "Export CSV", desc: "Clean CSV with your current KPIs, trend data, and timeseries values for the selected sector and date range.", icon: Table2, ext: ".csv", color: "text-emerald-600 bg-emerald-50 border-emerald-100", available: true },
+    { id: "excel", title: "Export Excel", desc: "Fully formatted Excel workbook with KPI cards, charts, and data tables reflecting your current dashboard.", icon: FileSpreadsheet, ext: ".xlsx", color: "text-green-700 bg-green-50 border-green-100", available: true },
+    { id: "csv", title: "Export CSV", desc: "Clean CSV with your current KPIs, trend data, and timeseries values for the selected sector and date range.", icon: Table2, ext: ".csv", color: "text-emerald-700 bg-emerald-50 border-emerald-100", available: true },
     { id: "json", title: "Export Dashboard JSON", desc: "Portable dashboard blueprint — widgets, layout, theme, and data snapshot in a single JSON file.", icon: FileJson, ext: ".json", color: "text-yellow-600 bg-yellow-50 border-yellow-100", available: true },
   ],
   dataExports: [
-    { id: "dataset-json", title: "Export Dataset (JSON)", desc: "Underlying metrics, timeseries, and channel data as structured JSON.", icon: Database, ext: ".json", color: "text-blue-600 bg-blue-50 border-blue-100", available: true },
-    { id: "dataset-csv", title: "Export Dataset (CSV)", desc: "Flat CSV export of all metrics, timeseries, and channel data.", icon: ArrowDownToLine, ext: ".csv", color: "text-sky-600 bg-sky-50 border-sky-100", available: true },
+    { id: "dataset-json", title: "Export Dataset (JSON)", desc: "Underlying metrics, timeseries, and channel data as structured JSON.", icon: Database, ext: ".json", color: "text-blue-700 bg-blue-50 border-blue-100", available: true },
+    { id: "dataset-csv", title: "Export Dataset (CSV)", desc: "Flat CSV export of all metrics, timeseries, and channel data.", icon: ArrowDownToLine, ext: ".csv", color: "text-sky-700 bg-sky-50 border-sky-100", available: true },
   ],
   integrations: [
     { id: "custom-api", title: "Custom API", desc: "Send dashboard data and specs to your own API endpoint for integration with internal tools.", icon: Plug, ext: "API", color: "text-violet-600 bg-violet-50 border-violet-100", available: true },
   ],
   biTools: [
-    { id: "pbix", title: "Export Power BI", desc: "Export as a Power BI template with connected data models.", icon: BarChart, ext: ".pbix", color: "text-amber-600 bg-amber-50 border-amber-100", available: false },
+    { id: "pbix", title: "Export Power BI", desc: "Export as a Power BI template with connected data models.", icon: BarChart, ext: ".pbix", color: "text-amber-700 bg-amber-50 border-amber-100", available: false },
     { id: "twbx", title: "Export Tableau", desc: "Export as a packaged Tableau workbook.", icon: CloudCog, ext: ".twbx", color: "text-indigo-600 bg-indigo-50 border-indigo-100", available: false },
   ],
   reports: [
-    { id: "pdf", title: "Export PDF", desc: "Executive summary report with layout snapshots and insights.", icon: FileText, ext: ".pdf", color: "text-red-600 bg-red-50 border-red-100", available: false },
+    { id: "pdf", title: "Export PDF", desc: "Executive summary report with layout snapshots and insights.", icon: FileText, ext: ".pdf", color: "text-red-700 bg-red-50 border-red-100", available: false },
   ],
   embed: [
     { id: "link", title: "Share Link", desc: "Generate a secure, read-only link to this dashboard.", icon: LinkIcon, ext: "Copy", color: "text-slate-600 bg-slate-50 border-slate-200", available: false },

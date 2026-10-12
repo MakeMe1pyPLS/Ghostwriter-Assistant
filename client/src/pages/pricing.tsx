@@ -85,11 +85,11 @@ function PricingCard({ tier, billing, onCheckout, checkoutLoading, recommended }
 
       <div className="mt-5">
         {isEnterprise ? (
-          <Link href="/contact">
-            <Button variant="outline" className="w-full h-12 rounded-xl font-semibold text-[14px]" data-testid={`button-cta-${tier.id}`}>
+          <Button variant="outline" className="w-full h-12 rounded-xl font-semibold text-[14px]" data-testid={`button-cta-${tier.id}`} asChild>
+            <Link href="/contact">
               <Mail className="w-4 h-4" /> {tier.cta}
-            </Button>
-          </Link>
+            </Link>
+          </Button>
         ) : (
           <Button
             onClick={onCheckout}
@@ -313,7 +313,7 @@ export default function PricingPage() {
                 <tr className="border-b border-slate-200">
                   <th className="p-4 text-[13px] font-semibold text-slate-500 w-[40%]">Feature</th>
                   {PRICING_TIERS.map((t) => (
-                    <th key={t.id} className={cn("p-4 text-[14px] font-bold text-slate-900 text-center", recommendedPlan === t.id && "text-amber-600")}>{t.name}</th>
+                    <th key={t.id} className={cn("p-4 text-[14px] font-bold text-slate-900 text-center", recommendedPlan === t.id && "text-amber-700")}>{t.name}</th>
                   ))}
                 </tr>
               </thead>
@@ -355,7 +355,7 @@ export default function PricingPage() {
                 </div>
               ))}
             </div>
-            <Link href="/contact"><Button variant="outline" className="w-full mt-6 h-11 rounded-xl font-semibold">Book setup</Button></Link>
+            <Button variant="outline" className="w-full mt-6 h-11 rounded-xl font-semibold" asChild><Link href="/contact">Book setup</Link></Button>
           </div>
           <div className="rounded-3xl p-7 border border-slate-200 bg-white/80 dark:bg-slate-900/30">
             <h3 className="text-lg font-bold text-slate-900">Native add-ons</h3>
@@ -368,7 +368,7 @@ export default function PricingPage() {
                 </div>
               ))}
             </div>
-            <Link href="/contact"><Button variant="outline" className="w-full mt-6 h-11 rounded-xl font-semibold" data-testid="button-addon-waitlist">Join the waitlist</Button></Link>
+            <Button variant="outline" className="w-full mt-6 h-11 rounded-xl font-semibold" data-testid="button-addon-waitlist" asChild><Link href="/contact">Join the waitlist</Link></Button>
           </div>
         </div>
       </section>

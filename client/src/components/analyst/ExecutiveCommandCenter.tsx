@@ -29,13 +29,13 @@ const SEVERITY_STYLES: Record<Severity, { dot: string; badge: string; label: str
 function gradeColor(grade: string): string {
   switch (grade) {
     case "Strong":
-      return "text-emerald-600";
+      return "text-emerald-700";
     case "Stable":
       return "text-primary";
     case "At Risk":
-      return "text-amber-600";
+      return "text-amber-700";
     default:
-      return "text-red-600";
+      return "text-red-700";
   }
 }
 
@@ -145,7 +145,7 @@ function PriorityCard({ priority, index }: { priority: TopPriority; index: numbe
           <IntelRow icon={AlertTriangle} label="Business impact" tone="red" text={priority.businessImpact} />
           <IntelRow icon={Target} label="Recommended action" tone="teal" text={priority.recommendedAction} />
           <div className="flex items-start gap-2 rounded-xl bg-emerald-50 border border-emerald-100 px-3 py-2">
-            <ArrowUpRight className="w-3.5 h-3.5 text-emerald-600 mt-0.5 shrink-0" />
+            <ArrowUpRight className="w-3.5 h-3.5 text-emerald-700 mt-0.5 shrink-0" />
             <div>
               <span className="text-[9px] font-black uppercase tracking-widest text-emerald-700">Expected outcome</span>
               <p className="text-[12px] text-emerald-800 leading-relaxed mt-0.5">{priority.expectedOutcome}</p>
@@ -161,8 +161,8 @@ function PriorityCard({ priority, index }: { priority: TopPriority; index: numbe
 
 const TONE_STYLES: Record<string, string> = {
   slate: "text-slate-500",
-  amber: "text-amber-600",
-  red: "text-red-600",
+  amber: "text-amber-700",
+  red: "text-red-700",
   teal: "text-primary",
 };
 

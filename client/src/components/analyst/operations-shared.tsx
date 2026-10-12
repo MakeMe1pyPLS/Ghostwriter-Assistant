@@ -36,7 +36,7 @@ export const SEVERITY_STYLES: Record<
     badge: "bg-red-50 text-red-700 border-red-200",
     label: "High",
     bar: "#DC2626",
-    text: "text-red-600",
+    text: "text-red-700",
     soft: "bg-red-50 border-red-100",
   },
   medium: {
@@ -44,7 +44,7 @@ export const SEVERITY_STYLES: Record<
     badge: "bg-amber-50 text-amber-700 border-amber-200",
     label: "Medium",
     bar: "#D97706",
-    text: "text-amber-600",
+    text: "text-amber-700",
     soft: "bg-amber-50 border-amber-100",
   },
   low: {
@@ -52,7 +52,7 @@ export const SEVERITY_STYLES: Record<
     badge: "bg-emerald-50 text-emerald-700 border-emerald-200",
     label: "Low",
     bar: "#059669",
-    text: "text-emerald-600",
+    text: "text-emerald-700",
     soft: "bg-emerald-50 border-emerald-100",
   },
 };

@@ -13,6 +13,7 @@ const Textarea = React.forwardRef<
         className
       )}
       ref={ref}
+      aria-label={!props.id && !props["aria-labelledby"] ? props["aria-label"] ?? props.placeholder : props["aria-label"]}
       {...props}
     />
   )

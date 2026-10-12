@@ -128,7 +128,7 @@ function CsvTab() {
 
       {status === 'error' && (
         <div className="flex items-center gap-3 p-4 bg-red-50 rounded-xl border border-red-200">
-          <AlertCircle className="w-5 h-5 text-red-600 shrink-0" />
+          <AlertCircle className="w-5 h-5 text-red-700 shrink-0" />
           <p className="text-sm font-bold text-red-700">{errorMessage || "We couldn’t read that file. Check the format and try again."}</p>
         </div>
       )}
@@ -299,7 +299,7 @@ function SheetsTab() {
 
       {status === 'error' && errorMsg && (
         <div className="flex items-start gap-3 p-4 bg-red-50 rounded-xl border border-red-200">
-          <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+          <AlertCircle className="w-5 h-5 text-red-700 shrink-0 mt-0.5" />
           <p className="text-xs font-medium text-red-700">{errorMsg}</p>
         </div>
       )}
@@ -391,7 +391,7 @@ function ApiTab() {
 
       {status === 'error' && errorMsg && (
         <div className="flex items-start gap-3 p-4 bg-red-50 rounded-xl border border-red-200">
-          <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+          <AlertCircle className="w-5 h-5 text-red-700 shrink-0 mt-0.5" />
           <p className="text-xs font-medium text-red-700">{errorMsg}</p>
         </div>
       )}

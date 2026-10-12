@@ -92,11 +92,11 @@ export default function DashboardPage() {
       <div className="p-4 sm:p-6 md:p-10 max-w-[1600px] mx-auto min-h-0 flex flex-col">
         <header className="flex flex-col xl:flex-row justify-between items-start xl:items-end gap-4 mb-6 md:mb-8 shrink-0">
           <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-            <Link href="/builder">
-              <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full bg-white shadow-sm border border-slate-200 text-slate-500 hover:text-slate-900 shrink-0" aria-label="Back to Builder">
+            <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full bg-white shadow-sm border border-slate-200 text-slate-500 hover:text-slate-900 shrink-0" aria-label="Back to Builder" asChild>
+              <Link href="/builder">
                 <ArrowLeft className="w-5 h-5" />
-              </Button>
-            </Link>
+              </Link>
+            </Button>
             <div className="min-w-0">
               <p className="text-[13px] font-medium text-slate-500 truncate">{greeting}{businessName ? `, ${businessName}` : ""}</p>
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 tracking-[-0.035em] leading-tight">Operations Center</h1>
@@ -168,9 +168,9 @@ export default function DashboardPage() {
             <div className="h-64 flex flex-col items-center justify-center text-center bg-white rounded-3xl border border-slate-200 border-dashed">
               <h3 className="text-lg font-bold text-slate-900 mb-2">No Widgets Configured</h3>
               <p className="text-slate-500 text-sm mb-6">Build your dashboard first to see it here in presentation mode.</p>
-              <Link href="/builder">
-                <Button>Go to Builder</Button>
-              </Link>
+              <Button asChild>
+                <Link href="/builder">Go to Builder</Link>
+              </Button>
             </div>
           ) : (
             // Same responsive grid engine + geometry as the Builder, so widgets

@@ -50,8 +50,8 @@ function RecommendationCard({ item, rank, sector }: { item: OperationsIntelItem;
         <div className="grid sm:grid-cols-2 gap-3">
           <div className="bg-[#F4F7FA] rounded-xl border border-slate-100 p-3.5">
             <div className="flex items-center gap-1.5 mb-1.5">
-              <Search className="w-3.5 h-3.5 text-amber-600" />
-              <span className="text-[9px] font-black uppercase tracking-widest text-amber-600">
+              <Search className="w-3.5 h-3.5 text-amber-700" />
+              <span className="text-[9px] font-black uppercase tracking-widest text-amber-700">
                 Issue Detected
               </span>
             </div>
@@ -100,7 +100,7 @@ function RecommendationCard({ item, rank, sector }: { item: OperationsIntelItem;
         </div>
 
         <div className="flex items-center gap-2.5 bg-emerald-50/60 rounded-xl border border-emerald-100 p-3.5">
-          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+          <CheckCircle2 className="w-4 h-4 text-emerald-700 shrink-0" />
           <div className="min-w-0">
             <span className="text-[9px] font-black uppercase tracking-widest text-emerald-700 block">
               Expected Outcome
@@ -135,7 +135,7 @@ export default function RecommendationsPage() {
             <div className="flex items-start justify-between gap-4 flex-wrap">
               <div className="flex items-center gap-3">
                 <div className="bg-teal-50 p-2.5 rounded-xl border border-teal-100 shadow-sm">
-                  <Lightbulb className="w-5 h-5 text-teal-600" />
+                  <Lightbulb className="w-5 h-5 text-teal-700" />
                 </div>
                 <div>
                   <h1 className="text-base md:text-lg font-black text-slate-900 tracking-tight uppercase">
@@ -151,7 +151,7 @@ export default function RecommendationsPage() {
                   <GeneratedByBadge generatedBy={data.generatedBy} />
                   <button
                     onClick={reload}
-                    className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-teal-600 transition-colors"
+                    className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-teal-700 transition-colors"
                     data-testid="button-refresh-recommendations"
                   >
                     <RefreshCw className="w-3.5 h-3.5" />
@@ -176,7 +176,7 @@ export default function RecommendationsPage() {
                 <p className="text-sm font-bold text-slate-600">Could not load recommendations.</p>
                 <button
                   onClick={reload}
-                  className="mt-3 text-xs font-black uppercase tracking-widest text-teal-600 hover:text-teal-700"
+                  className="mt-3 text-xs font-black uppercase tracking-widest text-teal-700 hover:text-teal-700"
                   data-testid="button-retry-recommendations"
                 >
                   Try again

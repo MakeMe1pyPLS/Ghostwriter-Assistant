@@ -146,7 +146,7 @@ export function ConsultVisual() {
             <p className="text-[13px] font-bold text-slate-900 truncate">{o.title}</p>
             <p className="text-[11px] text-slate-500 truncate">{o.meta}</p>
           </div>
-          {o.rec && <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-teal-600 text-white shrink-0">Pick</span>}
+          {o.rec && <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-teal-700 text-white shrink-0">Pick</span>}
         </motion.div>
       ))}
       <motion.p className="text-[12px] font-semibold text-teal-700 flex items-center gap-1.5" initial={{ opacity: 0 }} animate={{ opacity: on ? 1 : 0 }} transition={{ delay: 0.75 }}>
@@ -235,7 +235,7 @@ export function KpiVisual() {
 /** Import & export: files flow in, the dashboard flows out to your tools. */
 export function ExportVisual() {
   const { ref, on } = useOnce<HTMLDivElement>();
-  const left = [{ icon: FileSpreadsheet, label: "Excel", c: "text-emerald-600" }, { icon: FileText, label: "CSV", c: "text-sky-600" }, { icon: FileJson, label: "JSON", c: "text-amber-600" }];
+  const left = [{ icon: FileSpreadsheet, label: "Excel", c: "text-emerald-700" }, { icon: FileText, label: "CSV", c: "text-sky-700" }, { icon: FileJson, label: "JSON", c: "text-amber-700" }];
   const right = [{ icon: FileSpreadsheet, label: "Excel" }, { icon: BarChart3, label: "Power BI" }, { icon: FileText, label: "Sheets" }];
   return (
     <div ref={ref} className="h-full grid grid-cols-[1fr_auto_1fr] items-center gap-2">

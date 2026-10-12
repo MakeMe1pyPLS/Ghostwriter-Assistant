@@ -25,10 +25,10 @@ import { UpgradeBanner } from "@/components/UpgradeBadge";
 
 const STAGES = [
   { key: "currentState", label: "Current State", icon: Activity, color: "text-slate-500", bg: "bg-slate-50 border-slate-200" },
-  { key: "issueDetected", label: "Issue Detected", icon: Search, color: "text-amber-600", bg: "bg-amber-50 border-amber-100" },
-  { key: "rootCause", label: "Root Cause", icon: GitBranch, color: "text-red-600", bg: "bg-red-50 border-red-100" },
+  { key: "issueDetected", label: "Issue Detected", icon: Search, color: "text-amber-700", bg: "bg-amber-50 border-amber-100" },
+  { key: "rootCause", label: "Root Cause", icon: GitBranch, color: "text-red-700", bg: "bg-red-50 border-red-100" },
   { key: "recommendedAction", label: "Recommendation", icon: Target, color: "text-teal-700", bg: "bg-teal-50 border-teal-100" },
-  { key: "expectedOutcome", label: "Expected Outcome", icon: CheckCircle2, color: "text-emerald-600", bg: "bg-emerald-50 border-emerald-100" },
+  { key: "expectedOutcome", label: "Expected Outcome", icon: CheckCircle2, color: "text-emerald-700", bg: "bg-emerald-50 border-emerald-100" },
 ] as const;
 
 function PipelineRow({ item, rank }: { item: OperationsIntelItem; rank: number }) {
@@ -51,8 +51,8 @@ function PipelineRow({ item, rank }: { item: OperationsIntelItem; rank: number }
             <span
               className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border ${
                 item.type === "bottleneck"
-                  ? "bg-red-50 text-red-600 border-red-100"
-                  : "bg-emerald-50 text-emerald-600 border-emerald-100"
+                  ? "bg-red-50 text-red-700 border-red-100"
+                  : "bg-emerald-50 text-emerald-700 border-emerald-100"
               }`}
             >
               {item.type}
@@ -152,7 +152,7 @@ export default function PipelinePage() {
                   <GeneratedByBadge generatedBy={data.generatedBy} />
                   <button
                     onClick={reload}
-                    className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-teal-600 transition-colors"
+                    className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-teal-700 transition-colors"
                     data-testid="button-refresh-pipeline"
                   >
                     <RefreshCw className="w-3.5 h-3.5" />
@@ -177,7 +177,7 @@ export default function PipelinePage() {
                 <p className="text-sm font-bold text-slate-600">Could not load the operations pipeline.</p>
                 <button
                   onClick={reload}
-                  className="mt-3 text-xs font-black uppercase tracking-widest text-teal-600 hover:text-teal-700"
+                  className="mt-3 text-xs font-black uppercase tracking-widest text-teal-700 hover:text-teal-700"
                   data-testid="button-retry-pipeline"
                 >
                   Try again

@@ -126,7 +126,7 @@ export default function ClientReportPage() {
             <H2>Done in the last 30 days</H2>
             <ul className="space-y-1.5">
               {recentDone.map((a) => (
-                <li key={a.id} className="flex gap-2 text-sm"><Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" /><span>{a.title} <span className="text-slate-400">· {a.completedAt ? fmtTs(a.completedAt) : ""}</span></span></li>
+                <li key={a.id} className="flex gap-2 text-sm"><Check className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" /><span>{a.title} <span className="text-slate-400">· {a.completedAt ? fmtTs(a.completedAt) : ""}</span></span></li>
               ))}
             </ul>
           </section>
@@ -201,7 +201,7 @@ function Stat({ label, value, sub, tone }: { label: string; value: string; sub?:
   return (
     <div className="rounded-2xl border border-slate-200 p-4 break-inside-avoid">
       <p className="text-[11px] font-black uppercase tracking-widest text-slate-400">{label}</p>
-      <p className={cn("text-xl font-black mt-1", tone === "bad" ? "text-rose-600" : tone === "good" ? "text-emerald-600" : "text-slate-900")}>{value}</p>
+      <p className={cn("text-xl font-black mt-1", tone === "bad" ? "text-rose-600" : tone === "good" ? "text-emerald-700" : "text-slate-900")}>{value}</p>
       {sub && <p className="text-[12px] text-slate-500 mt-0.5">{sub}</p>}
     </div>
   );

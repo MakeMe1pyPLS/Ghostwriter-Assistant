@@ -37,7 +37,7 @@ export async function buildDashboardWorkbook(payload: any): Promise<Blob> {
     layouts: payload.layouts ?? {},
     widgets: payload.widgets ?? [],
   });
-  return new Blob([bytes], { type: XLSX });
+  return new Blob([bytes as BlobPart], { type: XLSX });
 }
 
 export async function exportExcelDashboard(payload: any, filename: string) {

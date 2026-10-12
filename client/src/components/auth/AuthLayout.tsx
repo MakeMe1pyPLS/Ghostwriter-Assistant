@@ -66,7 +66,7 @@ export function AuthLayout({ children, title, subtitle, side = "signin" }: AuthL
           </ul>
         </div>
 
-        <div className="relative z-10 text-[11px] text-slate-500 font-medium">
+        <div className="relative z-10 text-[11px] text-slate-300 font-medium">
           &copy; {new Date().getFullYear()} ChainInsideIQ. Trusted by operations teams worldwide.
         </div>
       </aside>
