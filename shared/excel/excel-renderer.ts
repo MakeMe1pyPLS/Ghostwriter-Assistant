@@ -84,8 +84,7 @@ export async function generateExcelDashboard(request: ExcelExportRequest): Promi
 
     try {
       if (effectiveType === 'kpi') {
-        const metricIndex = widget.metricIndex ?? 0;
-        const metric = data.metrics[metricIndex] || data.metrics[0];
+        const metric = resolveMetric(widget, data);
         renderKpiCard(dashSheet, placement.range, widget, metric, theme);
 
         if (metric) {
@@ -422,4 +421,24 @@ function populateSpecSheet(ws: ExcelJSTypes.Worksheet, spec: any, widgets: any[]
   ws.getColumn(3).width = 14;
   ws.getColumn(4).width = 12;
   ws.getColumn(5).width = 14;
+}
+
+const norm = (s: string) => String(s ?? '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+
+/**
+ * The numbers a KPI card shows: the metric the card was set to, or for a KPI-library
+ * card the metric with the same name. A library KPI with no data yet gets an empty
+ * value to fill in on the Data sheet, never another KPI's numbers.
+ */
+function resolveMetric(widget: any, data: any) {
+  const all: any[] = data.allMetrics?.length ? data.allMetrics : data.metrics;
+  if (widget.customMetricId) {
+    const m = all.find((x: any) => x.label === widget.customMetricId);
+    if (m) return m;
+  }
+  if (widget.libraryKpiId) {
+    const name = widget.title || '';
+    return all.find((x: any) => norm(x.label) === norm(name)) ?? { label: name || 'KPI', value: '', trend: '', isPositive: true, helpText: 'No data yet: enter the value on the Data sheet.' };
+  }
+  return data.metrics[widget.metricIndex ?? 0] || data.metrics[0];
 }

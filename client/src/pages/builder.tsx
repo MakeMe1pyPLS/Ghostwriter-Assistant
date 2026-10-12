@@ -60,6 +60,23 @@ function timeAgo(ts: number): string {
 const clean = (l: any[]): Item[] => l.map(({ i, x, y, w, h }: any) => ({ i, x, y, w, h }));
 const geometry = (l: Item[]) => JSON.stringify(l.map(({ i, x, y, w, h }) => [i, x, y, w, h]).sort());
 const bottomOf = (l: Item[]) => l.reduce((m, it) => Math.max(m, it.y + it.h), 0);
+/** First free spot for a w×h card, scanning rows top to bottom (fine units, 48 columns). */
+function firstFreeSpot(l: Item[], w: number, h: number, cols = FINE_COLS.lg): { x: number; y: number } {
+  const hit = (x: number, y: number) => l.some((o) => x < o.x + o.w && o.x < x + w && y < o.y + o.h && o.y < y + h);
+  const limit = bottomOf(l) + 1;
+  for (let y = 0; y <= limit; y++) for (let x = 0; x + w <= cols; x++) if (!hit(x, y)) return { x, y };
+  return { x: 0, y: bottomOf(l) };
+}
+/** Pack cards upward and leftward in reading order, keeping their sizes (removes gaps). */
+function tidy(l: Item[], cols = FINE_COLS.lg): Item[] {
+  const placed: Item[] = [];
+  for (const it of [...l].sort((a, b) => a.y - b.y || a.x - b.x)) {
+    const w = Math.min(it.w, cols);
+    const { x, y } = firstFreeSpot(placed, w, it.h, cols);
+    placed.push({ ...it, x, y, w });
+  }
+  return placed;
+}
 const overlaps = (a: Item, b: Item) => a.i !== b.i && a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
 /** Push cards that overlap the moved card down below it (and so on), so nothing ends up on top of another card. */
 function pushDown(layout: Item[], movedId: string): Item[] {
@@ -236,10 +253,12 @@ export default function BuilderPage() {
 
   const addWidget = (widgetInfo: any) => {
     const id = `${widgetInfo.id}-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-    const item: Item = { i: id, x: 0, y: bottomOf(layout), w: widgetInfo.w * FINE, h: widgetInfo.h * FINE };
+    const w = Math.min(FINE_COLS.lg, widgetInfo.w * FINE), h = widgetInfo.h * FINE;
+    const spot = firstFreeSpot(layout, w, h);
+    const item: Item = { i: id, x: spot.x, y: spot.y, w, h };
     commit([...layout, item], [...widgets, { id, type: widgetInfo.id, metricIndex: Math.floor(Math.random() * 4), ...(widgetInfo.defaultProps || {}) }], { history: true });
     lastPush.current = 0;
-    toast({ title: "Card added", description: `${widgetInfo.name} is at the bottom of the grid. Drag it into place.` });
+    toast({ title: "Card added", description: `${widgetInfo.name} went into the first free space. Drag it anywhere.` });
   };
 
   const removeWidget = (id: string) => {
@@ -259,13 +278,21 @@ export default function BuilderPage() {
     if (!src || !item) return;
     const newId = `${src.type}-${Date.now()}`;
     lastPush.current = 0;
-    commit([...layout, { ...item, i: newId, y: bottomOf(layout) }], [...widgets, { ...src, id: newId }]);
+    const spot = firstFreeSpot(layout, item.w, item.h);
+    commit([...layout, { ...item, i: newId, ...spot }], [...widgets, { ...src, id: newId }]);
     lastPush.current = 0;
-    toast({ title: "Card duplicated", description: "The copy is at the bottom of the grid." });
+    toast({ title: "Card duplicated", description: "The copy went into the first free space." });
   };
 
   const updateWidget = (id: string, updates: any) => {
     commit(layout, widgets.map((w) => (w.id === id ? { ...w, ...updates } : w)));
+  };
+
+  const tidyLayout = () => {
+    lastPush.current = 0;
+    commit(tidy(layout), widgets);
+    lastPush.current = 0;
+    toast({ title: "Tidied up", description: "Gaps closed and cards packed together. Undo puts them back." });
   };
 
   const resetLayout = () => {
@@ -399,6 +426,7 @@ export default function BuilderPage() {
         <DropdownMenuItem onSelect={() => navigate('/dashboard')} className="gap-2 sm:hidden"><Eye className="w-4 h-4" /> View dashboard</DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={() => saveNow(false)} className="gap-2" data-testid="button-save-layout"><Save className="w-4 h-4" /> Save now</DropdownMenuItem>
+        <DropdownMenuItem onSelect={tidyLayout} className="gap-2" data-testid="menu-tidy"><Sparkles className="w-4 h-4 text-teal-700" /> Tidy up (close gaps)</DropdownMenuItem>
         <DropdownMenuItem onSelect={resetLayout} className="gap-2"><RotateCcw className="w-4 h-4" /> Reset to default cards</DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={importSpec} className="gap-2"><Upload className="w-4 h-4" /> Import spec (JSON)</DropdownMenuItem>

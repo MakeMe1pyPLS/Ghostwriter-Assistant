@@ -12,6 +12,35 @@ import { getAllMetrics } from "@/hooks/use-sector-data";
 import { CARD_PRESETS, type CardPresetId } from "@/lib/kpi-card-presets";
 import { getHighlights, type OpportunityRiskHighlight } from "@/lib/opportunity-risk-engine";
 import { kpiDetail, type KpiDetail } from "@shared/kpi-detail";
+import { ALL_INDUSTRY_KPIS } from "@shared/kpi-industries";
+import { kpiKey } from "@shared/kpi-viz";
+
+const KPI_BY_ID = new Map(ALL_INDUSTRY_KPIS.map((k) => [k.id, k]));
+const UNIT_LABEL: Record<string, string> = { '%': '%', '$': '$', '#': 'count', days: 'days', hrs: 'hours', min: 'minutes', x: '×', score: 'score' };
+
+/** A library KPI with no numbers yet: its name, the visual it will use, and how it's measured. */
+function KpiNoData({ title, kind, unit, formula }: { title: string; kind: string; unit?: string; formula?: string }) {
+  const ghost = kind === 'progress'
+    ? <div className="w-16 h-16 rounded-full border-[7px] border-slate-100 border-t-slate-200" aria-hidden />
+    : kind === 'bar'
+      ? <div className="flex items-end gap-1.5 h-12" aria-hidden>{[40, 65, 50, 80, 60, 90].map((h, i) => <div key={i} className="w-3 rounded-t bg-slate-100" style={{ height: `${h}%` }} />)}</div>
+      : ['trend', 'area', 'line'].includes(kind)
+        ? <svg viewBox="0 0 120 40" className="w-full max-w-[220px] h-12 text-slate-200" aria-hidden><path d="M2 32 C 22 30, 30 12, 48 18 S 80 34, 96 14 S 112 8, 118 6" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" /></svg>
+        : <span className="text-3xl font-black text-slate-200 leading-none" aria-hidden>—</span>;
+  return (
+    <div className="h-full flex flex-col p-1 min-h-0" data-testid="kpi-no-data">
+      <div className="flex items-start justify-between gap-2">
+        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider leading-tight line-clamp-2">{title}</span>
+        {unit && <span className="shrink-0 text-[10px] font-bold text-slate-400 border border-slate-200 rounded px-1.5 py-0.5">{UNIT_LABEL[unit] ?? unit}</span>}
+      </div>
+      <div className="flex-1 min-h-0 flex items-center justify-center py-2">{ghost}</div>
+      <div className="space-y-1">
+        <p className="text-[11px] font-semibold text-slate-600">No data yet</p>
+        {formula && <p className="hidden [@container(min-height:150px)]:block text-[10.5px] leading-snug text-slate-500 line-clamp-2">How it's measured: {formula}</p>}
+      </div>
+    </div>
+  );
+}
 
 const InsightsWidgetContent = memo(function InsightsWidgetContent({ sector, title }: { sector: string, title?: string }) {
   const [insights, setInsights] = useState<any>(null);
@@ -250,6 +279,15 @@ function WidgetRendererInner({ widget, data, sector, loading, presentationMode =
     ? widget.chartType 
     : widget.type;
 
+  // A KPI from the KPI library shows its own numbers, or an honest "no data yet"
+  // card with its formula; never another KPI's sample values.
+  if (widget.libraryKpiId) {
+    const libKpi = KPI_BY_ID.get(widget.libraryKpiId);
+    const found = libKpi && allMetrics.find((m: any) => kpiKey(m.label) === kpiKey(libKpi.name));
+    if (!found) return <KpiNoData title={widget.title || libKpi?.name || 'KPI'} kind={actualType} unit={libKpi?.unit} formula={libKpi?.formula} />;
+    metric = found;
+  }
+
   const chartColor = getChartColor(widget.badgeColor);
   const containerPadding = presentationMode ? "" : "p-1";
 
@@ -427,7 +465,9 @@ function WidgetRendererInner({ widget, data, sector, loading, presentationMode =
     }
     
     case 'progress': {
-      const value = parseInt((metric?.value || '0').replace(/[^0-9]/g, '')) % 100 || 75;
+      // A rate shown as a share of 100%.
+      const parsed = parseFloat(String(metric?.value ?? '').replace(/[^0-9.\-]/g, ''));
+      const value = Number.isFinite(parsed) ? Math.max(0, Math.min(100, Math.round(parsed * 10) / 10)) : 0;
       return (
         <div className={`h-full flex flex-col ${containerPadding} items-center justify-center relative`}>
           <div className="absolute top-1 left-1">

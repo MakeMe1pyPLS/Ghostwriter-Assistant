@@ -297,6 +297,21 @@ The rule-based analyst, dashboard generator, exporters, KPI library and plan bui
   - The grid dots turn teal while you edit.
   - The card library docks on the right on desktop and can be hidden for more room.
 
+### Every KPI in the Builder, with the right chart
+- **All 347 KPIs are in the Builder's card library.** Search them, filter by industry (47) or category, and add any with one tap.
+- **The right chart for each KPI** (`shared/kpi-viz.ts`):
+  - Money totals like revenue use an area chart.
+  - Counts like orders use a bar chart.
+  - Rates toward 100% (on-time, utilization, accuracy) use a gauge.
+  - Margins and growth rates use a line chart.
+  - Everything else uses a KPI card.
+- **Honest data.** A KPI that has numbers in your workspace shows them (green dot in the library). One without data shows "No data yet" and how it's measured, never another KPI's numbers. Excel exports now use each card's own KPI too, leaving an empty value to fill in when there's no data.
+- **More room on the page.**
+  - The Builder page is wider (1600px), so more cards fit side by side at a readable size.
+  - New and duplicated cards go into the first free space instead of the bottom.
+  - "Tidy up (close gaps)" in the ⋯ menu packs everything together, and Undo reverses it.
+- **Gauge fix:** gauges now show the real percentage instead of a made-up fallback.
+
 ## Environment variables
 
 | Variable | Needed for | Default |
