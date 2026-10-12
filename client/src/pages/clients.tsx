@@ -21,7 +21,8 @@ import {
   type ClientRecord, type ClientStatus, type EngagementType, type WorkspaceStats, type WorkspaceSnapshot,
 } from "@/hooks/use-clients-store";
 import { useGrowthStore } from "@/hooks/use-growth-store";
-import { INDUSTRIES, getIndustry } from "@shared/kpi-industries";
+import { useSyncStatus } from "@/lib/cloud-sync";
+import { BUSINESS_INDUSTRIES, getIndustry } from "@shared/kpi-industries";
 import { Stagger, StaggerItem, EASE_OUT } from "@/components/motion";
 import { cn } from "@/lib/utils";
 
@@ -53,6 +54,7 @@ export default function ClientsPage() {
   const open = rows.reduce((n, r) => n + (r.stats.total - r.stats.done), 0);
   const reviewsDue = rows.filter((r) => r.client.nextReview && r.client.nextReview <= inDays(7) && r.client.status !== "Completed").length;
   const usageMb = storageUsage() / 1_000_000;
+  const signedIn = useSyncStatus((s) => s.state !== "off");
 
   const openWorkspace = (id: string | null, to = "/plan") => { switchTo(id); navigate(to); };
 
@@ -134,7 +136,9 @@ export default function ClientsPage() {
         <div className="rounded-3xl border border-slate-200 bg-white p-4 sm:p-5 flex gap-3 items-start">
           <HardDrive className="w-5 h-5 text-slate-400 shrink-0 mt-0.5" aria-hidden />
           <p className="text-[13px] text-slate-500">
-            Client workspaces are saved in this browser on this device ({usageMb < 0.1 ? "under 0.1" : usageMb.toFixed(1)} MB used). Export important data from each workspace regularly. Signing in from other devices and inviting clients to their own workspace come with accounts, which are coming soon.
+            {signedIn
+              ? <>Every client workspace is saved to your account, so it's there when you sign in on another device. Only you can see them. Inviting clients to sign in to their own workspace is coming soon.</>
+              : <>Client workspaces are saved in this browser on this device ({usageMb < 0.1 ? "under 0.1" : usageMb.toFixed(1)} MB used). <Link href="/sign-up" className="font-bold text-primary hover:underline">Create an account</Link> to keep them safe and open them on any device.</>}
             {isStorageFull() && <span className="block mt-1 font-bold text-rose-600">Your browser storage is full, so recent changes may not be saved. Remove old datasets or clients to free space.</span>}
           </p>
         </div>
@@ -202,8 +206,8 @@ function ClientCard({ client, stats, active, onOpen, onDetails }: { client: Clie
 
 function IndustrySelect({ value, onChange, id }: { value?: string; onChange: (v: string | undefined) => void; id: string }) {
   const groups = useMemo(() => {
-    const m = new Map<string, typeof INDUSTRIES>();
-    for (const i of INDUSTRIES) m.set(i.group, [...(m.get(i.group) ?? []), i]);
+    const m = new Map<string, typeof BUSINESS_INDUSTRIES>();
+    for (const i of BUSINESS_INDUSTRIES) m.set(i.group, [...(m.get(i.group) ?? []), i]);
     return [...m.entries()];
   }, []);
   return (

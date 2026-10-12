@@ -9,7 +9,7 @@
 
 export type KpiUnit = '%' | '$' | '#' | 'days' | 'hrs' | 'min' | 'x' | 'score';
 export type KpiDirection = 'up' | 'down';
-export type KpiCategory = 'Growth' | 'Profit' | 'Operations' | 'Customer' | 'People' | 'Cash' | 'Quality' | 'Partners';
+export type KpiCategory = 'Growth' | 'Profit' | 'Operations' | 'Customer' | 'People' | 'Cash' | 'Quality' | 'Partners' | 'AI';
 
 export interface IndustryKpi {
   id: string;
@@ -42,6 +42,8 @@ export type IndustryGroup =
   | 'Education & community'
   | 'Media & entertainment';
 
+import { KPI_COUNTS } from './kpi-stats';
+
 type T = [string, KpiUnit, KpiDirection, KpiCategory, string];
 
 const RAW: { id: string; name: string; group: IndustryGroup; kpis: T[] }[] = [
@@ -63,6 +65,38 @@ const RAW: { id: string; name: string; group: IndustryGroup; kpis: T[] }[] = [
       ['Revenue per employee', '$', 'up', 'People', 'Revenue ÷ full-time equivalents'],
       ['Employee turnover', '%', 'down', 'People', 'Leavers ÷ average headcount'],
       ['On-time delivery to customers', '%', 'up', 'Operations', 'Orders delivered by promise date ÷ all orders'],
+    ],
+  },
+  {
+    // For any business using AI or automation. Four questions: is the AI right,
+    // is the operation better, are people using it, and is it worth it?
+    id: 'ai-automation', name: 'AI & automation', group: 'Every business', kpis: [
+      // Is the AI right?
+      ['AI detection rate', '%', 'up', 'AI', 'Real defects or failures the AI caught ÷ all real defects or failures'],
+      ['AI false alarm rate', '%', 'down', 'AI', 'AI alerts that turned out to be fine ÷ all AI alerts'],
+      ['Defect escape rate', '%', 'down', 'AI', 'Defects found after inspection or by customers ÷ all defects found'],
+      ['AI forecast error (MAPE)', '%', 'down', 'AI', 'Average of |actual − forecast| ÷ actual'],
+      ['Failure warning lead time', 'hrs', 'up', 'AI', 'Time between the AI warning and the failure it predicted'],
+      ['Model accuracy drift', '%', 'down', 'AI', 'Accuracy at go-live − accuracy this month'],
+      // Is the operation better?
+      ['Downtime avoided with AI', 'hrs', 'up', 'AI', 'Unplanned downtime before AI − unplanned downtime after AI, same length of time'],
+      ['Scrap reduction from AI', '%', 'up', 'AI', '(Scrap rate before AI − scrap rate after) ÷ scrap rate before AI'],
+      ['OEE change since AI', '%', 'up', 'AI', 'OEE after AI − OEE before AI'],
+      ['Inspection throughput', '#', 'up', 'AI', 'Units inspected per hour with AI'],
+      ['Manual hours saved', 'hrs', 'up', 'AI', 'Weekly hours on the task before AI − weekly hours after'],
+      ['Automation rate', '%', 'up', 'AI', 'Tasks completed without manual work ÷ all tasks'],
+      // Are people using it?
+      ['AI recommendation acceptance', '%', 'up', 'AI', 'AI recommendations followed ÷ recommendations made'],
+      ['AI override rate', '%', 'down', 'AI', 'Times staff overrode the AI ÷ AI decisions'],
+      ['Active AI users', '%', 'up', 'AI', 'People using the AI tool each week ÷ people who should use it'],
+      ['Alert-to-action time', 'min', 'down', 'AI', 'Minutes from an AI alert to someone acting on it'],
+      // Is it worth it?
+      ['AI return on investment', '%', 'up', 'AI', '(Savings + added profit − AI cost) ÷ AI cost'],
+      ['AI payback period', 'days', 'down', 'AI', 'Total AI cost ÷ average daily net savings'],
+      ['Cost per AI prediction', '$', 'down', 'AI', 'AI running cost ÷ predictions or inspections made'],
+      ['Data readiness', '%', 'up', 'AI', 'Machines or processes with clean, connected data ÷ all in scope'],
+      ['Human review coverage', '%', 'up', 'AI', 'High-risk AI decisions checked by a person ÷ all high-risk AI decisions'],
+      ['AI-related incidents', '#', 'down', 'AI', 'Safety, quality or compliance issues traced to an AI decision'],
     ],
   },
 
@@ -220,6 +254,17 @@ const RAW: { id: string; name: string; group: IndustryGroup; kpis: T[] }[] = [
       ['Supplier defect rate', '%', 'down', 'Partners', 'Defective parts received ÷ parts received'],
       ['Cost per unit', '$', 'down', 'Profit', 'Total production cost ÷ units'],
       ['Schedule attainment', '%', 'up', 'Operations', 'Orders completed on schedule ÷ orders scheduled'],
+      ['Mean time between failures', 'hrs', 'up', 'Operations', 'Operating hours ÷ number of breakdowns'],
+      ['Mean time to repair', 'hrs', 'down', 'Operations', 'Total repair time ÷ number of repairs'],
+      ['Planned maintenance share', '%', 'up', 'Operations', 'Planned maintenance hours ÷ all maintenance hours'],
+      ['Changeover time', 'min', 'down', 'Operations', 'Last good unit of one run to first good unit of the next'],
+      ['Rework rate', '%', 'down', 'Quality', 'Units reworked ÷ units produced'],
+      ['Energy per unit', '#', 'down', 'Profit', 'Energy used (kWh) ÷ units produced'],
+      ['On time in full (OTIF)', '%', 'up', 'Customer', 'Orders delivered on time and complete ÷ all orders'],
+      ['Work-in-progress days', 'days', 'down', 'Cash', 'Work-in-progress value ÷ average daily cost of goods'],
+      ['Labor productivity', '#', 'up', 'People', 'Units produced ÷ labor hours'],
+      ['Recordable incident rate', '#', 'down', 'People', 'Recordable injuries × 200,000 ÷ hours worked'],
+      ['Maintenance cost per unit', '$', 'down', 'Profit', 'Maintenance spend ÷ units produced'],
     ],
   },
   {
@@ -583,6 +628,20 @@ export const INDUSTRIES: Industry[] = RAW.map((ind) => ({
 export const INDUSTRY_GROUPS: IndustryGroup[] = Array.from(new Set(INDUSTRIES.map((i) => i.group)));
 
 export const ALL_INDUSTRY_KPIS: IndustryKpi[] = INDUSTRIES.flatMap((i) => i.kpis);
+
+/** Real industries (not the cross-industry sets), for pickers like the interview. */
+export const BUSINESS_INDUSTRIES: Industry[] = INDUSTRIES.filter((i) => i.group !== 'Every business');
+
+/** Library size, computed so marketing and product copy can never drift from the data. */
+export const KPI_STATS = {
+  kpis: ALL_INDUSTRY_KPIS.length,
+  industries: BUSINESS_INDUSTRIES.length,
+  aiKpis: INDUSTRIES.find((i) => i.id === 'ai-automation')?.kpis.length ?? 0,
+};
+
+if (KPI_STATS.kpis !== KPI_COUNTS.kpis || KPI_STATS.industries !== KPI_COUNTS.industries || KPI_STATS.aiKpis !== KPI_COUNTS.aiKpis) {
+  console.warn('[kpi] shared/kpi-stats.ts is out of date. Real counts:', KPI_STATS);
+}
 
 export function getIndustry(id: string | undefined | null): Industry | undefined {
   return INDUSTRIES.find((i) => i.id === id);

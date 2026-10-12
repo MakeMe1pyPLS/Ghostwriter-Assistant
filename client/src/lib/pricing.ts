@@ -1,3 +1,5 @@
+import { KPI_COUNTS } from '@shared/kpi-stats';
+
 export interface PricingTier {
   id: string;
   name: string;
@@ -54,11 +56,11 @@ export const PRICING_TIERS: PricingTier[] = [
       'AI Analyst interview and a step-by-step Growth Plan',
       'Action board with owners, due dates and calendar links (Google, Outlook, Apple)',
       'AI Analyst chat that knows your goal and your numbers',
-      'AI Consultant sessions: health check, pricing, cash flow, growth, hiring and more',
+      'AI Consultant sessions: health check, pricing, cash flow, growth, hiring, AI project check and more',
       'Dashboard Builder, Generate For Me and Enhance My Dashboard',
-      'KPI Library: 300+ metrics across 45 industries',
+      `KPI Library: ${KPI_COUNTS.kpis} metrics across ${KPI_COUNTS.industries} industries, including ${KPI_COUNTS.aiKpis} for AI & automation`,
       'Import CSV, Excel and JSON files',
-      'Export to Excel, CSV and JSON',
+      'Export your dashboard layout to Excel and Google Sheets, a Power BI starter pack, plus CSV and JSON',
       '1 data collab with a partner',
     ],
   },

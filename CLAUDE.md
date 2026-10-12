@@ -33,7 +33,8 @@ If a feature doesn't help someone move through this loop, it waits.
 - `client/` holds React 19 + Vite + Tailwind 4 + Framer Motion. Pages are in `client/src/pages`, shared UI in `client/src/components`.
 - `server/` holds Express 5. The AI router is `server/services/ai/` (Claude, ChatGPT and Gemini, with fallback).
 - `shared/` holds logic used by both client and server: the KPI library, growth plans, the rule-based analyst, the dashboard generator, exporters and the analyst framework.
-- State: `use-dashboard-store` (dashboards and data) and `use-growth-store` (plan, actions, collabs, Hub, integrations). Both live in the browser until Phase 2 adds accounts and Postgres.
+- State: `use-dashboard-store` (dashboards and data), `use-growth-store` (plan, actions, collabs, Hub, integrations, consult sessions) and `use-clients-store` (consultant client workspaces). The app always works from these browser stores.
+- Accounts: Supabase (project `bjqgdosujsttghbddhrf`). `client/src/lib/supabase.ts` is a small fetch client (auth + REST); `client/src/lib/cloud-sync.ts` mirrors the stores to the `workspaces` table for signed-in users. Schema and row-level security live in `supabase/migrations/`. Every new table needs RLS so users only see their own rows. The publishable key is public by design; never put the secret/service-role key in the client.
 - Deploy: Vercel serves the frontend (`vercel.json` rewrites); the API is optional (`VITE_API_URL`).
 
 ## Rules for changes
@@ -43,6 +44,7 @@ If a feature doesn't help someone move through this loop, it waits.
 - Never commit API keys. Secrets come from environment variables.
 - New colour classes: support dark mode (prefer `dark:` variants) and re-run `node script/gen-dark-theme.mjs`.
 - Pricing lives in `client/src/lib/pricing.ts`; the reasoning is in `docs/PRICING.md`.
+- After adding or removing KPIs or industries, update the counts in `shared/kpi-stats.ts` (the app warns in the console when they drift).
 - Keep bundle weight in check. Prefer existing dependencies; lazy-load heavy ones (e.g. `exceljs`).
 
 ## Definition of done

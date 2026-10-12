@@ -23,7 +23,7 @@ import {
   GOALS, COMPANY_SIZES, STAGES, CHALLENGES, pickKpisForGoal,
   type GoalId, type CompanySize, type BusinessStage, type ChallengeId, type Timeframe, type GrowthProfile, type GrowthPlan, type DataStatus,
 } from "@shared/growth";
-import { INDUSTRIES, INDUSTRY_GROUPS, getIndustry } from "@shared/kpi-industries";
+import { INDUSTRIES, INDUSTRY_GROUPS, BUSINESS_INDUSTRIES, getIndustry } from "@shared/kpi-industries";
 import { EASE_OUT } from "@/components/motion";
 
 type StepId = 'goal' | 'name' | 'industry' | 'size' | 'stage' | 'challenges' | 'kpi' | 'data' | 'partners';
@@ -195,7 +195,7 @@ export default function OnboardingPage() {
     targetKpi: savedProfile?.targetKpi,
     targetValue: savedProfile?.targetValue ?? '',
     timeframeDays: savedProfile?.timeframeDays ?? 90,
-    hasPartners: savedProfile ? savedProfile.partners.length > 0 : undefined,
+    hasPartners: savedProfile ? (savedProfile.partners?.length ?? 0) > 0 : undefined,
     partners: savedProfile?.partners ?? [],
     dataStatus: savedProfile?.dataStatus === 'uploaded' ? undefined : savedProfile?.dataStatus,
   }));
@@ -271,7 +271,7 @@ export default function OnboardingPage() {
 
   const filteredIndustries = useMemo(() => {
     const q = industryQuery.trim().toLowerCase();
-    const list = INDUSTRIES.filter((i) => i.id !== 'universal');
+    const list = BUSINESS_INDUSTRIES;
     if (!q) return list;
     // Match industry names and groups anywhere; KPI names only at word starts
     // (so "rest" finds restaurants, not "interest").

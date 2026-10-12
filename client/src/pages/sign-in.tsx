@@ -7,7 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useDashboardStore } from "@/hooks/use-dashboard-store";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowRight, Eye, EyeOff, AlertCircle } from "lucide-react";
+import { ArrowRight, Eye, EyeOff, AlertCircle, MailCheck } from "lucide-react";
+import { cloudEnabled, signIn as cloudSignIn, sendPasswordReset, resendConfirmation, CloudError, friendly } from "@/lib/supabase";
+import { activate } from "@/lib/cloud-sync";
 
 export default function SignInPage() {
   const [, setLocation] = useLocation();
@@ -18,6 +20,33 @@ export default function SignInPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [unconfirmed, setUnconfirmed] = useState(false);
+
+  const forgot = async () => {
+    setError(null); setNotice(null);
+    if (!cloudEnabled) {
+      toast({ title: "Password recovery", description: "Contact support to recover access." });
+      return;
+    }
+    if (!email.includes('@')) { setError("Enter your email above, then tap “Forgot password?” again."); return; }
+    try {
+      await sendPasswordReset(email);
+      setNotice(`If an account exists for ${email.trim()}, a reset link is on its way. Check your inbox and spam folder.`);
+    } catch (e) {
+      setError(e instanceof CloudError ? friendly(e) : "Couldn’t send the reset email. Try again in a minute.");
+    }
+  };
+
+  const resend = async () => {
+    try {
+      await resendConfirmation(email);
+      setNotice(`We sent a new confirmation link to ${email.trim()}.`);
+      setUnconfirmed(false);
+    } catch (e) {
+      setError(e instanceof CloudError ? friendly(e) : "Couldn’t resend the email. Try again in a minute.");
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,6 +58,29 @@ export default function SignInPage() {
     }
     if (!password || password.length < 6) {
       setError("Password must be at least 6 characters.");
+      return;
+    }
+    setNotice(null);
+    setUnconfirmed(false);
+
+    if (cloudEnabled) {
+      setSubmitting(true);
+      try {
+        const s = await cloudSignIn(email, password);
+        await activate(s);
+        const name = useDashboardStore.getState().currentUser?.fullName ?? '';
+        toast({ title: `Welcome back${name ? `, ${name.split(' ')[0]}` : ''}`, description: "You're signed in. Your workspaces are synced to your account." });
+        setLocation(useGrowthStore.getState().onboardingComplete ? '/plan' : '/onboarding');
+      } catch (e) {
+        if (e instanceof CloudError && e.code === 'email_not_confirmed') {
+          setUnconfirmed(true);
+          setError("Please confirm your email first. Open the link we sent when you signed up.");
+        } else {
+          setError(e instanceof CloudError ? friendly(e) : "Something went wrong. Please try again.");
+        }
+      } finally {
+        setSubmitting(false);
+      }
       return;
     }
 
@@ -52,10 +104,19 @@ export default function SignInPage() {
           {error && (
             <div className="flex items-start gap-2 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold" data-testid="text-error">
               <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-              <span>{error}</span>
+              <span>
+                {error}
+                {unconfirmed && <button type="button" onClick={resend} className="block mt-1.5 underline text-rose-800">Resend the confirmation email</button>}
+              </span>
             </div>
           )}
         </div>
+        {notice && (
+          <div className="flex items-start gap-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold" role="status" data-testid="text-notice">
+            <MailCheck className="w-4 h-4 shrink-0 mt-0.5" />
+            <span>{notice}</span>
+          </div>
+        )}
 
         <div className="space-y-2">
           <Label htmlFor="email" className="text-xs font-black uppercase tracking-widest text-slate-700">Work Email</Label>
@@ -78,7 +139,7 @@ export default function SignInPage() {
             <Label htmlFor="password" className="text-xs font-black uppercase tracking-widest text-slate-700">Password</Label>
             <button
               type="button"
-              onClick={() => toast({ title: "Password recovery", description: "Email reset is coming soon — contact support to recover access." })}
+              onClick={forgot}
               className="text-[10px] font-bold text-primary uppercase tracking-widest hover:underline"
               data-testid="link-forgot"
             >

@@ -6,6 +6,7 @@ import { PlanVisual, AnalystVisual, ConsultVisual, BottleneckVisual, CollabVisua
 import { CtaButton, GridBackdrop } from "@/components/marketing/primitives";
 import { Reveal, EASE_OUT } from "@/components/motion";
 import { cn } from "@/lib/utils";
+import { KPI_COUNTS } from "@shared/kpi-stats";
 
 // Only what ships today. Planned items live on the pricing page under "Coming soon".
 const FEATURES = [
@@ -41,14 +42,14 @@ const FEATURES = [
   },
   {
     id: "kpis", nav: "KPI Library", eyebrow: "Measure", title: "The right KPIs for every industry",
-    desc: "314 metrics across 46 industries, from corner shops to enterprises. Each one says how it’s measured and which direction is better.",
-    points: ["Search by name, formula or industry", "Track the KPIs you care about", "Set any KPI as your plan’s North Star"],
-    href: "/kpis", cta: "Browse the KPI Library", visual: <KpiVisual />,
+    desc: `${KPI_COUNTS.kpis} metrics across ${KPI_COUNTS.industries} industries, from corner shops to enterprises. Each one says how it’s measured and which direction is better.`,
+    points: [`${KPI_COUNTS.aiKpis} AI & automation metrics: accuracy, downtime avoided, adoption and ROI`, "Search by name, formula or industry", "Track the KPIs you care about and set any one as your plan’s North Star"],
+    href: "/kpis?category=AI", cta: "See the AI & automation KPIs", visual: <KpiVisual />,
   },
   {
     id: "data", nav: "Import & export", eyebrow: "Data", title: "Bring your data. Take it anywhere.",
     desc: "Import CSV, Excel and JSON in the browser — the Excel importer finds the right sheet and header row for you. Export dashboards and data whenever you need them.",
-    points: ["Import from public Google Sheets and JSON APIs", "Export to formatted Excel, CSV and JSON", "Enhance an existing dashboard by uploading its file"],
+    points: ["Export the dashboard you arranged to Excel or Google Sheets, with KPI numbers that update from the data", "Power BI starter pack: data tables, card positions and a matching theme", "Import from public Google Sheets and JSON APIs"],
     href: "/data", cta: "Import data", visual: <ExportVisual />,
   },
 ];

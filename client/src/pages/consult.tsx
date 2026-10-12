@@ -8,7 +8,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import {
   Stethoscope, Tag, Wallet, TrendingUp, Gauge, Handshake, UserPlus, Grid2x2, ArrowLeft, ArrowRight, Clock,
   Sparkles, Check, CheckCircle2, AlertTriangle, XCircle, Minus, Copy, Trash2, MessageSquareText, Briefcase,
-  ListChecks, RotateCcw, History, Star,
+  ListChecks, RotateCcw, History, Star, Cpu,
 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
@@ -26,7 +26,7 @@ import {
   type SessionKind, type SessionTemplate, type ConsultAnswers, type ConsultResult, type ConsultOption, type Tone, type Level,
 } from "@shared/consult";
 
-const ICONS: Record<string, any> = { Stethoscope, Tag, Wallet, TrendingUp, Gauge, Handshake, UserPlus, Grid2x2 };
+const ICONS: Record<string, any> = { Stethoscope, Tag, Wallet, TrendingUp, Gauge, Handshake, UserPlus, Grid2x2, Cpu };
 const isKind = (k?: string): k is SessionKind => !!k && SESSION_TEMPLATES.some((t) => t.id === k);
 
 const TONE: Record<Tone, { icon: any; card: string; chip: string }> = {
@@ -136,7 +136,7 @@ function Library() {
 
       <section aria-labelledby="all-h">
         <h2 id="all-h" className="text-[11px] font-black uppercase tracking-widest text-slate-400 mb-3">All sessions</h2>
-        <Stagger className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+        <Stagger className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {SESSION_TEMPLATES.map((t) => <StaggerItem key={t.id}><TemplateCard t={t} last={sessions.find((s) => s.kind === t.id)} /></StaggerItem>)}
         </Stagger>
       </section>

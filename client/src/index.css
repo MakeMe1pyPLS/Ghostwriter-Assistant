@@ -182,21 +182,27 @@
 /* Page action toolbars: one swipeable row on phones, tablets and laptops;
    wraps normally on wide screens. Keeps headers tidy instead of ragged rows. */
 .toolbar {
+  /* Wraps onto more lines instead of hiding buttons off-screen. */
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  flex-wrap: nowrap;
-  overflow-x: auto;
-  overscroll-behavior-x: contain;
-  scrollbar-width: none;
-  -webkit-overflow-scrolling: touch;
-  padding: 2px;
-  max-width: 100%;
+  flex-wrap: wrap;
 }
-.toolbar::-webkit-scrollbar { display: none; }
 .toolbar > * { flex-shrink: 0; }
-@media (min-width: 1280px) {
-  .toolbar { flex-wrap: wrap; overflow: visible; }
+
+/* Widget content sizes itself to its card (width and height container queries). */
+.ciq-cq { container-type: size; min-height: 0; }
+
+/* Grid cards sit inset in their cell; the inset makes the gaps between cards. */
+.ciq-card-inset { position: absolute; inset: 8px; }
+/* Dot grid colour for the Builder canvas. */
+:root { --ciq-dot: rgba(100, 116, 139, 0.38); }
+.dark { --ciq-dot: rgba(148, 163, 184, 0.22); }
+
+/* Bigger resize handles for fingers. */
+@media (pointer: coarse) {
+  .react-grid-item > .react-resizable-handle { width: 32px; height: 32px; }
+  .react-grid-item > .react-resizable-handle::after { width: 10px; height: 10px; right: 6px; bottom: 6px; }
 }
 
 /* Theme switch: the new theme is revealed in a circle (see lib/theme.ts). */
