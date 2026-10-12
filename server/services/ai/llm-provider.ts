@@ -18,6 +18,7 @@ import {
 import { type GrowthProfile, type GrowthPlan, describeProfile, sanitizeGrowthPlan } from '@shared/growth';
 import { kpisForIndustry } from '@shared/kpi-industries';
 import { buildAnalystSystemPrompt } from '@shared/analyst-framework';
+import { type ConsultRequest, type ConsultResult, getTemplate, buildRuleBasedConsult, sanitizeConsult } from '@shared/consult';
 import type { EngineAdapter } from './engines';
 
 const SECTOR_LABELS: Record<string, string> = {
@@ -219,5 +220,42 @@ Return JSON with this exact shape:
 }`, 3200);
     if (!Array.isArray(parsed?.phases) || !parsed.phases.length) throw new Error('No phases in plan');
     return sanitizeGrowthPlan(parsed, profile, this.engine.id);
+  }
+
+  async generateConsult(req: ConsultRequest): Promise<ConsultResult> {
+    const tpl = getTemplate(req.kind);
+    const answers = tpl.fields
+      .map((f) => `- ${f.label}: ${req.answers[f.id] === undefined || req.answers[f.id] === '' ? '(not given)' : req.answers[f.id]}`)
+      .join('\n');
+    // The rule-based numbers are exact; give them to the engine so it builds on them instead of redoing arithmetic.
+    const baseline = buildRuleBasedConsult(req);
+    const parsed = await this.json(PERSONA, `You are running a "${tpl.title}" consulting session with a business owner.
+Session purpose: ${tpl.blurb}
+
+${req.businessContext ? `What we know about the business:\n${req.businessContext.slice(0, 2500)}\n\n` : ''}Their answers:
+${answers}
+
+Calculated figures (exact, reuse them, do not recalculate):
+${baseline.findings.map((f) => `- ${f.label}${f.value ? `: ${f.value}` : ''}`).join('\n')}
+
+Rules:
+- Write for a busy owner. Plain language, no jargon without a short explanation.
+- Never invent statistics, companies, benchmarks or sources. Only use their numbers and the figures above.
+- Give 3 findings to 5 findings, then 2 or 3 genuinely different options with honest trade-offs.
+- Recommend one option and say why in the headline or summary.
+- Each option has 2 to 4 steps. The first step must be something they can do this week (weeks: 1).
+- "weeks" is when the step should be done, counted from today.
+
+Return JSON with this exact shape:
+{
+  "headline": "one sentence, max 20 words, with the main conclusion",
+  "findings": [ { "label": "short", "value": "short figure or empty", "tone": "good | warn | bad | neutral", "detail": "1-2 sentences" } ],
+  "options": [ { "id": "a", "title": "max 8 words", "summary": "1-2 sentences", "impact": "low | medium | high", "effort": "low | medium | high",
+    "pros": ["max 3"], "cons": ["max 3"],
+    "steps": [ { "title": "imperative, max 10 words", "detail": "1-2 sentences", "owner": "Owner | Operations | Sales & marketing | Finance | Partner | Team lead", "weeks": 1 } ] } ],
+  "recommendedOptionId": "a",
+  "followUp": "one question you would ask them next"
+}`, 2600);
+    return sanitizeConsult(parsed, this.engine.id);
   }
 }

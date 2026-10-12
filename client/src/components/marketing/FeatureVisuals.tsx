@@ -126,6 +126,36 @@ export function BottleneckVisual() {
   );
 }
 
+/** AI Consultant: a session ends in options, a recommendation and actions. */
+export function ConsultVisual() {
+  const { ref, on } = useOnce<HTMLDivElement>();
+  const options = [
+    { title: "Raise prices 6%", meta: "Impact high · effort low", rec: true },
+    { title: "Add a premium bundle", meta: "Impact medium · effort medium", rec: false },
+  ];
+  return (
+    <div ref={ref} className="space-y-3 h-full flex flex-col justify-center">
+      <motion.div className="rounded-2xl bg-slate-900 text-white px-4 py-3" initial={{ opacity: 0, y: 8 }} animate={{ opacity: on ? 1 : 0, y: on ? 0 : 8 }} transition={{ duration: 0.5, ease }}>
+        <p className="text-[10px] font-black uppercase tracking-widest text-teal-300">Pricing review</p>
+        <p className="text-[14px] font-bold mt-0.5">You are priced below the market.</p>
+      </motion.div>
+      {options.map((o, i) => (
+        <motion.div key={o.title} className={cn("rounded-2xl border bg-white px-4 py-3 flex items-center gap-3", o.rec ? "border-teal-500" : "border-slate-200")}
+          initial={{ opacity: 0, x: -10 }} animate={{ opacity: on ? 1 : 0, x: on ? 0 : -10 }} transition={{ duration: 0.45, delay: 0.25 + i * 0.15, ease }}>
+          <div className="flex-1 min-w-0">
+            <p className="text-[13px] font-bold text-slate-900 truncate">{o.title}</p>
+            <p className="text-[11px] text-slate-500 truncate">{o.meta}</p>
+          </div>
+          {o.rec && <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-teal-600 text-white shrink-0">Pick</span>}
+        </motion.div>
+      ))}
+      <motion.p className="text-[12px] font-semibold text-teal-700 flex items-center gap-1.5" initial={{ opacity: 0 }} animate={{ opacity: on ? 1 : 0 }} transition={{ delay: 0.75 }}>
+        <Check className="w-3.5 h-3.5" strokeWidth={3} /> 3 actions added to your plan
+      </motion.p>
+    </div>
+  );
+}
+
 /** Data collabs: you and a partner share the numbers you both depend on. */
 export function CollabVisual() {
   const { ref, on, still } = useOnce<HTMLDivElement>();

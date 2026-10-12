@@ -11,15 +11,15 @@ import { useToast } from "@/hooks/use-toast";
 import { useGrowthStore } from "@/hooks/use-growth-store";
 import { EASE_OUT } from "@/components/motion";
 import {
-  INDUSTRIES, INDUSTRY_GROUPS, ALL_INDUSTRY_KPIS, formatKpiUnit,
+  INDUSTRIES, INDUSTRY_GROUPS, ALL_INDUSTRY_KPIS, KPI_STATS, formatKpiUnit,
   type IndustryKpi, type KpiCategory,
 } from "@shared/kpi-industries";
 
-const CATEGORIES: KpiCategory[] = ['Growth', 'Profit', 'Cash', 'Customer', 'Operations', 'Quality', 'People', 'Partners'];
+const CATEGORIES: KpiCategory[] = ['Growth', 'Profit', 'Cash', 'Customer', 'Operations', 'Quality', 'People', 'Partners', 'AI'];
 const CATEGORY_TONE: Record<KpiCategory, string> = {
   Growth: 'bg-teal-50 text-teal-700', Profit: 'bg-emerald-50 text-emerald-700', Cash: 'bg-lime-50 text-lime-700',
   Customer: 'bg-sky-50 text-sky-700', Operations: 'bg-slate-100 text-slate-700', Quality: 'bg-violet-50 text-violet-700',
-  People: 'bg-amber-50 text-amber-700', Partners: 'bg-rose-50 text-rose-700',
+  People: 'bg-amber-50 text-amber-700', Partners: 'bg-rose-50 text-rose-700', AI: 'bg-indigo-50 text-indigo-700',
 };
 
 function KpiCard({ kpi, industryName }: { kpi: IndustryKpi; industryName: string }) {
@@ -77,8 +77,12 @@ export default function KpiLibraryPage() {
   const kpiWatchlist = useGrowthStore((s) => s.kpiWatchlist);
   const [query, setQuery] = useState('');
   const deferredQuery = useDeferredValue(query);
-  const [industryId, setIndustryId] = useState<string>(profile?.industryId ?? 'all');
-  const [category, setCategory] = useState<KpiCategory | 'all'>('all');
+  const [industryId, setIndustryId] = useState<string>(() => (new URLSearchParams(window.location.search).get('category') ? 'all' : profile?.industryId ?? 'all'));
+  // /kpis?category=AI opens straight on a category (used by marketing links).
+  const [category, setCategory] = useState<KpiCategory | 'all'>(() => {
+    const c = new URLSearchParams(window.location.search).get('category');
+    return c && CATEGORIES.includes(c as KpiCategory) ? (c as KpiCategory) : 'all';
+  });
   const [onlyWatched, setOnlyWatched] = useState(false);
 
   const industryName = useMemo(() => Object.fromEntries(INDUSTRIES.map((i) => [i.id, i.name])), []);
@@ -86,7 +90,8 @@ export default function KpiLibraryPage() {
   const results = useMemo(() => {
     const q = deferredQuery.trim().toLowerCase();
     return ALL_INDUSTRY_KPIS.filter((k) =>
-      (industryId === 'all' || k.industryId === industryId || (industryId !== 'all' && k.industryId === 'universal' && !q)) &&
+      // An industry view also shows the universal KPIs, and the AI set when the AI category is picked.
+      (industryId === 'all' || k.industryId === industryId || (k.industryId === 'universal' && !q) || (k.industryId === 'ai-automation' && category === 'AI')) &&
       (category === 'all' || k.category === category) &&
       (!onlyWatched || kpiWatchlist.includes(k.id)) &&
       (!q || k.name.toLowerCase().includes(q) || k.formula.toLowerCase().includes(q) || industryName[k.industryId].toLowerCase().includes(q))
@@ -102,7 +107,7 @@ export default function KpiLibraryPage() {
           <div>
             <p className="text-[10px] font-black uppercase tracking-widest text-primary">Grow</p>
             <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 uppercase">KPI Library</h1>
-            <p className="text-slate-500 mt-1 max-w-2xl">{ALL_INDUSTRY_KPIS.length} metrics across {INDUSTRIES.length - 1} industries, from corner shops to enterprises. Each one says how it’s measured and which way is better.</p>
+            <p className="text-slate-500 mt-1 max-w-2xl">{KPI_STATS.kpis} metrics across {KPI_STATS.industries} industries, from corner shops to enterprises, including {KPI_STATS.aiKpis} for tracking AI and automation. Each one says how it’s measured and which way is better.</p>
           </div>
           <div className="relative w-full lg:w-96">
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -121,7 +126,7 @@ export default function KpiLibraryPage() {
               </optgroup>
             ))}
           </select>
-          <div className="flex gap-1.5 overflow-x-auto max-w-full pb-1 -mb-1">
+          <div className="flex flex-wrap gap-1.5 max-w-full">
             {(['all', ...CATEGORIES] as const).map((c) => (
               <button key={c} onClick={() => setCategory(c)} aria-pressed={category === c}
                 className={`relative h-10 px-3.5 rounded-xl text-xs font-black uppercase tracking-widest whitespace-nowrap transition-colors ${category === c ? 'text-white' : 'bg-white border border-slate-200 text-slate-500 hover:text-slate-900'}`}>

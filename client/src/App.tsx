@@ -22,6 +22,8 @@ import CheckoutStripeMockPage from "@/pages/checkout-stripe-mock";
 import SignInPage from "@/pages/sign-in";
 import SignUpPage from "@/pages/sign-up";
 import VerifyEmailPage from "@/pages/verify-email";
+import ResetPasswordPage from "@/pages/reset-password";
+import { startCloudSync } from "@/lib/cloud-sync";
 
 const pageLoaders = {
   BuilderPage: () => import("@/pages/builder"),
@@ -41,6 +43,9 @@ const pageLoaders = {
   PlanPage: () => import("@/pages/plan"),
   CollabsPage: () => import("@/pages/collabs"),
   KpiLibraryPage: () => import("@/pages/kpi-library"),
+  ConsultPage: () => import("@/pages/consult"),
+  ClientsPage: () => import("@/pages/clients"),
+  ClientReportPage: () => import("@/pages/client-report"),
 };
 const BuilderPage = lazy(pageLoaders.BuilderPage);
 const DashboardPage = lazy(pageLoaders.DashboardPage);
@@ -59,6 +64,9 @@ const OnboardingPage = lazy(pageLoaders.OnboardingPage);
 const PlanPage = lazy(pageLoaders.PlanPage);
 const CollabsPage = lazy(pageLoaders.CollabsPage);
 const KpiLibraryPage = lazy(pageLoaders.KpiLibraryPage);
+const ConsultPage = lazy(pageLoaders.ConsultPage);
+const ClientsPage = lazy(pageLoaders.ClientsPage);
+const ClientReportPage = lazy(pageLoaders.ClientReportPage);
 
 const MARKETING = ["/", "/pricing", "/features", "/contact", "/support", "/privacy", "/terms", "/request-setup"];
 
@@ -116,6 +124,7 @@ function Router() {
       <Route path="/signup" component={SignUpPage} />
       <Route path="/register" component={SignUpPage} />
       <Route path="/verify-email" component={VerifyEmailPage} />
+      <Route path="/reset-password" component={ResetPasswordPage} />
       <Route path="/welcome">
         <Suspense fallback={<PageLoader />}><OnboardingPage /></Suspense>
       </Route>
@@ -130,6 +139,18 @@ function Router() {
       </Route>
       <Route path="/collabs">
         <Suspense fallback={<PageLoader />}><CollabsPage /></Suspense>
+      </Route>
+      <Route path="/consult">
+        <Suspense fallback={<PageLoader />}><ConsultPage /></Suspense>
+      </Route>
+      <Route path="/consult/:kind">
+        <Suspense fallback={<PageLoader />}><ConsultPage /></Suspense>
+      </Route>
+      <Route path="/clients">
+        <Suspense fallback={<PageLoader />}><ClientsPage /></Suspense>
+      </Route>
+      <Route path="/clients/:id/report">
+        <Suspense fallback={<PageLoader />}><ClientReportPage /></Suspense>
       </Route>
       <Route path="/kpis">
         <Suspense fallback={<PageLoader />}><KpiLibraryPage /></Suspense>
@@ -185,6 +206,8 @@ function Router() {
 
 function App() {
   usePrefetchPages();
+  // Accounts: restore the session, handle email links, keep workspaces synced.
+  useEffect(() => { startCloudSync(); }, []);
   return (
     <QueryClientProvider client={queryClient}>
       <MotionConfig reducedMotion="user">

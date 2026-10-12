@@ -11,11 +11,13 @@ import {
   buildRuleBasedAnalystResponse,
 } from '@shared/intelligence';
 import { type GrowthProfile, type GrowthPlan, buildRuleBasedGrowthPlan } from '@shared/growth';
+import { type ConsultRequest, type ConsultResult, buildRuleBasedConsult } from '@shared/consult';
 import { configuredEngines, defaultOrder, type LLMEngineId } from './engines';
 import { LLMIntelligenceProvider } from './llm-provider';
 
 export interface GrowthCapableProvider extends OperationalIntelligenceProvider {
   generateGrowthPlan(profile: GrowthProfile): Promise<GrowthPlan>;
+  generateConsult(req: ConsultRequest): Promise<ConsultResult>;
   generateAnalystResponse(req: AnalystChatRequest & { businessContext?: string }): ReturnType<OperationalIntelligenceProvider['generateAnalystResponse']>;
 }
 
@@ -50,5 +52,7 @@ export function getIntelligenceProvider(pref: AIEnginePreference = 'auto'): Grow
       firstSuccess(chain, (p) => p.generateAnalystResponse(req), () => buildRuleBasedAnalystResponse(req), 'chat'),
     generateGrowthPlan: (profile: GrowthProfile) =>
       firstSuccess(chain, (p) => p.generateGrowthPlan(profile), () => buildRuleBasedGrowthPlan(profile), 'growth-plan'),
+    generateConsult: (req: ConsultRequest) =>
+      firstSuccess(chain, (p) => p.generateConsult(req), () => buildRuleBasedConsult(req), 'consult'),
   };
 }

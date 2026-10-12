@@ -9,6 +9,7 @@ import {
 } from "framer-motion";
 import { Check, Sparkles, MessageSquare, RotateCcw, TrendingUp } from "lucide-react";
 import { LogoMark } from "@/components/Logo";
+import { useIntroReady } from "@/lib/intro-gate";
 import { cn } from "@/lib/utils";
 
 const NODES = ["Supplier", "Roaster", "Warehouse", "Carrier", "Customer"];
@@ -23,8 +24,10 @@ const KPIS = [
 ];
 
 export function HeroProduct() {
+  const introReady = useIntroReady();
   const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { margin: "-80px" });
+  // Waits for the intro to open, so the auto-play isn't half over before anyone sees it.
+  const inView = useInView(ref, { margin: "-80px" }) && introReady;
   const reduce = useReducedMotion();
   const [fixed, setFixed] = useState(false);
   const [touched, setTouched] = useState(false);

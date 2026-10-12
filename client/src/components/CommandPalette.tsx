@@ -6,10 +6,11 @@ import { Command } from "cmdk";
 import { useLocation } from "wouter";
 import {
   Search, CornerDownLeft, BrainCircuit, Upload, Download, Handshake, RotateCcw, Compass,
-  CheckCircle2, Circle, CircleDot, Target,
+  CheckCircle2, Circle, CircleDot, Target, Tag, Wallet, Briefcase, Building, Cpu,
 } from "lucide-react";
 import { ALL_NAV_ITEMS, NAV_GROUPS, SETTINGS_ITEM } from "@/lib/nav";
 import { useGrowthStore } from "@/hooks/use-growth-store";
+import { useClientsStore } from "@/hooks/use-clients-store";
 import { cn } from "@/lib/utils";
 
 const OPEN_EVENT = "ciq:open-command-palette";
@@ -50,6 +51,9 @@ export function CommandPalette() {
   const actions = useGrowthStore((s) => s.actions);
   const plan = useGrowthStore((s) => s.plan);
   const restartTour = useGrowthStore((s) => s.restartTour);
+  const clients = useClientsStore((s) => s.clients);
+  const activeClientId = useClientsStore((s) => s.activeClientId);
+  const switchTo = useClientsStore((s) => s.switchTo);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -70,6 +74,10 @@ export function CommandPalette() {
     { id: "ask", label: "Ask the AI Analyst a question", icon: BrainCircuit, run: () => go("/insights"), keywords: "chat help why" },
     { id: "import", label: "Import a CSV or Excel file", icon: Upload, run: () => go("/data"), keywords: "upload data spreadsheet" },
     { id: "export", label: "Export to Excel, CSV or Power BI", icon: Download, run: () => go("/exports"), keywords: "download" },
+    { id: "pricing", label: "Run a pricing review", icon: Tag, run: () => go("/consult/pricing"), keywords: "consultant session price raise margin" },
+    { id: "cash", label: "Check my cash flow and runway", icon: Wallet, run: () => go("/consult/cash-flow"), keywords: "consultant session cash runway" },
+    { id: "ai-check", label: "Check if our AI is paying off", icon: Cpu, run: () => go("/consult/ai-check"), keywords: "consultant session ai automation roi payback manufacturing" },
+    { id: "client", label: "Add a client", icon: Briefcase, run: () => go("/clients"), keywords: "consultant agency workspace" },
     { id: "collab", label: "Start a data collab with a partner", icon: Handshake, run: () => go("/collabs"), keywords: "share supplier invite" },
     { id: "replan", label: plan ? "Rebuild my growth plan" : "Build my growth plan", icon: RotateCcw, run: () => go("/onboarding"), keywords: "interview goal restart" },
     { id: "tour", label: "Take the product tour", icon: Compass, run: () => { restartTour(); go("/plan"); }, keywords: "help guide tutorial" },
@@ -124,6 +132,14 @@ export function CommandPalette() {
                   ))}
                 </Group>
               ))}
+              {clients.length > 0 && (
+                <Group heading="Workspaces">
+                  {activeClientId && <Item value="switch my business own workspace" onSelect={() => { switchTo(null); go("/plan"); }} icon={Building} label="Switch to my business" />}
+                  {clients.filter((c) => c.id !== activeClientId).map((c) => (
+                    <Item key={c.id} value={`switch client ${c.name}`} onSelect={() => { switchTo(c.id); go("/plan"); }} icon={Briefcase} label={`Switch to ${c.name}`} hint="Client workspace" />
+                  ))}
+                </Group>
+              )}
               <Group heading="Account">
                 <Item value={`${SETTINGS_ITEM.name} ${SETTINGS_ITEM.keywords}`} onSelect={() => go(SETTINGS_ITEM.href)} icon={SETTINGS_ITEM.icon} label={SETTINGS_ITEM.name} hint={SETTINGS_ITEM.description} />
               </Group>
