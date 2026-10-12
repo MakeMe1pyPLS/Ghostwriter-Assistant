@@ -14,8 +14,45 @@ export const EDITABLE_COLS = 12;
 export const GRID_ROW_HEIGHT = 80;
 export const GRID_MARGIN: [number, number] = [16, 16];
 
+// ---------------------------------------------------------------- fine grid
+// Saved layouts use a fine grid: 48 columns and 24px rows, so cards can be
+// placed freely. "Locked to grid" mode edits the same layout on the classic
+// 12-column grid (4 fine units per column/row), so both modes line up exactly.
+// Cards have no margin in the grid; each card is inset by INSET px instead,
+// which keeps the gaps identical in both modes.
+export const FINE = 4;
+export const FINE_COLS = { lg: 48, md: 8, sm: 8, xs: 8, xxs: 4 } as const;
+export const CLASSIC_COLS = { lg: 12, md: 2, sm: 2, xs: 2, xxs: 1 } as const;
+export const FINE_ROW = 24;
+export const CARD_INSET = 8;
+export const GRID_PAD: [number, number] = [8, 8];
+
+type Item = { i: string; x: number; y: number; w: number; h: number; [k: string]: any };
+
+/** Classic (12-column) layout → fine layout. */
+export function classicToFine(layout: Item[]): Item[] {
+  return layout.map((l) => ({ ...l, x: l.x * FINE, y: l.y * FINE, w: l.w * FINE, h: l.h * FINE, minW: undefined, minH: undefined, maxW: undefined, maxH: undefined }));
+}
+/** Fine layout → classic 12-column units. exact=true keeps fractions (for exporters). */
+export function fineToClassic(layout: Item[], exact = false): Item[] {
+  const r = (n: number) => (exact ? n / FINE : Math.round(n / FINE));
+  return layout.map((l) => ({ ...l, x: r(l.x), y: r(l.y), w: Math.max(exact ? 0.25 : 1, r(l.w)), h: Math.max(exact ? 0.25 : 1, r(l.h)) }));
+}
+/** The saved layout in fine units, whichever format it was stored in. */
+export function fineLayoutOf(d?: { layout: any[]; grid?: 'fine' } | null): Item[] {
+  if (!d) return [];
+  return d.grid === 'fine' ? d.layout : classicToFine(d.layout);
+}
+/** Snap a fine layout to whole classic cells (used when switching to Locked). */
+export function snapToClassic(layout: Item[]): Item[] {
+  const s = (n: number) => Math.round(n / FINE) * FINE;
+  return layout.map((l) => ({ ...l, x: s(l.x), y: s(l.y), w: Math.max(FINE, s(l.w)), h: Math.max(FINE, s(l.h)) }));
+}
+
 export interface DashboardData {
   layout: any[];
+  /** "fine" when layout is in fine-grid units; missing means classic 12-column units. */
+  grid?: 'fine';
   widgets: any[];
   /** When the layout was last saved (ms). */
   savedAt?: number;

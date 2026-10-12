@@ -212,6 +212,21 @@ The rule-based analyst, dashboard generator, exporters, KPI library and plan bui
   - Hub tabs, KPI Library category filters and AI Analyst suggestions wrap instead of hiding off-screen.
   - Every app page was checked at 390, 820, 1024 and 1366 px. None scrolls sideways, has buttons cut off, or has a box that scrolls inside the page.
 
+### Builder canvas: dot grid, real free movement, and a touch-friendly edit mode
+- **The Builder is a dot-grid canvas**, like a design tool. Dots mark every grid cell, and in edit mode the canvas fills the page.
+- **Real free movement.** Layouts are now saved on a fine grid of 48 columns and 24px rows.
+  - **Free** moves and sizes cards in small steps, and they stay where you drop them.
+  - **Locked to grid** edits the same layout on the classic 12-column grid, where cards snap into rows and gaps close up. Switching to Locked snaps cards to the nearest cell.
+  - Existing dashboards convert automatically. The Dashboard, Excel, Google Sheets and Power BI exports all follow the fine positions.
+- **New edit mode:**
+  - Tap or click a card to select it. A **selection bar** appears with large buttons: Edit, Duplicate, Delete, move left/up/down/right, and narrower/wider/shorter/taller.
+  - On phones the bar sits above the tab bar; on computers it floats at the bottom of the screen. The small buttons in each card's corner are gone.
+  - On touch screens only the selected card can be dragged, so swiping on other cards still scrolls the page. The resize handle shows on the selected card.
+  - With a mouse you can drag any card from anywhere on it.
+  - The keyboard works too: arrows move, Shift + arrows resize, Delete removes, Ctrl/⌘+D duplicates, Enter edits, Esc deselects.
+- **Undo and redo** (buttons and Ctrl/⌘+Z), plus an Undo button on the "Card removed" message. Moving or resizing with the bar pushes overlapping cards down instead of stacking them.
+- New and duplicated cards go to the bottom of the grid and are selected, ready to drag into place.
+
 ## Environment variables
 
 | Variable | Needed for | Default |

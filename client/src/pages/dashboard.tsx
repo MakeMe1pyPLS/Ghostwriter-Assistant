@@ -15,7 +15,7 @@ import { useGrowthStore } from "@/hooks/use-growth-store";
 import { AnalystPanel } from "@/components/analyst/AnalystPanel";
 import { AIAnalystPanel } from "@/components/analyst/AIAnalystPanel";
 import { ExecutiveCommandCenter } from "@/components/analyst/ExecutiveCommandCenter";
-import { GRID_COLS, GRID_BREAKPOINTS, GRID_ROW_HEIGHT, GRID_MARGIN } from "@/lib/dashboard-grid";
+import { GRID_BREAKPOINTS, FINE_COLS, FINE_ROW, GRID_PAD, fineLayoutOf, fineToClassic } from "@/lib/dashboard-grid";
 
 // Stable empty-array reference so loading renders don't churn new refs into the grid.
 const EMPTY_ARR: any[] = [];
@@ -41,7 +41,7 @@ export default function DashboardPage() {
   }, [sector, ensureDashboardLoaded]);
 
   const widgets = dash?.widgets ?? EMPTY_ARR;
-  const rawLayout = dash?.layout ?? EMPTY_ARR;
+  const rawLayout = useMemo(() => (dash ? fineLayoutOf(dash) : EMPTY_ARR), [dash]);
   const loading = !dash;
 
   // Lock every item read-only so the presentation grid mirrors the saved geometry exactly.
@@ -140,7 +140,7 @@ export default function DashboardPage() {
               <span className="hidden sm:inline">Ask AI Analyst</span>
             </Button>
 
-            <ExportDrawer layout={rawLayout} widgets={widgets} sector={sector} dateRange={dateRange} metrics={metrics} chartData={chartData} donutData={donutData} allMetrics={allMetrics} />
+            <ExportDrawer layout={fineToClassic(rawLayout, true)} widgets={widgets} sector={sector} dateRange={dateRange} metrics={metrics} chartData={chartData} donutData={donutData} allMetrics={allMetrics} />
 
             <Button variant="outline" className="rounded-xl font-semibold text-[13px] h-10 px-4 shadow-sm border-slate-200">
               <Share2 className="w-4 h-4" /> <span className="hidden md:inline">Share view</span>
@@ -180,10 +180,11 @@ export default function DashboardPage() {
             <MeasuredGrid
               className="layout presentation-mode"
               layouts={layouts}
-              cols={GRID_COLS}
+              cols={FINE_COLS}
               breakpoints={GRID_BREAKPOINTS}
-              rowHeight={GRID_ROW_HEIGHT}
-              margin={GRID_MARGIN}
+              rowHeight={FINE_ROW}
+              margin={[0, 0]}
+              containerPadding={GRID_PAD}
               isDraggable={false}
               isResizable={false}
               compactType={null}
@@ -193,9 +194,12 @@ export default function DashboardPage() {
                   key={w.id}
                   data-testid={`widget-${w.id}`}
                   style={{ animationDelay: `${Math.min(i, 10) * 55}ms` }}
-                  className={`ciq-rise flex flex-col overflow-hidden transition-[box-shadow,border-color] duration-300 hover:shadow-[0_18px_40px_-20px_rgba(15,23,42,0.35)] hover:border-slate-300 ${getCardShellClasses(w.cardPreset || w.stylePreset, 'dashboard')}`}
+                  className="ciq-rise"
                 >
-                  <div className="ciq-cq flex-1 min-h-0 flex flex-col">{renderWidgetContent(w)}</div>
+                  {/* Cards are inset inside their grid cell; the inset forms the gaps. */}
+                  <div className={`ciq-card-inset flex flex-col overflow-hidden transition-[box-shadow,border-color] duration-300 hover:shadow-[0_18px_40px_-20px_rgba(15,23,42,0.35)] hover:border-slate-300 ${getCardShellClasses(w.cardPreset || w.stylePreset, 'dashboard')}`}>
+                    <div className="ciq-cq flex-1 min-h-0 flex flex-col">{renderWidgetContent(w)}</div>
+                  </div>
                 </div>
               ))}
             </MeasuredGrid>

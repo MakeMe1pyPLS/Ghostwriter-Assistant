@@ -72,7 +72,7 @@ export function powerBiLayout(widgets: any[], layout: any[]) {
         'Y (px)': Math.round(l.y * rowH),
         'Width (px)': Math.round(l.w * colW),
         'Height (px)': Math.round(l.h * rowH),
-        'Grid (x, y, w, h)': `${l.x}, ${l.y}, ${l.w}, ${l.h}`,
+        'Grid (x, y, w, h)': [l.x, l.y, l.w, l.h].map((n: number) => +n.toFixed(2)).join(', '),
       };
     });
 }

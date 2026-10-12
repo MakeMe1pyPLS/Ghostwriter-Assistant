@@ -4,21 +4,27 @@ import { Responsive as ResponsiveGridLayout, getCompactor, setTransform } from "
 import type { Layout } from "react-grid-layout";
 
 type Layouts = { [P: string]: Layout[] };
+type ColMap = { lg: number; md: number; sm: number; xs: number; xxs: number };
 
 type Props = {
   layouts?: any;
   layout?: any[];
-  breakpoints?: { lg: number; md: number; sm: number; xs: number; xxs: number };
-  cols?: { lg: number; md: number; sm: number; xs: number; xxs: number } | number;
+  breakpoints?: ColMap;
+  cols?: ColMap | number;
   rowHeight?: number;
   onLayoutChange?: (currentLayout: Layout[], allLayouts: Layouts) => void;
   onBreakpointChange?: (newBreakpoint: string, newCols: number) => void;
+  onDragStart?: () => void;
+  onDragStop?: () => void;
+  onResizeStop?: () => void;
   children: React.ReactNode;
   className?: string;
   isDraggable?: boolean;
   isResizable?: boolean;
   draggableHandle?: string;
+  draggableCancel?: string;
   margin?: [number, number];
+  containerPadding?: [number, number];
   compactType?: 'horizontal' | 'vertical' | null;
   /**
    * Render the grid at this fixed width and scale it to fit (used to edit the
@@ -27,15 +33,16 @@ type Props = {
   designWidth?: number;
   /** Scale for designWidth: a number, or "fit" to fill the available width. */
   zoom?: number | 'fit';
-  /** Draw the column guides behind the cards (edit mode). */
-  showGuides?: boolean;
+  /** Dot grid behind the cards, one dot per grid cell (like a design canvas). */
+  showDots?: boolean;
+  /** Fill at least this height with the grid (px), so the canvas is a full page. */
+  minCanvasHeight?: number;
 };
 
 /**
- * Builds tidy layouts for narrower breakpoints from the desktop (lg) layout.
- * Without this, react-grid-layout clamps desktop positions into fewer columns
- * and, with compaction off, widgets end up staggered with gaps on tablets and
- * phones. Widgets keep their reading order (top-to-bottom, left-to-right).
+ * Builds tidy layouts for phone breakpoints from the desktop (lg) layout.
+ * Widgets keep their reading order (top-to-bottom, left-to-right); cards about
+ * a third wide or less pair up two per row, everything else is full width.
  */
 type GridItem = { i: string; x: number; y: number; w: number; h: number; minW?: number; maxW?: number; [k: string]: unknown };
 type GridLayouts = Record<string, GridItem[]>;
@@ -47,8 +54,8 @@ export function deriveLayouts(lg: GridItem[], cols: Record<string, number>, prov
   for (const bp of Object.keys(cols)) {
     if (bp === 'lg' || (provided[bp] && provided[bp].length === lg.length)) continue;
     const C = cols[bp];
-    if (C > 6) {
-      // Wide grids (laptops): keep rows intact by scaling edges proportionally.
+    if (C >= lgCols * 0.75) {
+      // Nearly as wide: keep rows intact by scaling edges proportionally.
       out[bp] = lg.map((item): GridItem => {
         const x0 = Math.round((item.x / lgCols) * C);
         const x1 = Math.max(x0 + 1, Math.round(((item.x + item.w) / lgCols) * C));
@@ -69,8 +76,8 @@ export function deriveLayouts(lg: GridItem[], cols: Record<string, number>, prov
     out[bp] = order.map((item): GridItem => {
       let w = item.w / lgCols <= 0.34 ? Math.max(1, Math.floor(C / 2)) : C;
       w = Math.min(w, C);
-      // Half-width cards on phones need one more row so their content isn't clipped.
-      const h = C <= 4 && w < C ? item.h + 1 : item.h;
+      // Half-width cards are narrower on phones, so they get extra height to fit their content.
+      const h = w < C ? item.h + Math.max(1, Math.round(item.h * 0.5)) : item.h;
       let y = 0, x = 0;
       search: for (;; y++) for (x = 0; x + w <= C; x++) if (free(x, y, w, h)) break search;
       mark(x, y, w, h);
@@ -88,16 +95,22 @@ export default function MeasuredGrid({
   rowHeight = 32,
   onLayoutChange,
   onBreakpointChange,
+  onDragStart,
+  onDragStop,
+  onResizeStop,
   children,
   className,
   isDraggable = true,
   isResizable = true,
-  draggableHandle = ".drag-handle",
+  draggableHandle,
+  draggableCancel,
   margin = [12, 12],
+  containerPadding,
   compactType = null,
   designWidth,
   zoom = 'fit',
-  showGuides = false,
+  showDots = false,
+  minCanvasHeight = 0,
 }: Props) {
   const ref = React.useRef<HTMLDivElement | null>(null);
   const innerRef = React.useRef<HTMLDivElement | null>(null);
@@ -107,6 +120,24 @@ export default function MeasuredGrid({
   const [innerHeight, setInnerHeight] = React.useState(0);
   const width = designWidth ?? measured;
   const scale = designWidth && measured ? (zoom === 'fit' ? Math.min(1, measured / designWidth) : zoom) : 1;
+
+  React.useEffect(() => {
+    if (!ref.current) return;
+    const el = ref.current;
+    const rect = el.getBoundingClientRect();
+    if (rect.width > 0) setWidth(Math.floor(rect.width));
+    // Defer to the next frame and coalesce bursts so observe→setState→layout can't re-enter.
+    let frame = 0;
+    const ro = new ResizeObserver((entries) => {
+      const w = entries[0]?.contentRect?.width ?? 0;
+      if (w <= 0) return;
+      const next = Math.floor(w);
+      cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(() => setWidth((prev) => (prev !== next ? next : prev)));
+    });
+    ro.observe(el);
+    return () => { cancelAnimationFrame(frame); ro.disconnect(); };
+  }, []);
 
   // With a scaled canvas the outer box takes the scaled height, so the page scrolls normally.
   React.useEffect(() => {
@@ -118,38 +149,7 @@ export default function MeasuredGrid({
     return () => ro.disconnect();
   }, [designWidth, width]);
 
-  React.useEffect(() => {
-    if (!ref.current) return;
-
-    const el = ref.current;
-
-    // Initial
-    const rect = el.getBoundingClientRect();
-    if (rect.width > 0) setWidth(Math.floor(rect.width));
-
-    // ResizeObserver — defer to the next animation frame and coalesce
-    // bursts so the synchronous observe→setState→layout→observe cycle can't
-    // re-enter (which React flags as "Maximum update depth exceeded"). The
-    // equality guard makes React bail out when the measured width is stable.
-    let frame = 0;
-    const ro = new ResizeObserver((entries) => {
-      const w = entries[0]?.contentRect?.width ?? 0;
-      if (w <= 0) return;
-      const next = Math.floor(w);
-      cancelAnimationFrame(frame);
-      frame = window.requestAnimationFrame(() => {
-        setWidth((prev) => (prev !== next ? next : prev));
-      });
-    });
-    ro.observe(el);
-
-    return () => {
-      cancelAnimationFrame(frame);
-      ro.disconnect();
-    };
-  }, []);
-
-  const colMap = typeof cols === 'number' ? { lg: cols, md: cols, sm: cols, xs: cols, xxs: cols } : cols;
+  const colMap: ColMap = typeof cols === 'number' ? { lg: cols, md: cols, sm: cols, xs: cols, xxs: cols } : cols;
   const lgLayout: GridItem[] | undefined = layouts?.lg ?? layout;
   const fullLayouts = React.useMemo(
     () => (lgLayout ? deriveLayouts(lgLayout, colMap, layouts ?? {}) : layouts),
@@ -158,8 +158,7 @@ export default function MeasuredGrid({
   );
 
   // Current breakpoint, computed the same way react-grid-layout does. Reported to
-  // the parent *before* any layout change, including the very first one on mount
-  // (RGL itself only reports breakpoint *changes*).
+  // the parent before any layout change, including the very first one on mount.
   const currentBp = React.useMemo(() => {
     if (width === null) return null;
     const sorted = Object.entries(breakpoints).sort((a, b) => b[1] - a[1]);
@@ -171,6 +170,11 @@ export default function MeasuredGrid({
     reportedBp.current = bp;
     onBreakpointChange?.(bp, (colMap as any)[bp]);
   };
+
+  const curCols = currentBp ? (colMap as any)[currentBp] as number : colMap.lg;
+  const isPhone = curCols < colMap.lg * 0.75;
+  const effRowHeight = isPhone ? Math.round(rowHeight * 0.75) : rowHeight;
+  const pad = containerPadding ?? margin;
 
   // Scaled canvas: positions must be measured relative to the grid, in unscaled
   // pixels. (The library's built-in scaled strategy uses page coordinates.)
@@ -185,41 +189,46 @@ export default function MeasuredGrid({
   }), [scale]);
   const compactor = React.useMemo(() => getCompactor(compactType as any, false, false), [compactType]);
 
-  const cols12 = currentBp ? (colMap as any)[currentBp] as number : 12;
-  const guides = showGuides && width !== null ? (
-    <div aria-hidden className="ciq-grid-guides absolute inset-0 pointer-events-none flex" style={{ gap: margin[0], padding: margin[0] }}>
-      {Array.from({ length: cols12 }, (_, i) => <div key={i} className="flex-1 rounded-lg" />)}
-    </div>
-  ) : null;
+  // One dot per grid cell corner, like a design canvas.
+  const dotStyle: React.CSSProperties | undefined = showDots && width !== null ? (() => {
+    const colW = (width - pad[0] * 2 - margin[0] * (curCols - 1)) / curCols + margin[0];
+    const rowH = effRowHeight + margin[1];
+    return {
+      backgroundImage: 'radial-gradient(circle, var(--ciq-dot) 1.25px, transparent 1.5px)',
+      backgroundSize: `${colW}px ${rowH}px`,
+      backgroundPosition: `${pad[0] - colW / 2}px ${pad[1] - rowH / 2}px`,
+    };
+  })() : undefined;
 
   const grid = width !== null && <ResponsiveGridLayout
-        className="layout"
-        layouts={fullLayouts}
-        breakpoints={breakpoints}
-        cols={colMap}
-        // Phone-width grids use slightly shorter rows; half-width cards get one
-        // extra row there (see deriveLayouts), so they fit without wasted space.
-        rowHeight={currentBp && (colMap as any)[currentBp] <= 4 ? Math.round(rowHeight * 0.75) : rowHeight}
-        width={width}
-        margin={margin}
-        containerPadding={margin}
-        onLayoutChange={(l, all) => { reportBp(currentBp); onLayoutChange?.(l as any, all as any); }}
-        onBreakpointChange={(bp) => reportBp(bp)}
-        compactor={compactor}
-        dragConfig={{ enabled: isDraggable, handle: draggableHandle, bounded: false, threshold: 3 }}
-        resizeConfig={{ enabled: isResizable, handles: ['se'] }}
-        positionStrategy={positionStrategy}
-        innerRef={gridRef}
-      >
-        {children}
-      </ResponsiveGridLayout>;
+    className="layout"
+    layouts={fullLayouts}
+    breakpoints={breakpoints}
+    cols={colMap}
+    rowHeight={effRowHeight}
+    width={width}
+    margin={margin}
+    containerPadding={pad}
+    onLayoutChange={(l, all) => { reportBp(currentBp); onLayoutChange?.(l as any, all as any); }}
+    onBreakpointChange={(bp) => reportBp(bp)}
+    onDragStart={() => onDragStart?.()}
+    onDragStop={() => onDragStop?.()}
+    onResizeStop={() => onResizeStop?.()}
+    compactor={compactor}
+    dragConfig={{ enabled: isDraggable, handle: draggableHandle, cancel: draggableCancel, bounded: false, threshold: 4 }}
+    resizeConfig={{ enabled: isResizable, handles: ['se'] }}
+    positionStrategy={positionStrategy}
+    innerRef={gridRef}
+  >
+    {children}
+  </ResponsiveGridLayout>;
 
   if (designWidth) {
+    const minH = minCanvasHeight ? minCanvasHeight / (scale || 1) : undefined;
     return (
       <div ref={ref} className={className} style={{ width: "100%", overflowX: scale * designWidth > (measured ?? 0) + 1 ? "auto" : "hidden" }}>
         <div style={{ width: designWidth * scale, height: innerHeight * scale }}>
-          <div ref={innerRef} className="relative" style={{ width: designWidth, transform: `scale(${scale})`, transformOrigin: "0 0" }}>
-            {guides}
+          <div ref={innerRef} className="relative" style={{ width: designWidth, transform: `scale(${scale})`, transformOrigin: "0 0", minHeight: minH, ...dotStyle }}>
             {grid}
           </div>
         </div>
@@ -228,8 +237,7 @@ export default function MeasuredGrid({
   }
 
   return (
-    <div ref={ref} className={`relative ${className ?? ""}`} style={{ width: "100%" }}>
-      {guides}
+    <div ref={ref} className={`relative ${className ?? ""}`} style={{ width: "100%", minHeight: minCanvasHeight || undefined, ...dotStyle }}>
       {grid}
     </div>
   );
