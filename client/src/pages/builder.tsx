@@ -5,6 +5,7 @@
 // Layouts are stored on a fine 48-column grid ("Free" moves in small steps).
 // "Locked to grid" edits the same layout on the classic 12-column grid, where
 // cards snap into rows and gaps close automatically.
+import { DashboardSkeleton } from "@/components/DashboardSkeleton";
 import { getCardShellClasses } from "@/lib/card-shell";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
@@ -390,12 +391,7 @@ export default function BuilderPage() {
             }}
           >
             {loading ? (
-              <div className="h-80 flex items-center justify-center rounded-2xl border border-slate-200 bg-slate-50/70">
-                <div className="flex flex-col items-center gap-4">
-                  <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
-                  <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Loading your dashboard…</span>
-                </div>
-              </div>
+              <DashboardSkeleton />
             ) : widgets.length === 0 ? (
               <div className="py-16 px-4 flex flex-col items-center justify-center text-center rounded-2xl border border-slate-200 bg-slate-50/70">
                 <div className="w-24 h-24 bg-white border border-slate-100 rounded-full flex items-center justify-center mb-6 shadow-sm">

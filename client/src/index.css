@@ -103,6 +103,9 @@
     @apply font-sans antialiased bg-background text-foreground;
     text-rendering: optimizeLegibility;
     -webkit-tap-highlight-color: transparent;
+    /* viewport-fit=cover: keep content clear of the notch in landscape. */
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
   }
   ::selection {
     background: rgb(94 234 212 / 0.45);

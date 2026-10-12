@@ -62,7 +62,7 @@ export function MarketingLayout({ children }: { children: React.ReactNode }) {
   ];
 
   return (
-    <div className="min-h-screen bg-[#F4F7FA] font-sans flex flex-col">
+    <div className="min-h-dvh bg-[#F4F7FA] font-sans flex flex-col">
       <header className={cn(
         "sticky top-0 z-50 shrink-0 transition-[background-color,border-color,box-shadow,backdrop-filter] duration-300 border-b",
         scrolled || mobileMenuOpen

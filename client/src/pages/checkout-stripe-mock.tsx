@@ -51,7 +51,7 @@ export default function CheckoutStripeMockPage() {
   const mainFeatures = tier.features.filter(f => !f.endsWith(":")).slice(0, 4);
 
   return (
-    <div className="min-h-screen bg-[#F4F7FA] flex items-center justify-center p-4 font-sans selection:bg-primary/20">
+    <div className="min-h-dvh bg-[#F4F7FA] flex items-center justify-center p-4 font-sans selection:bg-primary/20">
       <div className="w-full max-w-5xl grid md:grid-cols-2 bg-white rounded-3xl shadow-2xl overflow-hidden min-h-[600px] border border-slate-200">
         {/* Left Side - Order Summary */}
         <div className="bg-slate-900 text-white p-8 md:p-12 flex flex-col justify-between relative overflow-hidden">

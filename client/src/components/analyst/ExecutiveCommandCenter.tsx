@@ -102,7 +102,7 @@ function HealthRing({ score, grade }: { score: number; grade: string }) {
 }
 
 function PriorityCard({ priority, index }: { priority: TopPriority; index: number }) {
-  const [open, setOpen] = useState(index === 0);
+  const [open, setOpen] = useState(false);
   const sev = SEVERITY_STYLES[priority.severity];
 
   return (
@@ -112,6 +112,7 @@ function PriorityCard({ priority, index }: { priority: TopPriority; index: numbe
     >
       <button
         onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
         className="w-full flex items-center gap-3 px-4 py-3.5 text-left hover:bg-slate-50/60 transition-colors"
         data-testid={`button-priority-toggle-${index}`}
       >
@@ -346,7 +347,7 @@ export function ExecutiveCommandCenter({
           </span>
           <span className="text-[9px] font-bold text-slate-300">· {data.topPriorities.length}</span>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-start">
           {data.topPriorities.map((p, i) => (
             <PriorityCard key={p.id} priority={p} index={i} />
           ))}

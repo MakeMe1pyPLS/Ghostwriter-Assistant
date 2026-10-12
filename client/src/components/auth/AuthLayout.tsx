@@ -40,7 +40,7 @@ export function AuthLayout({ children, title, subtitle, side = "signin" }: AuthL
   }[side];
 
   return (
-    <div className="min-h-screen bg-[#F4F7FA] grid lg:grid-cols-2">
+    <div className="min-h-dvh bg-[#F4F7FA] grid lg:grid-cols-2">
       {/* Left brand panel */}
       <aside className="hidden lg:flex flex-col justify-between bg-slate-900 text-white p-12 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/15 blur-[120px] rounded-full translate-x-1/3 -translate-y-1/3 pointer-events-none" />

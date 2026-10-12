@@ -1,4 +1,5 @@
 import { getCardShellClasses } from "@/lib/card-shell";
+import { DashboardSkeleton } from "@/components/DashboardSkeleton";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import MeasuredGrid from "@/components/MeasuredGrid";
@@ -161,9 +162,7 @@ export default function DashboardPage() {
 
         <div className="bg-transparent flex-1 relative min-h-0">
           {loading ? (
-            <div className="h-64 flex items-center justify-center" data-testid="status-dashboard-loading">
-              <div className="w-6 h-6 border-2 border-slate-300 border-t-primary rounded-full animate-spin" />
-            </div>
+            <DashboardSkeleton testId="status-dashboard-loading" />
           ) : widgets.length === 0 ? (
             <div className="h-64 flex flex-col items-center justify-center text-center bg-white rounded-3xl border border-slate-200 border-dashed">
               <h3 className="text-lg font-bold text-slate-900 mb-2">No Widgets Configured</h3>
