@@ -193,12 +193,12 @@
 /* Widget content sizes itself to its card (width and height container queries). */
 .ciq-cq { container-type: size; min-height: 0; }
 
-/* Builder canvas: column guides while editing. */
-.ciq-grid-guides > div {
-  background: color-mix(in oklab, var(--color-teal-500) 5%, transparent);
-  outline: 1px dashed color-mix(in oklab, var(--color-teal-600) 22%, transparent);
-  outline-offset: -1px;
-}
+/* Grid cards sit inset in their cell; the inset makes the gaps between cards. */
+.ciq-card-inset { position: absolute; inset: 8px; }
+/* Dot grid colour for the Builder canvas. */
+:root { --ciq-dot: rgba(100, 116, 139, 0.38); }
+.dark { --ciq-dot: rgba(148, 163, 184, 0.22); }
+
 /* Bigger resize handles for fingers. */
 @media (pointer: coarse) {
   .react-grid-item > .react-resizable-handle { width: 32px; height: 32px; }

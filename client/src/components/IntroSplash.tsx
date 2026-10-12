@@ -1,320 +1,265 @@
-// First-visit intro for the homepage (~4.7s, skippable, shown once).
-// Story, in motion:
-//   1. Particles stream in from the dark and ignite five business nodes.
-//   2. Links draw between them — "Every business is a chain."
-//   3. Energy pulses race down the chain and jam at one link: it flares red,
-//      the chain shudders and a shockwave rolls out — "One weak link slows everyone."
-//   4. A teal beam sweeps through, the link snaps teal, pulses flow freely —
-//      "Find it. Fix it together."
-//   5. The chain folds into the logo; the wordmark sweeps in; we zoom through.
-// Interactive: the scene leans toward the pointer; any click, tap or key ends it.
-// Reduced-motion users never see it. See docs/BRAND.md → "The intro".
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+// First-visit homepage intro (about 2.3s, skippable, shown once).
+// It picks up exactly where the loading screen leaves off: index.html paints the
+// same ink background and dot grid before the app loads, so loading → intro →
+// site reads as one continuous move.
+//   1. A chain of five partners draws across the dot grid.
+//   2. One link flickers red (the bottleneck); a teal pulse runs through and fixes it.
+//   3. The chain folds into the logo.
+//   4. The logo flies to its place in the header while the dark layer opens from
+//      the centre and the hero plays its entrance underneath.
+// Any click, tap, Esc, Enter or Space skips straight to step 4. Reduced-motion
+// users never see it. See docs/BRAND.md → "The intro".
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { EASE_OUT } from "@/components/motion";
-import { LogoMark } from "@/components/Logo";
+import { animate, motion, useMotionTemplate, useMotionValue, useTransform } from "framer-motion";
+import { Logo } from "@/components/Logo";
+import { INTRO_KEY, introWillShow, setIntroReady } from "@/lib/intro-gate";
 
-const STORAGE_KEY = "ciq_intro_seen_v2";
 const NODES = ["Supplier", "Maker", "Warehouse", "Carrier", "Customer"];
-const BOTTLENECK = 2; // link between Warehouse (2) and Carrier (3)
-const RED = "#F43F5E";
+const BOTTLENECK = 2; // the link between Warehouse and Carrier
 const TEAL = "#2DD4BF";
+const RED = "#F43F5E";
+const INK = "#070C16";
+const DOTS = "radial-gradient(circle, rgba(148,163,184,0.16) 1.2px, transparent 1.5px)";
+const FLY_EASE = [0.7, 0, 0.2, 1] as const;
 
-// Stage start times (ms): stream, chain, jam, fix, logo, exit.
-const TIMELINE = [0, 600, 1400, 2350, 3150, 4300];
-const TOTAL = 4700;
-type Stage = 0 | 1 | 2 | 3 | 4 | 5;
+// Stage start times (ms): chain draws (0), jam, fix, fold into logo, open.
+const AT = { jam: 600, fix: 820, fold: 1180, open: 1560 };
+const OPEN_MS = 760;
+type Stage = 0 | 1 | 2 | 3 | 4;
 
-function seen(): boolean {
-  try { return localStorage.getItem(STORAGE_KEY) === "1"; } catch { return true; }
-}
 function markSeen() {
-  try { localStorage.setItem(STORAGE_KEY, "1"); } catch { /* private mode */ }
+  try { localStorage.setItem(INTRO_KEY, "1"); } catch { /* private mode */ }
 }
 
-// Deterministic pseudo-random so the scene is identical every time.
-const rand = (i: number) => { const x = Math.sin(i * 9301 + 49297) * 233280; return x - Math.floor(x); };
+const headerLogo = () => document.querySelector<HTMLElement>("[data-intro-logo] > span");
 
 export function IntroSplash() {
-  const reduce = useReducedMotion();
-  const [show, setShow] = useState(false);
+  const [show, setShow] = useState(() => introWillShow());
   const [stage, setStage] = useState<Stage>(0);
-  const [size, setSize] = useState({ w: 1200, h: 800 });
-  const [pointer, setPointer] = useState({ x: 0, y: 0 });
+  const [vw, setVw] = useState(() => (typeof window !== "undefined" ? window.innerWidth : 1200));
   const timers = useRef<number[]>([]);
-  const skipRef = useRef<HTMLButtonElement>(null);
+  const flyRef = useRef<HTMLDivElement>(null);
+  const opened = useRef(false);
 
-  useEffect(() => {
-    if (reduce || seen() || new URLSearchParams(window.location.search).has("nointro")) return;
-    setSize({ w: window.innerWidth, h: window.innerHeight });
-    setShow(true);
-  }, [reduce]);
+  // The hole in the dark layer (in vmax) and the flying logo's position.
+  const hole = useMotionValue(-24);
+  const mask = useMotionTemplate`radial-gradient(circle at 50% 46%, transparent ${hole}vmax, #000 calc(${hole}vmax + 22vmax))`;
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const scale = useMotionValue(1);
+  const logoOpacity = useMotionValue(0);
+  // 0 = white wordmark (on the dark layer), 1 = the header's own colours (on the page).
+  const toneMix = useMotionValue(0);
+  const lightOpacity = useTransform(toneMix, (v) => 1 - v);
+
+  const clearTimers = () => { timers.current.forEach(clearTimeout); timers.current = []; };
 
   const finish = useCallback(() => {
-    timers.current.forEach(clearTimeout);
-    timers.current = [];
+    clearTimers();
     markSeen();
+    setIntroReady();
+    const t = headerLogo();
+    if (t) { t.style.transition = ""; t.style.opacity = ""; }
     setShow(false);
   }, []);
 
+  // Step 4: open the dark layer and fly the logo home (`fast` when skipped).
+  const open = useCallback((fast = false) => {
+    if (opened.current) return;
+    opened.current = true;
+    clearTimers();
+    setStage(4);
+    setIntroReady();
+    const s = (fast ? 420 : OPEN_MS) / 1000;
+    animate(hole, 140, { duration: s, ease: [0.65, 0, 0.35, 1] });
+    const t = headerLogo();
+    if (t && flyRef.current) {
+      const r = t.getBoundingClientRect();
+      animate(logoOpacity, 1, { duration: 0.15 });
+      animate(x, r.left, { duration: s, ease: FLY_EASE });
+      animate(y, r.top, { duration: s, ease: FLY_EASE });
+      animate(scale, 1, { duration: s, ease: FLY_EASE });
+      // The page shows behind the logo for the last part of the flight; switch to its colours.
+      animate(toneMix, 1, { duration: s * 0.5, delay: s * 0.35, ease: "easeInOut" });
+      // Hand over to the real header logo as the flying one lands.
+      timers.current.push(window.setTimeout(() => {
+        t.style.transition = "opacity 220ms ease-out";
+        t.style.opacity = "1";
+        animate(logoOpacity, 0, { duration: 0.22 });
+      }, s * 1000 - 120));
+    }
+    timers.current.push(window.setTimeout(finish, s * 1000 + 140));
+  }, [finish, hole, logoOpacity, scale, toneMix, x, y]);
+
+  // Put the logo in the middle of the screen, large, ready to form.
+  useLayoutEffect(() => {
+    if (!show) return;
+    const el = flyRef.current;
+    if (!el) return;
+    const w = el.offsetWidth, h = el.offsetHeight;
+    const S = Math.min(2.4, (window.innerWidth * 0.72) / w);
+    scale.set(S);
+    x.set((window.innerWidth - w * S) / 2);
+    y.set(window.innerHeight * 0.46 - (h * S) / 2);
+    const t = headerLogo();
+    if (t) t.style.opacity = "0";
+  }, [show, scale, x, y]);
+
   useEffect(() => {
     if (!show) return;
-    TIMELINE.slice(1).forEach((t, i) => {
-      timers.current.push(window.setTimeout(() => setStage((i + 1) as Stage), t));
-    });
-    timers.current.push(window.setTimeout(finish, TOTAL));
-    const onKey = (e: KeyboardEvent) => { if (["Escape", "Enter", " "].includes(e.key)) finish(); };
-    const onResize = () => setSize({ w: window.innerWidth, h: window.innerHeight });
+    timers.current.push(
+      window.setTimeout(() => setStage(1), AT.jam),
+      window.setTimeout(() => setStage(2), AT.fix),
+      window.setTimeout(() => { setStage(3); animate(logoOpacity, 1, { duration: 0.3 }); }, AT.fold),
+      window.setTimeout(() => open(false), AT.open),
+    );
+    const onKey = (e: KeyboardEvent) => { if (["Escape", "Enter", " "].includes(e.key)) { e.preventDefault(); open(true); } };
+    const onResize = () => setVw(window.innerWidth);
     window.addEventListener("keydown", onKey);
     window.addEventListener("resize", onResize);
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    skipRef.current?.focus({ preventScroll: true });
     return () => {
-      timers.current.forEach(clearTimeout);
+      clearTimers();
       window.removeEventListener("keydown", onKey);
       window.removeEventListener("resize", onResize);
       document.body.style.overflow = prevOverflow;
+      const t = headerLogo();
+      if (t) { t.style.transition = ""; t.style.opacity = ""; }
     };
-  }, [show, finish]);
+  }, [show, open, logoOpacity]);
 
-  // Layout: horizontal chain on wide screens, vertical on phones.
-  const vertical = size.w < 640;
-  const cx = size.w / 2, cy = size.h * 0.46;
-  const chain = useMemo(() => NODES.map((_, i) => {
-    const t = i / (NODES.length - 1);
-    return vertical ? { x: cx, y: size.h * (0.18 + t * 0.56) } : { x: size.w * (0.14 + t * 0.72), y: cy };
-  }), [size, vertical, cx, cy]);
+  if (!show || typeof document === "undefined") return null;
 
-  // Particles: start scattered beyond the edges, each assigned to a node.
-  const particles = useMemo(() => Array.from({ length: vertical ? 26 : 34 }, (_, i) => {
-    const ang = rand(i) * Math.PI * 2;
-    const r = Math.max(size.w, size.h) * (0.55 + rand(i + 99) * 0.35);
-    return { id: i, sx: cx + Math.cos(ang) * r, sy: cy + Math.sin(ang) * r, node: i % NODES.length, delay: rand(i + 7) * 0.35, s: 1 + rand(i + 3) * 1.6 };
-  }), [size, vertical, cx, cy]);
+  // The chain, sized to the screen.
+  const W = Math.min(640, vw - 40);
+  const H = 120;
+  const pad = 26;
+  const xs = NODES.map((_, i) => pad + (i * (W - pad * 2)) / (NODES.length - 1));
+  const cy = 46;
+  const labels = W >= 300;
+  const jammed = (i: number) => stage === 1 && (i === BOTTLENECK || i === BOTTLENECK + 1);
 
-  const L = { x: pointer.x * 10, y: pointer.y * 10 };
-  const a = chain[BOTTLENECK], b = chain[BOTTLENECK + 1];
-  const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
-
-  const linkColor = (i: number) => {
-    if (i === BOTTLENECK && stage === 2) return RED;
-    if (i === BOTTLENECK && stage >= 3) return TEAL;
-    return stage >= 3 ? "rgba(94,234,212,0.55)" : "rgba(148,163,184,0.5)";
-  };
-
-  if (typeof document === "undefined") return null;
-  // Portal to <body> so page transforms can't trap the fixed overlay under the header.
   return createPortal(
-    <AnimatePresence>
-      {show && (
+    <div
+      className="fixed inset-0 z-[100]"
+      role="dialog"
+      aria-modal="true"
+      aria-label="ChainInsideIQ intro"
+      style={{ pointerEvents: stage === 4 ? "none" : "auto" }}
+      onPointerDown={() => open(true)}
+      data-testid="intro"
+    >
+      {/* The dark layer: the same ink and dots as the loading screen. It opens from the centre. */}
+      <motion.div
+        className="absolute inset-0 overflow-hidden"
+        style={{ backgroundColor: INK, backgroundImage: DOTS, backgroundSize: "28px 28px", maskImage: mask, WebkitMaskImage: mask }}
+      >
+        {/* Soft teal light that gathers where the logo forms. */}
         <motion.div
-          key="intro"
-          role="dialog"
-          aria-label="ChainInsideIQ intro"
-          className="fixed inset-0 z-[300] bg-[#04070D] text-white overflow-hidden cursor-pointer select-none"
-          initial={{ opacity: 1 }}
-          exit={{ opacity: 0, scale: 1.06, filter: "blur(6px)", transition: { duration: 0.45, ease: EASE_OUT } }}
-          onClick={finish}
-          onPointerMove={(e) => setPointer({ x: (e.clientX / size.w) * 2 - 1, y: (e.clientY / size.h) * 2 - 1 })}
+          aria-hidden
+          className="absolute left-1/2 top-[46%] w-[900px] max-w-[180vw] aspect-square rounded-full"
+          style={{ x: "-50%", y: "-50%", background: "radial-gradient(closest-side, rgba(45,212,191,0.22), rgba(14,165,233,0.06) 55%, transparent)" }}
+          initial={{ opacity: 0, scale: 0.7 }}
+          animate={{ opacity: stage >= 3 ? 0.95 : 0.45, scale: stage >= 3 ? 1 : 0.8 }}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+        />
+
+        {/* The chain */}
+        <motion.svg
+          aria-hidden
+          width={W}
+          height={H}
+          viewBox={`0 0 ${W} ${H}`}
+          className="absolute left-1/2 top-[46%] overflow-visible"
+          style={{ x: "-50%", y: "-38%" }}
+          animate={stage >= 3 ? { scaleX: 0.08, scaleY: 0.5, opacity: 0 } : { scaleX: 1, scaleY: 1, opacity: 1 }}
+          transition={{ duration: 0.34, ease: [0.55, 0, 0.75, 0] }}
         >
-          {/* Grid floor + vignette */}
-          <motion.div aria-hidden className="absolute inset-0"
-            initial={{ opacity: 0 }} animate={{ opacity: stage >= 4 ? 0.15 : 0.5 }} transition={{ duration: 0.8 }}
-            style={{
-              backgroundImage: "linear-gradient(rgba(148,163,184,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,0.08) 1px, transparent 1px)",
-              backgroundSize: "48px 48px",
-              maskImage: "radial-gradient(60% 60% at 50% 46%, #000 30%, transparent 75%)",
-              WebkitMaskImage: "radial-gradient(60% 60% at 50% 46%, #000 30%, transparent 75%)",
-            }} />
-          {/* Ambient glow that shifts colour with the story */}
-          <motion.div aria-hidden className="absolute rounded-full blur-[90px] pointer-events-none"
-            style={{ width: size.w * 0.7, height: size.w * 0.7, left: cx - size.w * 0.35, top: cy - size.w * 0.35 }}
-            animate={{
-              backgroundColor: stage === 2 ? "rgba(244,63,94,0.22)" : stage >= 3 ? "rgba(45,212,191,0.26)" : "rgba(45,212,191,0.08)",
-              scale: stage >= 4 ? 0.7 : stage === 3 ? 1.15 : 1,
-            }}
-            transition={{ duration: 0.6, ease: EASE_OUT }} />
-
-          {/* Flash on the fix */}
-          <AnimatePresence>
-            {stage === 3 && (
-              <motion.div key="flash" aria-hidden className="absolute inset-0 bg-teal-300 pointer-events-none"
-                initial={{ opacity: 0.32 }} animate={{ opacity: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.5 }} />
-            )}
-          </AnimatePresence>
-
-          {/* The chain scene */}
-          <motion.svg width={size.w} height={size.h} className="absolute inset-0" aria-hidden
-            animate={
-              stage === 2 ? { x: [0, -7, 6, -4, 3, 0], opacity: 1, scale: 1 }
-                : stage >= 4 ? { opacity: 0, scale: 0.55, x: 0 }
-                  : { opacity: 1, scale: 1, x: 0 }
-            }
-            transition={stage === 2 ? { duration: 0.45, delay: 0.35 } : { duration: 0.5, ease: EASE_OUT }}
-            style={{ transformOrigin: `${cx}px ${cy}px` }}>
-            <defs>
-              {/* Dots and nodes: a small glow region keeps this cheap. */}
-              <filter id="intro-glow" x="-100%" y="-100%" width="300%" height="300%">
-                <feGaussianBlur stdDeviation="3" result="b" />
-                <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
-              </filter>
-              {/* Lines: userSpaceOnUse, because a percentage region collapses to
-                  zero for perfectly straight lines and makes them vanish. */}
-              <filter id="intro-glow-line" filterUnits="userSpaceOnUse" x={Math.min(a.x, b.x) - 40} y={Math.min(a.y, b.y) - 40} width={Math.abs(b.x - a.x) + 80} height={Math.abs(b.y - a.y) + 80}>
-                <feGaussianBlur stdDeviation="4" result="b" />
-                <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
-              </filter>
-              <linearGradient id="intro-beam" x1="0" x2="1">
-                <stop offset="0" stopColor={TEAL} stopOpacity="0" />
-                <stop offset="0.5" stopColor="#CCFBF1" stopOpacity="1" />
-                <stop offset="1" stopColor={TEAL} stopOpacity="0" />
-              </linearGradient>
-            </defs>
-
-            <g transform={`translate(${L.x} ${L.y})`}>
-              {/* Particles streaming into the nodes */}
-              {stage <= 1 && particles.map((p) => (
-                <motion.circle key={p.id} r={p.s + 0.6} fill={TEAL}
-                  initial={{ cx: p.sx, cy: p.sy, opacity: 0 }}
-                  animate={{ cx: chain[p.node].x, cy: chain[p.node].y, opacity: [0, 1, 0] }}
-                  transition={{ duration: 0.75, delay: p.delay, ease: [0.5, 0, 0.75, 0] }} />
-              ))}
-
-              {/* Links */}
-              {NODES.slice(0, -1).map((_, i) => {
-                const p = chain[i], q = chain[i + 1];
-                const hot = i === BOTTLENECK && stage >= 2;
-                return (
-                  <motion.line key={`l${i}`} x1={p.x} y1={p.y} x2={q.x} y2={q.y}
-                    strokeWidth={hot ? 6 : 3} strokeLinecap="round" filter={hot ? "url(#intro-glow-line)" : undefined}
-                    initial={{ pathLength: 0, opacity: 0 }}
-                    animate={{ pathLength: stage >= 1 ? 1 : 0, opacity: stage >= 1 ? 1 : 0, stroke: linkColor(i) }}
-                    transition={{ pathLength: { duration: 0.45, delay: stage === 1 ? i * 0.09 : 0, ease: EASE_OUT }, stroke: { duration: 0.25 }, opacity: { duration: 0.2 } }} />
-                );
-              })}
-
-              {/* Energy pulses: jam before the bottleneck, then flow after the fix */}
-              {(stage === 2 || stage === 3) && [0, 1, 2, 3, 4, 5].map((k) => {
-                const flow = stage === 3;
-                const end = flow ? chain[NODES.length - 1] : { x: a.x - (vertical ? 0 : 10 + k * 9), y: a.y - (vertical ? 10 + k * 9 : 0) };
-                return (
-                  <motion.circle key={`${stage}-${k}`} r={flow ? 5 : 4.5} fill={flow ? "#CCFBF1" : "#FDA4AF"} filter="url(#intro-glow)"
-                    initial={{ cx: chain[0].x, cy: chain[0].y, opacity: 0 }}
-                    animate={{ cx: end.x, cy: end.y, opacity: flow ? [0, 1, 1, 0] : [0, 1, 1] }}
-                    transition={{ duration: flow ? 0.7 : 0.55, delay: k * (flow ? 0.09 : 0.07), ease: flow ? "easeIn" : EASE_OUT }} />
-                );
-              })}
-
-              {/* Shockwaves at the bottleneck */}
-              {stage === 2 && [0, 0.18].map((d) => (
-                <motion.circle key={`sw-r-${d}`} cx={mid.x} cy={mid.y} fill="none" stroke={RED} strokeWidth="2"
-                  initial={{ r: 8, opacity: 0.9 }} animate={{ r: Math.min(size.w, size.h) * 0.32, opacity: 0 }}
-                  transition={{ duration: 1, delay: 0.35 + d, ease: "easeOut" }} />
-              ))}
-              {stage === 3 && [0, 0.12, 0.24].map((d) => (
-                <motion.circle key={`sw-t-${d}`} cx={mid.x} cy={mid.y} fill="none" stroke={TEAL} strokeWidth="2.5"
-                  initial={{ r: 6, opacity: 1 }} animate={{ r: Math.max(size.w, size.h) * 0.5, opacity: 0 }}
-                  transition={{ duration: 1.1, delay: d, ease: "easeOut" }} />
-              ))}
-
-              {/* Teal repair beam sweeping across the broken link */}
-              {stage === 3 && (
-                <motion.line x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke="url(#intro-beam)" strokeWidth="14" strokeLinecap="round" filter="url(#intro-glow-line)"
-                  initial={{ pathLength: 0, opacity: 1 }} animate={{ pathLength: 1, opacity: 0 }} transition={{ duration: 0.6, ease: EASE_OUT }} />
+          <motion.line x1={xs[0]} y1={cy} x2={xs[4]} y2={cy} stroke="rgba(148,163,184,0.35)" strokeWidth={2} strokeLinecap="round"
+            initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 0.5, delay: 0.1, ease: [0.22, 1, 0.36, 1] }} />
+          {/* The bottleneck link */}
+          <motion.line x1={xs[BOTTLENECK]} y1={cy} x2={xs[BOTTLENECK + 1]} y2={cy} strokeWidth={3} strokeLinecap="round"
+            initial={{ opacity: 0, stroke: RED }}
+            animate={stage === 1 ? { opacity: [0, 1, 0.45, 1], stroke: RED } : stage >= 2 ? { opacity: 1, stroke: TEAL } : { opacity: 0, stroke: RED }}
+            transition={{ duration: stage === 1 ? 0.22 : 0.3 }} />
+          {/* The fix: a teal pulse runs the whole chain */}
+          <motion.line x1={xs[0]} y1={cy} x2={xs[4]} y2={cy} stroke={TEAL} strokeWidth={2.5} strokeLinecap="round"
+            initial={{ pathLength: 0, opacity: 0 }} animate={stage >= 2 ? { pathLength: 1, opacity: 1 } : { pathLength: 0, opacity: 0 }}
+            transition={{ duration: 0.34, ease: [0.65, 0, 0.35, 1] }} />
+          {stage >= 2 && (
+            <motion.circle cy={cy} r={5} fill={TEAL} style={{ filter: "drop-shadow(0 0 6px rgba(45,212,191,0.9))" }}
+              initial={{ cx: xs[0], opacity: 1 }} animate={{ cx: xs[4], opacity: [1, 1, 0] }}
+              transition={{ duration: 0.34, ease: [0.65, 0, 0.35, 1] }} />
+          )}
+          {xs.map((nx, i) => (
+            <g key={NODES[i]}>
+              <motion.circle cx={nx} cy={cy} r={7} strokeWidth={2}
+                initial={{ scale: 0, fill: "#0B1322", stroke: "#475569" }}
+                animate={{
+                  scale: 1,
+                  fill: stage >= 2 ? "#0F2A2A" : jammed(i) ? "#2A0F17" : "#0B1322",
+                  stroke: stage >= 2 ? TEAL : jammed(i) ? RED : "#64748B",
+                }}
+                transition={{
+                  scale: { delay: 0.12 + i * 0.07, type: "spring", stiffness: 520, damping: 26 },
+                  default: { duration: 0.2, delay: stage >= 2 ? i * 0.07 : 0 },
+                }}
+                style={{ transformOrigin: `${nx}px ${cy}px` }} />
+              {labels && (
+                <motion.text x={nx} y={cy + 30} textAnchor="middle" fill="#64748B" fontSize={11} fontWeight={600} fontFamily="Inter, system-ui, sans-serif"
+                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.25 + i * 0.05, duration: 0.3 }}>
+                  {NODES[i]}
+                </motion.text>
               )}
-
-              {/* Nodes */}
-              {NODES.map((label, i) => {
-                const p = chain[i];
-                const isBad = i === BOTTLENECK || i === BOTTLENECK + 1;
-                const hot = stage === 2 && isBad;
-                const fixed = stage >= 3 && isBad;
-                return (
-                  <motion.g key={label}
-                    initial={{ opacity: 0, scale: 0.2 }}
-                    animate={{ opacity: 1, scale: hot ? 1.15 : 1 }}
-                    transition={{ opacity: { duration: 0.2, delay: stage === 0 ? 0.55 + i * 0.05 : 0 }, scale: { type: "spring", stiffness: 420, damping: 14, delay: stage === 0 ? 0.55 + i * 0.05 : 0 } }}
-                    style={{ transformOrigin: `${p.x}px ${p.y}px` }}>
-                    <circle cx={p.x} cy={p.y} r={vertical ? 22 : 26} fill={hot ? "rgba(244,63,94,0.18)" : fixed ? "rgba(45,212,191,0.18)" : "rgba(45,212,191,0.06)"} />
-                    <motion.circle cx={p.x} cy={p.y} r={vertical ? 12 : 15} strokeWidth={3} filter="url(#intro-glow)"
-                      animate={{ fill: hot ? RED : fixed ? "#14B8A6" : "#0B1424", stroke: hot ? "#FDA4AF" : fixed ? "#99F6E4" : "#2DD4BF" }}
-                      transition={{ duration: 0.25 }} />
-                    <text x={vertical ? p.x + 30 : p.x} y={vertical ? p.y + 5 : p.y + 46} textAnchor={vertical ? "start" : "middle"}
-                      fill="#94A3B8" style={{ fontSize: vertical ? 13 : 14, fontWeight: 700, letterSpacing: "0.04em" }}>
-                      {label}
-                    </text>
-                  </motion.g>
-                );
-              })}
             </g>
-          </motion.svg>
+          ))}
+        </motion.svg>
 
-          {/* Captions */}
-          <div className="absolute inset-x-0 px-6 text-center pointer-events-none" style={{ top: vertical ? size.h * 0.82 : size.h * 0.63 }}>
-            <AnimatePresence mode="wait">
-              {stage >= 1 && stage <= 3 && (
-                <motion.p key={stage}
-                  initial={{ opacity: 0, y: 12, filter: "blur(8px)" }}
-                  animate={{ opacity: 1, y: 0, filter: "blur(0px)", x: stage === 2 ? [0, -3, 3, -2, 0] : 0 }}
-                  exit={{ opacity: 0, y: -8, filter: "blur(6px)", transition: { duration: 0.16 } }}
-                  transition={{ duration: 0.3, ease: EASE_OUT, x: { duration: 0.35, delay: 0.35 } }}
-                  className={`text-2xl sm:text-4xl font-black tracking-[-0.03em] ${stage === 2 ? "text-rose-300" : stage === 3 ? "text-teal-200" : "text-white/90"}`}>
-                  {stage === 1 ? "Every business is a chain." : stage === 2 ? "One weak link slows everyone." : "Find it. Fix it together."}
-                </motion.p>
-              )}
-            </AnimatePresence>
-          </div>
+        {/* One soft ring as the chain becomes the logo */}
+        {stage >= 3 && (
+          <motion.div aria-hidden className="absolute left-1/2 top-[46%] w-40 h-40 -ml-20 -mt-20 rounded-full border border-teal-300/50"
+            initial={{ scale: 0.5, opacity: 0.7 }} animate={{ scale: 2.6, opacity: 0 }} transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }} />
+        )}
+      </motion.div>
 
-          {/* Logo lockup: the chain folds into the mark */}
-          <AnimatePresence>
-            {stage >= 4 && (
-              <motion.div key="logo" className="absolute inset-0 flex flex-col items-center justify-center gap-5 px-6 text-center pointer-events-none"
-                initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2 }}>
-                <motion.div className="relative" initial={{ scale: 0.3, rotate: -25, filter: "blur(10px)" }} animate={{ scale: 1, rotate: 0, filter: "blur(0px)" }} transition={{ type: "spring", stiffness: 220, damping: 16 }}>
-                  <motion.span aria-hidden className="absolute -inset-6 rounded-[32px] bg-teal-400/30 blur-2xl" initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: [0, 1, 0.6], scale: [0.6, 1.3, 1] }} transition={{ duration: 0.9 }} />
-                  <span className="relative block"><LogoMark size={vertical ? 76 : 96} animated /></span>
-                  {Array.from({ length: 14 }).map((_, i) => {
-                    const ang = (i / 14) * Math.PI * 2;
-                    return (
-                      <motion.span key={i} aria-hidden className="absolute left-1/2 top-1/2 w-1.5 h-1.5 -ml-[3px] -mt-[3px] rounded-full bg-teal-300"
-                        initial={{ x: 0, y: 0, opacity: 1, scale: 1 }} animate={{ x: Math.cos(ang) * 110, y: Math.sin(ang) * 110, opacity: 0, scale: 0.3 }}
-                        transition={{ duration: 0.8, ease: "easeOut", delay: 0.05 }} />
-                    );
-                  })}
-                </motion.div>
-                <div className="relative overflow-hidden">
-                  <motion.p className="text-[2.2rem] sm:text-6xl font-black tracking-[-0.05em] leading-none py-1"
-                    initial={{ clipPath: "inset(0 100% 0 0)", opacity: 0.4 }} animate={{ clipPath: "inset(0 0% 0 0)", opacity: 1 }} transition={{ duration: 0.6, delay: 0.25, ease: EASE_OUT }}>
-                    ChainInside<span className="text-teal-300">IQ</span>
-                  </motion.p>
-                  <motion.span aria-hidden className="absolute inset-y-0 w-1/3 bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-[-20deg]"
-                    initial={{ left: "-40%" }} animate={{ left: "120%" }} transition={{ duration: 0.8, delay: 0.75, ease: EASE_OUT }} />
-                </div>
-                <motion.p className="text-white/70 text-base sm:text-xl font-medium" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55, duration: 0.4 }}>
-                  Find the bottleneck. Fix it together.
-                </motion.p>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Progress + skip */}
-          <div className="absolute inset-x-0 bottom-0 p-5 sm:p-6 flex items-center gap-4" style={{ paddingBottom: "max(1.25rem, env(safe-area-inset-bottom))" }}>
-            <div className="flex-1 h-[3px] rounded-full bg-white/10 overflow-hidden" aria-hidden>
-              <motion.div className="h-full bg-gradient-to-r from-teal-500 to-cyan-300 origin-left" initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ duration: TOTAL / 1000, ease: "linear" }} />
-            </div>
-            <button
-              ref={skipRef}
-              onClick={(e) => { e.stopPropagation(); finish(); }}
-              className="shrink-0 text-[13px] font-semibold text-white/70 hover:text-white px-3 py-2 rounded-lg border border-white/10 hover:border-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-300"
-            >
-              Skip intro
-            </button>
-          </div>
+      {/* The logo forms in the middle, then flies to the header. It sits outside the mask so it is never cut. */}
+      <motion.div
+        ref={flyRef}
+        className="fixed left-0 top-0 origin-top-left will-change-transform"
+        style={{ x, y, scale, opacity: logoOpacity }}
+        aria-hidden
+        data-testid="intro-logo"
+      >
+        <motion.div
+          initial={{ filter: "blur(8px)", scale: 0.9 }}
+          animate={stage >= 3 ? { filter: "blur(0px)", scale: 1 } : { filter: "blur(8px)", scale: 0.9 }}
+          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+          className="relative"
+        >
+          <motion.div style={{ opacity: lightOpacity }}>
+            <Logo key={stage >= 3 ? "draw" : "wait"} size={34} tone="light" animated={stage >= 3} />
+          </motion.div>
+          <motion.div className="absolute inset-0" style={{ opacity: toneMix }}>
+            <Logo size={34} />
+          </motion.div>
         </motion.div>
-      )}
-    </AnimatePresence>,
+      </motion.div>
+
+      <motion.button
+        type="button"
+        onClick={(e) => { e.stopPropagation(); open(true); }}
+        onPointerDown={(e) => e.stopPropagation()}
+        className="absolute right-4 bottom-[max(1rem,env(safe-area-inset-bottom))] min-h-10 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-[12px] font-semibold text-slate-300 hover:bg-white/10 hover:text-white focus-visible:outline-2 focus-visible:outline-teal-300"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: stage === 4 ? 0 : 1 }}
+        transition={{ delay: stage === 4 ? 0 : 0.4, duration: 0.2 }}
+        autoFocus
+      >
+        Skip intro
+      </motion.button>
+    </div>,
     document.body,
   );
 }

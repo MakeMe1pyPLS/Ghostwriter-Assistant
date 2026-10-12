@@ -52,10 +52,10 @@ export function LogoMark({ size = 36, className, animated = false }: { size?: nu
 }
 
 /** Mark + wordmark. `tone="light"` for use on dark backgrounds in light mode (e.g. footer). */
-export function Logo({ size = 36, className, tone = "auto", compact = false }: { size?: number; className?: string; tone?: "auto" | "light"; compact?: boolean }) {
+export function Logo({ size = 36, className, tone = "auto", compact = false, animated = false }: { size?: number; className?: string; tone?: "auto" | "light"; compact?: boolean; animated?: boolean }) {
   return (
     <span className={cn("inline-flex items-center gap-2.5 min-w-0", className)}>
-      <LogoMark size={size} />
+      <LogoMark size={size} animated={animated} />
       {!compact && (
         <span className={cn("font-black tracking-[-0.04em] leading-none truncate", tone === "light" ? "text-white" : "text-slate-900")} style={{ fontSize: Math.round(size * 0.5) }}>
           ChainInside<span className="text-primary">IQ</span>

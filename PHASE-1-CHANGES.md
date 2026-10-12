@@ -212,6 +212,44 @@ The rule-based analyst, dashboard generator, exporters, KPI library and plan bui
   - Hub tabs, KPI Library category filters and AI Analyst suggestions wrap instead of hiding off-screen.
   - Every app page was checked at 390, 820, 1024 and 1366 px. None scrolls sideways, has buttons cut off, or has a box that scrolls inside the page.
 
+### Builder canvas: dot grid, real free movement, and a touch-friendly edit mode
+- **The Builder is a dot-grid canvas**, like a design tool. Dots mark every grid cell, and in edit mode the canvas fills the page.
+- **Real free movement.** Layouts are now saved on a fine grid of 48 columns and 24px rows.
+  - **Free** moves and sizes cards in small steps, and they stay where you drop them.
+  - **Locked to grid** edits the same layout on the classic 12-column grid, where cards snap into rows and gaps close up. Switching to Locked snaps cards to the nearest cell.
+  - Existing dashboards convert automatically. The Dashboard, Excel, Google Sheets and Power BI exports all follow the fine positions.
+- **New edit mode:**
+  - Tap or click a card to select it. A **selection bar** appears with large buttons: Edit, Duplicate, Delete, move left/up/down/right, and narrower/wider/shorter/taller.
+  - On phones the bar sits above the tab bar; on computers it floats at the bottom of the screen. The small buttons in each card's corner are gone.
+  - On touch screens only the selected card can be dragged, so swiping on other cards still scrolls the page. The resize handle shows on the selected card.
+  - With a mouse you can drag any card from anywhere on it.
+  - The keyboard works too: arrows move, Shift + arrows resize, Delete removes, Ctrl/⌘+D duplicates, Enter edits, Esc deselects.
+- **Undo and redo** (buttons and Ctrl/⌘+Z), plus an Undo button on the "Card removed" message. Moving or resizing with the bar pushes overlapping cards down instead of stacking them.
+- New and duplicated cards go to the bottom of the grid and are selected, ready to drag into place.
+
+### Builder you drag around, richer KPI cards, and a new intro
+- **The Builder is a canvas you move around by dragging.** This replaces the selection bar above.
+  - Drag the empty grid to pan, with a mouse or a finger. The scroll wheel or trackpad also pans.
+  - Ctrl/⌘ + scroll, a trackpad pinch or a two-finger pinch zooms. The zoom controls are at the bottom left (−, %, +, Fit).
+  - Fit shows the whole page width. Phones and tablets edit the same desktop layout, scaled down.
+- **Cards are click-and-drag only.**
+  - Drag a card to move it.
+  - Pull any of its four corners to resize it.
+  - Edit, Duplicate and Delete are buttons on the card. With a mouse they appear when you hover over the card. On touch screens, tap a card and they float just outside it, sized for a finger at any zoom; that card's corner handles also appear.
+  - Undo and redo still work: the buttons, Ctrl/⌘+Z, and Undo on the "Card removed" message.
+- **KPI cards show more, without overflowing.** A card shows extra detail only when it has room, so small cards stay clean and larger cards tell more:
+  - The value with its change, for example "+1.2% vs 97.2% last period". The arrow follows the direction of the change and the colour shows whether that is good or bad, so "Late shipments −12%" is a green down arrow.
+  - One plain sentence on why the KPI moved, or what it measures.
+  - Two slim bars comparing last period with now.
+  - On tall cards, a "Next step".
+  - "Last period" is worked out from the card's own value and change (`shared/kpi-detail.ts`). The "Previous", "Benchmark" and "Target" fields used to repeat the current value; they now show the real previous value, the change, or "Not set". The sparkline, which drew the same sample trend on every KPI, has been replaced by the comparison bars.
+- **New homepage intro (about 2.3s, down from 4.7s).**
+  - On a first visit, the loading screen paints the intro's dark dot grid, so loading flows straight into the intro.
+  - A five-partner chain draws itself, one link flickers red, a teal pulse fixes it, and the chain folds into the logo.
+  - The logo then flies to its place in the header while the dark layer opens from the centre. The hero plays its entrance as it is revealed, and the hero preview starts its demo only once the intro is done.
+  - Tap, click, Esc, Enter or Skip opens it straight away. It shows once per browser (`ciq_intro_seen_v3`), so visitors who saw the old intro see the new one once.
+  - It never plays with reduced motion or `?nointro`.
+
 ## Environment variables
 
 | Variable | Needed for | Default |
