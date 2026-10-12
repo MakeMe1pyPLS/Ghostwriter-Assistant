@@ -63,6 +63,7 @@
   :where(.dark) .bg-violet-100 { background-color: color-mix(in oklab, var(--color-violet-500) 18%, transparent); }
   :where(.dark) .bg-violet-50 { background-color: color-mix(in oklab, var(--color-violet-500) 12%, transparent); }
   :where(.dark) .bg-white { background-color: var(--dk-surface); }
+  :where(.dark) .bg-white\/50 { background-color: color-mix(in oklab, var(--dk-surface) 50%, transparent); }
   :where(.dark) .bg-white\/60 { background-color: color-mix(in oklab, var(--dk-surface) 60%, transparent); }
   :where(.dark) .bg-white\/70 { background-color: color-mix(in oklab, var(--dk-surface) 70%, transparent); }
   :where(.dark) .bg-white\/75 { background-color: color-mix(in oklab, var(--dk-surface) 75%, transparent); }
@@ -104,6 +105,7 @@
   :where(.dark) .border-teal-100 { border-color: color-mix(in oklab, var(--color-teal-400) 22%, transparent); }
   :where(.dark) .border-teal-200 { border-color: color-mix(in oklab, var(--color-teal-400) 32%, transparent); }
   :where(.dark) .border-teal-200\/60 { border-color: color-mix(in oklab, color-mix(in oklab, var(--color-teal-400) 32%, transparent) 60%, transparent); }
+  :where(.dark) .border-teal-300\/50 { border-color: color-mix(in oklab, color-mix(in oklab, var(--color-teal-400) 32%, transparent) 50%, transparent); }
   :where(.dark) .border-violet-100 { border-color: color-mix(in oklab, var(--color-violet-400) 22%, transparent); }
   :where(.dark) .border-violet-200 { border-color: color-mix(in oklab, var(--color-violet-400) 32%, transparent); }
   :where(.dark) .border-violet-300 { border-color: color-mix(in oklab, var(--color-violet-400) 32%, transparent); }
@@ -114,7 +116,6 @@
   :where(.dark) .divide-slate-100 > :not(:last-child) { border-color: var(--dk-line-soft); }
   :where(.dark) .divide-slate-50 > :not(:last-child) { border-color: var(--dk-surface-3); }
   :where(.dark) .focus-visible\:bg-white:focus-visible { background-color: var(--dk-surface); }
-  :where(.dark) .focus-visible\:ring-teal-300:focus-visible { --tw-ring-color: color-mix(in oklab, var(--color-teal-400) 32%, transparent); }
   :where(.dark) .focus\:text-rose-700:focus { color: var(--color-rose-300); }
   :where(.dark) .from-amber-50 { --tw-gradient-from: color-mix(in oklab, var(--color-amber-500) 12%, transparent); }
   :where(.dark) .from-slate-900 { --tw-gradient-from: var(--dk-ink); }
@@ -165,9 +166,9 @@
   :where(.dark) .hover\:text-slate-900:hover { color: #EEF2F8; }
   :where(.dark) .hover\:text-teal-600:hover { color: var(--color-teal-400); }
   :where(.dark) .hover\:text-teal-700:hover { color: var(--color-teal-300); }
-  @media (width >= 64rem) { :where(.dark) .lg\:border-slate-200 { border-color: var(--dk-line); } }
   :where(.dark) .placeholder\:text-slate-400::placeholder { color: #7A8799; }
   :where(.dark) .ring-amber-300\/60 { --tw-ring-color: color-mix(in oklab, color-mix(in oklab, var(--color-amber-400) 32%, transparent) 60%, transparent); }
+  :where(.dark) .ring-slate-300\/70 { --tw-ring-color: color-mix(in oklab, var(--dk-line-strong) 70%, transparent); }
   :where(.dark) .ring-slate-50 { --tw-ring-color: var(--dk-surface-3); }
   :where(.dark) .ring-white { --tw-ring-color: var(--dk-line); }
   @media (width >= 40rem) { :where(.dark) .sm\:border-slate-200 { border-color: var(--dk-line); } }
@@ -221,6 +222,5 @@
   :where(.dark) .to-slate-800 { --tw-gradient-to: #24324A; }
   :where(.dark) .to-teal-50\/40 { --tw-gradient-to: color-mix(in oklab, color-mix(in oklab, var(--color-teal-500) 12%, transparent) 40%, transparent); }
   :where(.dark) .via-slate-900 { --tw-gradient-via: var(--dk-ink); --tw-gradient-via-stops: var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-via) var(--tw-gradient-via-position), var(--tw-gradient-to) var(--tw-gradient-to-position); --tw-gradient-stops: var(--tw-gradient-via-stops); }
-  :where(.dark) .via-white\/40 { --tw-gradient-via: color-mix(in oklab, var(--dk-surface) 40%, transparent); --tw-gradient-via-stops: var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-via) var(--tw-gradient-via-position), var(--tw-gradient-to) var(--tw-gradient-to-position); --tw-gradient-stops: var(--tw-gradient-via-stops); }
   :where(.dark) .via-white\/50 { --tw-gradient-via: color-mix(in oklab, var(--dk-surface) 50%, transparent); --tw-gradient-via-stops: var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-via) var(--tw-gradient-via-position), var(--tw-gradient-to) var(--tw-gradient-to-position); --tw-gradient-stops: var(--tw-gradient-via-stops); }
 }

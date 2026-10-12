@@ -1,20 +1,20 @@
-// Dashboard Builder: the page is a dot-grid canvas. In edit mode you can tap a
-// card to select it, drag it anywhere, resize it from the corner, and use the
-// selection bar (or the keyboard) to nudge, resize, duplicate or delete it.
+// Dashboard Builder: a design-tool canvas. Drag the dot grid to move around,
+// drag cards to rearrange them, pull any corner to resize, and use the buttons
+// on each card to edit, duplicate or delete it.
 //
-// Layouts are stored on a fine 48-column grid ("Free" mode moves in small
-// steps). "Locked to grid" edits the same layout on the classic 12-column
-// grid, where cards snap into rows and gaps close automatically.
+// Layouts are stored on a fine 48-column grid ("Free" moves in small steps).
+// "Locked to grid" edits the same layout on the classic 12-column grid, where
+// cards snap into rows and gaps close automatically.
 import { getCardShellClasses } from "@/lib/card-shell";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import MeasuredGrid from "@/components/MeasuredGrid";
+import { PanZoomCanvas } from "@/components/builder/PanZoomCanvas";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
   LayoutTemplate, Trash2, Info, Plus, Settings2, Edit3, Copy, Download, Save, Eye, CheckCircle2, Lock, Move,
-  MoreHorizontal, RotateCcw, Upload, Undo2, Redo2, ArrowLeft, ArrowRight, ArrowUp, ArrowDown, X, Sparkles, Wand2,
-  MoveHorizontal, MoveVertical, Minus,
+  MoreHorizontal, RotateCcw, Upload, Undo2, Redo2, Sparkles, Wand2,
 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useSectorData } from "@/hooks/use-sector-data";
@@ -92,11 +92,11 @@ export default function BuilderPage() {
   const [widgets, setWidgets] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [editMode, setEditMode] = useState(false);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [inspectedWidgetId, setInspectedWidgetId] = useState<string | null>(null);
+  // Touch screens: the card you last tapped shows its buttons and corner handles.
+  const [activeId, setActiveId] = useState<string | null>(null);
   const [templatesOpen, setTemplatesOpen] = useState(false);
   const [arrange, setArrange] = useState<'locked' | 'free'>('locked');
-  const [zoom, setZoom] = useState<number | 'fit'>('fit');
   const savedAt = useDashboardStore((s) => s.dashboards[sector]?.savedAt);
   const [, setTick] = useState(0);
   useEffect(() => { const id = setInterval(() => setTick((t) => t + 1), 30000); return () => clearInterval(id); }, []);
@@ -110,19 +110,6 @@ export default function BuilderPage() {
   // Grid columns at the current width; only the full-width grid writes the layout back.
   const lgCols = arrange === 'locked' ? CLASSIC_COLS.lg : FINE_COLS.lg;
   const colsRef = useRef<number>(lgCols);
-
-  // Width of the canvas, to switch to the scaled desktop canvas on narrow screens.
-  const canvasRef = useRef<HTMLElement | null>(null);
-  const [canvasWidth, setCanvasWidth] = useState<number>(() => (typeof window !== 'undefined' ? window.innerWidth : 1200));
-  useEffect(() => {
-    const el = canvasRef.current;
-    if (!el) return;
-    const ro = new ResizeObserver(([e]) => setCanvasWidth(Math.round(e.contentRect.width)));
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
-  const narrow = canvasWidth < GRID_BREAKPOINTS.lg + 8;
-  const designMode = editMode && narrow;
 
   // Load from the store. Older dashboards (classic units) are converted once.
   useEffect(() => {
@@ -139,7 +126,6 @@ export default function BuilderPage() {
       if (dash.grid !== 'fine' || geometry(fine) !== geometry(clean(fineLayoutOf(dash)))) saveDashboard(sector, fine, dash.widgets, { grid: 'fine', arrange: mode });
     }
     past.current = []; future.current = [];
-    setSelectedId(null);
     setTimeout(() => setLoading(false), 300);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sector]);
@@ -207,7 +193,7 @@ export default function BuilderPage() {
 
   const saveNow = (finish: boolean) => {
     saveDashboard(sector, layout, widgets, { grid: 'fine', arrange });
-    if (finish) { setEditMode(false); setSelectedId(null); }
+    if (finish) setEditMode(false);
     toast({
       title: "Layout saved",
       description: "Your Dashboard now shows this exact layout.",
@@ -222,7 +208,6 @@ export default function BuilderPage() {
     const item: Item = { i: id, x: 0, y: bottomOf(layout), w: widgetInfo.w * FINE, h: widgetInfo.h * FINE };
     commit([...layout, item], [...widgets, { id, type: widgetInfo.id, metricIndex: Math.floor(Math.random() * 4), ...(widgetInfo.defaultProps || {}) }], { history: true });
     lastPush.current = 0;
-    setSelectedId(id);
     toast({ title: "Card added", description: `${widgetInfo.name} is at the bottom of the grid. Drag it into place.` });
   };
 
@@ -231,7 +216,6 @@ export default function BuilderPage() {
     lastPush.current = 0;
     commit(layout.filter((l) => l.i !== id), widgets.filter((w) => w.id !== id));
     lastPush.current = 0;
-    if (selectedId === id) setSelectedId(null);
     toast({
       title: "Card removed",
       action: <ToastAction altText="Undo" onClick={() => { setLayout(before.layout); setWidgets(before.widgets); saveDashboard(sector, before.layout, before.widgets, { grid: 'fine', arrange }); }}>Undo</ToastAction>,
@@ -246,25 +230,7 @@ export default function BuilderPage() {
     lastPush.current = 0;
     commit([...layout, { ...item, i: newId, y: bottomOf(layout) }], [...widgets, { ...src, id: newId }]);
     lastPush.current = 0;
-    setSelectedId(newId);
     toast({ title: "Card duplicated", description: "The copy is at the bottom of the grid." });
-  };
-
-  const step = arrange === 'locked' ? FINE : 1;
-  const minSize = arrange === 'locked' ? FINE : 2;
-  const nudge = (id: string, dx: number, dy: number) => {
-    commit(pushDown(layout.map((l) => l.i !== id ? l : {
-      ...l,
-      x: Math.min(FINE_COLS.lg - l.w, Math.max(0, l.x + dx * step)),
-      y: Math.max(0, l.y + dy * step),
-    }), id), widgets);
-  };
-  const resize = (id: string, dw: number, dh: number) => {
-    commit(pushDown(layout.map((l) => l.i !== id ? l : {
-      ...l,
-      w: Math.min(FINE_COLS.lg - l.x, Math.max(minSize, l.w + dw * step)),
-      h: Math.max(minSize, l.h + dh * step),
-    }), id), widgets);
   };
 
   const updateWidget = (id: string, updates: any) => {
@@ -319,37 +285,20 @@ export default function BuilderPage() {
     toast({ title: "Blueprint exported", description: "Your dashboard spec (JSON) has been downloaded." });
   };
 
-  // ---------------------------------------------------------------- keyboard
+  // ---------------------------------------------------------------- keyboard: undo / redo
 
   useEffect(() => {
     if (!editMode) return;
     const onKey = (e: KeyboardEvent) => {
       if (isTyping() || inspectedWidgetId) return;
       const mod = e.metaKey || e.ctrlKey;
-      if (mod && e.key.toLowerCase() === 'z') { e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
-      if (mod && e.key.toLowerCase() === 'y') { e.preventDefault(); redo(); return; }
-      if (!selectedId) return;
-      const arrows: Record<string, [number, number]> = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
-      if (arrows[e.key]) {
-        e.preventDefault();
-        const [dx, dy] = arrows[e.key];
-        e.shiftKey ? resize(selectedId, dx, dy) : nudge(selectedId, dx, dy);
-      } else if (e.key === 'Delete' || e.key === 'Backspace') {
-        e.preventDefault(); removeWidget(selectedId);
-      } else if (mod && e.key.toLowerCase() === 'd') {
-        e.preventDefault(); duplicateWidget(selectedId);
-      } else if (e.key === 'Enter') {
-        e.preventDefault(); setInspectedWidgetId(selectedId);
-      } else if (e.key === 'Escape') {
-        setSelectedId(null);
-      }
+      if (mod && e.key.toLowerCase() === 'z') { e.preventDefault(); e.shiftKey ? redo() : undo(); }
+      else if (mod && e.key.toLowerCase() === 'y') { e.preventDefault(); redo(); }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   });
 
-  const selectedWidget = widgets.find((w) => w.id === selectedId);
-  const selectedItem = layout.find((l) => l.i === selectedId);
   const cardLabel = (w: any) => w?.title || w?.name || (w?.type === 'kpi' ? (metrics[w.metricIndex % (metrics.length || 1)]?.label ?? 'KPI') : w?.type) || 'Card';
 
   const btn = "rounded-xl shadow-sm font-semibold text-[13px] h-10 px-3.5 border-slate-200 bg-white";
@@ -357,7 +306,7 @@ export default function BuilderPage() {
 
   return (
     <AppLayout>
-      <div className={cn("p-4 md:p-6 lg:p-8 lg:pb-10 max-w-[1600px] mx-auto w-full flex flex-col gap-4 md:gap-5", editMode && selectedId ? "pb-56" : "pb-28")}>
+      <div className="p-4 md:p-6 lg:p-8 pb-4 lg:pb-6 max-w-[1700px] mx-auto w-full flex flex-col gap-3 md:gap-4">
         <header className="flex flex-col gap-4">
           <div className="min-w-0">
             <h1 className="text-2xl lg:text-3xl font-black text-slate-900 tracking-tighter uppercase">Dashboard Builder</h1>
@@ -387,19 +336,12 @@ export default function BuilderPage() {
                     </Tooltip>
                   ))}
                 </div>
-                {narrow && (
-                  <div className="inline-flex items-center rounded-xl border border-slate-200 bg-white p-1 shadow-sm" role="radiogroup" aria-label="Zoom">
-                    {([['fit', 'Fit'], [0.6, '60%'], [1, '100%']] as const).map(([z, label]) => (
-                      <button key={label} role="radio" aria-checked={zoom === z} onClick={() => setZoom(z)} className={seg(zoom === z)}>{label}</button>
-                    ))}
-                  </div>
-                )}
                 <div className="inline-flex items-center gap-1">
                   <Button variant="outline" size="icon" onClick={undo} disabled={!past.current.length} className="h-10 w-10 rounded-xl border-slate-200 bg-white" aria-label="Undo" data-testid="button-undo"><Undo2 className="w-4 h-4" /></Button>
                   <Button variant="outline" size="icon" onClick={redo} disabled={!future.current.length} className="h-10 w-10 rounded-xl border-slate-200 bg-white" aria-label="Redo" data-testid="button-redo"><Redo2 className="w-4 h-4" /></Button>
                 </div>
                 <Button variant="outline" onClick={resetLayout} className={btn}><RotateCcw className="w-4 h-4" /> Reset</Button>
-                <Button variant="outline" onClick={() => { setEditMode(false); setSelectedId(null); }} className={btn} data-testid="button-done-editing"><Settings2 className="w-4 h-4" /> Done</Button>
+                <Button variant="outline" onClick={() => setEditMode(false)} className={btn} data-testid="button-done-editing"><Settings2 className="w-4 h-4" /> Done</Button>
                 <Button onClick={() => saveNow(true)} className="rounded-xl shadow-sm font-semibold text-[13px] h-10 px-4" data-testid="button-save-layout"><Save className="w-4 h-4" /> Save layout</Button>
               </>
             ) : (
@@ -432,99 +374,124 @@ export default function BuilderPage() {
             <p className="flex items-start gap-2 text-[12.5px] font-semibold text-slate-500" data-testid="builder-edit-hint">
               <Info className="w-4 h-4 mt-0.5 shrink-0 text-primary" />
               {coarse
-                ? "Tap a card to select it, then drag it or use the bar at the bottom to move, resize, edit or remove it."
-                : "Click a card to select it. Drag to move, pull the corner to resize. Arrow keys nudge, Shift + arrows resize, Delete removes, Ctrl+Z undoes."}
+                ? "Drag a card to move it, pull any corner to resize. Drag the empty grid to move around; pinch to zoom."
+                : "Drag a card to move it and pull any corner to resize. Drag the empty grid to move around; Ctrl + scroll zooms. Ctrl+Z undoes."}
             </p>
           )}
         </header>
 
         <div className="flex gap-6 items-start">
           <section
-            ref={canvasRef}
             aria-label="Dashboard grid"
-            className={cn("flex-1 min-w-0 rounded-2xl border transition-colors", editMode ? "bg-white/60 border-slate-200 shadow-inner" : "bg-transparent border-transparent")}
-            onClick={(e) => { if (editMode && !(e.target as HTMLElement).closest('.react-grid-item')) setSelectedId(null); }}
+            className="flex-1 min-w-0"
+            onPointerDownCapture={(e) => {
+              const t = e.target as HTMLElement;
+              if (!t.closest('.react-grid-item') && !t.closest('.ciq-ui')) setActiveId(null);
+            }}
           >
-            <AnimatePresence mode="wait">
-              {loading ? (
-                <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-80 flex items-center justify-center">
-                  <div className="flex flex-col items-center gap-4">
-                    <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
-                    <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Loading your dashboard…</span>
-                  </div>
-                </motion.div>
-              ) : widgets.length === 0 ? (
-                <div key="empty" className="py-16 px-4 flex flex-col items-center justify-center text-center">
-                  <div className="w-24 h-24 bg-white border border-slate-100 rounded-full flex items-center justify-center mb-6 shadow-sm">
-                    <LayoutTemplate className="w-12 h-12 text-slate-300" />
-                  </div>
-                  <h3 className="text-2xl font-black text-slate-900 tracking-tight">Start your dashboard</h3>
-                  <p className="text-slate-500 font-medium max-w-sm mt-3 mb-8">Pick a template, let the AI build one, or add cards yourself.</p>
-                  <div className="flex flex-col sm:flex-row gap-3 w-full max-w-lg">
-                    <Button size="lg" onClick={() => setTemplatesOpen(true)} className="flex-1 rounded-xl font-black text-xs uppercase tracking-widest h-12"><LayoutTemplate className="w-4 h-4 mr-2" /> Templates</Button>
-                    <Link href="/generate" className="flex-1">
-                      <Button size="lg" variant="outline" className="w-full rounded-xl font-black text-xs uppercase tracking-widest h-12 border-slate-200" data-testid="button-generate-for-me"><Sparkles className="w-4 h-4 mr-2" /> Generate for me</Button>
-                    </Link>
-                  </div>
-                  <Button size="lg" variant="outline" className="rounded-xl font-bold shadow-sm mt-4 border-slate-200" onClick={() => { setEditMode(true); addWidget(widgetCategories[0].items[0]); }}>
-                    <Plus className="w-4 h-4 mr-2" /> Add a card
-                  </Button>
+            {loading ? (
+              <div className="h-80 flex items-center justify-center rounded-2xl border border-slate-200 bg-slate-50/70">
+                <div className="flex flex-col items-center gap-4">
+                  <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+                  <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Loading your dashboard…</span>
                 </div>
-              ) : (
-                <motion.div key="grid" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                  <MeasuredGrid
-                    key={`${designMode ? 'design' : 'fluid'}-${editMode && arrange === 'locked' ? 'classic' : 'fine'}`}
-                    className={cn("layout", editMode && "ciq-editing", coarse && "ciq-touch")}
-                    layouts={layouts}
-                    cols={editCols}
-                    breakpoints={GRID_BREAKPOINTS}
-                    rowHeight={editRow}
-                    margin={[0, 0]}
-                    containerPadding={GRID_PAD}
-                    onLayoutChange={onLayoutChange}
-                    onBreakpointChange={(_bp, cols) => { colsRef.current = cols; }}
-                    // Mouse: drag any card. Touch: only the selected card, so swiping still scrolls the page.
-                    draggableHandle={coarse ? '.ciq-selected' : '.ciq-card-inset'}
-                    draggableCancel=".ciq-nodrag"
-                    isDraggable={editMode}
-                    isResizable={editMode}
-                    compactType={editMode && arrange === 'locked' ? 'vertical' : null}
-                    designWidth={designMode ? DESIGN_WIDTH : undefined}
-                    zoom={zoom}
-                    showDots
-                    minCanvasHeight={editMode ? 520 : 0}
-                  >
-                    {widgets.map((w) => {
-                      const selected = editMode && selectedId === w.id;
-                      return (
-                        <div key={w.id} className={cn("group", selected && "ciq-sel z-20")}>
-                          {selected && (
-                            <span className="absolute left-5 -top-2 z-30 max-w-[80%] truncate rounded-md bg-primary px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-white shadow pointer-events-none">
-                              {cardLabel(w)}
-                            </span>
+              </div>
+            ) : widgets.length === 0 ? (
+              <div className="py-16 px-4 flex flex-col items-center justify-center text-center rounded-2xl border border-slate-200 bg-slate-50/70">
+                <div className="w-24 h-24 bg-white border border-slate-100 rounded-full flex items-center justify-center mb-6 shadow-sm">
+                  <LayoutTemplate className="w-12 h-12 text-slate-300" />
+                </div>
+                <h3 className="text-2xl font-black text-slate-900 tracking-tight">Start your dashboard</h3>
+                <p className="text-slate-500 font-medium max-w-sm mt-3 mb-8">Pick a template, let the AI build one, or add cards yourself.</p>
+                <div className="flex flex-col sm:flex-row gap-3 w-full max-w-lg">
+                  <Button size="lg" onClick={() => setTemplatesOpen(true)} className="flex-1 rounded-xl font-black text-xs uppercase tracking-widest h-12"><LayoutTemplate className="w-4 h-4 mr-2" /> Templates</Button>
+                  <Link href="/generate" className="flex-1">
+                    <Button size="lg" variant="outline" className="w-full rounded-xl font-black text-xs uppercase tracking-widest h-12 border-slate-200" data-testid="button-generate-for-me"><Sparkles className="w-4 h-4 mr-2" /> Generate for me</Button>
+                  </Link>
+                </div>
+                <Button size="lg" variant="outline" className="rounded-xl font-bold shadow-sm mt-4 border-slate-200" onClick={() => { setEditMode(true); addWidget(widgetCategories[0].items[0]); }}>
+                  <Plus className="w-4 h-4 mr-2" /> Add a card
+                </Button>
+              </div>
+            ) : (
+              <PanZoomCanvas
+                contentWidth={DESIGN_WIDTH}
+                cellW={(DESIGN_WIDTH - GRID_PAD[0] * 2) / editCols.lg}
+                cellH={editRow}
+                pad={GRID_PAD}
+                panFromCards={!editMode}
+              >
+                {(z) => (
+                  <div className={cn("rounded-[22px] transition-colors", editMode ? "bg-white/50 ring-1 ring-slate-300/70 shadow-[0_30px_80px_-40px_rgba(15,23,42,0.35)]" : "bg-transparent")}>
+                    <MeasuredGrid
+                      key={editMode && arrange === 'locked' ? 'classic' : 'fine'}
+                      className={cn("layout", editMode && "ciq-editing", coarse ? "ciq-touch" : "ciq-mouse")}
+                      layouts={layouts}
+                      cols={editCols}
+                      breakpoints={GRID_BREAKPOINTS}
+                      rowHeight={editRow}
+                      margin={[0, 0]}
+                      containerPadding={GRID_PAD}
+                      onLayoutChange={onLayoutChange}
+                      onBreakpointChange={(_bp, cols) => { colsRef.current = cols; }}
+                      draggableHandle=".ciq-card-inset"
+                      draggableCancel=".ciq-nodrag"
+                      isDraggable={editMode}
+                      isResizable={editMode}
+                      resizeHandles={['se', 'sw', 'ne', 'nw']}
+                      compactType={editMode && arrange === 'locked' ? 'vertical' : null}
+                      designWidth={DESIGN_WIDTH}
+                      canvasScale={z}
+                      minCanvasHeight={editMode ? 600 : 0}
+                    >
+                      {widgets.map((w) => (
+                        <div
+                          key={w.id}
+                          className={cn("group", activeId === w.id && "ciq-active")}
+                          onPointerDown={() => { if (coarse && editMode) setActiveId(w.id); }}
+                        >
+                          {editMode && coarse && activeId === w.id && (
+                            <CardActions
+                              z={z}
+                              placement={(layout.find((l) => l.i === w.id)?.y ?? 1) < 2 ? 'below' : 'above'}
+                              label={cardLabel(w)}
+                              onEdit={() => setInspectedWidgetId(w.id)}
+                              onDuplicate={() => duplicateWidget(w.id)}
+                              onDelete={() => { removeWidget(w.id); setActiveId(null); }}
+                              id={w.id}
+                            />
                           )}
                           <div
                             className={cn(
                               "ciq-card-inset flex flex-col overflow-hidden transition-shadow duration-200",
                               getCardShellClasses(w.cardPreset || w.stylePreset, 'builder'),
-                              editMode && "cursor-grab active:cursor-grabbing",
-                              selected ? "ciq-selected ring-[3px] ring-primary shadow-xl" : editMode ? "hover:ring-2 hover:ring-primary/40" : "hover:shadow-md",
+                              editMode ? "cursor-grab active:cursor-grabbing hover:ring-2 hover:ring-primary/40" : "hover:shadow-md",
                             )}
-                            onClick={(e) => { if (!editMode) return; e.stopPropagation(); setSelectedId(w.id); }}
                             onDoubleClick={() => { if (editMode) setInspectedWidgetId(w.id); }}
                             data-testid={`builder-card-${w.id}`}
                           >
+                            {editMode && !coarse && (
+                              <CardActions
+                                z={z}
+                                placement="inside"
+                                label={cardLabel(w)}
+                                onEdit={() => setInspectedWidgetId(w.id)}
+                                onDuplicate={() => duplicateWidget(w.id)}
+                                onDelete={() => removeWidget(w.id)}
+                                id={w.id}
+                              />
+                            )}
                             <div className={cn("ciq-cq flex-1 p-3 md:p-4 min-h-0", editMode && "pointer-events-none")}>
                               <WidgetRenderer widget={w} data={{ metrics, chartData, donutData, allMetrics }} sector={sector} loading={loading} />
                             </div>
                           </div>
                         </div>
-                      );
-                    })}
-                  </MeasuredGrid>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                      ))}
+                    </MeasuredGrid>
+                  </div>
+                )}
+              </PanZoomCanvas>
+            )}
           </section>
 
           {editMode && (
@@ -537,48 +504,8 @@ export default function BuilderPage() {
         </div>
 
         {/* Phones & tablets: add a card (hidden while the selection bar is showing) */}
-        {!(editMode && selectedId) && <WidgetLibraryMobile onAdd={(w) => { if (!editMode) setEditMode(true); addWidget(w); }} />}
+        <WidgetLibraryMobile onAdd={(w) => { if (!editMode) setEditMode(true); addWidget(w); }} />
       </div>
-
-      {/* Selection bar: everything you can do to the selected card, with big touch targets. */}
-      <AnimatePresence>
-        {editMode && selectedWidget && selectedItem && (
-          <motion.div
-            key="selbar"
-            initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 16 }} transition={{ duration: 0.18 }}
-            className="fixed z-[56] left-2 right-2 bottom-[calc(4.25rem+env(safe-area-inset-bottom))] lg:bottom-6 lg:left-1/2 lg:right-auto lg:-translate-x-1/2 lg:w-auto"
-            role="toolbar" aria-label={`Selected card: ${cardLabel(selectedWidget)}`} data-testid="selection-bar"
-          >
-            <div className="rounded-2xl border border-slate-200 bg-white/95 backdrop-blur-xl shadow-[0_20px_50px_-15px_rgba(15,23,42,0.45)] p-2 flex flex-col lg:flex-row lg:items-center gap-2">
-              <div className="flex items-center gap-1">
-                <span className="px-2 text-[12px] font-black text-slate-900 truncate max-w-[9rem] lg:max-w-[12rem]">{cardLabel(selectedWidget)}</span>
-                <span className="text-[11px] font-semibold text-slate-400 tabular-nums mr-auto lg:mr-1">
-                  {arrange === 'locked' ? `${Math.round(selectedItem.w / FINE)}×${Math.round(selectedItem.h / FINE)}` : `${selectedItem.w}×${selectedItem.h}`}
-                </span>
-                <BarButton label="Edit" onClick={() => setInspectedWidgetId(selectedWidget.id)} testId="sel-edit"><Edit3 className="w-4 h-4" /></BarButton>
-                <BarButton label="Duplicate" onClick={() => duplicateWidget(selectedWidget.id)} testId="sel-duplicate"><Copy className="w-4 h-4" /></BarButton>
-                <BarButton label="Delete" onClick={() => removeWidget(selectedWidget.id)} danger testId="sel-delete"><Trash2 className="w-4 h-4" /></BarButton>
-                <BarButton label="Deselect" onClick={() => setSelectedId(null)} testId="sel-close"><X className="w-4 h-4" /></BarButton>
-              </div>
-              <div className="flex items-center gap-1 justify-between lg:justify-start lg:border-l lg:border-slate-200 lg:pl-2">
-                <div className="flex items-center gap-1" aria-label="Move">
-                  <BarButton label="Move left" onClick={() => nudge(selectedWidget.id, -1, 0)} testId="sel-left"><ArrowLeft className="w-4 h-4" /></BarButton>
-                  <BarButton label="Move up" onClick={() => nudge(selectedWidget.id, 0, -1)} testId="sel-up"><ArrowUp className="w-4 h-4" /></BarButton>
-                  <BarButton label="Move down" onClick={() => nudge(selectedWidget.id, 0, 1)} testId="sel-down"><ArrowDown className="w-4 h-4" /></BarButton>
-                  <BarButton label="Move right" onClick={() => nudge(selectedWidget.id, 1, 0)} testId="sel-right"><ArrowRight className="w-4 h-4" /></BarButton>
-                </div>
-                <div className="w-px h-6 bg-slate-200 mx-0.5" aria-hidden />
-                <div className="flex items-center gap-1" aria-label="Size">
-                  <BarButton label="Narrower" onClick={() => resize(selectedWidget.id, -1, 0)} testId="sel-narrower"><MoveHorizontal className="w-4 h-4" /><Minus className="w-3 h-3 -ml-1" /></BarButton>
-                  <BarButton label="Wider" onClick={() => resize(selectedWidget.id, 1, 0)} testId="sel-wider"><MoveHorizontal className="w-4 h-4" /><Plus className="w-3 h-3 -ml-1" /></BarButton>
-                  <BarButton label="Shorter" onClick={() => resize(selectedWidget.id, 0, -1)} testId="sel-shorter"><MoveVertical className="w-4 h-4" /><Minus className="w-3 h-3 -ml-1" /></BarButton>
-                  <BarButton label="Taller" onClick={() => resize(selectedWidget.id, 0, 1)} testId="sel-taller"><MoveVertical className="w-4 h-4" /><Plus className="w-3 h-3 -ml-1" /></BarButton>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       <WidgetInspector
         widget={widgets.find((w) => w.id === inspectedWidgetId)}
@@ -598,33 +525,62 @@ export default function BuilderPage() {
       <style>{`
         .react-grid-placeholder { background: transparent !important; opacity: 1 !important; }
         .react-grid-placeholder::after { content: ''; position: absolute; inset: 8px; border-radius: 1rem; background: color-mix(in oklab, var(--color-teal-500) 14%, transparent); border: 2px dashed color-mix(in oklab, var(--color-teal-600) 55%, transparent); }
-        .react-grid-item > .react-resizable-handle { z-index: 5; }
-        .layout:not(.ciq-editing) .react-resizable-handle { display: none; }
-        .ciq-touch .react-grid-item:not(.ciq-sel) > .react-resizable-handle { display: none; }
-        .react-grid-item > .react-resizable-handle { right: 8px; bottom: 8px; }
+        /* Corner handles: round, sitting on the card's corners, finger-sized at any zoom. */
+        .ciq-canvas .react-grid-item > .react-resizable-handle {
+          width: calc(26px / var(--z)); height: calc(26px / var(--z));
+          background: none !important; transform: none !important; z-index: 12; padding: 0;
+        }
+        .ciq-canvas .react-grid-item > .react-resizable-handle::after {
+          content: ''; position: absolute; inset: 27%; width: auto; height: auto; transform: none;
+          border-radius: 999px; background: #fff; border: calc(2px / var(--z)) solid var(--color-teal-600);
+          box-shadow: 0 1px 4px rgba(15,23,42,.25); right: auto; bottom: auto;
+        }
+        .ciq-canvas .react-grid-item > .react-resizable-handle-se { right: calc(8px - 13px / var(--z)); bottom: calc(8px - 13px / var(--z)); cursor: nwse-resize; }
+        .ciq-canvas .react-grid-item > .react-resizable-handle-sw { left: calc(8px - 13px / var(--z)); bottom: calc(8px - 13px / var(--z)); cursor: nesw-resize; }
+        .ciq-canvas .react-grid-item > .react-resizable-handle-ne { right: calc(8px - 13px / var(--z)); top: calc(8px - 13px / var(--z)); cursor: nesw-resize; }
+        .ciq-canvas .react-grid-item > .react-resizable-handle-nw { left: calc(8px - 13px / var(--z)); top: calc(8px - 13px / var(--z)); cursor: nwse-resize; }
+        .ciq-mouse .react-grid-item:not(:hover):not(.react-draggable-dragging):not(.resizing) > .react-resizable-handle { opacity: 0; }
+        .ciq-touch .react-grid-item:not(.ciq-active) > .react-resizable-handle { display: none; }
+        .react-grid-item.ciq-active { z-index: 4; }
+        .ciq-touch .react-grid-item.ciq-active > .ciq-card-inset { box-shadow: 0 0 0 calc(2px / var(--z)) var(--color-teal-500); }
+        .ciq-canvas .react-grid-item > .react-resizable-handle { transition: opacity .15s; }
       `}</style>
     </AppLayout>
   );
 }
 
-function BarButton({ label, onClick, children, danger, testId }: { label: string; onClick: () => void; children: React.ReactNode; danger?: boolean; testId?: string }) {
+/**
+ * Edit / duplicate / delete on the card itself. Counter-scaled so the buttons stay
+ * finger-sized at any zoom. With a mouse they sit inside the card's top-right
+ * corner (shown on hover); on touch screens they float just above the card you
+ * tapped, so they never cover a small card.
+ */
+function CardActions({ z, placement, label, onEdit, onDuplicate, onDelete, id }: {
+  z: number; placement: 'inside' | 'above' | 'below'; label: string; onEdit: () => void; onDuplicate: () => void; onDelete: () => void; id: string;
+}) {
+  const b = "w-10 h-10 rounded-lg inline-flex items-center justify-center transition-colors active:scale-95 focus-visible:outline-2 focus-visible:outline-primary";
+  const stop = (e: React.SyntheticEvent) => e.stopPropagation();
+  const k = Math.min(4, 1 / z);
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <button
-          type="button"
-          onClick={(e) => { e.stopPropagation(); onClick(); }}
-          aria-label={label}
-          data-testid={testId}
-          className={cn(
-            "ciq-nodrag h-10 min-w-10 px-2 rounded-xl inline-flex items-center justify-center transition-colors active:scale-95",
-            danger ? "text-rose-600 hover:bg-rose-50" : "text-slate-700 hover:bg-slate-100",
-          )}
-        >
-          {children}
-        </button>
-      </TooltipTrigger>
-      <TooltipContent>{label}</TooltipContent>
-    </Tooltip>
+    <div
+      className={cn(
+        "ciq-nodrag absolute z-20 flex items-center gap-0.5 rounded-xl border border-slate-200 bg-white/95 p-0.5 shadow-lg backdrop-blur transition-opacity",
+        placement === 'inside'
+          ? "right-3 top-3 origin-top-right opacity-0 group-hover:opacity-100 focus-within:opacity-100"
+          : placement === 'above'
+            ? "right-2 bottom-[calc(100%-4px)] origin-bottom-right animate-in fade-in zoom-in-95 duration-150"
+            : "right-2 top-[calc(100%-4px)] origin-top-right animate-in fade-in zoom-in-95 duration-150",
+      )}
+      style={{ transform: `scale(${k})` }}
+      onPointerDown={stop}
+      onMouseDown={stop}
+      onTouchStart={stop}
+      role="toolbar"
+      aria-label={`${label} card actions`}
+    >
+      <button type="button" className={cn(b, "text-slate-600 hover:bg-slate-100")} aria-label={`Edit ${label}`} title="Edit" onClick={(e) => { e.stopPropagation(); onEdit(); }} data-testid={`card-edit-${id}`}><Edit3 className="w-4 h-4" /></button>
+      <button type="button" className={cn(b, "text-slate-600 hover:bg-slate-100")} aria-label={`Duplicate ${label}`} title="Duplicate" onClick={(e) => { e.stopPropagation(); onDuplicate(); }} data-testid={`card-duplicate-${id}`}><Copy className="w-4 h-4" /></button>
+      <button type="button" className={cn(b, "text-rose-600 hover:bg-rose-50")} aria-label={`Delete ${label}`} title="Delete" onClick={(e) => { e.stopPropagation(); onDelete(); }} data-testid={`card-delete-${id}`}><Trash2 className="w-4 h-4" /></button>
+    </div>
   );
 }
