@@ -8,6 +8,8 @@ import { useDashboardStore } from "@/hooks/use-dashboard-store";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowRight, Eye, EyeOff, AlertCircle, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { cloudEnabled, signUp as cloudSignUp, CloudError, friendly } from "@/lib/supabase";
+import { activate } from "@/lib/cloud-sync";
 
 function passwordStrength(pw: string) {
   let score = 0;
@@ -57,6 +59,27 @@ export default function SignUpPage() {
     }
     if (!agreed) {
       setError("Please agree to the Terms and Privacy Policy.");
+      return;
+    }
+
+    if (cloudEnabled) {
+      setSubmitting(true);
+      try {
+        const s = await cloudSignUp({ fullName, email, password });
+        if (s) {
+          // Email confirmation is off for this project: signed in straight away.
+          await activate(s);
+          toast({ title: "Account created — your trial just started.", description: "Your workspace is saved to your account." });
+          setLocation('/onboarding');
+        } else {
+          try { sessionStorage.setItem('ciq_pending_email', email.trim()); } catch { /* ignore */ }
+          setLocation('/verify-email');
+        }
+      } catch (e) {
+        setError(e instanceof CloudError ? friendly(e) : "Something went wrong. Please try again.");
+      } finally {
+        setSubmitting(false);
+      }
       return;
     }
 

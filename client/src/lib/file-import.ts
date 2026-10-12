@@ -41,7 +41,16 @@ async function parseDelimited(file: File): Promise<ImportPayload> {
     header: true,
     skipEmptyLines: 'greedy',
     dynamicTyping: true,
-    transformHeader: (() => { const seen = new Set<string>(); let i = 0; return (h: string) => cleanHeader(h, i++, seen); })(),
+    // Papa Parse may call transformHeader more than once per column, so cache
+    // the cleaned name by column index (otherwise every header became "Name (2)").
+    transformHeader: (() => {
+      const seen = new Set<string>();
+      const byIndex = new Map<number, string>();
+      return (h: string, index: number) => {
+        if (!byIndex.has(index)) byIndex.set(index, cleanHeader(h, index, seen));
+        return byIndex.get(index)!;
+      };
+    })(),
   });
   if (result.errors.length && !result.data.length) throw new ImportError(`Could not read the file: ${result.errors[0].message}`);
   return toPayload(baseName(file.name), result.data, 'csv');

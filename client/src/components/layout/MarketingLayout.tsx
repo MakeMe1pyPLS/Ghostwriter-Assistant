@@ -34,7 +34,7 @@ function GitHubIcon({ className }: { className?: string }) {
 
 const socialLinks = [
   { name: "LinkedIn", href: "https://linkedin.com/company/chaininsideiq", icon: LinkedInIcon },
-  { name: "X / Twitter", href: "https://x.com/chaininsideiq", icon: XIcon },
+  { name: "X / Twitter", href: "https://x.com/AtomBSA", icon: XIcon },
   { name: "YouTube", href: "https://youtube.com/@chaininsideiq", icon: YouTubeIcon },
   { name: "GitHub", href: "https://github.com/chaininsideiq", icon: GitHubIcon },
 ];
@@ -70,7 +70,7 @@ export function MarketingLayout({ children }: { children: React.ReactNode }) {
           : "bg-transparent border-transparent",
       )}>
         <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 md:h-[72px] flex items-center gap-4">
-          <Link href="/" className="flex items-center rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40" aria-label="ChainInsideIQ home">
+          <Link href="/" className="flex items-center rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40" aria-label="ChainInsideIQ home" data-intro-logo>
             <Logo size={34} />
           </Link>
 

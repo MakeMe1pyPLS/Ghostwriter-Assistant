@@ -146,7 +146,7 @@ export function WidgetLibraryMobile({ onAdd }: { onAdd: (widget: any) => void })
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-2xl shadow-primary/30 z-50 lg:hidden" size="icon">
+        <Button className="fixed right-4 sm:right-6 bottom-[calc(4rem+env(safe-area-inset-bottom)+1rem)] h-14 w-14 rounded-full shadow-2xl shadow-primary/30 z-[55] lg:hidden" aria-label="Add a widget" size="icon">
           <Plus className="w-6 h-6" />
         </Button>
       </SheetTrigger>

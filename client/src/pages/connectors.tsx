@@ -486,8 +486,8 @@ export default function ConnectorsPage() {
 
   return (
     <AppLayout>
-      <div className="flex flex-col h-full bg-[#F4F7FA]">
-        <div className="bg-white border-b border-slate-200 px-8 py-8 shrink-0 shadow-sm relative z-10">
+      <div className="flex flex-col min-h-full bg-[#F4F7FA]">
+        <div className="bg-white border-b border-slate-200 px-4 sm:px-6 md:px-8 py-6 md:py-8 shrink-0 shadow-sm relative z-10">
           <div className="max-w-6xl mx-auto flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div>
               <h1 className="text-3xl font-black text-slate-900 tracking-tight uppercase" data-testid="text-hub-title">Integration Hub</h1>
@@ -517,7 +517,7 @@ export default function ConnectorsPage() {
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+        <div className="flex-1 p-4 sm:p-6 md:p-8">
           <div className="max-w-6xl mx-auto flex flex-col lg:flex-row gap-8">
             <div className="w-full lg:w-56 shrink-0 space-y-2">
               <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4 px-3">Categories</h3>

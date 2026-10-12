@@ -33,7 +33,7 @@ const STATUS_META: Record<ActionStatus, { label: string; icon: any; tone: string
   done: { label: 'Done', icon: CheckCircle2, tone: 'text-emerald-600' },
 };
 const NEXT_STATUS: Record<ActionStatus, ActionStatus> = { todo: 'doing', doing: 'done', done: 'todo' };
-const SOURCE_LABEL: Record<ActionItem['source'], string> = { plan: 'Plan', bottleneck: 'Bottleneck', hub: 'Hub', manual: 'Added' };
+const SOURCE_LABEL: Record<ActionItem['source'], string> = { plan: 'Plan', bottleneck: 'Bottleneck', hub: 'Hub', manual: 'Added', consult: 'Consult' };
 const OWNERS: StepOwner[] = ['Owner', 'Operations', 'Sales & marketing', 'Finance', 'Partner', 'Team lead'];
 
 function ProgressRing({ value, size = 88 }: { value: number; size?: number }) {

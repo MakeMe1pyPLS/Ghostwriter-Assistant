@@ -15,13 +15,30 @@
           if (t === 'dark') { document.documentElement.classList.add('dark'); document.documentElement.style.colorScheme = 'dark'; }
         } catch (e) {}
       })();
+      // First homepage visit: paint the intro's ink and dot grid while the app loads,
+      // so loading flows straight into the intro (see components/IntroSplash.tsx).
+      (function () {
+        try {
+          if (location.pathname === '/' && !/[?&]nointro\b/.test(location.search) &&
+              localStorage.getItem('ciq_intro_seen_v3') !== '1' &&
+              !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            document.documentElement.dataset.intro = '1';
+          }
+        } catch (e) {}
+      })();
     </script>
+    <style>
+      html[data-intro] body { background: #070C16 radial-gradient(circle, rgba(148,163,184,0.16) 1.2px, transparent 1.5px) 0 0 / 28px 28px; }
+      html[data-intro] #root { visibility: hidden; }
+    </style>
 
     <meta property="og:title" content="ChainInsideIQ" />
     <meta property="og:description" content="AI business analyst: growth plans, bottleneck detection and partner collaboration for businesses of every size." />
     <meta property="og:type" content="website" />
     <meta property="og:image" content="/opengraph.jpg" />
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@AtomBSA" />
+    <meta name="twitter:creator" content="@AtomBSA" />
     <meta name="twitter:title" content="ChainInsideIQ" />
     <meta name="twitter:description" content="AI business analyst: growth plans, bottleneck detection and partner collaboration for businesses of every size." />
     <meta name="twitter:image" content="/opengraph.jpg" />

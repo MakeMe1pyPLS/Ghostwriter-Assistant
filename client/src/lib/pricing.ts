@@ -1,3 +1,5 @@
+import { KPI_COUNTS } from '@shared/kpi-stats';
+
 export interface PricingTier {
   id: string;
   name: string;
@@ -54,10 +56,11 @@ export const PRICING_TIERS: PricingTier[] = [
       'AI Analyst interview and a step-by-step Growth Plan',
       'Action board with owners, due dates and calendar links (Google, Outlook, Apple)',
       'AI Analyst chat that knows your goal and your numbers',
+      'AI Consultant sessions: health check, pricing, cash flow, growth, hiring, AI project check and more',
       'Dashboard Builder, Generate For Me and Enhance My Dashboard',
-      'KPI Library: 300+ metrics across 45 industries',
+      `KPI Library: ${KPI_COUNTS.kpis} metrics across ${KPI_COUNTS.industries} industries, including ${KPI_COUNTS.aiKpis} for AI & automation`,
       'Import CSV, Excel and JSON files',
-      'Export to Excel, CSV and JSON',
+      'Export your dashboard layout to Excel and Google Sheets, a Power BI starter pack, plus CSV and JSON',
       '1 data collab with a partner',
     ],
   },
@@ -83,6 +86,7 @@ export const PRICING_TIERS: PricingTier[] = [
       'Choose your AI engine: Claude, ChatGPT or Gemini',
       'Unlimited data collabs, saved as reusable presets',
       'Ops Hub with discussion threads tied to each issue',
+      'Client workspaces for consultants and agencies, with printable progress reports',
       'Send updates to Microsoft Teams, Google Chat and Slack',
       'Import from public Google Sheets and JSON APIs',
     ],
@@ -154,7 +158,7 @@ export const PRICING_TIERS: PricingTier[] = [
 ];
 
 export function getPricingSummary(): string {
-  return 'ChainInsideIQ offers four plans: Starter ($49/month, or $39/month billed yearly), Professional ($129/month, or $99/month yearly), Business ($299/month, or $249/month yearly) and Enterprise (custom pricing). Starter, Professional and Business start with a 14-day free trial and include 200, 1,000 and 3,000 AI answers a month respectively. Every plan includes the AI growth plan, AI Analyst chat, KPI Library and Excel/CSV/JSON import and export. Higher plans add bottleneck detection, AI engine choice, unlimited partner collabs, Teams and Google Chat updates, and supply-chain-wide analysis. Features marked "Coming soon" on the pricing page are not available yet.';
+  return 'ChainInsideIQ offers four plans: Starter ($49/month, or $39/month billed yearly), Professional ($129/month, or $99/month yearly), Business ($299/month, or $249/month yearly) and Enterprise (custom pricing). Starter, Professional and Business start with a 14-day free trial and include 200, 1,000 and 3,000 AI answers a month respectively. Every plan includes the AI growth plan, AI Analyst chat, AI Consultant sessions, KPI Library and Excel/CSV/JSON import and export. Higher plans add bottleneck detection, AI engine choice, client workspaces for consultants, unlimited partner collabs, Teams and Google Chat updates, and supply-chain-wide analysis. Features marked "Coming soon" on the pricing page are not available yet.';
 }
 
 export function getTierByName(name: string): PricingTier | undefined {
@@ -183,7 +187,8 @@ export type FeatureKey =
   | 'recommendations'
   | 'pipeline'
   | 'advanced-ai'
-  | 'unified-mode';
+  | 'unified-mode'
+  | 'client-workspaces';
 
 // Each premium feature → the lowest plan that unlocks it.
 export const FEATURE_PLANS: Record<FeatureKey, { plan: PlanId; label: string }> = {
@@ -192,6 +197,7 @@ export const FEATURE_PLANS: Record<FeatureKey, { plan: PlanId; label: string }> 
   'pipeline':        { plan: 'business',     label: 'Business' },
   'advanced-ai':     { plan: 'professional', label: 'Professional' },
   'unified-mode':    { plan: 'business',     label: 'Business' },
+  'client-workspaces': { plan: 'professional', label: 'Professional' },
 };
 
 export function getFeatureRequirement(feature: FeatureKey) {

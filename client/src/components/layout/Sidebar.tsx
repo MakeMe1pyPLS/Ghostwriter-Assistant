@@ -2,8 +2,11 @@ import { Link, useLocation } from "wouter";
 import { useEffect, useRef, useState } from "react";
 import {
   ArrowLeft, ShoppingCart, Truck, Building2, Layers, Puzzle, Users, Building,
-  AlertCircle, Lock, ChevronDown, PanelLeftClose, PanelLeftOpen, Search,
+  AlertCircle, Lock, ChevronDown, PanelLeftClose, PanelLeftOpen, Search, Briefcase, Check, ChevronsUpDown,
 } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { useClientsStore } from "@/hooks/use-clients-store";
+import { useGrowthStore } from "@/hooks/use-growth-store";
 import { cn } from "@/lib/utils";
 import { AccountDropdown } from "@/components/AccountDropdown";
 import { AnimatePresence, motion } from "framer-motion";
@@ -106,6 +109,8 @@ export function Sidebar({ onNavigate, collapsed = false, onToggleCollapsed }: Si
             )}
           </button>
         </RailTip>
+
+        {!collapsed && <WorkspaceSwitcher onNavigate={onNavigate} />}
 
         {!collapsed && (
           <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
@@ -242,6 +247,50 @@ export function Sidebar({ onNavigate, collapsed = false, onToggleCollapsed }: Si
         </div>
       </div>
     </div>
+  );
+}
+
+/** Switch between your own business and client workspaces. Shown once a client exists. */
+function WorkspaceSwitcher({ onNavigate }: { onNavigate?: () => void }) {
+  const clients = useClientsStore((s) => s.clients);
+  const activeClientId = useClientsStore((s) => s.activeClientId);
+  const switchTo = useClientsStore((s) => s.switchTo);
+  const ownName = useGrowthStore((s) => s.profile?.businessName);
+  const [, navigate] = useLocation();
+  if (clients.length === 0) return null;
+  const active = clients.find((c) => c.id === activeClientId);
+  const pick = (id: string | null) => { switchTo(id); onNavigate?.(); navigate("/plan"); };
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button className={cn(
+          "w-full flex items-center gap-2.5 px-3 h-11 rounded-xl border text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
+          active ? "border-violet-200 bg-violet-50 hover:bg-violet-100/70" : "border-slate-200 bg-white hover:bg-slate-50",
+        )} data-testid="workspace-switcher">
+          <span className={cn("w-7 h-7 rounded-lg flex items-center justify-center shrink-0", active ? "bg-violet-600 text-white" : "bg-slate-900 text-teal-300")}>
+            {active ? <Briefcase className="w-3.5 h-3.5" /> : <Building className="w-3.5 h-3.5" />}
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-[12px] font-bold text-slate-900 leading-tight truncate">{active ? active.name : ownName || "My business"}</span>
+            <span className="block text-[11px] text-slate-500 leading-tight truncate">{active ? "Client workspace" : "Your workspace"}</span>
+          </span>
+          <ChevronsUpDown className="w-4 h-4 text-slate-400 shrink-0" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="w-[248px] rounded-xl z-[300]">
+        <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-slate-400">Workspaces</DropdownMenuLabel>
+        <DropdownMenuItem onSelect={() => pick(null)} className="gap-2 rounded-lg">
+          <Building className="w-4 h-4 text-slate-500" /><span className="flex-1 truncate">{ownName || "My business"}</span>{!active && <Check className="w-4 h-4 text-primary" />}
+        </DropdownMenuItem>
+        {clients.map((c) => (
+          <DropdownMenuItem key={c.id} onSelect={() => pick(c.id)} className="gap-2 rounded-lg">
+            <Briefcase className="w-4 h-4 text-violet-500" /><span className="flex-1 truncate">{c.name}</span>{c.id === activeClientId && <Check className="w-4 h-4 text-primary" />}
+          </DropdownMenuItem>
+        ))}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onSelect={() => { onNavigate?.(); navigate("/clients"); }} className="rounded-lg font-semibold">Manage clients</DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 

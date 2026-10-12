@@ -6,9 +6,10 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { AIEnginePreference } from '@shared/ai-types';
 import { describeProfile, type GrowthPlan, type GrowthProfile } from '@shared/growth';
+import type { ConsultAnswers, ConsultResult, SessionKind } from '@shared/consult';
 
 export type ActionStatus = 'todo' | 'doing' | 'done';
-export type ActionSource = 'plan' | 'bottleneck' | 'hub' | 'manual';
+export type ActionSource = 'plan' | 'bottleneck' | 'hub' | 'manual' | 'consult';
 
 export interface ActionItem {
   id: string;
@@ -25,6 +26,19 @@ export interface ActionItem {
   threadId?: string;
   createdAt: number;
   completedAt?: number;
+}
+
+/** A finished AI consultant session and the decision taken. */
+export interface ConsultSession {
+  id: string;
+  kind: SessionKind;
+  title: string;
+  answers: ConsultAnswers;
+  result: ConsultResult;
+  chosenOptionId?: string;
+  actionIds: string[];
+  createdAt: number;
+  decidedAt?: number;
 }
 
 export type CollabPermission = 'view' | 'comment' | 'edit';
@@ -150,6 +164,7 @@ interface GrowthState {
   hubPosts: HubPost[];
   integrations: IntegrationSettings;
   kpiWatchlist: string[];
+  consultSessions: ConsultSession[];
 
   setAiEngine: (e: AIEnginePreference) => void;
   setProfile: (p: GrowthProfile) => void;
@@ -176,6 +191,23 @@ interface GrowthState {
 
   setIntegrations: (patch: Partial<IntegrationSettings>) => void;
   toggleKpiWatch: (kpiId: string) => void;
+
+  saveConsultSession: (s: Omit<ConsultSession, 'id' | 'createdAt' | 'actionIds'> & { actionIds?: string[] }) => ConsultSession;
+  updateConsultSession: (id: string, patch: Partial<ConsultSession>) => void;
+  removeConsultSession: (id: string) => void;
+}
+
+/**
+ * The parts of the growth store that belong to one business. The consultant
+ * workspace swaps these in and out when switching between client businesses;
+ * app-wide settings (AI engine, integrations) stay put.
+ */
+export const GROWTH_WORKSPACE_KEYS = ['profile', 'plan', 'planHistory', 'onboardingComplete', 'tourComplete', 'actions', 'collabs', 'hubPosts', 'kpiWatchlist', 'consultSessions'] as const;
+export type GrowthWorkspace = Pick<GrowthState, typeof GROWTH_WORKSPACE_KEYS[number]>;
+
+/** A blank workspace for a new client business. */
+export function emptyGrowthWorkspace(): GrowthWorkspace {
+  return { profile: null, plan: null, planHistory: [], onboardingComplete: false, tourComplete: true, actions: [], collabs: [], hubPosts: [], kpiWatchlist: [], consultSessions: [] };
 }
 
 export const useGrowthStore = create<GrowthState>()(
@@ -192,6 +224,7 @@ export const useGrowthStore = create<GrowthState>()(
       hubPosts: SEED_POSTS,
       integrations: { defaultCalendar: 'google' },
       kpiWatchlist: [],
+      consultSessions: [],
 
       setAiEngine: (aiEngine) => set({ aiEngine }),
       setProfile: (profile) => set({ profile }),
@@ -222,7 +255,14 @@ export const useGrowthStore = create<GrowthState>()(
       businessContext: () => {
         const { profile, plan } = get();
         if (!profile) return '';
-        return describeProfile(profile) + (plan ? `\nCurrent plan North Star: ${plan.northStar.name} → ${plan.northStar.target}` : '');
+        const { consultSessions } = get();
+        const decisions = consultSessions
+          .filter((c) => c.chosenOptionId)
+          .slice(0, 3)
+          .map((c) => `- ${c.title}: chose "${c.result.options.find((o) => o.id === c.chosenOptionId)?.title ?? ''}"`);
+        return describeProfile(profile)
+          + (plan ? `\nCurrent plan North Star: ${plan.northStar.name} → ${plan.northStar.target}` : '')
+          + (decisions.length ? `\nRecent consulting decisions:\n${decisions.join('\n')}` : '');
       },
 
       addAction: (a) => {
@@ -273,6 +313,14 @@ export const useGrowthStore = create<GrowthState>()(
       toggleKpiWatch: (kpiId) => set((s) => ({
         kpiWatchlist: s.kpiWatchlist.includes(kpiId) ? s.kpiWatchlist.filter((k) => k !== kpiId) : [...s.kpiWatchlist, kpiId],
       })),
+
+      saveConsultSession: (c) => {
+        const session: ConsultSession = { ...c, actionIds: c.actionIds ?? [], id: uid('cns'), createdAt: Date.now() };
+        set((s) => ({ consultSessions: [session, ...s.consultSessions].slice(0, 50) }));
+        return session;
+      },
+      updateConsultSession: (id, patch) => set((s) => ({ consultSessions: s.consultSessions.map((c) => (c.id === id ? { ...c, ...patch } : c)) })),
+      removeConsultSession: (id) => set((s) => ({ consultSessions: s.consultSessions.filter((c) => c.id !== id) })),
     }),
     { name: 'chaininsideiq-growth', version: 1 }
   )
