@@ -255,7 +255,7 @@ function KpiTile({ label, from, to, unit, spark, fixed, lowerBetter }: { label: 
         <AnimatePresence>
           {good && (
             <motion.span initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}
-              className="hidden sm:inline-flex items-center gap-0.5 text-[11px] font-bold text-emerald-600 mb-1">
+              className="hidden sm:inline-flex items-center gap-0.5 text-[11px] font-bold text-emerald-700 mb-1">
               <TrendingUp className={cn("w-3 h-3", lowerBetter && "-scale-y-100")} />{Math.abs(Math.round(((to - from) / from) * 100))}%
             </motion.span>
           )}

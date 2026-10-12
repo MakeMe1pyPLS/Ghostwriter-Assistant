@@ -59,7 +59,7 @@ const docSections = [
   {
     icon: BrainCircuit,
     title: "AI & Insights Widgets",
-    color: "text-teal-600 bg-teal-50 border-teal-100",
+    color: "text-teal-700 bg-teal-50 border-teal-100",
     content: [
       "ChainInsideIQ includes 5 AI-powered widget types: AI Insights (automated anomaly detection and recommendations), AI Chat (conversational data assistant), Demand Forecast (predictive trend lines), Executive Summary (natural language overview), and Opportunity & Risk Highlights (sector-specific alerts).",
       "AI widgets are 'always active' — they work across all sectors and date ranges without manual metric binding. They adapt their output based on the sector context selected in the sidebar.",
@@ -69,7 +69,7 @@ const docSections = [
   {
     icon: Database,
     title: "Data Sources & KPI Library",
-    color: "text-blue-600 bg-blue-50 border-blue-100",
+    color: "text-blue-700 bg-blue-50 border-blue-100",
     content: [
       "ChainInsideIQ includes a 36-metric KPI library spanning 4 categories: E-commerce (Revenue, AOV, Conversion Rate, Cart Abandonment, ROAS, etc.), Manufacturing (Throughput, Defect Rate, OEE, Yield, etc.), Logistics (On-Time Delivery, Shipment Volume, Transit Time, etc.), and Unified (Perfect Order Rate, Cash-to-Cash Cycle, Inventory Turnover, etc.).",
       "Each KPI includes a recommended visualization type (KPI card, trend, bar, etc.), a help tooltip, and an AI-suggested chart type. You can override any of these in the Widget Inspector.",
@@ -79,7 +79,7 @@ const docSections = [
   {
     icon: Download,
     title: "Export & Reporting",
-    color: "text-amber-600 bg-amber-50 border-amber-100",
+    color: "text-amber-700 bg-amber-50 border-amber-100",
     content: [
       "Export your dashboards as Excel (.xlsx) with formatted sheets, CSV for raw data, or JSON for developer integrations. Your growth plan exports to Excel, CSV and calendar files.",
       "Exports include the visible widget data and chart configurations. PDF reports and scheduled exports are coming soon.",
@@ -89,7 +89,7 @@ const docSections = [
   {
     icon: Plug,
     title: "Connectors & Integrations",
-    color: "text-emerald-600 bg-emerald-50 border-emerald-100",
+    color: "text-emerald-700 bg-emerald-50 border-emerald-100",
     content: [
       "Bring data in today by uploading CSV, Excel or JSON files, importing a public Google Sheet, or pulling JSON from an API.",
       "Send plans, bottlenecks and Hub updates to Microsoft Teams, Google Chat or Slack, and add action due dates to Google Calendar or Outlook. Set these up under Settings → Connected tools.",
@@ -119,7 +119,7 @@ const docSections = [
   {
     icon: Building,
     title: "Business Structure",
-    color: "text-cyan-600 bg-cyan-50 border-cyan-100",
+    color: "text-cyan-700 bg-cyan-50 border-cyan-100",
     content: [
       "ChainInsideIQ supports three business structure types: Single Business (one sector), Partnered Business (two sectors working together), and Unified Supply Chain (three sectors connected end-to-end).",
       "Your structure choice affects how dashboards are generated, which sectors appear in the sidebar, whether the Ops Hub is enabled, and how AI analysis provides cross-sector intelligence.",
@@ -152,7 +152,7 @@ const docSections = [
   {
     icon: CreditCard,
     title: "Plans & Billing",
-    color: "text-orange-600 bg-orange-50 border-orange-100",
+    color: "text-orange-700 bg-orange-50 border-orange-100",
     content: [
       "Four plans are available: Starter ($49/mo), Professional ($129/mo), Business ($299/mo) and Enterprise (custom pricing), with about 20% off when billed yearly. See the Pricing page for exactly what each includes and what's coming soon.",
       "Starter, Professional and Business begin with a 14-day free trial.",
@@ -225,7 +225,7 @@ export default function SupportPage() {
             {[
               { icon: Mail, title: "Email Support", desc: "Reach our team directly for technical questions or account issues.", action: "support@chaininsideiq.com", color: "text-primary bg-primary/10 border-primary/20" },
               { icon: MessageCircle, title: "AI Analyst", desc: "Ask the in-app AI Analyst how to use a feature or what a number means, any time.", action: "Inside the app", color: "text-indigo-600 bg-indigo-50 border-indigo-100" },
-              { icon: BookOpen, title: "Guides", desc: "Step-by-step guides for every part of the platform.", action: "Sections below", color: "text-amber-600 bg-amber-50 border-amber-100" }
+              { icon: BookOpen, title: "Guides", desc: "Step-by-step guides for every part of the platform.", action: "Sections below", color: "text-amber-700 bg-amber-50 border-amber-100" }
             ].map((item, i) => (
               <div key={i} className="bg-white rounded-2xl border border-slate-200 p-8 text-center shadow-sm hover:shadow-md transition-shadow">
                 <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-5 border ${item.color}`}>
@@ -266,23 +266,23 @@ export default function SupportPage() {
         <section className="py-16 px-4 md:px-6 bg-slate-900 text-white">
           <div className="max-w-4xl mx-auto text-center">
             <h2 className="text-3xl font-black tracking-tighter mb-4">Still need help?</h2>
-            <p className="text-slate-400 mb-8 max-w-xl mx-auto">Our team is ready to assist you with custom onboarding, enterprise setup, or any technical questions.</p>
+            <p className="text-slate-300 mb-8 max-w-xl mx-auto">Our team is ready to assist you with custom onboarding, enterprise setup, or any technical questions.</p>
             <div className="flex flex-wrap justify-center gap-4">
-              <Link href="/contact">
-                <Button className="h-12 px-6 rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-primary/20">
+              <Button className="h-12 px-6 rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-primary/20" asChild>
+                <Link href="/contact">
                   <Mail className="w-4 h-4 mr-2" /> Contact Sales
-                </Button>
-              </Link>
-              <Link href="/contact">
-                <Button variant="outline" className="h-12 px-6 rounded-xl font-black text-xs uppercase tracking-widest border-slate-700 text-white hover:bg-slate-800 hover:text-white">
+                </Link>
+              </Button>
+              <Button variant="outline" className="h-12 px-6 rounded-xl font-black text-xs uppercase tracking-widest border-slate-700 text-white hover:bg-slate-800 hover:text-white" asChild>
+                <Link href="/contact">
                   Request Setup <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              </Link>
-              <Link href="/builder">
-                <Button variant="outline" className="h-12 px-6 rounded-xl font-black text-xs uppercase tracking-widest border-slate-700 text-white hover:bg-slate-800 hover:text-white">
+                </Link>
+              </Button>
+              <Button variant="outline" className="h-12 px-6 rounded-xl font-black text-xs uppercase tracking-widest border-slate-700 text-white hover:bg-slate-800 hover:text-white" asChild>
+                <Link href="/builder">
                   <Zap className="w-4 h-4 mr-2" /> Try Demo
-                </Button>
-              </Link>
+                </Link>
+              </Button>
             </div>
           </div>
         </section>

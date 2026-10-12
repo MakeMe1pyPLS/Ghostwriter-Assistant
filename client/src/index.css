@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./styles/tokens.css";
 @import "./styles/dark-theme.css";
 
 @custom-variant dark (&:is(.dark *));
@@ -27,8 +28,6 @@
   --color-border: hsl(var(--border));
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));
-  
-  --font-sans: 'Inter', sans-serif;
 }
 
 :root {
@@ -48,7 +47,7 @@
   --secondary-foreground: 215 16% 47%;
   
   --muted: 215 31% 91%;
-  --muted-foreground: 215 19% 65%;
+  --muted-foreground: 215 17% 45%; /* AA on white and the page (slate-400 token) */
   
   --accent: 173 80% 40%;
   --accent-foreground: 0 0% 100%;
@@ -82,7 +81,7 @@
   --card-foreground: 214 40% 95%;
   --popover: 218 40% 10%;
   --popover-foreground: 214 40% 95%;
-  --primary: 174 72% 38%;
+  --primary: 177 73% 29%; /* white text 4.8:1 */
   --primary-foreground: 0 0% 100%;
   --secondary: 217 30% 15%;
   --secondary-foreground: 214 25% 80%;
@@ -104,6 +103,9 @@
     @apply font-sans antialiased bg-background text-foreground;
     text-rendering: optimizeLegibility;
     -webkit-tap-highlight-color: transparent;
+    /* viewport-fit=cover: keep content clear of the notch in landscape. */
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
   }
   ::selection {
     background: rgb(94 234 212 / 0.45);

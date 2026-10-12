@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+Disallow: /plan
+Disallow: /app
+Disallow: /onboarding
+Disallow: /dashboard
+Disallow: /builder
+Disallow: /insights
+Disallow: /settings
+Disallow: /checkout/
+Disallow: /clients
+
+Sitemap: https://ghostwriter-assistant.vercel.app/sitemap.xml

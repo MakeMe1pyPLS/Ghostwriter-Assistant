@@ -21,16 +21,16 @@ export default function CheckoutCancelPage() {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Link href="/pricing">
-                <Button className="w-full sm:w-auto h-12 px-8 rounded-xl font-bold uppercase tracking-widest text-xs shadow-md hover:shadow-lg transition-all active:scale-[0.98]">
+              <Button className="w-full sm:w-auto h-12 px-8 rounded-xl font-bold uppercase tracking-widest text-xs shadow-md hover:shadow-lg transition-all active:scale-[0.98]" asChild>
+                <Link href="/pricing">
                   <RotateCcw className="w-4 h-4 mr-2" /> Try Again
-                </Button>
-              </Link>
-              <Link href="/">
-                <Button variant="outline" className="w-full sm:w-auto h-12 px-8 rounded-xl font-bold uppercase tracking-widest text-xs border-slate-200 hover:bg-slate-50">
+                </Link>
+              </Button>
+              <Button variant="outline" className="w-full sm:w-auto h-12 px-8 rounded-xl font-bold uppercase tracking-widest text-xs border-slate-200 hover:bg-slate-50" asChild>
+                <Link href="/">
                   <ArrowLeft className="w-4 h-4 mr-2" /> Back to Pricing
-                </Button>
-              </Link>
+                </Link>
+              </Button>
             </div>
           </div>
         </div>

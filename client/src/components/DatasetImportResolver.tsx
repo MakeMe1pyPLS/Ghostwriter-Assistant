@@ -110,8 +110,8 @@ export function DatasetImportResolver({ payload, onApplied }: { payload: ImportP
   };
 
   const confidenceColor =
-    detection.confidence === 'high' ? 'text-emerald-600' :
-    detection.confidence === 'medium' ? 'text-amber-600' : 'text-slate-400';
+    detection.confidence === 'high' ? 'text-emerald-700' :
+    detection.confidence === 'medium' ? 'text-amber-700' : 'text-slate-400';
 
   const modeOptions: { id: ConflictMode; label: string; desc: string; icon: any }[] = [
     { id: 'new', label: 'Add as New', desc: 'Keep existing, add a new dataset', icon: Plus },
@@ -122,10 +122,10 @@ export function DatasetImportResolver({ payload, onApplied }: { payload: ImportP
   return (
     <div className="space-y-5 pt-4 border-t border-slate-100" data-testid="dataset-import-resolver">
       <div className="flex items-center gap-3 p-4 bg-emerald-50 rounded-xl border border-emerald-200">
-        <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+        <CheckCircle2 className="w-5 h-5 text-emerald-700 shrink-0" />
         <div>
           <p className="text-sm font-bold text-emerald-800">Data ready to organize</p>
-          <p className="text-xs text-emerald-600">{payload.rowCount} rows · {payload.columns.length} columns detected</p>
+          <p className="text-xs text-emerald-700">{payload.rowCount} rows · {payload.columns.length} columns detected</p>
         </div>
       </div>
 
@@ -168,7 +168,7 @@ export function DatasetImportResolver({ payload, onApplied }: { payload: ImportP
       {existing.length > 0 && (
         <div className="rounded-xl border border-amber-200 bg-amber-50/50 p-4 space-y-3">
           <div className="flex items-center gap-2">
-            <Layers className="w-4 h-4 text-amber-600" />
+            <Layers className="w-4 h-4 text-amber-700" />
             <span className="text-[10px] font-black uppercase tracking-widest text-amber-700">
               {existing.length} existing {SECTOR_LABELS[sector]} dataset{existing.length > 1 ? 's' : ''}
             </span>

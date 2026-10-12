@@ -514,7 +514,7 @@ export function GenerateWizard({ onComplete, onCancel, loading }: GenerateWizard
         <div className="flex items-center gap-3">
           {step === STEPS.length - 1 && (
             <div className="hidden md:flex items-center gap-2 text-xs text-slate-500 font-medium mr-4">
-              <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+              <CheckCircle2 className="w-4 h-4 text-emerald-700" />
               Ready to generate
             </div>
           )}

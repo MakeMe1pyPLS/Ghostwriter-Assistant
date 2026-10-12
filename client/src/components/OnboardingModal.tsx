@@ -21,7 +21,7 @@ const STRUCTURES: {
     icon: Building,
     label: "Single Business",
     desc: "One company operating in one sector",
-    color: "text-blue-600 bg-blue-50 border-blue-100",
+    color: "text-blue-700 bg-blue-50 border-blue-100",
     ring: "ring-blue-500 border-blue-300",
     guidance: "Pick your sector and you're ready to build — no extra setup needed.",
     needsSettings: false,

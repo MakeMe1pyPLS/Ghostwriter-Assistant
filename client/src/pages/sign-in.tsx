@@ -1,4 +1,3 @@
-import { useGrowthStore } from "@/hooks/use-growth-store";
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { AuthLayout } from "@/components/auth/AuthLayout";
@@ -9,7 +8,6 @@ import { useDashboardStore } from "@/hooks/use-dashboard-store";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowRight, Eye, EyeOff, AlertCircle, MailCheck } from "lucide-react";
 import { cloudEnabled, signIn as cloudSignIn, sendPasswordReset, resendConfirmation, CloudError, friendly } from "@/lib/supabase";
-import { activate } from "@/lib/cloud-sync";
 
 export default function SignInPage() {
   const [, setLocation] = useLocation();
@@ -67,10 +65,10 @@ export default function SignInPage() {
       setSubmitting(true);
       try {
         const s = await cloudSignIn(email, password);
-        await activate(s);
+        await (await import("@/lib/cloud-sync")).activate(s);
         const name = useDashboardStore.getState().currentUser?.fullName ?? '';
         toast({ title: `Welcome back${name ? `, ${name.split(' ')[0]}` : ''}`, description: "You're signed in. Your workspaces are synced to your account." });
-        setLocation(useGrowthStore.getState().onboardingComplete ? '/plan' : '/onboarding');
+        setLocation((await import("@/hooks/use-growth-store")).useGrowthStore.getState().onboardingComplete ? '/plan' : '/onboarding');
       } catch (e) {
         if (e instanceof CloudError && e.code === 'email_not_confirmed') {
           setUnconfirmed(true);
@@ -90,7 +88,7 @@ export default function SignInPage() {
     setSubmitting(false);
 
     toast({ title: `Welcome back, ${user.fullName.split(' ')[0]}`, description: "You're signed in." });
-    setLocation(useGrowthStore.getState().onboardingComplete ? '/plan' : '/onboarding');
+    setLocation((await import("@/hooks/use-growth-store")).useGrowthStore.getState().onboardingComplete ? '/plan' : '/onboarding');
   };
 
   return (

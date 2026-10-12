@@ -53,11 +53,11 @@ const STATUS_CONFIG = {
 };
 
 const SECTOR_CONFIG: Record<Sector, { icon: typeof Building2; color: string; label: string }> = {
-  manufacturing: { icon: Building2, color: 'text-blue-600 bg-blue-50 border-blue-100', label: 'Manufacturing' },
-  logistics: { icon: Truck, color: 'text-orange-600 bg-orange-50 border-orange-100', label: 'Logistics' },
+  manufacturing: { icon: Building2, color: 'text-blue-700 bg-blue-50 border-blue-100', label: 'Manufacturing' },
+  logistics: { icon: Truck, color: 'text-orange-700 bg-orange-50 border-orange-100', label: 'Logistics' },
   ecommerce: { icon: ShoppingCart, color: 'text-purple-600 bg-purple-50 border-purple-100', label: 'E-commerce' },
   unified: { icon: Layers, color: 'text-slate-600 bg-slate-50 border-slate-100', label: 'Unified' },
-  custom: { icon: Layers, color: 'text-teal-600 bg-teal-50 border-teal-100', label: 'Custom' },
+  custom: { icon: Layers, color: 'text-teal-700 bg-teal-50 border-teal-100', label: 'Custom' },
 };
 
 function HubDisabledState() {
@@ -71,12 +71,12 @@ function HubDisabledState() {
         <p className="text-sm text-slate-500 leading-relaxed mb-6">
           The Ops Hub is currently turned off. Hub communication is most useful for businesses with multiple sectors or partnered operations. Enable it in Settings to start receiving cross-sector alerts, AI insights, and operational updates.
         </p>
-        <Link href="/settings">
-          <Button className="h-12 px-6 rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-primary/20">
+        <Button className="h-12 px-6 rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-primary/20" asChild>
+          <Link href="/settings">
             <Settings className="w-4 h-4 mr-2" />
             Go to Settings
-          </Button>
-        </Link>
+          </Link>
+        </Button>
       </div>
     </div>
   );
@@ -206,7 +206,7 @@ export default function HubPage() {
             <div className="grid grid-cols-3 gap-2 sm:flex sm:flex-wrap sm:gap-6">
               <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                 <div className="w-8 h-8 sm:w-10 sm:h-10 shrink-0 rounded-xl bg-amber-50 flex items-center justify-center border border-amber-100">
-                  <AlertTriangle className="w-5 h-5 text-amber-600" />
+                  <AlertTriangle className="w-5 h-5 text-amber-700" />
                 </div>
                 <div>
                   <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Open Alerts</div>
@@ -215,7 +215,7 @@ export default function HubPage() {
               </div>
               <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                 <div className="w-8 h-8 sm:w-10 sm:h-10 shrink-0 rounded-xl bg-red-50 flex items-center justify-center border border-red-100">
-                  <Activity className="w-5 h-5 text-red-600" />
+                  <Activity className="w-5 h-5 text-red-700" />
                 </div>
                 <div>
                   <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Critical</div>
@@ -224,7 +224,7 @@ export default function HubPage() {
               </div>
               <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                 <div className="w-8 h-8 sm:w-10 sm:h-10 shrink-0 rounded-xl bg-blue-50 flex items-center justify-center border border-blue-100">
-                  <Bell className="w-5 h-5 text-blue-600" />
+                  <Bell className="w-5 h-5 text-blue-700" />
                 </div>
                 <div>
                   <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Unread</div>
@@ -312,12 +312,12 @@ export default function HubPage() {
                                  </Badge>
                                )}
                                {item.type === 'alert' && (
-                                 <Badge variant="outline" className="rounded-xl font-black text-[10px] uppercase tracking-widest px-3 py-1 bg-red-50 text-red-600 border-none flex items-center gap-1.5">
+                                 <Badge variant="outline" className="rounded-xl font-black text-[10px] uppercase tracking-widest px-3 py-1 bg-red-50 text-red-700 border-none flex items-center gap-1.5">
                                    <AlertTriangle className="w-3.5 h-3.5" /> Alert
                                  </Badge>
                                )}
                             </div>
-                            <div className="text-[10px] font-black text-slate-300 flex items-center gap-1.5 uppercase tracking-widest whitespace-nowrap bg-slate-50 px-3 py-1.5 rounded-lg">
+                            <div className="text-[10px] font-black text-slate-400 flex items-center gap-1.5 uppercase tracking-widest whitespace-nowrap bg-slate-50 px-3 py-1.5 rounded-lg">
                               <Clock size={12} /> {formatDistanceToNow(item.timestamp)} ago
                             </div>
                           </div>
@@ -329,7 +329,7 @@ export default function HubPage() {
                                   <AvatarFallback className="bg-slate-100 text-slate-700 font-black text-sm">{item.author.initials}</AvatarFallback>
                                 </Avatar>
                               ) : (
-                                <div className={`w-14 h-14 rounded-2xl shrink-0 flex items-center justify-center ring-4 ring-white shadow-sm ${item.type === 'alert' ? 'bg-amber-50 text-amber-600 border border-amber-100' : 'bg-blue-50 text-blue-600 border border-blue-100'}`}>
+                                <div className={`w-14 h-14 rounded-2xl shrink-0 flex items-center justify-center ring-4 ring-white shadow-sm ${item.type === 'alert' ? 'bg-amber-50 text-amber-700 border border-amber-100' : 'bg-blue-50 text-blue-700 border border-blue-100'}`}>
                                   {item.type === 'alert' ? <AlertTriangle className="w-6 h-6" /> : <Bell className="w-6 h-6" />}
                                 </div>
                               )}
@@ -368,7 +368,7 @@ export default function HubPage() {
                                 <ShareMenu message={() => ({ title: item.title || 'Update from ChainInsideIQ Hub', text: item.content, link: appLink(`/hub?thread=${item.id}`), facts: [{ name: 'Urgency', value: item.urgency }, { name: 'Status', value: item.status }, ...(item.kpi ? [{ name: 'KPI', value: item.kpi }] : [])] })}
                                   className="h-10 px-4 text-[11px] font-black uppercase tracking-widest" />
                                 {item.status !== 'Resolved' && (
-                                  <Button onClick={() => handleResolve(item.id)} variant="outline" size="sm" className="h-10 px-4 rounded-xl text-[11px] font-black uppercase tracking-widest text-emerald-600 border-emerald-200 hover:bg-emerald-50 bg-emerald-50/50 shadow-sm transition-all sm:ml-auto">
+                                  <Button onClick={() => handleResolve(item.id)} variant="outline" size="sm" className="h-10 px-4 rounded-xl text-[11px] font-black uppercase tracking-widest text-emerald-700 border-emerald-200 hover:bg-emerald-50 bg-emerald-50/50 shadow-sm transition-all sm:ml-auto">
                                     <CheckCircle2 className="w-4 h-4 mr-2" /> Mark resolved
                                   </Button>
                                 )}
@@ -385,7 +385,7 @@ export default function HubPage() {
                                             <div className="flex flex-wrap items-baseline gap-x-2">
                                               <span className="text-sm font-black text-slate-900">{r.author}</span>
                                               {r.company && <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{r.company}</span>}
-                                              <span className="text-[10px] font-bold text-slate-300 ml-auto">{formatDistanceToNow(r.timestamp)} ago</span>
+                                              <span className="text-[10px] font-bold text-slate-400 ml-auto">{formatDistanceToNow(r.timestamp)} ago</span>
                                             </div>
                                             <p className="text-sm text-slate-600 mt-1 leading-relaxed">{r.content}</p>
                                           </div>

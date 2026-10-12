@@ -142,7 +142,7 @@ export default function InsightsPage() {
                     <h2 className="text-sm md:text-base font-black text-slate-900 tracking-tight uppercase">AI Supply Chain Analyst</h2>
                     <div className="flex items-center gap-1.5 mt-0.5">
                       <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
-                      <span className="text-[9px] md:text-[10px] font-black text-emerald-600 uppercase tracking-widest">Active: {selectedSector}</span>
+                      <span className="text-[9px] md:text-[10px] font-black text-emerald-700 uppercase tracking-widest">Active: {selectedSector}</span>
                     </div>
                   </div>
                 </div>
@@ -152,7 +152,7 @@ export default function InsightsPage() {
                 <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)] grid lg:grid-cols-3 gap-6">
                   <div className="space-y-3 lg:col-span-1 border-b lg:border-b-0 lg:border-r border-slate-100 pb-6 lg:pb-0 lg:pr-6">
                     <div className="flex items-center gap-2">
-                      <AlertTriangle className="w-4 h-4 text-amber-500" />
+                      <AlertTriangle className="w-4 h-4 text-amber-700" />
                       <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500">Signal Detected</h4>
                     </div>
                     <h3 className="text-lg font-black text-slate-900 leading-tight">{initialInsights.summary}</h3>
@@ -198,7 +198,7 @@ export default function InsightsPage() {
               )}
             </div>
 
-            <div className="flex gap-2 border-b border-slate-200 pb-0">
+            <div className="flex gap-1 sm:gap-2 border-b border-slate-200 pb-0" role="tablist" aria-label="AI Analyst views">
               {[
                 { key: 'chat' as const, label: 'AI Chat', icon: Zap },
                 { key: 'forecast' as const, label: 'Forecast', icon: TrendingUp },
@@ -206,8 +206,10 @@ export default function InsightsPage() {
               ].map(tab => (
                 <button
                   key={tab.key}
+                  role="tab"
+                  aria-selected={activeTab === tab.key}
                   onClick={() => setActiveTab(tab.key)}
-                  className={`flex items-center gap-2 px-5 py-3 text-xs font-black uppercase tracking-widest border-b-2 transition-colors ${activeTab === tab.key ? 'border-primary text-primary' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
+                  className={`flex flex-1 sm:flex-none justify-center items-center gap-1.5 sm:gap-2 px-2 sm:px-5 py-3 min-h-11 text-[11px] sm:text-xs font-black uppercase tracking-wider sm:tracking-widest border-b-2 transition-colors whitespace-nowrap ${activeTab === tab.key ? 'border-primary text-primary' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
                   data-testid={`tab-${tab.key}`}
                 >
                   <tab.icon className="w-3.5 h-3.5" /> {tab.label}
@@ -286,6 +288,7 @@ export default function InsightsPage() {
                       className="absolute right-2 h-10 w-10 rounded-xl shadow-lg shadow-primary/20 transition-transform active:scale-95"
                       onClick={() => handleSend()}
                       disabled={!inputValue.trim() || isTyping}
+                      aria-label="Send message"
                       data-testid="button-send-chat"
                     >
                       <Send className="w-4 h-4" />

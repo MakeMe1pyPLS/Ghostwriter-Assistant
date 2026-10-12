@@ -62,7 +62,7 @@ export function MarketingLayout({ children }: { children: React.ReactNode }) {
   ];
 
   return (
-    <div className="min-h-screen bg-[#F4F7FA] font-sans flex flex-col">
+    <div className="min-h-dvh bg-[#F4F7FA] font-sans flex flex-col">
       <header className={cn(
         "sticky top-0 z-50 shrink-0 transition-[background-color,border-color,box-shadow,backdrop-filter] duration-300 border-b",
         scrolled || mobileMenuOpen
@@ -91,21 +91,21 @@ export function MarketingLayout({ children }: { children: React.ReactNode }) {
           <div className="ml-auto hidden lg:flex items-center gap-2">
             <ThemeToggle />
             {isAuthed ? (
-              <Link href="/plan">
-                <Button className="font-semibold text-[14px] h-10 px-5 rounded-xl" data-testid="button-go-to-dashboard">
+              <Button className="font-semibold text-[14px] h-10 px-5 rounded-xl" data-testid="button-go-to-dashboard" asChild>
+                <Link href="/plan">
                   <LayoutDashboard className="w-4 h-4 mr-1" /> Open the app
-                </Button>
-              </Link>
+                </Link>
+              </Button>
             ) : (
               <>
-                <Link href="/sign-in">
-                  <Button variant="ghost" className="font-semibold text-[14px] h-10 px-4 rounded-xl text-slate-600 hover:text-slate-900" data-testid="button-sign-in">Sign in</Button>
-                </Link>
-                <Link href="/sign-up">
-                  <Button className="font-semibold text-[14px] h-10 px-5 rounded-xl bg-slate-900 text-white hover:bg-slate-800 dark:bg-teal-400 dark:text-slate-950 dark:hover:bg-teal-300" data-testid="button-get-started">
+                <Button variant="ghost" className="font-semibold text-[14px] h-10 px-4 rounded-xl text-slate-600 hover:text-slate-900" data-testid="button-sign-in" asChild>
+                  <Link href="/sign-in">Sign in</Link>
+                </Button>
+                <Button className="font-semibold text-[14px] h-10 px-5 rounded-xl bg-slate-900 text-white hover:bg-slate-800 dark:bg-teal-400 dark:text-slate-950 dark:hover:bg-teal-300" data-testid="button-get-started" asChild>
+                  <Link href="/sign-up">
                     Get started <ArrowRight className="w-4 h-4" />
-                  </Button>
-                </Link>
+                  </Link>
+                </Button>
               </>
             )}
           </div>
@@ -137,17 +137,17 @@ export function MarketingLayout({ children }: { children: React.ReactNode }) {
                 ))}
                 <div className="flex flex-col gap-2 pt-3">
                   {isAuthed ? (
-                    <Link href="/plan">
-                      <Button className="w-full font-semibold h-12 rounded-xl"><LayoutDashboard className="w-4 h-4 mr-1" /> Open the app</Button>
-                    </Link>
+                    <Button className="w-full font-semibold h-12 rounded-xl" asChild>
+                      <Link href="/plan"><LayoutDashboard className="w-4 h-4 mr-1" /> Open the app</Link>
+                    </Button>
                   ) : (
                     <>
-                      <Link href="/sign-up">
-                        <Button className="w-full font-semibold h-12 rounded-xl bg-slate-900 text-white dark:bg-teal-400 dark:text-slate-950">Get started <ArrowRight className="w-4 h-4" /></Button>
-                      </Link>
-                      <Link href="/sign-in">
-                        <Button variant="outline" className="w-full font-semibold h-12 rounded-xl">Sign in</Button>
-                      </Link>
+                      <Button className="w-full font-semibold h-12 rounded-xl bg-slate-900 text-white dark:bg-teal-400 dark:text-slate-950" asChild>
+                        <Link href="/sign-up">Get started <ArrowRight className="w-4 h-4" /></Link>
+                      </Button>
+                      <Button variant="outline" className="w-full font-semibold h-12 rounded-xl" asChild>
+                        <Link href="/sign-in">Sign in</Link>
+                      </Button>
                     </>
                   )}
                 </div>

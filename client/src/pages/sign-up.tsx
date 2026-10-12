@@ -9,7 +9,6 @@ import { useToast } from "@/hooks/use-toast";
 import { ArrowRight, Eye, EyeOff, AlertCircle, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { cloudEnabled, signUp as cloudSignUp, CloudError, friendly } from "@/lib/supabase";
-import { activate } from "@/lib/cloud-sync";
 
 function passwordStrength(pw: string) {
   let score = 0;
@@ -68,7 +67,7 @@ export default function SignUpPage() {
         const s = await cloudSignUp({ fullName, email, password });
         if (s) {
           // Email confirmation is off for this project: signed in straight away.
-          await activate(s);
+          await (await import("@/lib/cloud-sync")).activate(s);
           toast({ title: "Account created — your trial just started.", description: "Your workspace is saved to your account." });
           setLocation('/onboarding');
         } else {
@@ -222,9 +221,9 @@ export default function SignUpPage() {
         </Button>
 
         <div className="grid grid-cols-3 gap-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-center">
-          <div className="flex items-center justify-center gap-1"><Check className="w-3 h-3 text-emerald-500" /> 14-Day Trial</div>
-          <div className="flex items-center justify-center gap-1"><Check className="w-3 h-3 text-emerald-500" /> No Card</div>
-          <div className="flex items-center justify-center gap-1"><Check className="w-3 h-3 text-emerald-500" /> Cancel Anytime</div>
+          <div className="flex items-center justify-center gap-1"><Check className="w-3 h-3 text-emerald-700" /> 14-Day Trial</div>
+          <div className="flex items-center justify-center gap-1"><Check className="w-3 h-3 text-emerald-700" /> No Card</div>
+          <div className="flex items-center justify-center gap-1"><Check className="w-3 h-3 text-emerald-700" /> Cancel Anytime</div>
         </div>
 
         <p className="text-center text-xs text-slate-500 font-medium">

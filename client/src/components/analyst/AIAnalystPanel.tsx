@@ -136,7 +136,7 @@ function AnalysisCard({ a }: { a: AnalystResponse }) {
 
       {/* Bottlenecks */}
       {a.bottlenecks.length > 0 && (
-        <Section icon={AlertTriangle} label="Bottlenecks" accent="text-red-600">
+        <Section icon={AlertTriangle} label="Bottlenecks" accent="text-red-700">
           <div className="space-y-1.5">
             {a.bottlenecks.map((b, i) => (
               <div key={i} className="rounded-xl border border-red-100 bg-red-50/70 p-2.5">
@@ -153,7 +153,7 @@ function AnalysisCard({ a }: { a: AnalystResponse }) {
 
       {/* Root Cause */}
       {a.rootCause && (
-        <Section icon={GitBranch} label="Root Cause" accent="text-amber-600">
+        <Section icon={GitBranch} label="Root Cause" accent="text-amber-700">
           <p className="text-[12px] font-medium text-slate-600 leading-relaxed rounded-xl border border-amber-100 bg-amber-50/70 p-2.5">
             {a.rootCause}
           </p>
@@ -183,7 +183,7 @@ function AnalysisCard({ a }: { a: AnalystResponse }) {
 
       {/* Expected Impact */}
       {a.expectedImpact && (
-        <Section icon={CheckCircle2} label="Expected Impact" accent="text-emerald-600">
+        <Section icon={CheckCircle2} label="Expected Impact" accent="text-emerald-700">
           <p className="text-[12px] font-medium text-slate-600 leading-relaxed rounded-xl border border-emerald-100 bg-emerald-50/70 p-2.5">
             {a.expectedImpact}
           </p>

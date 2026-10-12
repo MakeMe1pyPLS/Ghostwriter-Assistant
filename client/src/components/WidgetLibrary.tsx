@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { cn } from "@/lib/utils";
 import { Plus, Search, LayoutTemplate, LineChart as LineChartIcon, BarChart3, PieChart, Table as TableIcon, BrainCircuit, Bot, MessageSquareQuote, TrendingUp, Sparkles, AlertTriangle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -140,13 +141,13 @@ export function WidgetLibraryContent({ onAdd }: { onAdd: (widget: any) => void }
   );
 }
 
-export function WidgetLibraryMobile({ onAdd }: { onAdd: (widget: any) => void }) {
+export function WidgetLibraryMobile({ onAdd, className }: { onAdd: (widget: any) => void; className?: string }) {
   const [open, setOpen] = useState(false);
   
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button className="fixed right-4 sm:right-6 bottom-[calc(4rem+env(safe-area-inset-bottom)+1rem)] h-14 w-14 rounded-full shadow-2xl shadow-primary/30 z-[55] lg:hidden" aria-label="Add a widget" size="icon">
+        <Button className={cn("fixed right-4 sm:right-6 bottom-[calc(4rem+env(safe-area-inset-bottom)+1rem)] h-14 w-14 rounded-full shadow-2xl shadow-primary/30 z-[55] lg:hidden", className)} aria-label="Add a card" size="icon">
           <Plus className="w-6 h-6" />
         </Button>
       </SheetTrigger>

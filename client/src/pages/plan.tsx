@@ -29,8 +29,8 @@ import type { AIEnginePreference } from "@shared/ai-types";
 
 const STATUS_META: Record<ActionStatus, { label: string; icon: any; tone: string }> = {
   todo: { label: 'To do', icon: Circle, tone: 'text-slate-400' },
-  doing: { label: 'In progress', icon: CircleDot, tone: 'text-amber-500' },
-  done: { label: 'Done', icon: CheckCircle2, tone: 'text-emerald-600' },
+  doing: { label: 'In progress', icon: CircleDot, tone: 'text-amber-700' },
+  done: { label: 'Done', icon: CheckCircle2, tone: 'text-emerald-700' },
 };
 const NEXT_STATUS: Record<ActionStatus, ActionStatus> = { todo: 'doing', doing: 'done', done: 'todo' };
 const SOURCE_LABEL: Record<ActionItem['source'], string> = { plan: 'Plan', bottleneck: 'Bottleneck', hub: 'Hub', manual: 'Added', consult: 'Consult' };
@@ -135,13 +135,13 @@ function ActionRow({ action, compact = false }: { action: ActionItem; compact?: 
                 </label>
               </div>
               <div className="flex flex-wrap gap-2">
-                <Link href={`/insights?ask=${encodeURIComponent(`How should I approach this step: "${action.title}"? ${action.detail}`)}`}>
-                  <Button variant="outline" size="sm" className="rounded-lg font-bold"><Sparkles className="w-3.5 h-3.5 mr-1.5 text-primary" /> Ask the analyst</Button>
-                </Link>
+                <Button variant="outline" size="sm" className="rounded-lg font-bold" asChild>
+                  <Link href={`/insights?ask=${encodeURIComponent(`How should I approach this step: "${action.title}"? ${action.detail}`)}`}><Sparkles className="w-3.5 h-3.5 mr-1.5 text-primary" /> Ask the analyst</Link>
+                </Button>
                 {action.threadId && (
-                  <Link href={`/hub?thread=${action.threadId}`}>
-                    <Button variant="outline" size="sm" className="rounded-lg font-bold"><MessageSquare className="w-3.5 h-3.5 mr-1.5" /> Open discussion</Button>
-                  </Link>
+                  <Button variant="outline" size="sm" className="rounded-lg font-bold" asChild>
+                    <Link href={`/hub?thread=${action.threadId}`}><MessageSquare className="w-3.5 h-3.5 mr-1.5" /> Open discussion</Link>
+                  </Button>
                 )}
                 {action.source !== 'plan' && (
                   <Button variant="ghost" size="sm" className="rounded-lg font-bold text-rose-600 hover:bg-rose-50" onClick={() => removeAction(action.id)}>
@@ -201,9 +201,9 @@ function EmptyPlan() {
         <div className="w-14 h-14 rounded-2xl bg-slate-900 text-teal-300 flex items-center justify-center mx-auto mb-5"><Sparkles className="w-7 h-7" /></div>
         <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">Get your growth plan</h1>
         <p className="text-slate-500 mt-3 leading-relaxed">Answer eight quick questions about your goal, business and partners. The AI Analyst turns them into a step-by-step plan with targets and an action board.</p>
-        <Link href="/onboarding">
-          <Button className="mt-6 h-12 px-6 rounded-xl font-black uppercase tracking-widest text-xs">Start the interview <ArrowRight className="w-4 h-4 ml-2" /></Button>
-        </Link>
+        <Button className="mt-6 h-12 px-6 rounded-xl font-black uppercase tracking-widest text-xs" asChild>
+          <Link href="/onboarding">Start the interview <ArrowRight className="w-4 h-4 ml-2" /></Link>
+        </Button>
       </motion.div>
     </div>
   );
@@ -298,9 +298,9 @@ export default function PlanPage() {
               </h1>
               <p className="text-slate-300 mt-3 max-w-3xl leading-relaxed text-sm sm:text-base">{plan.summary}</p>
               <div className="flex flex-wrap gap-2 mt-5">
-                <Link href="/insights">
-                  <Button className="rounded-xl bg-white text-slate-900 hover:bg-slate-100 font-bold"><Sparkles className="w-4 h-4 mr-2 text-primary" /> Ask the analyst</Button>
-                </Link>
+                <Button className="rounded-xl bg-white text-slate-900 hover:bg-slate-100 font-bold" asChild>
+                  <Link href="/insights"><Sparkles className="w-4 h-4 mr-2 text-primary" /> Ask the analyst</Link>
+                </Button>
                 <ShareMenu message={shareMessage} className="bg-white/10 border-white/15 text-white hover:bg-white/15 hover:text-white" />
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -424,9 +424,9 @@ export default function PlanPage() {
           {/* Side panel */}
           <aside className={tab === 'plan' ? 'space-y-4' : 'grid md:grid-cols-3 gap-4 [&>p]:md:col-span-3'}>
             <div className="rounded-3xl bg-white border border-slate-200 p-5">
-              <h3 className="text-xs font-black uppercase tracking-widest text-slate-900 flex items-center gap-2"><Zap className="w-4 h-4 text-amber-500" /> Quick wins this week</h3>
+              <h3 className="text-xs font-black uppercase tracking-widest text-slate-900 flex items-center gap-2"><Zap className="w-4 h-4 text-amber-700" /> Quick wins this week</h3>
               <ul className="mt-3 space-y-2">
-                {plan.quickWins.map((w) => <li key={w} className="text-sm text-slate-600 leading-relaxed flex gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />{w}</li>)}
+                {plan.quickWins.map((w) => <li key={w} className="text-sm text-slate-600 leading-relaxed flex gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />{w}</li>)}
               </ul>
             </div>
             <div className="rounded-3xl bg-white border border-slate-200 p-5">
@@ -434,10 +434,10 @@ export default function PlanPage() {
               <ul className="mt-3 space-y-2">
                 {plan.partnerPlays.map((w) => <li key={w} className="text-sm text-slate-600 leading-relaxed">{w}</li>)}
               </ul>
-              <Link href="/collabs"><Button variant="outline" size="sm" className="mt-3 rounded-lg font-bold w-full">Set up a data collab</Button></Link>
+              <Button variant="outline" size="sm" className="mt-3 rounded-lg font-bold w-full" asChild><Link href="/collabs">Set up a data collab</Link></Button>
             </div>
             <div className="rounded-3xl bg-white border border-slate-200 p-5">
-              <h3 className="text-xs font-black uppercase tracking-widest text-slate-900 flex items-center gap-2"><AlertTriangle className="w-4 h-4 text-rose-500" /> Watch out for</h3>
+              <h3 className="text-xs font-black uppercase tracking-widest text-slate-900 flex items-center gap-2"><AlertTriangle className="w-4 h-4 text-rose-600" /> Watch out for</h3>
               <ul className="mt-3 space-y-2">
                 {plan.risks.map((w) => <li key={w} className="text-sm text-slate-600 leading-relaxed">{w}</li>)}
               </ul>

@@ -38,28 +38,28 @@ export function DemoBanner() {
         </div>
 
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-          <Link href="/sign-in" className="hidden sm:block">
-            <Button
+          <Button
               variant="ghost"
               size="sm"
-              className="font-bold uppercase tracking-widest text-[10px] h-8 px-3 text-slate-300 hover:text-white hover:bg-white/10"
+              className="hidden sm:inline-flex font-bold uppercase tracking-widest text-[10px] h-8 px-3 text-slate-300 hover:text-white hover:bg-white/10"
               data-testid="button-demo-sign-in"
-            >
+             asChild>
+            <Link href="/sign-in">
               Sign In
-            </Button>
-          </Link>
-          <Link href="/sign-up">
-            <Button
+            </Link>
+          </Button>
+          <Button
               size="sm"
               className="font-black uppercase tracking-widest text-[10px] h-8 px-3 rounded-lg shadow-lg shadow-primary/30"
               data-testid="button-demo-create-account"
-            >
+             asChild>
+            <Link href="/sign-up">
               <Sparkles className="w-3 h-3 mr-1.5" />
               <span className="sm:hidden">Free trial</span>
               <span className="hidden sm:inline">Start Free Trial</span>
               <ArrowRight className="w-3 h-3 ml-1.5 hidden sm:block" />
-            </Button>
-          </Link>
+            </Link>
+          </Button>
           <button
             onClick={() => setDismissed(true)}
             aria-label="Dismiss demo banner"

@@ -62,7 +62,7 @@ function DatasetRow({ ds, isActive }: { ds: ManagedDataset; isActive: boolean })
               className="h-7 rounded-lg text-sm font-bold"
               data-testid={`input-rename-${ds.id}`}
             />
-            <Button size="sm" variant="ghost" onClick={commitRename} className="h-7 w-7 p-0 text-emerald-600" data-testid={`button-rename-save-${ds.id}`}><Check className="w-4 h-4" /></Button>
+            <Button size="sm" variant="ghost" onClick={commitRename} className="h-7 w-7 p-0 text-emerald-700" data-testid={`button-rename-save-${ds.id}`}><Check className="w-4 h-4" /></Button>
             <Button size="sm" variant="ghost" onClick={() => setEditing(false)} className="h-7 w-7 p-0 text-slate-400"><X className="w-4 h-4" /></Button>
           </div>
         ) : (
@@ -86,15 +86,15 @@ function DatasetRow({ ds, isActive }: { ds: ManagedDataset; isActive: boolean })
           </Button>
         )}
         {isActive && !ds.archived && (
-          <span className="h-8 px-2 flex items-center text-emerald-600" title="Active dataset"><CheckCircle2 className="w-4 h-4" /></span>
+          <span className="h-8 px-2 flex items-center text-emerald-700" title="Active dataset"><CheckCircle2 className="w-4 h-4" /></span>
         )}
         {!editing && (
           <Button size="sm" variant="ghost" onClick={() => { setDraftName(ds.name); setEditing(true); }} className="h-8 w-8 p-0 text-slate-400 hover:text-slate-700" data-testid={`button-edit-${ds.id}`}><Pencil className="w-3.5 h-3.5" /></Button>
         )}
         {ds.archived ? (
-          <Button size="sm" variant="ghost" onClick={() => restoreDataset(ds.id)} className="h-8 w-8 p-0 text-slate-400 hover:text-emerald-600" data-testid={`button-restore-${ds.id}`}><ArchiveRestore className="w-3.5 h-3.5" /></Button>
+          <Button size="sm" variant="ghost" onClick={() => restoreDataset(ds.id)} className="h-8 w-8 p-0 text-slate-400 hover:text-emerald-700" data-testid={`button-restore-${ds.id}`}><ArchiveRestore className="w-3.5 h-3.5" /></Button>
         ) : (
-          <Button size="sm" variant="ghost" onClick={() => archiveDataset(ds.id)} className="h-8 w-8 p-0 text-slate-400 hover:text-amber-600" data-testid={`button-archive-${ds.id}`}><Archive className="w-3.5 h-3.5" /></Button>
+          <Button size="sm" variant="ghost" onClick={() => archiveDataset(ds.id)} className="h-8 w-8 p-0 text-slate-400 hover:text-amber-700" data-testid={`button-archive-${ds.id}`}><Archive className="w-3.5 h-3.5" /></Button>
         )}
         <Button size="sm" variant="ghost" onClick={() => { removeDataset(ds.id); toast({ title: 'Dataset removed' }); }} className="h-8 w-8 p-0 text-slate-400 hover:text-red-500" data-testid={`button-remove-${ds.id}`}><Trash2 className="w-3.5 h-3.5" /></Button>
       </div>

@@ -20,6 +20,10 @@ export function PanZoomCanvas({
   children,
   className,
   overlay,
+  fill = false,
+  insetTop = 12,
+  insetX = 12,
+  hintText,
 }: {
   contentWidth: number;
   /** Grid cell size in content pixels (for the dots). */
@@ -32,6 +36,12 @@ export function PanZoomCanvas({
   className?: string;
   /** Extra floating UI rendered inside the viewport (not transformed). */
   overlay?: React.ReactNode;
+  /** Fill the parent's height (full-screen pages) instead of measuring the window. */
+  fill?: boolean;
+  /** Space kept clear at the top / sides when fitting (e.g. under a floating toolbar). */
+  insetTop?: number;
+  insetX?: number;
+  hintText?: string;
 }) {
   const vpRef = useRef<HTMLDivElement | null>(null);
   const [view, setView] = useState<CanvasView>({ x: 16, y: 16, z: 1 });
@@ -47,21 +57,21 @@ export function PanZoomCanvas({
   // Fill the screen below the canvas's top edge (above the phone tab bar).
   const measure = useCallback(() => {
     const el = vpRef.current;
-    if (!el) return;
+    if (!el || fill) return;
     const top = el.getBoundingClientRect().top;
     const bottomBar = window.innerWidth < 1024 ? 64 + 12 : 24;
     const main = el.closest('main');
     const scrollTop = main ? main.scrollTop : 0;
     setHeight(Math.max(380, Math.round(window.innerHeight - (top + scrollTop) - bottomBar)));
-  }, []);
+  }, [fill]);
 
   const fit = useCallback(() => {
     const el = vpRef.current;
     if (!el) return;
     const vw = el.clientWidth;
-    const z = clampZ(Math.min(1.1, (vw - 24) / contentWidth));
-    setView({ x: Math.round((vw - contentWidth * z) / 2), y: 12, z });
-  }, [contentWidth]);
+    const z = clampZ(Math.min(1.1, (vw - insetX * 2) / contentWidth));
+    setView({ x: Math.round((vw - contentWidth * z) / 2), y: insetTop, z });
+  }, [contentWidth, insetTop, insetX]);
 
   useLayoutEffect(() => {
     measure();
@@ -175,7 +185,7 @@ export function PanZoomCanvas({
     <div
       ref={vpRef}
       className={cn("ciq-canvas relative overflow-hidden rounded-2xl border border-slate-200 bg-slate-50/70 select-none", panning ? "cursor-grabbing" : "cursor-grab", className)}
-      style={{ height, touchAction: 'none', ...dots }}
+      style={{ height: fill ? '100%' : height, touchAction: 'none', overscrollBehavior: 'none', ...dots }}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={endPointer}
@@ -192,15 +202,15 @@ export function PanZoomCanvas({
       {overlay}
 
       {/* Zoom controls */}
-      <div className="ciq-ui absolute left-3 bottom-3 z-20 flex items-center gap-0.5 rounded-xl border border-slate-200 bg-white/95 backdrop-blur p-1 shadow-lg cursor-default" role="group" aria-label="Zoom">
+      <div className="ciq-ui absolute left-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-20 flex items-center gap-0.5 rounded-xl border border-slate-200 bg-white/95 backdrop-blur p-1 shadow-lg cursor-default" role="group" aria-label="Zoom">
         <button className="w-9 h-9 rounded-lg flex items-center justify-center text-slate-600 hover:bg-slate-100" aria-label="Zoom out" onClick={() => { const { cx, cy } = center(); zoomAt(1 / 1.2, cx, cy); }}><Minus className="w-4 h-4" /></button>
         <span className="w-12 text-center text-[12px] font-bold tabular-nums text-slate-700" aria-live="polite" data-testid="canvas-zoom">{Math.round(view.z * 100)}%</span>
         <button className="w-9 h-9 rounded-lg flex items-center justify-center text-slate-600 hover:bg-slate-100" aria-label="Zoom in" onClick={() => { const { cx, cy } = center(); zoomAt(1.2, cx, cy); }}><Plus className="w-4 h-4" /></button>
         <div className="w-px h-5 bg-slate-200 mx-0.5" aria-hidden />
         <button className="h-9 px-2.5 rounded-lg flex items-center gap-1.5 text-[12px] font-bold text-slate-600 hover:bg-slate-100" aria-label="Fit to screen" onClick={fit} data-testid="canvas-fit"><Maximize className="w-3.5 h-3.5" /> Fit</button>
       </div>
-      <div aria-hidden={!hint} className={cn("ciq-ui pointer-events-none absolute right-3 top-3 z-20 hidden sm:flex items-center transition-opacity duration-500", hint ? "opacity-100" : "opacity-0")} data-hint={hint ? 'on' : 'off'}><div className="flex items-center gap-1.5 rounded-lg bg-white/80 backdrop-blur px-2 py-1 text-[11px] font-semibold text-slate-500 border border-slate-200">
-        <Hand className="w-3.5 h-3.5" /> Drag the grid to move around · {navigator.platform?.includes('Mac') ? '⌘' : 'Ctrl'} + scroll to zoom
+      <div aria-hidden={!hint} className={cn("ciq-ui pointer-events-none absolute left-1/2 -translate-x-1/2 top-3 z-20 flex items-center transition-opacity duration-500 max-w-[calc(100%-1.5rem)]", hint ? "opacity-100" : "opacity-0")} data-hint={hint ? 'on' : 'off'}><div className="flex items-center gap-1.5 rounded-full bg-slate-900/85 backdrop-blur px-3 py-1.5 text-[11.5px] font-semibold text-white shadow-lg max-w-full min-w-0">
+        <Hand className="w-3.5 h-3.5 shrink-0" /> <span className="truncate min-w-0">{hintText ?? `Drag the grid to move around · ${navigator.platform?.includes('Mac') ? '⌘' : 'Ctrl'} + scroll to zoom`}</span>
       </div></div>
     </div>
   );

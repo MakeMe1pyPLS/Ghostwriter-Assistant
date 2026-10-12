@@ -82,7 +82,7 @@ export default function ClientsPage() {
               { label: "Active clients", value: active, icon: Users, tone: "text-slate-900" },
               { label: "Open actions", value: open, icon: CheckCircle2, tone: "text-slate-900" },
               { label: "Overdue", value: overdue, icon: AlertTriangle, tone: overdue ? "text-rose-600" : "text-slate-900" },
-              { label: "Reviews this week", value: reviewsDue, icon: CalendarClock, tone: reviewsDue ? "text-amber-600" : "text-slate-900" },
+              { label: "Reviews this week", value: reviewsDue, icon: CalendarClock, tone: reviewsDue ? "text-amber-700" : "text-slate-900" },
             ].map((s) => (
               <StaggerItem key={s.label}>
                 <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 flex items-center gap-3">

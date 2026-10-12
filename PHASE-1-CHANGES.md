@@ -250,6 +250,53 @@ The rule-based analyst, dashboard generator, exporters, KPI library and plan bui
   - Tap, click, Esc, Enter or Skip opens it straight away. It shows once per browser (`ciq_intro_seen_v3`), so visitors who saw the old intro see the new one once.
   - It never plays with reduced motion or `?nointro`.
 
+### Polish pass: clearer, faster, accessible on every device
+- **Faster on phones.**
+  - The homepage hero shows straight from the page's HTML, before the app's code arrives.
+  - Inter is now self-hosted: one 50KB file instead of a round trip to Google Fonts.
+  - Pricing, features, support, sign-in and checkout pages load on demand, so the homepage downloads about 25% less code.
+  - Background prefetching waits until the page has loaded and skips data-saver and slow connections.
+  - The intro is skipped on slow connections too.
+- **Easier to read.**
+  - Grey helper text and coloured status text now pass the WCAG AA contrast standard in light and dark mode.
+  - In dark mode, primary buttons and teal links are readable again.
+  - Headings scale smoothly on phones.
+- **Design system.** `client/src/styles/tokens.css` is the one place for colours (brand, status), type, spacing, radius, shadows, layers and motion. The rules are in `docs/BRAND.md`.
+- **Buttons:**
+  - They have hover states and a loading state.
+  - They grow to finger size (about 44px) on touch screens.
+  - Links styled as buttons are now real links, not a button inside a link.
+- **Accessibility:**
+  - The AI Analyst tabs, a Dashboard button, the chat send button, Settings switches and form fields without labels now have accessible names.
+  - Top-priority cards say whether they're open.
+- **Dashboard:**
+  - Top priorities start collapsed, so your KPI cards come up sooner.
+  - A dashboard-shaped skeleton replaces the loading spinner (Builder too).
+  - Narrow KPI cards no longer cut off their explanation.
+- **Phones:**
+  - The AI Analyst page no longer scrolls sideways at 360px.
+  - Form fields render at 16px so iOS doesn't zoom in.
+  - Full-height screens use the visible screen height.
+- **SEO:**
+  - Every page has its own title and description.
+  - Public pages have canonical links, and app pages are hidden from search engines.
+  - New `robots.txt` and `sitemap.xml`.
+- **Deploys:**
+  - Vercel now builds only the website (`vite build`), not the unused API server, so builds are quicker.
+  - Hashed files and the font are cached for a year.
+
+### Builder studio: full screen, free grid, grid sizes
+- **The Builder takes the whole screen** on phones, tablets and computers.
+  - The side menu, top bar and phone tab bar are tucked away. The ☰ button opens the menu whenever you need it.
+  - Everything you need is in one toolbar.
+- **A clear way out of editing:** a **Done ✕** button on every device (Esc on a keyboard). It saves and leaves edit mode.
+- **Dragging no longer scrolls the page.** On phones, dragging the grid or a card moves only the canvas or the card.
+- **Free mode with a grid size you choose:** Fine (48 columns), Medium (24) or Large (12). Moving a card only snaps that card; the rest stay exactly where they are.
+- **A more playful feel:**
+  - Cards lift and tilt slightly while you drag them, then settle into place.
+  - The grid dots turn teal while you edit.
+  - The card library docks on the right on desktop and can be hidden for more room.
+
 ## Environment variables
 
 | Variable | Needed for | Default |

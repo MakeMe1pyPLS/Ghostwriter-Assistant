@@ -18,7 +18,16 @@ import { Briefcase } from "lucide-react";
 
 interface AppLayoutProps {
   children: React.ReactNode;
+  /**
+   * Full-screen workspace (the Builder): no sidebar, top bar, tab bar or banners.
+   * The page draws its own toolbar and opens the navigation with openAppNav().
+   */
+  fullscreen?: boolean;
 }
+
+const OPEN_NAV_EVENT = "ciq-open-nav";
+/** Opens the app's navigation drawer (used by full-screen pages). */
+export function openAppNav() { window.dispatchEvent(new Event(OPEN_NAV_EVENT)); }
 
 const SIDEBAR_PREF_KEY = "ciq_sidebar";
 type SidebarPref = "auto" | "expanded" | "collapsed";
@@ -40,7 +49,7 @@ function useWide() {
   return wide;
 }
 
-export function AppLayout({ children }: AppLayoutProps) {
+export function AppLayout({ children, fullscreen = false }: AppLayoutProps) {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [location] = useLocation();
   const wide = useWide();
@@ -68,6 +77,39 @@ export function AppLayout({ children }: AppLayoutProps) {
     const s = e.currentTarget.scrollTop > 4;
     if (s !== scrolled) setScrolled(s);
   };
+
+  useEffect(() => {
+    const open = () => setSheetOpen(true);
+    window.addEventListener(OPEN_NAV_EVENT, open);
+    return () => window.removeEventListener(OPEN_NAV_EVENT, open);
+  }, []);
+
+  // Full-screen pages own the whole viewport and nothing behind them scrolls.
+  useEffect(() => {
+    if (!fullscreen) return;
+    const html = document.documentElement;
+    const prev = [html.style.overflow, html.style.overscrollBehavior];
+    html.style.overflow = "hidden";
+    html.style.overscrollBehavior = "none";
+    return () => { html.style.overflow = prev[0]; html.style.overscrollBehavior = prev[1]; };
+  }, [fullscreen]);
+
+  if (fullscreen) {
+    return (
+      <>
+        <div className="fixed inset-0 bg-[#F4F7FA] text-foreground overflow-hidden overscroll-none" style={{ paddingTop: "env(safe-area-inset-top)" }}>
+          {children}
+        </div>
+        <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+          <SheetContent side="left" className="p-0 w-[300px] max-w-[85vw] overflow-y-auto overscroll-contain">
+            <SheetTitle className="sr-only">Menu</SheetTitle>
+            <Sidebar onNavigate={() => setSheetOpen(false)} />
+          </SheetContent>
+        </Sheet>
+        <CommandPalette />
+      </>
+    );
+  }
 
   return (
     <div className="flex flex-col h-[100dvh] bg-background text-foreground overflow-hidden">

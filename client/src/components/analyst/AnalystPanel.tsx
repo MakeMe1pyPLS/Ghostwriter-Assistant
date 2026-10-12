@@ -277,7 +277,7 @@ function AdvancedKPISection({ kpis }: { kpis: typeof SECTOR_TABLES['ecommerce'][
 
             <div className="flex items-end gap-3">
               <span className="text-3xl font-black text-slate-900 tracking-tight leading-none">{kpi.value}</span>
-              <span className={`flex items-center gap-0.5 text-xs font-bold mb-0.5 ${kpi.positive ? 'text-emerald-600' : 'text-rose-500'}`}>
+              <span className={`flex items-center gap-0.5 text-xs font-bold mb-0.5 ${kpi.positive ? 'text-emerald-700' : 'text-rose-600'}`}>
                 {kpi.positive ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
                 {kpi.change}
               </span>
@@ -518,7 +518,7 @@ function PivotSection({ pivot }: { pivot: typeof SECTOR_TABLES['ecommerce']['piv
                       <span className="text-[11px] font-bold text-slate-700">{item.label}</span>
                       <div className="flex items-center gap-2">
                         <span className="text-[10px] font-medium text-slate-500">{item.value}</span>
-                        <span className={`text-[10px] font-bold ${item.positive ? 'text-emerald-600' : 'text-rose-500'}`}>{item.trend}</span>
+                        <span className={`text-[10px] font-bold ${item.positive ? 'text-emerald-700' : 'text-rose-600'}`}>{item.trend}</span>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">

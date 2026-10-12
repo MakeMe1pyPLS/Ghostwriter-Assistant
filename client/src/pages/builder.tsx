@@ -5,18 +5,19 @@
 // Layouts are stored on a fine 48-column grid ("Free" moves in small steps).
 // "Locked to grid" edits the same layout on the classic 12-column grid, where
 // cards snap into rows and gaps close automatically.
+import { DashboardSkeleton } from "@/components/DashboardSkeleton";
 import { getCardShellClasses } from "@/lib/card-shell";
-import { AppLayout } from "@/components/layout/AppLayout";
+import { AppLayout, openAppNav } from "@/components/layout/AppLayout";
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import MeasuredGrid from "@/components/MeasuredGrid";
 import { PanZoomCanvas } from "@/components/builder/PanZoomCanvas";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
-  LayoutTemplate, Trash2, Info, Plus, Settings2, Edit3, Copy, Download, Save, Eye, CheckCircle2, Lock, Move,
-  MoreHorizontal, RotateCcw, Upload, Undo2, Redo2, Sparkles, Wand2,
+  LayoutTemplate, Trash2, Plus, Edit3, Copy, Download, Save, Eye, CheckCircle2, Lock, Move,
+  MoreHorizontal, RotateCcw, Upload, Undo2, Redo2, Sparkles, Wand2, Menu, X, Grid3x3, PanelRightClose, PanelRightOpen, Check,
 } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useSectorData } from "@/hooks/use-sector-data";
 import { useDashboardStore } from "@/hooks/use-dashboard-store";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -37,6 +38,13 @@ import { ToastAction } from "@/components/ui/toast";
 import { cn } from "@/lib/utils";
 
 type Item = { i: string; x: number; y: number; w: number; h: number };
+type GridStep = 1 | 2 | 4;
+const GRID_STEP_KEY = "ciq_grid_step";
+const GRID_SIZES: { step: GridStep; label: string; short: string; desc: string }[] = [
+  { step: 1, label: "Fine", short: "S", desc: "48 columns · smallest steps, most freedom" },
+  { step: 2, label: "Medium", short: "M", desc: "24 columns · a balance of free and tidy" },
+  { step: 4, label: "Large", short: "L", desc: "12 columns · big, even steps" },
+];
 type Snapshot = { layout: Item[]; widgets: any[] };
 
 function timeAgo(ts: number): string {
@@ -97,6 +105,11 @@ export default function BuilderPage() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [templatesOpen, setTemplatesOpen] = useState(false);
   const [arrange, setArrange] = useState<'locked' | 'free'>('locked');
+  // Free mode: how big a grid cell is (in 48-column "fine" steps). Remembered per browser.
+  const [gridStep, setGridStepState] = useState<GridStep>(() => {
+    try { const v = Number(localStorage.getItem(GRID_STEP_KEY)); return (v === 2 || v === 4) ? v : 1; } catch { return 1; }
+  });
+  const [libraryOpen, setLibraryOpen] = useState(true);
   const savedAt = useDashboardStore((s) => s.dashboards[sector]?.savedAt);
   const [, setTick] = useState(0);
   useEffect(() => { const id = setInterval(() => setTick((t) => t + 1), 30000); return () => clearInterval(id); }, []);
@@ -165,18 +178,34 @@ export default function BuilderPage() {
     setHistoryTick((t) => t + 1);
   };
 
-  // The layout handed to the grid, in the units of the current mode.
-  const gridLayout = useMemo(() => (arrange === 'locked' && editMode ? fineToClassic(layout) : layout), [layout, arrange, editMode]);
+  // The grid shows the layout in its own units: 1 cell = `step` fine units.
+  // Locked uses the classic 12-column grid; Free uses the chosen grid size.
+  const step: number = !editMode ? 1 : arrange === 'locked' ? FINE : gridStep;
+  const gridLayout = useMemo(() => (step === 1 ? layout : layout.map((it) => ({
+    ...it, x: Math.round(it.x / step), y: Math.round(it.y / step), w: Math.max(1, Math.round(it.w / step)), h: Math.max(1, Math.round(it.h / step)),
+  }))), [layout, step]);
   const layouts = useMemo(() => ({ lg: gridLayout }), [gridLayout]);
-  const editCols = arrange === 'locked' && editMode ? CLASSIC_COLS : FINE_COLS;
-  const editRow = arrange === 'locked' && editMode ? FINE_ROW * FINE : FINE_ROW;
+  const editCols = useMemo(() => (step === 1 ? FINE_COLS : { ...FINE_COLS, lg: FINE_COLS.lg / step }), [step]);
+  const editRow = FINE_ROW * step;
 
   const onLayoutChange = (newLayout: any[]) => {
     // Phone layouts are generated from the saved one and never written back.
     if (colsRef.current !== editCols.lg) return;
-    const next = arrange === 'locked' && editMode ? classicToFine(clean(newLayout)) : clean(newLayout);
+    const incoming = new Map(clean(newLayout).map((g) => [g.i, g]));
+    const before = new Map(gridLayout.map((g) => [g.i, g]));
+    // Only cards that actually moved or resized change; the rest keep their exact place.
+    const next = layout.map((it) => {
+      const g = incoming.get(it.i), b = before.get(it.i);
+      if (!g || !b || (g.x === b.x && g.y === b.y && g.w === b.w && g.h === b.h)) return it;
+      return { i: it.i, x: g.x * step, y: g.y * step, w: g.w * step, h: g.h * step };
+    });
     if (geometry(next) === geometry(layout)) return;
     commit(next, widgets);
+  };
+
+  const setGridStep = (v: GridStep) => {
+    setGridStepState(v);
+    try { localStorage.setItem(GRID_STEP_KEY, String(v)); } catch { /* private mode */ }
   };
 
   const setArrangeMode = (mode: 'locked' | 'free') => {
@@ -188,7 +217,9 @@ export default function BuilderPage() {
       setLayout(next);
     }
     saveDashboard(sector, next, widgets, { grid: 'fine', arrange: mode });
-    if (mode === 'locked') toast({ title: "Locked to grid", description: "Cards snap to the 12-column grid and gaps close up." });
+    toast(mode === 'locked'
+      ? { title: "Locked to grid", description: "Cards snap to the 12-column grid and gaps close up." }
+      : { title: "Free layout", description: "Cards stay exactly where you drop them. Pick a grid size for how fine they snap." });
   };
 
   const saveNow = (finish: boolean) => {
@@ -292,6 +323,7 @@ export default function BuilderPage() {
     const onKey = (e: KeyboardEvent) => {
       if (isTyping() || inspectedWidgetId) return;
       const mod = e.metaKey || e.ctrlKey;
+      if (e.key === 'Escape' && !templatesOpen) { setActiveId(null); setEditMode(false); return; }
       if (mod && e.key.toLowerCase() === 'z') { e.preventDefault(); e.shiftKey ? redo() : undo(); }
       else if (mod && e.key.toLowerCase() === 'y') { e.preventDefault(); redo(); }
     };
@@ -301,103 +333,162 @@ export default function BuilderPage() {
 
   const cardLabel = (w: any) => w?.title || w?.name || (w?.type === 'kpi' ? (metrics[w.metricIndex % (metrics.length || 1)]?.label ?? 'KPI') : w?.type) || 'Card';
 
-  const btn = "rounded-xl shadow-sm font-semibold text-[13px] h-10 px-3.5 border-slate-200 bg-white";
-  const seg = (on: boolean) => `h-8 px-3 rounded-lg text-[12.5px] font-bold inline-flex items-center gap-1.5 transition-colors ${on ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100'}`;
+  const iconBtn = "h-10 w-10 shrink-0 rounded-xl inline-flex items-center justify-center text-slate-600 hover:bg-slate-900/[0.06] hover:text-slate-900 disabled:opacity-35 disabled:pointer-events-none transition-colors pointer-coarse:h-11 pointer-coarse:w-11";
+  const pill = "h-10 px-3.5 rounded-xl inline-flex items-center gap-2 text-[13px] font-semibold transition-colors shrink-0 pointer-coarse:h-11";
+  const seg = (on: boolean) => `h-8 px-3 rounded-lg text-[12.5px] font-bold inline-flex items-center gap-1.5 transition-colors whitespace-nowrap pointer-coarse:h-9 ${on ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100'}`;
+  const finishEditing = () => { setActiveId(null); saveNow(true); };
+
+  const arrangeSwitch = (where: 'bar' | 'row') => (
+    <div className="inline-flex items-center rounded-xl border border-slate-200 bg-white p-1 shadow-sm shrink-0" role="radiogroup" aria-label="How cards move">
+      {([
+        { id: 'locked', label: 'Locked', icon: Lock, hint: 'Cards snap to the 12-column grid and gaps close automatically.' },
+        { id: 'free', label: 'Free', icon: Move, hint: 'Cards stay exactly where you drop them. No gaps are closed.' },
+      ] as const).map((m) => (
+        <Tooltip key={m.id}>
+          <TooltipTrigger asChild>
+            <button role="radio" aria-checked={arrange === m.id} onClick={() => setArrangeMode(m.id)} className={seg(arrange === m.id)} data-testid={where === 'bar' ? `arrange-${m.id}` : `arrange-${m.id}-row`}>
+              <m.icon className="w-3.5 h-3.5" /> {m.label}
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>{m.hint}</TooltipContent>
+        </Tooltip>
+      ))}
+    </div>
+  );
+
+  const gridSizeMenu = (where: 'bar' | 'row') => (
+    <DropdownMenu>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <DropdownMenuTrigger asChild>
+            <button
+              className={cn(pill, "border border-slate-200 bg-white text-slate-700 shadow-sm hover:bg-slate-50", arrange === 'locked' && "opacity-50")}
+              disabled={arrange === 'locked'}
+              data-testid={where === 'bar' ? "button-grid-size" : "button-grid-size-row"}
+            >
+              <Grid3x3 className="w-4 h-4" /> <span className="hidden sm:inline text-slate-500">Grid:</span> {GRID_SIZES.find((g) => g.step === gridStep)?.label}
+            </button>
+          </DropdownMenuTrigger>
+        </TooltipTrigger>
+        <TooltipContent>{arrange === 'locked' ? 'Locked uses the 12-column grid. Switch to Free to choose a grid size.' : 'How finely cards snap when you move or resize them'}</TooltipContent>
+      </Tooltip>
+      <DropdownMenuContent align="start" className="w-64 rounded-xl">
+        <DropdownMenuLabel className="text-[11px] uppercase tracking-wider text-slate-500">Grid size</DropdownMenuLabel>
+        {GRID_SIZES.map((g) => (
+          <DropdownMenuItem key={g.step} onSelect={() => setGridStep(g.step)} className="gap-3 py-2" data-testid={`grid-size-${g.step}-${where}`}>
+            <span className="w-4 shrink-0">{gridStep === g.step && <Check className="w-4 h-4 text-primary" />}</span>
+            <span className="flex flex-col">
+              <span className="font-semibold text-slate-900">{g.label}</span>
+              <span className="text-[12px] text-slate-500">{g.desc}</span>
+            </span>
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+
+  const moreMenu = (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button className={iconBtn} aria-label="More actions" data-testid="button-builder-more"><MoreHorizontal className="w-5 h-5" /></button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-60 rounded-xl">
+        <DropdownMenuItem onSelect={() => setTemplatesOpen(true)} className="gap-2" data-testid="menu-templates"><LayoutTemplate className="w-4 h-4" /> Templates</DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => navigate('/generate')} className="gap-2"><Sparkles className="w-4 h-4 text-primary" /> Generate with AI</DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => navigate('/enhance')} className="gap-2"><Wand2 className="w-4 h-4 text-indigo-600" /> Enhance a dashboard</DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => navigate('/dashboard')} className="gap-2 sm:hidden"><Eye className="w-4 h-4" /> View dashboard</DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onSelect={() => saveNow(false)} className="gap-2" data-testid="button-save-layout"><Save className="w-4 h-4" /> Save now</DropdownMenuItem>
+        <DropdownMenuItem onSelect={resetLayout} className="gap-2"><RotateCcw className="w-4 h-4" /> Reset to default cards</DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onSelect={importSpec} className="gap-2"><Upload className="w-4 h-4" /> Import spec (JSON)</DropdownMenuItem>
+        <DropdownMenuItem onSelect={exportSpec} className="gap-2"><Download className="w-4 h-4" /> Export spec (JSON)</DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
 
   return (
-    <AppLayout>
-      <div className="p-4 md:p-6 lg:p-8 pb-4 lg:pb-6 max-w-[1700px] mx-auto w-full flex flex-col gap-3 md:gap-4">
-        <header className="flex flex-col gap-4">
-          <div className="min-w-0">
-            <h1 className="text-2xl lg:text-3xl font-black text-slate-900 tracking-tighter uppercase">Dashboard Builder</h1>
-            <p className="text-slate-500 font-bold text-[10px] md:text-xs uppercase tracking-widest mt-1">Arrange your KPI cards on the grid. Export it to Excel, Google Sheets or Power BI.</p>
-            <p className="mt-2 inline-flex items-center gap-1.5 text-[12.5px] font-semibold text-slate-500" data-testid="text-save-status" aria-live="polite">
-              <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-              {savedAt ? `Saved ${timeAgo(savedAt)} · changes save automatically` : "Changes save automatically"}
+    <AppLayout fullscreen>
+      <div className="h-full flex flex-col">
+        {/* Toolbar: the Builder owns the whole screen; the menu button opens the app navigation. */}
+        <header className="shrink-0 z-30 flex items-center gap-1 sm:gap-2 px-2 sm:px-3 h-14 pointer-coarse:h-16 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl" data-testid="builder-toolbar">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button className={iconBtn} onClick={openAppNav} aria-label="Open menu" data-testid="button-open-nav"><Menu className="w-5 h-5" /></button>
+            </TooltipTrigger>
+            <TooltipContent>Menu</TooltipContent>
+          </Tooltip>
+          <div className="min-w-0 mr-auto pl-1">
+            <h1 className="text-[15px] font-black tracking-tight text-slate-900 leading-tight truncate">
+              {editMode ? <>Editing<span className="hidden sm:inline"> layout</span></> : <>Builder<span className="hidden sm:inline"> · your dashboard</span></>}
+            </h1>
+            <p className="text-[11.5px] font-semibold text-slate-500 truncate inline-flex items-center gap-1 max-w-full" data-testid="text-save-status" aria-live="polite">
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
+              <span className="truncate">{savedAt ? `Saved ${timeAgo(savedAt)}` : "Saves automatically"}</span>
             </p>
           </div>
 
-          {/* Actions wrap onto a second line instead of disappearing off-screen. */}
-          <div className="toolbar" data-testid="builder-toolbar">
-            {editMode ? (
-              <>
-                <div className="inline-flex items-center rounded-xl border border-slate-200 bg-white p-1 shadow-sm" role="radiogroup" aria-label="How cards move">
-                  {([
-                    { id: 'locked', label: 'Locked to grid', icon: Lock, hint: 'Cards snap to the 12-column grid and gaps close automatically.' },
-                    { id: 'free', label: 'Free', icon: Move, hint: 'Move and size cards in small steps; they stay exactly where you drop them.' },
-                  ] as const).map((m) => (
-                    <Tooltip key={m.id}>
-                      <TooltipTrigger asChild>
-                        <button role="radio" aria-checked={arrange === m.id} onClick={() => setArrangeMode(m.id)} className={seg(arrange === m.id)} data-testid={`arrange-${m.id}`}>
-                          <m.icon className="w-3.5 h-3.5" /> {m.label}
-                        </button>
-                      </TooltipTrigger>
-                      <TooltipContent>{m.hint}</TooltipContent>
-                    </Tooltip>
-                  ))}
-                </div>
-                <div className="inline-flex items-center gap-1">
-                  <Button variant="outline" size="icon" onClick={undo} disabled={!past.current.length} className="h-10 w-10 rounded-xl border-slate-200 bg-white" aria-label="Undo" data-testid="button-undo"><Undo2 className="w-4 h-4" /></Button>
-                  <Button variant="outline" size="icon" onClick={redo} disabled={!future.current.length} className="h-10 w-10 rounded-xl border-slate-200 bg-white" aria-label="Redo" data-testid="button-redo"><Redo2 className="w-4 h-4" /></Button>
-                </div>
-                <Button variant="outline" onClick={resetLayout} className={btn}><RotateCcw className="w-4 h-4" /> Reset</Button>
-                <Button variant="outline" onClick={() => setEditMode(false)} className={btn} data-testid="button-done-editing"><Settings2 className="w-4 h-4" /> Done</Button>
-                <Button onClick={() => saveNow(true)} className="rounded-xl shadow-sm font-semibold text-[13px] h-10 px-4" data-testid="button-save-layout"><Save className="w-4 h-4" /> Save layout</Button>
-              </>
-            ) : (
-              <>
-                <Button variant="outline" className={btn} onClick={() => setEditMode(true)} data-testid="button-edit-mode"><Edit3 className="w-4 h-4" /> Edit layout</Button>
-                <Button onClick={() => saveNow(false)} className="rounded-xl shadow-sm font-semibold text-[13px] h-10 px-4" data-testid="button-save-layout"><Save className="w-4 h-4" /> Save</Button>
+          {editMode ? (
+            <>
+              <div className="hidden md:flex items-center gap-2">{arrangeSwitch('bar')}{arrange === 'free' && gridSizeMenu('bar')}</div>
+              <div className="w-px h-6 bg-slate-200 mx-1 hidden md:block" aria-hidden />
+              <button className={iconBtn} onClick={undo} disabled={!past.current.length} aria-label="Undo" data-testid="button-undo"><Undo2 className="w-[18px] h-[18px]" /></button>
+              <button className={iconBtn} onClick={redo} disabled={!future.current.length} aria-label="Redo" data-testid="button-redo"><Redo2 className="w-[18px] h-[18px]" /></button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button className={cn(iconBtn, "hidden lg:inline-flex", libraryOpen && "bg-slate-900/[0.06] text-slate-900")} onClick={() => setLibraryOpen((o) => !o)} aria-label={libraryOpen ? "Hide card library" : "Show card library"} aria-pressed={libraryOpen}>
+                    {libraryOpen ? <PanelRightClose className="w-[18px] h-[18px]" /> : <PanelRightOpen className="w-[18px] h-[18px]" />}
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>{libraryOpen ? "Hide card library" : "Show card library"}</TooltipContent>
+              </Tooltip>
+              {moreMenu}
+              <button onClick={finishEditing} className={cn(pill, "ml-1 bg-slate-900 text-white hover:bg-slate-800 shadow-sm pl-2.5 pr-3 sm:pl-3 sm:pr-4")} data-testid="button-done-editing" aria-label="Done editing">
+                <X className="w-4 h-4" /> Done
+              </button>
+            </>
+          ) : (
+            <>
+              <div className="hidden sm:block">
                 <ExportDrawer layout={fineToClassic(layout, true)} widgets={widgets} sector={sector} dateRange={dateRange} metrics={metrics} chartData={chartData} donutData={donutData} allMetrics={allMetrics} />
-                <Link href="/dashboard">
-                  <Button variant="outline" className={btn} data-testid="button-view-dashboard"><Eye className="w-4 h-4" /> View dashboard</Button>
-                </Link>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className={btn} data-testid="button-builder-more"><MoreHorizontal className="w-4 h-4" /> More</Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56 rounded-xl">
-                    <DropdownMenuItem onSelect={() => navigate('/generate')} className="gap-2"><Sparkles className="w-4 h-4 text-primary" /> Generate with AI</DropdownMenuItem>
-                    <DropdownMenuItem onSelect={() => navigate('/enhance')} className="gap-2"><Wand2 className="w-4 h-4 text-indigo-500" /> Enhance a dashboard</DropdownMenuItem>
-                    <DropdownMenuItem onSelect={() => setTemplatesOpen(true)} className="gap-2" data-testid="menu-templates"><LayoutTemplate className="w-4 h-4" /> Templates</DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onSelect={importSpec} className="gap-2"><Upload className="w-4 h-4" /> Import spec (JSON)</DropdownMenuItem>
-                    <DropdownMenuItem onSelect={exportSpec} className="gap-2"><Download className="w-4 h-4" /> Export spec (JSON)</DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </>
-            )}
-          </div>
-          <TemplateGallery onSelect={applyTemplate} open={templatesOpen} onOpenChange={setTemplatesOpen} hideTrigger />
-
-          {editMode && (
-            <p className="flex items-start gap-2 text-[12.5px] font-semibold text-slate-500" data-testid="builder-edit-hint">
-              <Info className="w-4 h-4 mt-0.5 shrink-0 text-primary" />
-              {coarse
-                ? "Drag a card to move it, pull any corner to resize. Drag the empty grid to move around; pinch to zoom."
-                : "Drag a card to move it and pull any corner to resize. Drag the empty grid to move around; Ctrl + scroll zooms. Ctrl+Z undoes."}
-            </p>
+              </div>
+              <Link href="/dashboard" className={cn(pill, "hidden sm:inline-flex text-slate-700 hover:bg-slate-900/[0.06]")} data-testid="button-view-dashboard"><Eye className="w-4 h-4" /> View</Link>
+              {moreMenu}
+              <button onClick={() => setEditMode(true)} className={cn(pill, "ml-1 bg-primary text-white hover:brightness-110 shadow-sm")} data-testid="button-edit-mode">
+                <Edit3 className="w-4 h-4" /> <span>Edit<span className="hidden sm:inline"> layout</span></span>
+              </button>
+            </>
           )}
         </header>
 
-        <div className="flex gap-6 items-start">
+        {/* Phones and small tablets: the layout controls get their own row while editing. */}
+        {editMode && (
+          <div className="md:hidden shrink-0 z-20 flex items-center gap-2 px-2 py-2 border-b border-slate-200/70 bg-white/80 backdrop-blur overflow-x-auto no-scrollbar-on-mobile" data-testid="builder-edit-controls">
+            {arrangeSwitch('row')}
+            {arrange === 'free' && gridSizeMenu('row')}
+          </div>
+        )}
+        {!editMode && !loading && widgets.length > 0 && (
+          <div className="sm:hidden shrink-0 px-2 py-2 border-b border-slate-200/70 bg-white/80 flex items-center gap-2 overflow-x-auto no-scrollbar-on-mobile">
+            <ExportDrawer layout={fineToClassic(layout, true)} widgets={widgets} sector={sector} dateRange={dateRange} metrics={metrics} chartData={chartData} donutData={donutData} allMetrics={allMetrics} />
+            <Link href="/dashboard" className={cn(pill, "border border-slate-200 bg-white text-slate-700 shadow-sm")}><Eye className="w-4 h-4" /> View dashboard</Link>
+          </div>
+        )}
+        <TemplateGallery onSelect={applyTemplate} open={templatesOpen} onOpenChange={setTemplatesOpen} hideTrigger />
+
+        <div className="relative flex-1 min-h-0 flex">
           <section
             aria-label="Dashboard grid"
-            className="flex-1 min-w-0"
+            className={cn("relative flex-1 min-w-0", (loading || widgets.length === 0) && "overflow-y-auto")}
             onPointerDownCapture={(e) => {
               const t = e.target as HTMLElement;
               if (!t.closest('.react-grid-item') && !t.closest('.ciq-ui')) setActiveId(null);
             }}
           >
             {loading ? (
-              <div className="h-80 flex items-center justify-center rounded-2xl border border-slate-200 bg-slate-50/70">
-                <div className="flex flex-col items-center gap-4">
-                  <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
-                  <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Loading your dashboard…</span>
-                </div>
-              </div>
+              <div className="p-4 md:p-6"><DashboardSkeleton /></div>
             ) : widgets.length === 0 ? (
-              <div className="py-16 px-4 flex flex-col items-center justify-center text-center rounded-2xl border border-slate-200 bg-slate-50/70">
+              <div className="min-h-full flex flex-col items-center justify-center text-center px-4 py-12">
                 <div className="w-24 h-24 bg-white border border-slate-100 rounded-full flex items-center justify-center mb-6 shadow-sm">
                   <LayoutTemplate className="w-12 h-12 text-slate-300" />
                 </div>
@@ -405,9 +496,9 @@ export default function BuilderPage() {
                 <p className="text-slate-500 font-medium max-w-sm mt-3 mb-8">Pick a template, let the AI build one, or add cards yourself.</p>
                 <div className="flex flex-col sm:flex-row gap-3 w-full max-w-lg">
                   <Button size="lg" onClick={() => setTemplatesOpen(true)} className="flex-1 rounded-xl font-black text-xs uppercase tracking-widest h-12"><LayoutTemplate className="w-4 h-4 mr-2" /> Templates</Button>
-                  <Link href="/generate" className="flex-1">
-                    <Button size="lg" variant="outline" className="w-full rounded-xl font-black text-xs uppercase tracking-widest h-12 border-slate-200" data-testid="button-generate-for-me"><Sparkles className="w-4 h-4 mr-2" /> Generate for me</Button>
-                  </Link>
+                  <Button size="lg" variant="outline" className="flex-1 rounded-xl font-black text-xs uppercase tracking-widest h-12 border-slate-200" data-testid="button-generate-for-me" asChild>
+                    <Link href="/generate"><Sparkles className="w-4 h-4 mr-2" /> Generate for me</Link>
+                  </Button>
                 </div>
                 <Button size="lg" variant="outline" className="rounded-xl font-bold shadow-sm mt-4 border-slate-200" onClick={() => { setEditMode(true); addWidget(widgetCategories[0].items[0]); }}>
                   <Plus className="w-4 h-4 mr-2" /> Add a card
@@ -415,16 +506,23 @@ export default function BuilderPage() {
               </div>
             ) : (
               <PanZoomCanvas
+                fill
+                insetTop={56}
+                insetX={coarse ? 12 : 24}
+                className={cn("rounded-none border-0", editMode ? "ciq-canvas-edit" : "")}
                 contentWidth={DESIGN_WIDTH}
                 cellW={(DESIGN_WIDTH - GRID_PAD[0] * 2) / editCols.lg}
                 cellH={editRow}
                 pad={GRID_PAD}
                 panFromCards={!editMode}
+                hintText={editMode
+                  ? (coarse ? "Drag cards · pull a corner to resize · drag the grid" : "Drag cards to move · pull any corner to resize · drag the grid to look around")
+                  : (coarse ? "Drag to look around · pinch to zoom" : undefined)}
               >
                 {(z) => (
-                  <div className={cn("rounded-[22px] transition-colors", editMode ? "bg-white/50 ring-1 ring-slate-300/70 shadow-[0_30px_80px_-40px_rgba(15,23,42,0.35)]" : "bg-transparent")}>
+                  <div className={cn("rounded-[22px] transition-[background-color,box-shadow] duration-300", editMode ? "bg-white/40 ring-1 ring-slate-300/60 shadow-[0_30px_80px_-40px_rgba(15,23,42,0.35)] dark:bg-white/[0.03] dark:ring-white/10" : "bg-transparent")}>
                     <MeasuredGrid
-                      key={editMode && arrange === 'locked' ? 'classic' : 'fine'}
+                      key={`g${step}`}
                       className={cn("layout", editMode && "ciq-editing", coarse ? "ciq-touch" : "ciq-mouse")}
                       layouts={layouts}
                       cols={editCols}
@@ -442,7 +540,7 @@ export default function BuilderPage() {
                       compactType={editMode && arrange === 'locked' ? 'vertical' : null}
                       designWidth={DESIGN_WIDTH}
                       canvasScale={z}
-                      minCanvasHeight={editMode ? 600 : 0}
+                      minCanvasHeight={editMode ? 900 : 0}
                     >
                       {widgets.map((w) => (
                         <div
@@ -463,7 +561,7 @@ export default function BuilderPage() {
                           )}
                           <div
                             className={cn(
-                              "ciq-card-inset flex flex-col overflow-hidden transition-shadow duration-200",
+                              "ciq-card-inset flex flex-col overflow-hidden transition-[box-shadow,transform] duration-200",
                               getCardShellClasses(w.cardPreset || w.stylePreset, 'builder'),
                               editMode ? "cursor-grab active:cursor-grabbing hover:ring-2 hover:ring-primary/40" : "hover:shadow-md",
                             )}
@@ -494,17 +592,19 @@ export default function BuilderPage() {
             )}
           </section>
 
-          {editMode && (
-            <aside className="hidden lg:flex w-72 xl:w-80 shrink-0 flex-col gap-4 sticky top-4 self-start max-h-[calc(100dvh-7rem)] animate-in slide-in-from-right-8 duration-300">
-              <Card className="rounded-2xl border-slate-200 shadow-sm overflow-hidden flex-1 min-h-0 flex flex-col">
-                <WidgetLibraryContent onAdd={addWidget} />
-              </Card>
+          {/* Desktop card library, docked on the right while editing (hide it for more room). */}
+          {editMode && libraryOpen && (
+            <aside className="hidden lg:flex w-80 shrink-0 flex-col border-l border-slate-200/80 bg-white animate-in slide-in-from-right-6 fade-in duration-200" aria-label="Card library">
+              <WidgetLibraryContent onAdd={addWidget} />
             </aside>
           )}
         </div>
 
-        {/* Phones & tablets: add a card (hidden while the selection bar is showing) */}
-        <WidgetLibraryMobile onAdd={(w) => { if (!editMode) setEditMode(true); addWidget(w); }} />
+        {/* Phones & tablets: add a card. */}
+        <WidgetLibraryMobile
+          className="bottom-[calc(1rem+env(safe-area-inset-bottom))]"
+          onAdd={(w) => { if (!editMode) setEditMode(true); addWidget(w); }}
+        />
       </div>
 
       <WidgetInspector
@@ -544,6 +644,16 @@ export default function BuilderPage() {
         .react-grid-item.ciq-active { z-index: 4; }
         .ciq-touch .react-grid-item.ciq-active > .ciq-card-inset { box-shadow: 0 0 0 calc(2px / var(--z)) var(--color-teal-500); }
         .ciq-canvas .react-grid-item > .react-resizable-handle { transition: opacity .15s; }
+        /* Playful feedback: cards lift while you drag them and settle when you drop. */
+        .ciq-canvas .react-grid-item { transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1), width 180ms ease, height 180ms ease; }
+        .ciq-canvas .react-grid-item.react-draggable-dragging, .ciq-canvas .react-grid-item.resizing { transition: none; z-index: 20; }
+        .ciq-canvas .react-grid-item.react-draggable-dragging > .ciq-card-inset { transform: scale(1.025) rotate(-0.6deg); box-shadow: 0 28px 60px -20px rgba(15,23,42,.45), 0 0 0 2px var(--color-teal-500); }
+        .ciq-canvas .react-grid-item.resizing > .ciq-card-inset { box-shadow: 0 0 0 2px var(--color-teal-500), 0 18px 40px -16px rgba(15,23,42,.35); }
+        .ciq-canvas-edit { --ciq-dot: color-mix(in oklab, var(--color-teal-600) 45%, transparent); }
+        @media (prefers-reduced-motion: reduce) {
+          .ciq-canvas .react-grid-item { transition: none; }
+          .ciq-canvas .react-grid-item.react-draggable-dragging > .ciq-card-inset { transform: none; }
+        }
       `}</style>
     </AppLayout>
   );

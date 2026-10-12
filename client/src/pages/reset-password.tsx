@@ -56,9 +56,9 @@ export default function ResetPasswordPage() {
             <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
             <span>{error ?? "Open the reset link from your email on this device to set a new password. Links expire after a short time."}</span>
           </div>
-          <Link href="/sign-in" className="block">
-            <Button variant="outline" className="w-full h-12 rounded-xl font-bold">Back to sign in</Button>
-          </Link>
+          <Button variant="outline" className="w-full h-12 rounded-xl font-bold" asChild>
+            <Link href="/sign-in">Back to sign in</Link>
+          </Button>
         </div>
       ) : (
         <form onSubmit={submit} className="space-y-5" data-testid="form-reset-password">

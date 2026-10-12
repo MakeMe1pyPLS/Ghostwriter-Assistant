@@ -93,7 +93,7 @@ export function ShareMenu({ message, label = "Share", size = "sm", variant = "ou
           <a href={mailtoLink(message().title, asText())}><Mail className="w-4 h-4" /> Email (Outlook, Gmail…)</a>
         </DropdownMenuItem>
         <DropdownMenuItem onSelect={(e) => { e.preventDefault(); copy(); }} className="gap-2 font-medium">
-          {copied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />} Copy as text
+          {copied ? <Check className="w-4 h-4 text-emerald-700" /> : <Copy className="w-4 h-4" />} Copy as text
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild className="gap-2 text-xs text-slate-500">

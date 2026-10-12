@@ -103,8 +103,8 @@ export function Sidebar({ onNavigate, collapsed = false, onToggleCollapsed }: Si
             <Search className="w-4 h-4 shrink-0" />
             {!collapsed && (
               <>
-                <span className="text-[13px] font-medium">Search or jump to…</span>
-                <kbd className="ml-auto hidden lg:inline-flex items-center rounded-md border border-slate-200 bg-white px-1.5 py-0.5 text-[10px] font-semibold text-slate-400">Ctrl K</kbd>
+                <span className="text-[13px] font-medium truncate">Search…</span>
+                <kbd className="ml-auto hidden lg:inline-flex items-center whitespace-nowrap shrink-0 rounded-md border border-slate-200 bg-white px-1.5 py-0.5 text-[10px] font-semibold text-slate-400">Ctrl K</kbd>
               </>
             )}
           </button>

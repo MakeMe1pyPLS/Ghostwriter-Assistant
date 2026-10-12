@@ -40,13 +40,13 @@ import type {
 function gradeColor(grade: string): string {
   switch (grade) {
     case "Strong":
-      return "text-emerald-600";
+      return "text-emerald-700";
     case "Stable":
       return "text-primary";
     case "At Risk":
-      return "text-amber-600";
+      return "text-amber-700";
     default:
-      return "text-red-600";
+      return "text-red-700";
   }
 }
 
@@ -58,8 +58,8 @@ function ringColor(score: number): string {
 }
 
 const PIPELINE_STAGES = [
-  { key: "issueDetected", label: "Issue", icon: Search, color: "text-amber-600", bg: "bg-amber-50 border-amber-100" },
-  { key: "rootCause", label: "Root Cause", icon: GitBranch, color: "text-red-600", bg: "bg-red-50 border-red-100" },
+  { key: "issueDetected", label: "Issue", icon: Search, color: "text-amber-700", bg: "bg-amber-50 border-amber-100" },
+  { key: "rootCause", label: "Root Cause", icon: GitBranch, color: "text-red-700", bg: "bg-red-50 border-red-100" },
   { key: "recommendedAction", label: "Recommendation", icon: Target, color: "text-teal-700", bg: "bg-teal-50 border-teal-100" },
 ] as const;
 
@@ -80,8 +80,8 @@ function PipelineRow({ item, rank }: { item: OperationsIntelItem; rank: number }
             <span
               className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border ${
                 item.type === "bottleneck"
-                  ? "bg-red-50 text-red-600 border-red-100"
-                  : "bg-emerald-50 text-emerald-600 border-emerald-100"
+                  ? "bg-red-50 text-red-700 border-red-100"
+                  : "bg-emerald-50 text-emerald-700 border-emerald-100"
               }`}
             >
               {item.type}
@@ -139,9 +139,9 @@ function PipelineRow({ item, rank }: { item: OperationsIntelItem; rank: number }
         )}
 
         <div className="flex items-start gap-2 rounded-xl border border-emerald-100 bg-emerald-50/70 p-3">
-          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 mt-0.5 shrink-0" />
+          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700 mt-0.5 shrink-0" />
           <div>
-            <span className="text-[8px] font-black uppercase tracking-widest text-emerald-600 block mb-0.5">
+            <span className="text-[8px] font-black uppercase tracking-widest text-emerald-700 block mb-0.5">
               Expected Outcome
             </span>
             <p className="text-[11px] font-medium text-slate-600 leading-relaxed">{item.expectedOutcome}</p>
@@ -166,8 +166,8 @@ function HighlightCard({
   body: string;
 }) {
   const tones: Record<string, { ring: string; iconBg: string; labelText: string }> = {
-    emerald: { ring: "border-emerald-100", iconBg: "bg-emerald-50 text-emerald-600", labelText: "text-emerald-600" },
-    red: { ring: "border-red-100", iconBg: "bg-red-50 text-red-600", labelText: "text-red-600" },
+    emerald: { ring: "border-emerald-100", iconBg: "bg-emerald-50 text-emerald-700", labelText: "text-emerald-700" },
+    red: { ring: "border-red-100", iconBg: "bg-red-50 text-red-700", labelText: "text-red-700" },
     teal: { ring: "border-teal-100", iconBg: "bg-teal-50 text-teal-700", labelText: "text-teal-700" },
   };
   const t = tones[tone];
@@ -265,7 +265,7 @@ export function ExecutivePreview({
         className="rounded-2xl border border-slate-200 bg-white p-6 text-center"
         data-testid="preview-error"
       >
-        <AlertTriangle className="w-6 h-6 text-amber-500 mx-auto mb-2" />
+        <AlertTriangle className="w-6 h-6 text-amber-700 mx-auto mb-2" />
         <p className="text-sm font-bold text-slate-700 mb-1">Preview unavailable</p>
         <p className="text-[12px] text-slate-500 font-medium mb-4">
           We couldn't load the executive preview, but you can still continue and generate your dashboard.

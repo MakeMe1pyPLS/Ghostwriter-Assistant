@@ -23,9 +23,9 @@ export function SyncBadge({ className }: { className?: string }) {
     ? { icon: HardDrive, text: "Saved in this browser", tone: "text-slate-500" }
     : state === "loading" ? { icon: Loader2, text: "Loading your workspaces…", tone: "text-slate-500", spin: true }
     : state === "syncing" ? { icon: Loader2, text: "Saving to your account…", tone: "text-slate-500", spin: true }
-    : state === "offline" ? { icon: CloudOff, text: "Offline. Changes will save when you reconnect.", tone: "text-amber-600" }
+    : state === "offline" ? { icon: CloudOff, text: "Offline. Changes will save when you reconnect.", tone: "text-amber-700" }
     : state === "error" ? { icon: AlertTriangle, text: "Couldn’t save. Retrying…", tone: "text-rose-600", title: message }
-    : { icon: Cloud, text: `Saved to your account${lastSyncedAt ? ` · ${ago(lastSyncedAt)}` : ""}`, tone: "text-emerald-600" };
+    : { icon: Cloud, text: `Saved to your account${lastSyncedAt ? ` · ${ago(lastSyncedAt)}` : ""}`, tone: "text-emerald-700" };
 
   return (
     <span className={cn("inline-flex items-center gap-1.5 text-[11px] font-semibold", view.tone, className)} title={(view as any).title} role="status" data-testid="sync-badge">

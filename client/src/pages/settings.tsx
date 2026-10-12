@@ -69,7 +69,7 @@ export default function SettingsPage() {
             </div>
             <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tighter uppercase">Settings</h1>
             {setupComplete && (
-              <span className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-50 border border-emerald-100 px-3 py-1.5 rounded-full">
+              <span className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-emerald-700 bg-emerald-50 border border-emerald-100 px-3 py-1.5 rounded-full">
                 <CheckCircle2 className="w-3 h-3" /> Setup Complete
               </span>
             )}
@@ -78,7 +78,7 @@ export default function SettingsPage() {
 
           {!setupComplete && (
             <div className="mt-4 flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-2xl p-4">
-              <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+              <AlertCircle className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
               <div>
                 <p className="text-sm font-bold text-amber-800">Business structure not configured</p>
                 <p className="text-xs text-amber-700 font-medium mt-0.5">Select your business type below to enable accurate AI analysis, dashboard generation, and sector-specific features.</p>
@@ -151,25 +151,25 @@ export default function SettingsPage() {
                         style={{ width: `${(trial.daysRemaining / trial.totalDays) * 100}%` }}
                       />
                     </div>
-                    <Link href="/pricing">
-                      <Button className="w-full font-black uppercase tracking-widest text-xs h-10 rounded-lg" data-testid="button-upgrade-plan">
+                    <Button className="w-full font-black uppercase tracking-widest text-xs h-10 rounded-lg" data-testid="button-upgrade-plan" asChild>
+                      <Link href="/pricing">
                         <Sparkles className="w-3.5 h-3.5 mr-2" /> Upgrade to a Paid Plan
-                      </Button>
-                    </Link>
+                      </Link>
+                    </Button>
                   </div>
                 )}
 
                 <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100">
-                  <Link href="/pricing">
-                    <Button variant="outline" size="sm" className="font-bold uppercase tracking-widest text-[10px] rounded-lg" data-testid="button-billing">
+                  <Button variant="outline" size="sm" className="font-bold uppercase tracking-widest text-[10px] rounded-lg" data-testid="button-billing" asChild>
+                    <Link href="/pricing">
                       <CreditCard className="w-3.5 h-3.5 mr-2" /> Billing & Plan
-                    </Button>
-                  </Link>
-                  <Link href="/welcome">
-                    <Button variant="outline" size="sm" className="font-bold uppercase tracking-widest text-[10px] rounded-lg" data-testid="button-restart-tour">
+                    </Link>
+                  </Button>
+                  <Button variant="outline" size="sm" className="font-bold uppercase tracking-widest text-[10px] rounded-lg" data-testid="button-restart-tour" asChild>
+                    <Link href="/welcome">
                       <Sparkles className="w-3.5 h-3.5 mr-2" /> Restart Tutorial
-                    </Button>
-                  </Link>
+                    </Link>
+                  </Button>
                   <div className="flex-1" />
                   <Button
                     variant="outline"
@@ -189,14 +189,14 @@ export default function SettingsPage() {
                   <p className="text-xs text-slate-500 mt-1">Create an account to save your dashboards and start your free trial.</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Link href="/sign-in">
-                    <Button variant="outline" size="sm" className="font-bold uppercase tracking-widest text-[10px] rounded-lg" data-testid="button-settings-sign-in">Sign In</Button>
-                  </Link>
-                  <Link href="/sign-up">
-                    <Button size="sm" className="font-bold uppercase tracking-widest text-[10px] rounded-lg" data-testid="button-settings-sign-up">
+                  <Button variant="outline" size="sm" className="font-bold uppercase tracking-widest text-[10px] rounded-lg" data-testid="button-settings-sign-in" asChild>
+                    <Link href="/sign-in">Sign In</Link>
+                  </Button>
+                  <Button size="sm" className="font-bold uppercase tracking-widest text-[10px] rounded-lg" data-testid="button-settings-sign-up" asChild>
+                    <Link href="/sign-up">
                       Get Started <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
-                    </Button>
-                  </Link>
+                    </Link>
+                  </Button>
                 </div>
               </div>
             )}
@@ -289,7 +289,7 @@ export default function SettingsPage() {
                   <Label className="text-sm font-bold text-slate-800">Enable Data Sharing</Label>
                   <p className="text-xs text-slate-500 mt-0.5">Allow sectors to exchange metrics, demand signals, fulfillment data, and performance indicators. This unlocks cross-sector insights and AI intelligence.</p>
                 </div>
-                <Switch
+                <Switch aria-label="Enable data sharing"
                   checked={dataSharingEnabled}
                   onCheckedChange={setDataSharingEnabled}
                   className="data-[state=checked]:bg-primary ml-4 shrink-0"
@@ -331,7 +331,7 @@ export default function SettingsPage() {
                     {businessStructure === 'unified-chain' && 'Hub is strongly recommended for unified supply chains. Supports sector alerts, shared KPIs, AI insights, and operational updates.'}
                   </p>
                 </div>
-                <Switch
+                <Switch aria-label="Enable the Hub"
                   checked={hubEnabled}
                   onCheckedChange={setHubEnabled}
                   className="data-[state=checked]:bg-primary ml-4 shrink-0"

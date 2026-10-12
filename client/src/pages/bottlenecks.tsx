@@ -106,8 +106,8 @@ function DetailBlock({
 }) {
   const toneMap = {
     slate: "text-slate-500",
-    amber: "text-amber-600",
-    red: "text-red-600",
+    amber: "text-amber-700",
+    red: "text-red-700",
   } as const;
   return (
     <div className="bg-[#F4F7FA] rounded-xl border border-slate-100 p-3.5">
@@ -141,7 +141,7 @@ export default function BottlenecksPage() {
             <div className="flex items-start justify-between gap-4 flex-wrap">
               <div className="flex items-center gap-3">
                 <div className="bg-red-50 p-2.5 rounded-xl border border-red-100 shadow-sm">
-                  <AlertOctagon className="w-5 h-5 text-red-600" />
+                  <AlertOctagon className="w-5 h-5 text-red-700" />
                 </div>
                 <div>
                   <h1 className="text-base md:text-lg font-black text-slate-900 tracking-tight uppercase">
@@ -157,7 +157,7 @@ export default function BottlenecksPage() {
                   <GeneratedByBadge generatedBy={data.generatedBy} />
                   <button
                     onClick={reload}
-                    className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-teal-600 transition-colors"
+                    className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-teal-700 transition-colors"
                     data-testid="button-refresh-bottlenecks"
                   >
                     <RefreshCw className="w-3.5 h-3.5" />
@@ -182,7 +182,7 @@ export default function BottlenecksPage() {
                 <p className="text-sm font-bold text-slate-600">Could not load bottleneck analysis.</p>
                 <button
                   onClick={reload}
-                  className="mt-3 text-xs font-black uppercase tracking-widest text-teal-600 hover:text-teal-700"
+                  className="mt-3 text-xs font-black uppercase tracking-widest text-teal-700 hover:text-teal-700"
                   data-testid="button-retry-bottlenecks"
                 >
                   Try again
@@ -193,7 +193,7 @@ export default function BottlenecksPage() {
             {!loading && !error && bottlenecks.length === 0 && (
               <div className="bg-white rounded-2xl border border-slate-200 p-10 text-center">
                 <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center mx-auto mb-3">
-                  <Activity className="w-6 h-6 text-emerald-500" />
+                  <Activity className="w-6 h-6 text-emerald-700" />
                 </div>
                 <p className="text-sm font-black text-slate-800">No critical bottlenecks detected</p>
                 <p className="text-xs font-medium text-slate-500 mt-1">

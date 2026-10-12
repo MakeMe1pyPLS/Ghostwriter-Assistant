@@ -14,7 +14,7 @@ export default function CheckoutSuccessPage() {
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[400px] h-[400px] bg-primary/5 blur-[80px] rounded-full pointer-events-none" />
           
           <div className="relative z-10">
-            <div className="w-20 h-20 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-8 shadow-sm">
+            <div className="w-20 h-20 bg-emerald-50 text-emerald-700 rounded-full flex items-center justify-center mx-auto mb-8 shadow-sm">
               <CheckCircle2 className="w-10 h-10" />
             </div>
             
@@ -30,16 +30,16 @@ export default function CheckoutSuccessPage() {
             </div>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href={onboardingComplete ? "/plan" : "/onboarding"}>
-                <Button className="w-full sm:w-auto h-14 px-8 rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl shadow-primary/20 hover:-translate-y-0.5 transition-all" data-testid="button-start-onboarding">
+              <Button className="w-full sm:w-auto h-14 px-8 rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl shadow-primary/20 hover:-translate-y-0.5 transition-all" data-testid="button-start-onboarding" asChild>
+                <Link href={onboardingComplete ? "/plan" : "/onboarding"}>
                   {onboardingComplete ? "Open my workspace" : "Meet your AI Analyst"} <ArrowRight className="w-5 h-5 ml-2" />
-                </Button>
-              </Link>
-              <Link href="/">
-                <Button variant="outline" className="w-full sm:w-auto h-14 px-8 rounded-2xl font-black uppercase tracking-widest text-sm border-slate-200 hover:bg-slate-50">
+                </Link>
+              </Button>
+              <Button variant="outline" className="w-full sm:w-auto h-14 px-8 rounded-2xl font-black uppercase tracking-widest text-sm border-slate-200 hover:bg-slate-50" asChild>
+                <Link href="/">
                   Back to Home
-                </Button>
-              </Link>
+                </Link>
+              </Button>
             </div>
           </div>
         </div>

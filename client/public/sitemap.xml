@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://ghostwriter-assistant.vercel.app/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
+  <url><loc>https://ghostwriter-assistant.vercel.app/features</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://ghostwriter-assistant.vercel.app/pricing</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://ghostwriter-assistant.vercel.app/demo</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://ghostwriter-assistant.vercel.app/support</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://ghostwriter-assistant.vercel.app/contact</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://ghostwriter-assistant.vercel.app/sign-up</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://ghostwriter-assistant.vercel.app/privacy</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://ghostwriter-assistant.vercel.app/terms</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+</urlset>
