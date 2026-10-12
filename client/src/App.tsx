@@ -102,9 +102,10 @@ function usePrefetchPages() {
     const run = () => { if (done) return; done = true; loaders.forEach((load) => { load().catch(() => {}); }); };
     let id: any = 0;
     if (inApp) {
-      const schedule = () => { id = w.requestIdleCallback ? w.requestIdleCallback(run, { timeout: 8000 }) : window.setTimeout(run, 3000); };
+      // Give the page's own code a head start (its chunk loads after the app starts).
+      const schedule = () => { id = window.setTimeout(() => { id = w.requestIdleCallback ? w.requestIdleCallback(run, { timeout: 8000 }) : window.setTimeout(run, 500); }, 3000); };
       if (document.readyState === 'complete') schedule(); else window.addEventListener('load', schedule, { once: true });
-      return () => { window.removeEventListener('load', schedule); w.cancelIdleCallback ? w.cancelIdleCallback(id) : clearTimeout(id); };
+      return () => { window.removeEventListener('load', schedule); clearTimeout(id); w.cancelIdleCallback?.(id); };
     }
     // Marketing: warm the other pages when the visitor shows intent (points at,
     // touches or tabs to a link), or after they've been reading for a while.
