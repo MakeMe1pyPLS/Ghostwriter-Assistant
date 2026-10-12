@@ -198,7 +198,7 @@ export default function InsightsPage() {
               )}
             </div>
 
-            <div className="flex gap-2 border-b border-slate-200 pb-0">
+            <div className="flex gap-1 sm:gap-2 border-b border-slate-200 pb-0" role="tablist" aria-label="AI Analyst views">
               {[
                 { key: 'chat' as const, label: 'AI Chat', icon: Zap },
                 { key: 'forecast' as const, label: 'Forecast', icon: TrendingUp },
@@ -206,8 +206,10 @@ export default function InsightsPage() {
               ].map(tab => (
                 <button
                   key={tab.key}
+                  role="tab"
+                  aria-selected={activeTab === tab.key}
                   onClick={() => setActiveTab(tab.key)}
-                  className={`flex items-center gap-2 px-5 py-3 text-xs font-black uppercase tracking-widest border-b-2 transition-colors ${activeTab === tab.key ? 'border-primary text-primary' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
+                  className={`flex flex-1 sm:flex-none justify-center items-center gap-1.5 sm:gap-2 px-2 sm:px-5 py-3 min-h-11 text-[11px] sm:text-xs font-black uppercase tracking-wider sm:tracking-widest border-b-2 transition-colors whitespace-nowrap ${activeTab === tab.key ? 'border-primary text-primary' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
                   data-testid={`tab-${tab.key}`}
                 >
                   <tab.icon className="w-3.5 h-3.5" /> {tab.label}

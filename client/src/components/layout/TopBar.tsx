@@ -73,7 +73,7 @@ export function TopBar({ scrolled = false }: { scrolled?: boolean }) {
         </div>
 
         <Button className="items-center gap-2 text-[10px] font-black bg-slate-900 text-white hover:bg-slate-800 rounded-full h-9 px-4 uppercase tracking-widest shadow-sm" asChild>
-          <Link href="/pricing" className="hidden sm:flex">
+          <Link href="/pricing" className="hidden sm:inline-flex">
             <Zap className="w-3.5 h-3.5 fill-primary text-primary" />
             Upgrade to Pro
           </Link>

@@ -57,7 +57,7 @@ export default function ResetPasswordPage() {
             <span>{error ?? "Open the reset link from your email on this device to set a new password. Links expire after a short time."}</span>
           </div>
           <Button variant="outline" className="w-full h-12 rounded-xl font-bold" asChild>
-            <Link href="/sign-in" className="block">Back to sign in</Link>
+            <Link href="/sign-in" className="flex">Back to sign in</Link>
           </Button>
         </div>
       ) : (

@@ -359,9 +359,9 @@ function WidgetRendererInner({ widget, data, sector, loading, presentationMode =
 
             {/* Details appear only when the card has room for them. */}
             {!isCompact && (
-              <div className={`mt-auto pt-2 w-full space-y-2 ${preset.alignment === 'center' ? 'text-center' : ''}`}>
+              <div className={`mt-auto pt-2 w-full min-h-0 overflow-hidden space-y-2 ${preset.alignment === 'center' ? 'text-center' : ''}`}>
                 {explain && (
-                  <p className="hidden [@container(min-height:112px)]:block text-[11px] leading-snug text-slate-500 font-medium line-clamp-2" data-testid="kpi-explain">{explain}</p>
+                  <div className="hidden [@container(min-height:112px)]:block"><p className="text-[11px] leading-snug text-slate-500 font-medium line-clamp-2" data-testid="kpi-explain">{explain}</p></div>
                 )}
                 {presentationMode && intel && (
                   <div className="hidden @[230px]:block"><div className="hidden [@container(min-height:150px)]:flex items-center justify-between gap-1">
