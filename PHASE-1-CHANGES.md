@@ -285,6 +285,18 @@ The rule-based analyst, dashboard generator, exporters, KPI library and plan bui
   - Vercel now builds only the website (`vite build`), not the unused API server, so builds are quicker.
   - Hashed files and the font are cached for a year.
 
+### Builder studio: full screen, free grid, grid sizes
+- **The Builder takes the whole screen** on phones, tablets and computers.
+  - The side menu, top bar and phone tab bar are tucked away. The ☰ button opens the menu whenever you need it.
+  - Everything you need is in one toolbar.
+- **A clear way out of editing:** a **Done ✕** button on every device (Esc on a keyboard). It saves and leaves edit mode.
+- **Dragging no longer scrolls the page.** On phones, dragging the grid or a card moves only the canvas or the card.
+- **Free mode with a grid size you choose:** Fine (48 columns), Medium (24) or Large (12). Moving a card only snaps that card; the rest stay exactly where they are.
+- **A more playful feel:**
+  - Cards lift and tilt slightly while you drag them, then settle into place.
+  - The grid dots turn teal while you edit.
+  - The card library docks on the right on desktop and can be hidden for more room.
+
 ## Environment variables
 
 | Variable | Needed for | Default |

@@ -116,9 +116,18 @@ Rules:
 - **Accessibility:** reduced-motion users and `?nointro` skip it entirely. The page is never blocked for more than about 2.5s.
 
 ### The Builder canvas
-- A dot-grid canvas you pan by dragging empty space. Ctrl/⌘ + scroll or a pinch zooms. The zoom controls sit at the bottom left.
-- Cards move by dragging and resize from any corner. Edit, Duplicate and Delete live on the card and are counter-scaled, so they stay at least 40px at any zoom.
-- No move or resize button bars.
+- **Full screen on every device.** The Builder hides the sidebar, top bar, tab bar and banners. Its own toolbar has a menu button that opens the app navigation as a drawer.
+  - The toolbar holds the title and save status, plus Edit, Export, View and a "⋯" menu.
+  - While editing it holds Locked/Free, the grid size, undo/redo, show/hide card library, "⋯" and **Done (✕)**. Esc also finishes.
+  - On phones the layout controls get a second row.
+- **Moving around:** drag empty space to pan, Ctrl/⌘ + scroll or pinch to zoom. The zoom controls sit at the bottom left. Nothing behind the canvas scrolls.
+- **Cards:**
+  - Drag to move. Resize from any corner.
+  - Edit, Duplicate and Delete live on the card and stay at least 40px at any zoom.
+  - Cards lift slightly while dragged and settle when dropped (no motion with reduced motion).
+- **Free vs Locked.** Free keeps cards exactly where they're dropped. Locked snaps them to the 12-column grid and closes gaps.
+- **Grid size (Free):** Fine (48 columns), Medium (24) or Large (12), remembered per browser. Only the card you move snaps to the new grid; the others keep their exact place.
+- The page is the width of the Dashboard and the exports, so cards stay inside it horizontally. Downwards the canvas is endless.
 
 ### KPI cards
 - Show extra detail by container size, never by squeezing. In order of priority: the value and its change vs last period, then one plain sentence, then the last-vs-now bars, then "Next step".
