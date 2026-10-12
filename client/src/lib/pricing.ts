@@ -60,7 +60,7 @@ export const PRICING_TIERS: PricingTier[] = [
       'Dashboard Builder, Generate For Me and Enhance My Dashboard',
       `KPI Library: ${KPI_COUNTS.kpis} metrics across ${KPI_COUNTS.industries} industries, including ${KPI_COUNTS.aiKpis} for AI & automation`,
       'Import CSV, Excel and JSON files',
-      'Export to Excel, CSV and JSON',
+      'Export your dashboard layout to Excel and Google Sheets, a Power BI starter pack, plus CSV and JSON',
       '1 data collab with a partner',
     ],
   },

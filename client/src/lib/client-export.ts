@@ -70,6 +70,15 @@ export async function buildBasicWorkbook(sheets: { name: string; rows: Record<st
 
 export async function exportExcel(serverPayload: any, fallback: { metrics: any[]; chartData?: any[]; donutData?: any[] }, filename: string) {
   let blob = await tryServer('/api/export/excel', serverPayload);
+  // Same layout-matching dashboard the server makes, built in the browser.
+  if (!blob && serverPayload?.widgets?.length) {
+    try {
+      const { buildDashboardWorkbook } = await import('@/lib/bi-export');
+      blob = await buildDashboardWorkbook(serverPayload);
+    } catch (e) {
+      console.warn('[export] dashboard workbook failed, using the simple workbook', e);
+    }
+  }
   if (!blob) {
     blob = await buildBasicWorkbook([
       { name: 'KPIs', rows: (fallback.metrics || []).map((m: any) => ({ KPI: m.label, Value: m.value, Trend: m.trend, Direction: m.isPositive ? 'Favorable' : 'Unfavorable' })) },

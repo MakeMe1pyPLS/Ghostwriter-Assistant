@@ -1,4 +1,7 @@
-import ExcelJS from 'exceljs';
+import * as ExcelNS from 'exceljs';
+import type ExcelJSTypes from 'exceljs';
+// exceljs is CommonJS: the namespace or its default holds the API, depending on the bundler.
+const ExcelJS: typeof ExcelJSTypes = ((ExcelNS as any).default ?? ExcelNS) as any;
 import { getExcelTheme, ExcelTheme } from './theme-mapper';
 import { computeWidgetPlacements } from './layout-engine';
 import { renderKpiCard } from './kpi-renderer';
@@ -21,7 +24,8 @@ interface ExcelExportRequest {
   widgets: any[];
 }
 
-export async function generateExcelDashboard(request: ExcelExportRequest): Promise<Buffer> {
+/** Builds the dashboard workbook. Runs on the server and in the browser (exceljs works in both). */
+export async function generateExcelDashboard(request: ExcelExportRequest): Promise<Uint8Array> {
   const { spec, data, layouts, widgets } = request;
   const theme = getExcelTheme();
 
@@ -33,6 +37,8 @@ export async function generateExcelDashboard(request: ExcelExportRequest): Promi
     views: [{ showGridLines: false, zoomScale: 90 }],
     properties: { tabColor: { argb: theme.primary } }
   });
+  // Prints as a one-page-wide landscape report.
+  dashSheet.pageSetup = { orientation: 'landscape', fitToPage: true, fitToWidth: 1, fitToHeight: 0, margins: { left: 0.3, right: 0.3, top: 0.4, bottom: 0.4, header: 0.2, footer: 0.2 } } as any;
 
   const dataSheet = workbook.addWorksheet('Data', {
     properties: { tabColor: { argb: theme.accent } }
@@ -46,6 +52,27 @@ export async function generateExcelDashboard(request: ExcelExportRequest): Promi
   setupDashboardHeader(dashSheet, spec, theme);
 
   const placements = computeWidgetPlacements(widgets, layouts);
+
+  // Cards side by side share sheet rows. Each renderer asks for its own row
+  // heights; keep the tallest request per row so no card gets squashed.
+  const firstGridRow = Math.min(...placements.map((p) => p.range.startRow), Infinity);
+  const wantHeight = new Map<number, number>();
+  const realGetRow = dashSheet.getRow.bind(dashSheet);
+  (dashSheet as any).getRow = (r: number) => {
+    const row = realGetRow(r);
+    if (r < firstGridRow) return row;
+    return new Proxy(row, {
+      set(target: any, prop, value) {
+        if (prop === 'height') wantHeight.set(r, Math.max(wantHeight.get(r) ?? 0, Number(value) || 0));
+        else target[prop] = value;
+        return true;
+      },
+      get(target: any, prop) {
+        const v = target[prop];
+        return typeof v === 'function' ? v.bind(target) : v;
+      },
+    });
+  };
 
   let dataRowOffset = setupDataSheetHeader(dataSheet, spec, theme);
 
@@ -62,6 +89,9 @@ export async function generateExcelDashboard(request: ExcelExportRequest): Promi
         renderKpiCard(dashSheet, placement.range, widget, metric, theme);
 
         if (metric) {
+          // The card's number reads from the Data sheet, so editing the data updates the dashboard.
+          const valueCell = dashSheet.getCell(placement.range.startRow + 2, placement.range.startCol);
+          valueCell.value = { formula: `Data!C${dataRowOffset}`, result: metric.value } as any;
           dataSheet.getCell(dataRowOffset, 1).value = metric.label;
           dataSheet.getCell(dataRowOffset, 1).font = { name: theme.fontFamily, size: 10 };
           dataSheet.getCell(dataRowOffset, 2).value = 'KPI';
@@ -102,7 +132,7 @@ export async function generateExcelDashboard(request: ExcelExportRequest): Promi
           dataRowOffset++;
         });
         dataRowOffset++;
-      } else if (['summary', 'forecast', 'progress'].includes(effectiveType)) {
+      } else if (['summary', 'forecast', 'progress', 'insights', 'opportunity-risk'].includes(effectiveType)) {
         renderExecutiveSummary(dashSheet, placement.range, widget, data, theme);
       } else {
         renderUnsupportedPlaceholder(dashSheet, placement.range, effectiveType, theme);
@@ -113,6 +143,9 @@ export async function generateExcelDashboard(request: ExcelExportRequest): Promi
     }
   }
 
+  (dashSheet as any).getRow = realGetRow;
+  wantHeight.forEach((h, r) => { realGetRow(r).height = h; });
+
   addDashboardFooter(dashSheet, placements, theme);
 
   populateSpecSheet(specSheet, spec, widgets, layouts, theme);
@@ -120,10 +153,10 @@ export async function generateExcelDashboard(request: ExcelExportRequest): Promi
   finalizeDataSheet(dataSheet, theme);
 
   const buffer = await workbook.xlsx.writeBuffer();
-  return Buffer.from(buffer);
+  return new Uint8Array(buffer as ArrayBuffer);
 }
 
-function setupColumnWidths(ws: ExcelJS.Worksheet) {
+function setupColumnWidths(ws: ExcelJSTypes.Worksheet) {
   ws.getColumn(1).width = 3;
   for (let i = 2; i <= 26; i++) {
     ws.getColumn(i).width = 11;
@@ -131,7 +164,7 @@ function setupColumnWidths(ws: ExcelJS.Worksheet) {
   ws.getColumn(27).width = 3;
 }
 
-function setupDashboardHeader(ws: ExcelJS.Worksheet, spec: any, theme: ExcelTheme) {
+function setupDashboardHeader(ws: ExcelJSTypes.Worksheet, spec: any, theme: ExcelTheme) {
   for (let c = 1; c <= 27; c++) {
     ws.getCell(1, c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: theme.headerBg } };
     ws.getCell(2, c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: theme.headerBg } };
@@ -170,7 +203,7 @@ function setupDashboardHeader(ws: ExcelJS.Worksheet, spec: any, theme: ExcelThem
   ws.getRow(6).height = 10;
 }
 
-function setupDataSheetHeader(dataSheet: ExcelJS.Worksheet, spec: any, theme: ExcelTheme): number {
+function setupDataSheetHeader(dataSheet: ExcelJSTypes.Worksheet, spec: any, theme: ExcelTheme): number {
   dataSheet.mergeCells(1, 1, 1, 5);
   dataSheet.getCell(1, 1).value = `${spec?.meta?.title || 'Dashboard'} — Source Data`;
   dataSheet.getCell(1, 1).font = { name: theme.fontFamilyHeading, size: 14, bold: true, color: { argb: theme.textDark } };
@@ -200,7 +233,7 @@ function setupDataSheetHeader(dataSheet: ExcelJS.Worksheet, spec: any, theme: Ex
   return 5;
 }
 
-function finalizeDataSheet(dataSheet: ExcelJS.Worksheet, theme: ExcelTheme) {
+function finalizeDataSheet(dataSheet: ExcelJSTypes.Worksheet, theme: ExcelTheme) {
   dataSheet.getColumn(1).width = 28;
   dataSheet.getColumn(2).width = 14;
   dataSheet.getColumn(3).width = 18;
@@ -208,7 +241,7 @@ function finalizeDataSheet(dataSheet: ExcelJS.Worksheet, theme: ExcelTheme) {
   dataSheet.getColumn(5).width = 22;
 }
 
-function renderExecutiveSummary(ws: ExcelJS.Worksheet, range: any, widget: any, data: any, theme: ExcelTheme) {
+function renderExecutiveSummary(ws: ExcelJSTypes.Worksheet, range: any, widget: any, data: any, theme: ExcelTheme) {
   const { startCol, startRow, endCol, endRow } = range;
 
   for (let c = startCol; c <= endCol; c++) {
@@ -280,7 +313,7 @@ function renderExecutiveSummary(ws: ExcelJS.Worksheet, range: any, widget: any, 
   }
 }
 
-function renderUnsupportedPlaceholder(ws: ExcelJS.Worksheet, range: any, type: string, theme: ExcelTheme) {
+function renderUnsupportedPlaceholder(ws: ExcelJSTypes.Worksheet, range: any, type: string, theme: ExcelTheme) {
   const { startCol, startRow, endCol, endRow } = range;
   for (let r = startRow; r <= endRow; r++) {
     for (let c = startCol; c <= endCol; c++) {
@@ -295,7 +328,7 @@ function renderUnsupportedPlaceholder(ws: ExcelJS.Worksheet, range: any, type: s
   cell.font = { name: theme.fontFamily, size: 10, color: { argb: theme.textMuted }, italic: true };
 }
 
-function addDashboardFooter(ws: ExcelJS.Worksheet, placements: any[], theme: ExcelTheme) {
+function addDashboardFooter(ws: ExcelJSTypes.Worksheet, placements: any[], theme: ExcelTheme) {
   let maxRow = 0;
   placements.forEach(p => {
     if (p.range.endRow > maxRow) maxRow = p.range.endRow;
@@ -318,7 +351,7 @@ function addDashboardFooter(ws: ExcelJS.Worksheet, placements: any[], theme: Exc
   ws.getCell(footerRow + 1, 18).alignment = { horizontal: 'right' };
 }
 
-function populateSpecSheet(ws: ExcelJS.Worksheet, spec: any, widgets: any[], layouts: any, theme: ExcelTheme) {
+function populateSpecSheet(ws: ExcelJSTypes.Worksheet, spec: any, widgets: any[], layouts: any, theme: ExcelTheme) {
   ws.mergeCells(1, 1, 1, 5);
   ws.getCell(1, 1).value = 'Dashboard Specification';
   ws.getCell(1, 1).font = { name: theme.fontFamilyHeading, size: 16, bold: true, color: { argb: theme.textDark } };

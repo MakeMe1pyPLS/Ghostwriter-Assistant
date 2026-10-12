@@ -64,7 +64,7 @@ Motion explains what changed and where things went. It never makes people wait.
 | Page transition, card enter | 250–320ms | `[0.22, 1, 0.36, 1]` (ease-out) |
 | Stagger between items | 40–70ms | — |
 | Scroll reveal (marketing only) | 400ms, once | ease-out |
-| Intro (first homepage visit only) | ≤ 4s total, skippable | ease-out |
+| Intro (first homepage visit only) | about 2.3s, skippable | ease-out; the fly-out uses ease-in-out |
 
 Rules:
 - Use the primitives in `client/src/components/motion.tsx` (`PageTransition`, `Stagger`, `StaggerItem`, `Reveal`, `pressable`, `EASE_OUT`).
@@ -76,15 +76,25 @@ Rules:
 - Buttons scale to 0.97 on press. Page loads show a thin top progress bar, never a full-screen spinner.
 
 ### The intro
-- **Where:** homepage, first visit only (remembered in the browser as `ciq_intro_seen_v2`), never inside the app.
-- **Story (about 4.7s):**
-  1. Particles stream in and ignite five nodes, and links draw between them.
-  2. Pulses jam at one link: it flares red with a shockwave and a small shake.
-  3. A teal beam sweeps through and snaps it fixed, with a teal flash and shockwave.
-  4. The chain folds into the logo, the wordmark sweeps in and the scene zooms through to the homepage.
-- **Performance:** dots use a small glow filter. Only the two straight lines use a full-area filter, because a percentage filter region makes straight lines vanish.
-- **Interactive:** nodes drift toward the pointer; tapping or clicking anywhere, Esc, Enter or "Skip" ends it immediately.
-- **Accessibility:** reduced-motion users skip it entirely. The homepage content is never blocked for more than 4s.
+- **Where:** homepage, first visit only (remembered in the browser as `ciq_intro_seen_v3`), never inside the app.
+- **Blends with loading:** `index.html` paints the intro's ink (`#070C16`) and 28px dot grid before the app loads, so loading, intro and site read as one move.
+- **Story (about 2.3s):**
+  1. A five-partner chain draws across the dots.
+  2. One link flickers red, and a teal pulse runs the chain and fixes it.
+  3. The chain folds into the logo, with a soft ring and teal glow.
+  4. The logo flies to the header logo while the dark layer opens from the centre (a radial mask). The hero plays its entrance as it is revealed (`useIntroReady` in `lib/intro-gate.ts`).
+- **Interactive:** tapping or clicking anywhere, Esc, Enter, Space or "Skip intro" jumps straight to step 4.
+- **Accessibility:** reduced-motion users and `?nointro` skip it entirely. The page is never blocked for more than about 2.5s.
+
+### The Builder canvas
+- A dot-grid canvas you pan by dragging empty space. Ctrl/⌘ + scroll or a pinch zooms. The zoom controls sit at the bottom left.
+- Cards move by dragging and resize from any corner. Edit, Duplicate and Delete live on the card and are counter-scaled, so they stay at least 40px at any zoom.
+- No move or resize button bars.
+
+### KPI cards
+- Show extra detail by container size, never by squeezing. In order of priority: the value and its change vs last period, then one plain sentence, then the last-vs-now bars, then "Next step".
+- The arrow follows the direction of the change; the colour shows whether the change is good or bad.
+- Only show numbers the card actually has. Never repeat the current value as a "previous", "benchmark" or "target".
 
 ## Voice and copy
 - Name things the way customers say them ("Growth Plan", "Bottlenecks", "Collabs"), not system terms.
