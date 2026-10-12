@@ -37,6 +37,13 @@ type Props = {
   showDots?: boolean;
   /** Fill at least this height with the grid (px), so the canvas is a full page. */
   minCanvasHeight?: number;
+  /**
+   * The parent already scales (and pans) the grid with a CSS transform: render at
+   * designWidth and use this scale for drag maths. No wrapper is added.
+   */
+  canvasScale?: number;
+  /** Which corners/edges can be dragged to resize. */
+  resizeHandles?: ('s' | 'w' | 'e' | 'n' | 'sw' | 'nw' | 'se' | 'ne')[];
 };
 
 /**
@@ -111,6 +118,8 @@ export default function MeasuredGrid({
   zoom = 'fit',
   showDots = false,
   minCanvasHeight = 0,
+  canvasScale,
+  resizeHandles = ['se'],
 }: Props) {
   const ref = React.useRef<HTMLDivElement | null>(null);
   const innerRef = React.useRef<HTMLDivElement | null>(null);
@@ -119,7 +128,7 @@ export default function MeasuredGrid({
   const [measured, setWidth] = React.useState<number | null>(null);
   const [innerHeight, setInnerHeight] = React.useState(0);
   const width = designWidth ?? measured;
-  const scale = designWidth && measured ? (zoom === 'fit' ? Math.min(1, measured / designWidth) : zoom) : 1;
+  const scale = canvasScale ?? (designWidth && measured ? (zoom === 'fit' ? Math.min(1, measured / designWidth) : zoom) : 1);
 
   React.useEffect(() => {
     if (!ref.current) return;
@@ -184,9 +193,27 @@ export default function MeasuredGrid({
     calcStyle: (pos: any) => setTransform(pos),
     calcDragPosition: (clientX: number, clientY: number, offsetX: number, offsetY: number) => {
       const r = gridRef.current?.getBoundingClientRect() ?? { left: 0, top: 0 };
-      return { left: (clientX - offsetX - r.left) / scale, top: (clientY - offsetY - r.top) / scale };
+      const left = clientX - offsetX, top = clientY - offsetY;
+      if (Number.isFinite(left) && Number.isFinite(top)) return { left: (left - r.left) / scale, top: (top - r.top) / scale };
+      // Touch events carry no clientX here, but (clientX - offset) is just the card's
+      // own top-left corner, so read that from the card that was touched.
+      const item = lastDown.current?.closest('.react-grid-item');
+      const c = item?.getBoundingClientRect() ?? { left: r.left, top: r.top };
+      return { left: (c.left - r.left) / scale, top: (c.top - r.top) / scale };
     },
   }), [scale]);
+  // The element the last press started on (see calcDragPosition).
+  const lastDown = React.useRef<HTMLElement | null>(null);
+  React.useEffect(() => {
+    if (scale === 1) return;
+    const note = (e: Event) => { lastDown.current = e.target as HTMLElement; };
+    document.addEventListener('pointerdown', note, true);
+    document.addEventListener('touchstart', note, { capture: true, passive: true });
+    return () => {
+      document.removeEventListener('pointerdown', note, true);
+      document.removeEventListener('touchstart', note, true);
+    };
+  }, [scale === 1]);
   const compactor = React.useMemo(() => getCompactor(compactType as any, false, false), [compactType]);
 
   // One dot per grid cell corner, like a design canvas.
@@ -216,12 +243,20 @@ export default function MeasuredGrid({
     onResizeStop={() => onResizeStop?.()}
     compactor={compactor}
     dragConfig={{ enabled: isDraggable, handle: draggableHandle, cancel: draggableCancel, bounded: false, threshold: 4 }}
-    resizeConfig={{ enabled: isResizable, handles: ['se'] }}
+    resizeConfig={{ enabled: isResizable, handles: resizeHandles }}
     positionStrategy={positionStrategy}
     innerRef={gridRef}
   >
     {children}
   </ResponsiveGridLayout>;
+
+  if (designWidth && canvasScale !== undefined) {
+    return (
+      <div ref={ref} className={`relative ${className ?? ""}`} style={{ width: designWidth, minHeight: minCanvasHeight || undefined, ...dotStyle }}>
+        {grid}
+      </div>
+    );
+  }
 
   if (designWidth) {
     const minH = minCanvasHeight ? minCanvasHeight / (scale || 1) : undefined;
