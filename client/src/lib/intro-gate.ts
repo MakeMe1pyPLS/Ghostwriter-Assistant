@@ -17,6 +17,8 @@ export function introWillShow(): boolean {
       window.location.pathname === "/" &&
       !new URLSearchParams(window.location.search).has("nointro") &&
       !window.matchMedia("(prefers-reduced-motion: reduce)").matches &&
+      // Don't make people on slow connections or data saver wait for it.
+      !((navigator as any).connection?.saveData || /2g|3g/.test((navigator as any).connection?.effectiveType ?? "")) &&
       localStorage.getItem(INTRO_KEY) !== "1";
   } catch {
     willShow = false;
@@ -39,4 +41,16 @@ const subscribe = (f: () => void) => { subs.add(f); return () => { subs.delete(f
 /** true once the hero may play its entrance (immediately when there's no intro). */
 export function useIntroReady(): boolean {
   return useSyncExternalStore(subscribe, snapshot, () => true);
+}
+
+/**
+ * index.html paints a static copy of the homepage hero before the app loads
+ * (fast first paint on phones). Returns true once if it did, so the hero can
+ * appear as it already is instead of animating in again.
+ */
+let shellRead = false;
+export function consumeShell(): boolean {
+  if (shellRead || typeof window === "undefined") return false;
+  shellRead = true;
+  return (window as any).__ciqShell === true;
 }

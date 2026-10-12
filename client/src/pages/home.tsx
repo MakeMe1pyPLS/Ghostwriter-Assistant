@@ -8,7 +8,7 @@ import {
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 import { Reveal, EASE_OUT } from "@/components/motion";
 import { IntroSplash } from "@/components/IntroSplash";
-import { useIntroReady } from "@/lib/intro-gate";
+import { consumeShell, useIntroReady } from "@/lib/intro-gate";
 import { useDashboardStore } from "@/hooks/use-dashboard-store";
 import { HeroProduct } from "@/components/marketing/HeroProduct";
 import { PlanVisual, AnalystVisual, BottleneckVisual, CollabVisual, KpiVisual, ExportVisual } from "@/components/marketing/FeatureVisuals";
@@ -26,6 +26,9 @@ export default function HomePage() {
   // The hero plays its entrance as the intro opens (straight away when there's no intro).
   const go = useIntroReady();
   const play = <T,>(v: T) => (go ? v : undefined);
+  // The static hero from index.html is already on screen: keep it still, don't re-animate it.
+  const [fromShell] = useState(consumeShell);
+  const ini = <T,>(v: T) => (fromShell ? false : v);
   const lowest = Math.min(...PRICING_TIERS.filter((t) => t.priceAnnual).map((t) => t.priceAnnual!));
 
   return (
@@ -36,7 +39,7 @@ export default function HomePage() {
       <section className="relative isolate overflow-hidden px-4 md:px-6 pt-14 sm:pt-20 md:pt-28 pb-20 md:pb-28">
         <GridBackdrop />
         <div className="max-w-5xl mx-auto text-center">
-          <motion.div initial={{ opacity: 0, y: 8 }} animate={play({ opacity: 1, y: 0 })} transition={{ duration: 0.5, ease: EASE_OUT }}>
+          <motion.div initial={ini({ opacity: 0, y: 8 })} animate={play({ opacity: 1, y: 0 })} transition={{ duration: 0.5, ease: EASE_OUT }}>
             <Link href="/pricing" className="group inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/70 dark:bg-slate-900/60 backdrop-blur px-1.5 py-1 pr-3.5 text-[13px] text-slate-600 hover:border-primary/40 transition-colors">
               <span className="rounded-full bg-primary text-white text-[11px] font-bold px-2 py-0.5">New</span>
               Plans from ${lowest}/month · AI on Claude, ChatGPT &amp; Gemini
@@ -48,23 +51,23 @@ export default function HomePage() {
             <span className="block">
               {HEADLINE.map((w, i) => (
                 <motion.span key={w} className="inline-block mr-[0.22em]"
-                  initial={{ opacity: 0, y: 24, filter: "blur(10px)" }} animate={play({ opacity: 1, y: 0, filter: "blur(0px)" })}
+                  initial={ini({ opacity: 0, y: 24, filter: "blur(10px)" })} animate={play({ opacity: 1, y: 0, filter: "blur(0px)" })}
                   transition={{ duration: 0.7, delay: 0.08 + i * 0.08, ease: EASE_OUT }}>{w}</motion.span>
               ))}
             </span>
             <motion.span className="block bg-gradient-to-r from-teal-600 via-teal-500 to-cyan-500 dark:from-teal-300 dark:via-teal-400 dark:to-cyan-300 bg-clip-text text-transparent pb-1"
-              initial={{ opacity: 0, y: 24, filter: "blur(10px)" }} animate={play({ opacity: 1, y: 0, filter: "blur(0px)" })}
+              initial={ini({ opacity: 0, y: 24, filter: "blur(10px)" })} animate={play({ opacity: 1, y: 0, filter: "blur(0px)" })}
               transition={{ duration: 0.8, delay: 0.36, ease: EASE_OUT }}>
               Fix it together.
             </motion.span>
           </h1>
 
-          <motion.p initial={{ opacity: 0, y: 10 }} animate={play({ opacity: 1, y: 0 })} transition={{ duration: 0.6, delay: 0.5, ease: EASE_OUT }}
+          <motion.p initial={ini({ opacity: 0, y: 10 })} animate={play({ opacity: 1, y: 0 })} transition={{ duration: 0.6, delay: 0.5, ease: EASE_OUT }}
             className="mt-6 text-lg md:text-xl text-slate-500 max-w-2xl mx-auto leading-relaxed text-pretty">
             Your AI business analyst. Tell it your goal and get a step-by-step plan, see exactly what’s slowing you down, and fix it with the suppliers, carriers and partners you work with.
           </motion.p>
 
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={play({ opacity: 1, y: 0 })} transition={{ duration: 0.6, delay: 0.6, ease: EASE_OUT }}
+          <motion.div initial={ini({ opacity: 0, y: 10 })} animate={play({ opacity: 1, y: 0 })} transition={{ duration: 0.6, delay: 0.6, ease: EASE_OUT }}
             className="mt-9 flex flex-col sm:flex-row items-center justify-center gap-3">
             {isAuthed ? (
               <>
@@ -78,7 +81,7 @@ export default function HomePage() {
               </>
             )}
           </motion.div>
-          <motion.ul initial={{ opacity: 0 }} animate={play({ opacity: 1 })} transition={{ delay: 0.8 }}
+          <motion.ul initial={ini({ opacity: 0 })} animate={play({ opacity: 1 })} transition={{ delay: 0.8 }}
             className="mt-6 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[13px] text-slate-500">
             {(isAuthed ? ["Welcome back", "Your plan and actions are waiting"] : ["Your plan in 2 minutes", "14-day free trial", "No credit card"]).map((t) => (
               <li key={t} className="inline-flex items-center gap-1.5"><Check className="w-4 h-4 text-primary" />{t}</li>
@@ -86,7 +89,7 @@ export default function HomePage() {
           </motion.ul>
         </div>
 
-        <motion.div className="mt-14 md:mt-20" initial={{ opacity: 0, y: 40, scale: 0.98 }} animate={play({ opacity: 1, y: 0, scale: 1 })} transition={{ duration: 0.9, delay: 0.55, ease: EASE_OUT }}>
+        <motion.div className="mt-14 md:mt-20" initial={ini({ opacity: 0, y: 40, scale: 0.98 })} animate={play({ opacity: 1, y: 0, scale: 1 })} transition={{ duration: 0.9, delay: 0.55, ease: EASE_OUT }}>
           <HeroProduct />
         </motion.div>
       </section>

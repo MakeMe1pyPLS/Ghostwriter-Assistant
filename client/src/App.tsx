@@ -9,21 +9,39 @@ import NotFound from "@/pages/not-found";
 import { useEffect } from "react";
 import { useDashboardStore } from "@/hooks/use-dashboard-store";
 import { MotionConfig } from "framer-motion";
+import { applyMeta } from "@/lib/page-meta";
 import HomePage from "@/pages/home";
-import PricingPage from "@/pages/pricing";
-import FeaturesPage from "@/pages/features";
-import ContactPage from "@/pages/contact";
-import SupportPage from "@/pages/support";
-import PrivacyPage from "@/pages/privacy";
-import TermsPage from "@/pages/terms";
-import CheckoutSuccessPage from "@/pages/checkout-success";
-import CheckoutCancelPage from "@/pages/checkout-cancel";
-import CheckoutStripeMockPage from "@/pages/checkout-stripe-mock";
-import SignInPage from "@/pages/sign-in";
-import SignUpPage from "@/pages/sign-up";
-import VerifyEmailPage from "@/pages/verify-email";
-import ResetPasswordPage from "@/pages/reset-password";
-import { startCloudSync } from "@/lib/cloud-sync";
+
+
+// Marketing and account pages load on demand; only the homepage ships up front.
+const marketingLoaders = {
+  PricingPage: () => import("@/pages/pricing"),
+  FeaturesPage: () => import("@/pages/features"),
+  ContactPage: () => import("@/pages/contact"),
+  SupportPage: () => import("@/pages/support"),
+  PrivacyPage: () => import("@/pages/privacy"),
+  TermsPage: () => import("@/pages/terms"),
+  CheckoutSuccessPage: () => import("@/pages/checkout-success"),
+  CheckoutCancelPage: () => import("@/pages/checkout-cancel"),
+  CheckoutStripeMockPage: () => import("@/pages/checkout-stripe-mock"),
+  SignInPage: () => import("@/pages/sign-in"),
+  SignUpPage: () => import("@/pages/sign-up"),
+  VerifyEmailPage: () => import("@/pages/verify-email"),
+  ResetPasswordPage: () => import("@/pages/reset-password"),
+};
+const PricingPage = lazy(marketingLoaders.PricingPage);
+const FeaturesPage = lazy(marketingLoaders.FeaturesPage);
+const ContactPage = lazy(marketingLoaders.ContactPage);
+const SupportPage = lazy(marketingLoaders.SupportPage);
+const PrivacyPage = lazy(marketingLoaders.PrivacyPage);
+const TermsPage = lazy(marketingLoaders.TermsPage);
+const CheckoutSuccessPage = lazy(marketingLoaders.CheckoutSuccessPage);
+const CheckoutCancelPage = lazy(marketingLoaders.CheckoutCancelPage);
+const CheckoutStripeMockPage = lazy(marketingLoaders.CheckoutStripeMockPage);
+const SignInPage = lazy(marketingLoaders.SignInPage);
+const SignUpPage = lazy(marketingLoaders.SignUpPage);
+const VerifyEmailPage = lazy(marketingLoaders.VerifyEmailPage);
+const ResetPasswordPage = lazy(marketingLoaders.ResetPasswordPage);
 
 const pageLoaders = {
   BuilderPage: () => import("@/pages/builder"),
@@ -78,12 +96,25 @@ function usePrefetchPages() {
   const [location] = useLocation();
   const inApp = !MARKETING.includes(location);
   useEffect(() => {
-    if (!inApp) return;
-    const run = () => Object.values(pageLoaders).forEach((load) => { load().catch(() => {}); });
+    // Marketing visitors get the other marketing pages warmed once the page is idle.
+    const loaders = inApp ? Object.values(pageLoaders) : Object.values(marketingLoaders);
     const w = window as any;
-    const id = w.requestIdleCallback ? w.requestIdleCallback(run, { timeout: 4000 }) : window.setTimeout(run, 2500);
-    return () => (w.cancelIdleCallback ? w.cancelIdleCallback(id) : clearTimeout(id));
+    // Skip on data-saver or slow connections, and never compete with the page's own loading.
+    const conn = (navigator as any).connection;
+    if (conn?.saveData || /(^|-)2g|3g/.test(conn?.effectiveType ?? '')) return;
+    const run = () => loaders.forEach((load) => { load().catch(() => {}); });
+    let id: any = 0;
+    const schedule = () => { id = w.requestIdleCallback ? w.requestIdleCallback(run, { timeout: 8000 }) : window.setTimeout(run, 3000); };
+    if (document.readyState === 'complete') schedule(); else window.addEventListener('load', schedule, { once: true });
+    return () => { window.removeEventListener('load', schedule); w.cancelIdleCallback ? w.cancelIdleCallback(id) : clearTimeout(id); };
   }, [inApp]);
+}
+
+/** Title, description, canonical link and indexing rule for the current page. */
+function RouteMeta() {
+  const [location] = useLocation();
+  useEffect(() => { applyMeta(location); }, [location]);
+  return null;
 }
 
 function DemoEntry({ children }: { children: React.ReactNode }) {
@@ -106,6 +137,7 @@ function PageLoader() {
 
 function Router() {
   return (
+    <Suspense fallback={<PageLoader />}>
     <Switch>
       <Route path="/" component={HomePage} />
       <Route path="/pricing" component={PricingPage} />
@@ -201,18 +233,20 @@ function Router() {
       </Route>
       <Route component={NotFound} />
     </Switch>
+    </Suspense>
   );
 }
 
 function App() {
   usePrefetchPages();
   // Accounts: restore the session, handle email links, keep workspaces synced.
-  useEffect(() => { startCloudSync(); }, []);
+  useEffect(() => { import("@/lib/cloud-sync").then((m) => m.startCloudSync()).catch(() => {}); }, []);
   return (
     <QueryClientProvider client={queryClient}>
       <MotionConfig reducedMotion="user">
         <TooltipProvider>
           <Toaster />
+          <RouteMeta />
           <Router />
         </TooltipProvider>
       </MotionConfig>

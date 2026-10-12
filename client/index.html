@@ -21,15 +21,25 @@
         try {
           if (location.pathname === '/' && !/[?&]nointro\b/.test(location.search) &&
               localStorage.getItem('ciq_intro_seen_v3') !== '1' &&
-              !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+              !matchMedia('(prefers-reduced-motion: reduce)').matches &&
+              !(navigator.connection && (navigator.connection.saveData || /2g|3g/.test(navigator.connection.effectiveType || '')))) {
             document.documentElement.dataset.intro = '1';
           }
         } catch (e) {}
+      })();
+      // Homepage without the intro: show the static hero below (#ciq-shell) until the app takes over.
+      (function () {
+        if (location.pathname === '/' && !document.documentElement.dataset.intro) {
+          document.documentElement.dataset.shell = '1';
+          window.__ciqShell = true;
+        }
       })();
     </script>
     <style>
       html[data-intro] body { background: #070C16 radial-gradient(circle, rgba(148,163,184,0.16) 1.2px, transparent 1.5px) 0 0 / 28px 28px; }
       html[data-intro] #root { visibility: hidden; }
+      #ciq-shell { display: none; }
+      html[data-shell] #ciq-shell { display: block; }
     </style>
 
     <meta property="og:title" content="ChainInsideIQ" />
@@ -49,7 +59,43 @@
     <link rel="preload" href="/fonts/inter-latin-var.woff2" as="font" type="font/woff2" crossorigin>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Static first paint of the homepage hero, shown only on "/" without the intro and
+           replaced as soon as the app starts. Keep it in sync with the hero in
+           src/pages/home.tsx (classes and copy) so nothing jumps when the app takes over. -->
+      <div id="ciq-shell">
+        <div class="min-h-screen bg-[#F4F7FA] flex flex-col">
+          <div class="h-16 md:h-[72px] border-b border-transparent box-content"></div>
+          <main class="flex-1 w-full relative z-10 flex flex-col">
+            <section class="relative isolate overflow-hidden px-4 md:px-6 pt-14 sm:pt-20 md:pt-28 pb-20 md:pb-28">
+              <div class="max-w-5xl mx-auto text-center">
+                <div>
+                  <a href="/pricing" class="group inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/70 dark:bg-slate-900/60 backdrop-blur px-1.5 py-1 pr-3.5 text-[13px] text-slate-600">
+                    <span class="rounded-full bg-primary text-white text-[11px] font-bold px-2 py-0.5">New</span>
+                    Plans from $39/month · AI on Claude, ChatGPT &amp; Gemini
+                    <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5 text-slate-400"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                  </a>
+                </div>
+                <h1 class="mt-7 font-black tracking-[-0.045em] text-slate-900 text-[2.75rem] leading-[1.02] sm:text-6xl md:text-7xl lg:text-[5.4rem] text-balance">
+                  <span class="block"><span class="inline-block mr-[0.22em]">Find</span><span class="inline-block mr-[0.22em]">the</span><span class="inline-block mr-[0.22em]">bottleneck.</span></span>
+                  <span class="block bg-gradient-to-r from-teal-600 via-teal-500 to-cyan-500 dark:from-teal-300 dark:via-teal-400 dark:to-cyan-300 bg-clip-text text-transparent pb-1">Fix it together.</span>
+                </h1>
+                <p class="mt-6 text-lg md:text-xl text-slate-500 max-w-2xl mx-auto leading-relaxed text-pretty">Your AI business analyst. Tell it your goal and get a step-by-step plan, see exactly what’s slowing you down, and fix it with the suppliers, carriers and partners you work with.</p>
+                <div class="mt-9 flex flex-col sm:flex-row items-center justify-center gap-3">
+                  <a href="/sign-up" class="group relative inline-flex items-center justify-center gap-2 h-12 sm:h-[52px] px-6 sm:px-7 rounded-2xl text-[15px] font-semibold w-full sm:w-auto overflow-hidden transition-all duration-200 bg-slate-900 text-white shadow-[0_10px_30px_-10px_rgba(15,23,42,0.6)] dark:bg-teal-400 dark:text-slate-950"><span class="relative">Start free — build my plan</span><svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="relative w-4 h-4"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
+                  <a href="/demo" class="group relative inline-flex items-center justify-center gap-2 h-12 sm:h-[52px] px-6 sm:px-7 rounded-2xl text-[15px] font-semibold w-full sm:w-auto overflow-hidden transition-all duration-200 border border-slate-200 bg-white/70 dark:bg-slate-900/50 backdrop-blur text-slate-800"><span class="relative">Explore the live demo</span><svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="relative w-4 h-4"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
+                </div>
+                <ul class="mt-6 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[13px] text-slate-500">
+                  <li class="inline-flex items-center gap-1.5"><svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-primary"><path d="M20 6 9 17l-5-5"/></svg>Your plan in 2 minutes</li>
+                  <li class="inline-flex items-center gap-1.5"><svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-primary"><path d="M20 6 9 17l-5-5"/></svg>14-day free trial</li>
+                  <li class="inline-flex items-center gap-1.5"><svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-primary"><path d="M20 6 9 17l-5-5"/></svg>No credit card</li>
+                </ul>
+              </div>
+            </section>
+          </main>
+        </div>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
