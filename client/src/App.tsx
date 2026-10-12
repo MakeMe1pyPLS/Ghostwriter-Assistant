@@ -11,35 +11,31 @@ import { useDashboardStore } from "@/hooks/use-dashboard-store";
 import { MotionConfig } from "framer-motion";
 import { applyMeta } from "@/lib/page-meta";
 import HomePage from "@/pages/home";
+// The main funnel pages ship with the app so a direct visit renders at once.
+import PricingPage from "@/pages/pricing";
+import FeaturesPage from "@/pages/features";
+import SupportPage from "@/pages/support";
+import SignInPage from "@/pages/sign-in";
+import SignUpPage from "@/pages/sign-up";
 
 
-// Marketing and account pages load on demand; only the homepage ships up front.
+// Less-visited pages (legal, contact, checkout, email links) load on demand.
 const marketingLoaders = {
-  PricingPage: () => import("@/pages/pricing"),
-  FeaturesPage: () => import("@/pages/features"),
   ContactPage: () => import("@/pages/contact"),
-  SupportPage: () => import("@/pages/support"),
   PrivacyPage: () => import("@/pages/privacy"),
   TermsPage: () => import("@/pages/terms"),
   CheckoutSuccessPage: () => import("@/pages/checkout-success"),
   CheckoutCancelPage: () => import("@/pages/checkout-cancel"),
   CheckoutStripeMockPage: () => import("@/pages/checkout-stripe-mock"),
-  SignInPage: () => import("@/pages/sign-in"),
-  SignUpPage: () => import("@/pages/sign-up"),
   VerifyEmailPage: () => import("@/pages/verify-email"),
   ResetPasswordPage: () => import("@/pages/reset-password"),
 };
-const PricingPage = lazy(marketingLoaders.PricingPage);
-const FeaturesPage = lazy(marketingLoaders.FeaturesPage);
 const ContactPage = lazy(marketingLoaders.ContactPage);
-const SupportPage = lazy(marketingLoaders.SupportPage);
 const PrivacyPage = lazy(marketingLoaders.PrivacyPage);
 const TermsPage = lazy(marketingLoaders.TermsPage);
 const CheckoutSuccessPage = lazy(marketingLoaders.CheckoutSuccessPage);
 const CheckoutCancelPage = lazy(marketingLoaders.CheckoutCancelPage);
 const CheckoutStripeMockPage = lazy(marketingLoaders.CheckoutStripeMockPage);
-const SignInPage = lazy(marketingLoaders.SignInPage);
-const SignUpPage = lazy(marketingLoaders.SignUpPage);
 const VerifyEmailPage = lazy(marketingLoaders.VerifyEmailPage);
 const ResetPasswordPage = lazy(marketingLoaders.ResetPasswordPage);
 
@@ -102,11 +98,28 @@ function usePrefetchPages() {
     // Skip on data-saver or slow connections, and never compete with the page's own loading.
     const conn = (navigator as any).connection;
     if (conn?.saveData || /(^|-)2g|3g/.test(conn?.effectiveType ?? '')) return;
-    const run = () => loaders.forEach((load) => { load().catch(() => {}); });
+    let done = false;
+    const run = () => { if (done) return; done = true; loaders.forEach((load) => { load().catch(() => {}); }); };
     let id: any = 0;
-    const schedule = () => { id = w.requestIdleCallback ? w.requestIdleCallback(run, { timeout: 8000 }) : window.setTimeout(run, 3000); };
-    if (document.readyState === 'complete') schedule(); else window.addEventListener('load', schedule, { once: true });
-    return () => { window.removeEventListener('load', schedule); w.cancelIdleCallback ? w.cancelIdleCallback(id) : clearTimeout(id); };
+    if (inApp) {
+      const schedule = () => { id = w.requestIdleCallback ? w.requestIdleCallback(run, { timeout: 8000 }) : window.setTimeout(run, 3000); };
+      if (document.readyState === 'complete') schedule(); else window.addEventListener('load', schedule, { once: true });
+      return () => { window.removeEventListener('load', schedule); w.cancelIdleCallback ? w.cancelIdleCallback(id) : clearTimeout(id); };
+    }
+    // Marketing: warm the other pages when the visitor shows intent (points at,
+    // touches or tabs to a link), or after they've been reading for a while.
+    const intent = (e: Event) => { if ((e.target as HTMLElement)?.closest?.('a')) run(); };
+    const opts = { passive: true, capture: true } as AddEventListenerOptions;
+    window.addEventListener('pointerover', intent, opts);
+    window.addEventListener('touchstart', intent, opts);
+    window.addEventListener('focusin', intent, opts);
+    id = window.setTimeout(run, 12000);
+    return () => {
+      clearTimeout(id);
+      window.removeEventListener('pointerover', intent, opts);
+      window.removeEventListener('touchstart', intent, opts);
+      window.removeEventListener('focusin', intent, opts);
+    };
   }, [inApp]);
 }
 

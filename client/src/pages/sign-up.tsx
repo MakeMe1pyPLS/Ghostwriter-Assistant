@@ -9,7 +9,6 @@ import { useToast } from "@/hooks/use-toast";
 import { ArrowRight, Eye, EyeOff, AlertCircle, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { cloudEnabled, signUp as cloudSignUp, CloudError, friendly } from "@/lib/supabase";
-import { activate } from "@/lib/cloud-sync";
 
 function passwordStrength(pw: string) {
   let score = 0;
@@ -68,7 +67,7 @@ export default function SignUpPage() {
         const s = await cloudSignUp({ fullName, email, password });
         if (s) {
           // Email confirmation is off for this project: signed in straight away.
-          await activate(s);
+          await (await import("@/lib/cloud-sync")).activate(s);
           toast({ title: "Account created — your trial just started.", description: "Your workspace is saved to your account." });
           setLocation('/onboarding');
         } else {

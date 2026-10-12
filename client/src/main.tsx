@@ -1,5 +1,5 @@
 import { createRoot } from "react-dom/client";
-import React from "react";
+import React, { startTransition } from "react";
 import App from "./App";
 import { installApiBaseRewrite } from "./lib/api";
 import { initTheme } from "./lib/theme";
@@ -10,4 +10,7 @@ import "react-resizable/css/styles.css";
 installApiBaseRewrite();
 initTheme();
 
-createRoot(document.getElementById("root")!).render(<App />);
+// Render as a transition so React splits the first render into small slices
+// instead of one long task; the static hero in index.html is on screen meanwhile.
+const root = createRoot(document.getElementById("root")!);
+startTransition(() => root.render(<App />));
