@@ -42,7 +42,10 @@ If a feature doesn't help someone move through this loop, it waits.
 - New AI capability: add it to `llm-provider.ts` and give it a rule-based fallback in `shared/`.
 - New pricing or marketing claim: only if it ships in the same change.
 - Never commit API keys. Secrets come from environment variables.
+- Colours, type, spacing, radius, shadows, layers and motion come from `client/src/styles/tokens.css` (rules in `docs/BRAND.md`). Text must pass WCAG AA in light and dark: use the 700 shade for coloured text, never slate-300 text on light surfaces.
 - New colour classes: support dark mode (prefer `dark:` variants) and re-run `node script/gen-dark-theme.mjs`.
+- Homepage hero changes: keep the static copy in `client/index.html` (`#ciq-shell`) in sync. New public pages: add them to `client/src/lib/page-meta.ts` and `client/public/sitemap.xml`.
+- Links that look like buttons: `<Button asChild><Link …/></Button>`, never a button inside a link.
 - Pricing lives in `client/src/lib/pricing.ts`; the reasoning is in `docs/PRICING.md`.
 - After adding or removing KPIs or industries, update the counts in `shared/kpi-stats.ts` (the app warns in the console when they drift).
 - Keep bundle weight in check. Prefer existing dependencies; lazy-load heavy ones (e.g. `exceljs`).

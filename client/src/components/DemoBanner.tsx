@@ -41,10 +41,10 @@ export function DemoBanner() {
           <Button
               variant="ghost"
               size="sm"
-              className="font-bold uppercase tracking-widest text-[10px] h-8 px-3 text-slate-300 hover:text-white hover:bg-white/10"
+              className="hidden sm:inline-flex font-bold uppercase tracking-widest text-[10px] h-8 px-3 text-slate-300 hover:text-white hover:bg-white/10"
               data-testid="button-demo-sign-in"
              asChild>
-            <Link href="/sign-in" className="hidden sm:inline-flex">
+            <Link href="/sign-in">
               Sign In
             </Link>
           </Button>
