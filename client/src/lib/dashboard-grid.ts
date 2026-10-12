@@ -61,7 +61,9 @@ export interface DashboardData {
 }
 
 /** Width of the desktop canvas used to edit the full layout on narrow screens. */
-export const DESIGN_WIDTH = 1280;
+// The Builder page width. Wider than a laptop so more cards fit side by side at a
+// readable size; the Dashboard and the exports scale it to their own width.
+export const DESIGN_WIDTH = 1600;
 
 // Canonical default dashboard used when a sector has no saved configuration.
 // Shared by the Builder reset action and the migration fallback so both pages
