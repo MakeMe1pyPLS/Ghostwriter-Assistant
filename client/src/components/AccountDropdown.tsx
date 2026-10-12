@@ -1,4 +1,5 @@
 import { Link, useLocation } from "wouter";
+import { SyncBadge } from "@/components/SyncBadge";
 import { useDashboardStore, getTrialStatus, getPlanLabel } from "@/hooks/use-dashboard-store";
 import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
@@ -85,12 +86,7 @@ export function AccountDropdown({ compact = false }: { compact?: boolean } = {})
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-bold text-slate-900">{currentUser.fullName}</p>
             <p className="text-xs text-slate-500 truncate">{currentUser.email}</p>
-            <div className="flex items-center gap-1 pt-1">
-              <ShieldCheck className="w-3 h-3 text-emerald-500 shrink-0" />
-              <p className="text-[10px] font-medium text-slate-500 leading-tight">
-                Private workspace · Tied to your account
-              </p>
-            </div>
+            <div className="pt-1"><SyncBadge className="text-[10px]" /></div>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />

@@ -29,10 +29,11 @@ export function computeWidgetPlacements(widgets: any[], layouts: any): WidgetPla
     const layoutItem = lgLayout.find((l: any) => l.i === widget.id);
     if (!layoutItem) continue;
 
-    const startCol = START_COL + (layoutItem.x * COL_MULTIPLIER);
-    const startRow = START_ROW + (layoutItem.y * ROW_MULTIPLIER);
-    const endCol = startCol + (layoutItem.w * COL_MULTIPLIER) - 1;
-    const endRow = startRow + (layoutItem.h * ROW_MULTIPLIER) - 1;
+    // Layouts may use fractional 12-column units (free placement); round to whole cells.
+    const startCol = START_COL + Math.round(layoutItem.x * COL_MULTIPLIER);
+    const startRow = START_ROW + Math.round(layoutItem.y * ROW_MULTIPLIER);
+    const endCol = Math.max(startCol, START_COL + Math.round((layoutItem.x + layoutItem.w) * COL_MULTIPLIER) - 1);
+    const endRow = Math.max(startRow, START_ROW + Math.round((layoutItem.y + layoutItem.h) * ROW_MULTIPLIER) - 1);
 
     placements.push({
       widgetId: widget.id,

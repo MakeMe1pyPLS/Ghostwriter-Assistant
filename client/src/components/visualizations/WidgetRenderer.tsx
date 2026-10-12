@@ -11,6 +11,7 @@ import { animate, useReducedMotion } from "framer-motion";
 import { getAllMetrics } from "@/hooks/use-sector-data";
 import { CARD_PRESETS, type CardPresetId } from "@/lib/kpi-card-presets";
 import { getHighlights, type OpportunityRiskHighlight } from "@/lib/opportunity-risk-engine";
+import { kpiDetail, type KpiDetail } from "@shared/kpi-detail";
 
 const InsightsWidgetContent = memo(function InsightsWidgetContent({ sector, title }: { sector: string, title?: string }) {
   const [insights, setInsights] = useState<any>(null);
@@ -37,28 +38,29 @@ const InsightsWidgetContent = memo(function InsightsWidgetContent({ sector, titl
   }
 
   return (
-    <div className="h-full flex flex-col p-1">
-      <div className="flex items-center gap-2 mb-4 shrink-0">
+    <div className="h-full flex flex-col p-1 overflow-hidden">
+      <div className="flex items-center gap-2 mb-2.5 shrink-0">
         <BrainCircuit className="w-4 h-4 text-primary" />
-        <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">{title || 'AI Recommendations'}</h3>
+        <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider truncate">{title || 'AI Recommendations'}</h3>
       </div>
-      <div className="space-y-3 overflow-y-auto flex-1 pr-1 custom-scrollbar">
-        <div className="p-3 bg-slate-50 rounded-lg border border-slate-100">
-          <p className="text-xs font-bold text-slate-700 mb-2">Impact Assessment</p>
-          <ul className="text-[11px] text-slate-500 leading-relaxed list-disc pl-3 space-y-1">
-            {insights.what_changed?.map((c: string, i: number) => <li key={i}>{c}</li>)}
+      {/* Fits the card: sections sit side by side when the card is wide, and lines are clamped instead of scrolling. */}
+      <div className="grid gap-2 flex-1 min-h-0 content-start @[560px]:grid-cols-3">
+        <div className="p-2.5 bg-slate-50 rounded-lg border border-slate-100 min-w-0">
+          <p className="text-[11px] font-bold text-slate-700 mb-1">What changed</p>
+          <ul className="text-[11px] text-slate-500 leading-snug list-disc pl-3 space-y-0.5">
+            {insights.what_changed?.slice(0, 3).map((c: string, i: number) => <li key={i} className="line-clamp-2">{c}</li>)}
           </ul>
         </div>
-        <div className="p-3 bg-teal-50/50 rounded-lg border border-teal-100">
-          <p className="text-xs font-bold text-teal-700 mb-2">Recommended Actions</p>
-          <ul className="text-[11px] text-teal-700/80 leading-relaxed list-disc pl-3 space-y-1">
-            {insights.actions?.slice(0, 2).map((a: string, i: number) => <li key={i}>{a}</li>)}
+        <div className="p-2.5 bg-teal-50/50 rounded-lg border border-teal-100 min-w-0">
+          <p className="text-[11px] font-bold text-teal-700 mb-1">Recommended actions</p>
+          <ul className="text-[11px] text-teal-700/80 leading-snug list-disc pl-3 space-y-0.5">
+            {insights.actions?.slice(0, 2).map((a: string, i: number) => <li key={i} className="line-clamp-2">{a}</li>)}
           </ul>
         </div>
         {insights.forecast_note && (
-          <div className="p-3 bg-indigo-50/50 rounded-lg border border-indigo-100">
-            <p className="text-xs font-bold text-indigo-700 mb-1">Forecast Note</p>
-            <p className="text-[11px] text-indigo-700/80 leading-relaxed">{insights.forecast_note}</p>
+          <div className="p-2.5 bg-indigo-50/50 rounded-lg border border-indigo-100 min-w-0">
+            <p className="text-[11px] font-bold text-indigo-700 mb-0.5">Forecast</p>
+            <p className="text-[11px] text-indigo-700/80 leading-snug line-clamp-3">{insights.forecast_note}</p>
           </div>
         )}
       </div>
@@ -213,6 +215,26 @@ function KpiIntelRow({ label, text, tone }: { label: string; text: string; tone:
   );
 }
 
+/** Last period vs this period as two slim bars, from the card's own numbers. */
+function KpiCompareBars({ detail, className = '' }: { detail: KpiDetail; className?: string }) {
+  const a = Math.abs(detail.prev ?? 0), b = Math.abs(detail.now ?? 0);
+  const max = Math.max(a, b) || 1;
+  // Start the scale below the smaller value so small changes stay visible.
+  const floor = Math.max(0, Math.min(a, b) - (max - Math.min(a, b)) * 1.5 - max * 0.05);
+  const pct = (v: number) => `${Math.max(6, ((v - floor) / (max - floor)) * 100)}%`;
+  const good = detail.status === 'good';
+  return (
+    <div className={className} aria-hidden>
+      <div className="grid grid-cols-[auto_1fr] items-center gap-x-2 gap-y-1 text-[9px] font-bold uppercase tracking-wider text-slate-400">
+        <span>Last</span>
+        <div className="h-1.5 rounded-full bg-slate-100 overflow-hidden"><div className="h-full rounded-full bg-slate-300" style={{ width: pct(a) }} /></div>
+        <span>Now</span>
+        <div className="h-1.5 rounded-full bg-slate-100 overflow-hidden"><div className={`h-full rounded-full ${good ? 'bg-emerald-500' : 'bg-rose-500'}`} style={{ width: pct(b) }} /></div>
+      </div>
+    </div>
+  );
+}
+
 function WidgetRendererInner({ widget, data, sector, loading, presentationMode = false }: { widget: any, data: any, sector: string, loading: boolean, presentationMode?: boolean }) {
   if (loading) return <div className="h-full w-full bg-slate-50 animate-pulse rounded-lg" />;
 
@@ -238,15 +260,20 @@ function WidgetRendererInner({ widget, data, sector, loading, presentationMode =
       const isCompact = presetId === 'compact-grid';
       const dataDensity = widget.dataDensity || 'standard';
 
-      const valueSizeClass = preset.valueEmphasis === 'xl' ? (presentationMode ? 'text-5xl' : 'text-3xl')
-        : preset.valueEmphasis === 'lg' ? (presentationMode ? 'text-4xl' : 'text-2xl')
-        : preset.valueEmphasis === 'md' ? (presentationMode ? 'text-3xl' : 'text-xl')
-        : (presentationMode ? 'text-2xl' : 'text-lg');
+      // Sizes follow the card's own width, so a narrow card never clips its number.
+      const valueSizeClass = preset.valueEmphasis === 'xl' ? (presentationMode ? 'text-2xl @[200px]:text-4xl @[300px]:text-5xl' : 'text-xl @[200px]:text-3xl')
+        : preset.valueEmphasis === 'lg' ? (presentationMode ? 'text-2xl @[220px]:text-4xl' : 'text-xl @[200px]:text-2xl')
+        : preset.valueEmphasis === 'md' ? (presentationMode ? 'text-xl @[220px]:text-3xl' : 'text-lg @[200px]:text-xl')
+        : (presentationMode ? 'text-lg @[220px]:text-2xl' : 'text-base @[200px]:text-lg');
 
       const accentColor = metric?.isPositive ? 'rgb(16, 185, 129)' : 'rgb(244, 63, 94)';
       const borderRadius = BORDER_RADIUS_MAP[widget.borderRadius || 'lg'] || '';
       const shadow = SHADOW_MAP[widget.shadowIntensity || 'none'] || '';
       const customPadding = widget.cardPadding === 'compact' ? 'p-2' : widget.cardPadding === 'spacious' ? 'p-6' : '';
+      const detail = kpiDetail({ label: metric?.label || '', value: String(metric?.value ?? ''), trend: metric?.trend, isPositive: metric?.isPositive });
+      const intel = SECTOR_KPI_INTEL[sector]?.[metric?.label || ''];
+      // One plain sentence: why it moved (sample data) or what the KPI measures.
+      const explain = intel?.why || (metric?.helpText ? `${metric.helpText.replace(/\.$/, '')}. ${detail.status === 'good' ? 'On track.' : 'Needs attention.'}` : detail.summary);
 
       return (
         <div className={`flex flex-col h-full justify-between ${containerPadding} ${borderRadius} ${shadow} ${customPadding} relative ${preset.alignment === 'center' ? 'items-center text-center' : ''}`}>
@@ -259,7 +286,7 @@ function WidgetRendererInner({ widget, data, sector, loading, presentationMode =
 
           <div className={`flex items-center justify-between ${preset.accentStrip && preset.accentPosition === 'left' ? 'pl-2' : ''}`}>
             <div className="flex flex-col min-w-0">
-              <span className={`${isCompact ? 'text-[10px]' : presentationMode ? 'text-[11px]' : 'text-xs'} font-bold text-slate-400 uppercase tracking-wider truncate`}>{widget.title || metric?.label || 'Metric'}</span>
+              <span className={`${isCompact ? 'text-[10px]' : presentationMode ? 'text-[11px]' : 'text-xs'} font-bold text-slate-400 uppercase tracking-wider leading-tight line-clamp-2 break-words`}>{widget.title || metric?.label || 'Metric'}</span>
               {preset.subtitlePlacement !== 'hidden' && widget.description && (
                 <span className="text-[10px] text-slate-400 font-medium mt-0.5 truncate">{widget.description}</span>
               )}
@@ -276,7 +303,7 @@ function WidgetRendererInner({ widget, data, sector, loading, presentationMode =
                         data-testid={`button-kpi-intel-${(metric?.label || 'metric').toLowerCase().replace(/\s+/g, '-')}`}
                       >
                         <BrainCircuit className="w-3 h-3" />
-                        <span className="text-[8px] font-black uppercase tracking-wider">AI</span>
+                        <span className="text-[8px] font-black uppercase tracking-wider hidden @[200px]:inline">AI</span>
                       </button>
                     </PopoverTrigger>
                     <PopoverContent align="end" className="w-72 p-0 rounded-2xl border-slate-200 shadow-xl overflow-hidden">
@@ -300,13 +327,13 @@ function WidgetRendererInner({ widget, data, sector, loading, presentationMode =
                 );
               })()}
               {preset.statusBadgeVisible && widget.showBadge !== false && metric?.isPositive !== undefined && (
-                <div className={`px-1.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider ${metric.isPositive ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
+                <div className={`hidden @[170px]:block px-1.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider ${metric.isPositive ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
                   {metric.isPositive ? 'On Track' : 'At Risk'}
                 </div>
               )}
               {(widget.showIcon !== false) && preset.iconVisible && preset.iconPosition === 'top-right' && (
                 <Tooltip>
-                  <TooltipTrigger>
+                  <TooltipTrigger className="hidden @[200px]:inline-flex" aria-label={metric?.helpText || 'About this KPI'}>
                     <Info className="w-3.5 h-3.5 text-slate-300 hover:text-primary transition-colors" />
                   </TooltipTrigger>
                   <TooltipContent>{metric?.helpText || 'Key Performance Indicator'}</TooltipContent>
@@ -315,49 +342,61 @@ function WidgetRendererInner({ widget, data, sector, loading, presentationMode =
             </div>
           </div>
 
-          <div className={`${isCompact ? 'mt-1' : 'mt-2'} flex-1 flex flex-col justify-center ${preset.accentStrip && preset.accentPosition === 'left' ? 'pl-2' : ''}`}>
-            <h3 className={`${valueSizeClass} font-bold text-slate-900 tracking-tight`}><AnimatedMetric value={String(metric?.value || '0')} /></h3>
+          <div className={`${isCompact ? 'mt-1' : 'mt-2'} flex-1 min-h-0 flex flex-col ${preset.alignment === 'center' ? 'items-center' : ''} ${preset.accentStrip && preset.accentPosition === 'left' ? 'pl-2' : ''}`}>
+            <h3 className={`${valueSizeClass} font-bold text-slate-900 tracking-tight leading-none`}><AnimatedMetric value={String(metric?.value || '0')} /></h3>
             {(widget.showDelta !== false || preset.deltaPosition !== 'hidden') && metric?.trend && (
-              <div className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold ${isCompact ? 'mt-0.5' : 'mt-1'} w-fit ${metric.isPositive ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
-                {metric.isPositive ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                {metric.trend}
-                {preset.comparisonLabelVisible && widget.showComparison !== false && <span className="text-slate-400 ml-1">vs prev</span>}
+              <div className={`flex items-center gap-1.5 ${isCompact ? 'mt-1' : 'mt-2'} min-w-0 max-w-full`}>
+                <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[10px] font-bold shrink-0 ${detail.status === 'good' ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>
+                  {detail.direction === 'up' ? <TrendingUp className="w-3 h-3" aria-hidden /> : detail.direction === 'down' ? <TrendingDown className="w-3 h-3" aria-hidden /> : null}
+                  {metric.trend}
+                  <span className="sr-only">{detail.status === 'good' ? '(good)' : '(needs attention)'}</span>
+                </span>
+                {preset.comparisonLabelVisible && widget.showComparison !== false && detail.previous && (
+                  <span className="text-[10px] font-medium text-slate-400 truncate hidden @[190px]:inline">vs {detail.previous} last period</span>
+                )}
               </div>
             )}
-            {presentationMode && !isCompact && (() => {
-              const intel = SECTOR_KPI_INTEL[sector]?.[metric?.label || ''];
-              if (!intel) return null;
-              return (
-                <div className="mt-2 pt-2 border-t border-slate-50 space-y-1">
-                  <p className="text-[10px] text-slate-400 font-medium leading-snug">{intel.comparison}</p>
-                  <div className="flex items-center justify-between gap-1">
-                    <div className="flex items-center gap-1 min-w-0">
-                      <ArrowUpRight className="w-3 h-3 text-primary shrink-0" />
-                      <span className="text-[10px] text-slate-500 truncate">Top: <span className="font-bold text-slate-700">{intel.contributor}</span></span>
-                    </div>
-                    <span className={`text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full shrink-0 ${getRiskBadge(intel.risk)}`}>
-                      {getRiskLabel(intel.risk)}
-                    </span>
-                  </div>
-                </div>
-              );
-            })()}
-            {preset.benchmarkVisible && widget.showTarget && (
+
+            {/* Details appear only when the card has room for them. */}
+            {!isCompact && (
+              <div className={`mt-auto pt-2 w-full space-y-2 ${preset.alignment === 'center' ? 'text-center' : ''}`}>
+                {explain && (
+                  <p className="hidden [@container(min-height:112px)]:block text-[11px] leading-snug text-slate-500 font-medium line-clamp-2" data-testid="kpi-explain">{explain}</p>
+                )}
+                {presentationMode && intel && (
+                  <div className="hidden @[230px]:block"><div className="hidden [@container(min-height:150px)]:flex items-center justify-between gap-1">
+                    <span className="text-[10px] text-slate-500 truncate min-w-0">Top driver: <span className="font-bold text-slate-700">{intel.contributor}</span></span>
+                    <span className={`text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full shrink-0 ${getRiskBadge(intel.risk)}`}>{getRiskLabel(intel.risk)}</span>
+                  </div></div>
+                )}
+                {detail.prev !== null && detail.now !== null && (
+                  <div className="hidden @[180px]:block"><KpiCompareBars detail={detail} className="hidden [@container(min-height:168px)]:block" /></div>
+                )}
+                {intel?.action && (
+                  <div className="hidden @[220px]:block"><p className="hidden [@container(min-height:236px)]:flex items-start gap-1.5 rounded-lg bg-teal-50/70 border border-teal-100 px-2 py-1.5 text-[11px] leading-snug text-slate-700 font-semibold">
+                    <ArrowUpRight className="w-3.5 h-3.5 mt-px text-teal-600 shrink-0" aria-hidden />
+                    <span className="line-clamp-2"><span className="text-teal-700">Next step: </span>{intel.action}</span>
+                  </p></div>
+                )}
+              </div>
+            )}
+
+            {preset.benchmarkVisible && widget.showTarget && widget.target && (
               <div className="flex items-center gap-1.5 mt-1.5 text-[10px] text-slate-400 font-medium">
                 <Target className="w-3 h-3" />
-                <span>Target: {metric?.value || '—'}</span>
+                <span>Target: {widget.target}</span>
               </div>
             )}
 
             {dataDensity === 'detailed' && (
               <div className="mt-2 pt-2 border-t border-slate-100 space-y-1">
                 <div className="flex justify-between text-[10px]">
-                  <span className="text-slate-400 font-medium">Previous</span>
-                  <span className="text-slate-600 font-bold">{metric?.value || '—'}</span>
+                  <span className="text-slate-400 font-medium">Last period</span>
+                  <span className="text-slate-600 font-bold">{detail.previous ?? '—'}</span>
                 </div>
                 <div className="flex justify-between text-[10px]">
-                  <span className="text-slate-400 font-medium">Benchmark</span>
-                  <span className="text-slate-600 font-bold">{metric?.value || '—'}</span>
+                  <span className="text-slate-400 font-medium">Change</span>
+                  <span className="text-slate-600 font-bold">{metric?.trend || '—'}</span>
                 </div>
               </div>
             )}
@@ -366,15 +405,15 @@ function WidgetRendererInner({ widget, data, sector, loading, presentationMode =
               <div className="mt-2 pt-2 border-t border-slate-100 grid grid-cols-2 gap-x-3 gap-y-1.5">
                 <div className="text-[10px]">
                   <span className="text-slate-400 font-medium block">Target</span>
-                  <span className="text-slate-700 font-bold">{metric?.value || '—'}</span>
+                  <span className="text-slate-700 font-bold">{widget.target || 'Not set'}</span>
                 </div>
                 <div className="text-[10px]">
-                  <span className="text-slate-400 font-medium block">Prev Period</span>
-                  <span className="text-slate-700 font-bold">{metric?.value || '—'}</span>
+                  <span className="text-slate-400 font-medium block">Last period</span>
+                  <span className="text-slate-700 font-bold">{detail.previous ?? '—'}</span>
                 </div>
                 <div className="text-[10px]">
-                  <span className="text-slate-400 font-medium block">Benchmark</span>
-                  <span className="text-slate-700 font-bold">{metric?.value || '—'}</span>
+                  <span className="text-slate-400 font-medium block">Change</span>
+                  <span className="text-slate-700 font-bold">{metric?.trend || '—'}</span>
                 </div>
                 <div className="text-[10px]">
                   <span className="text-slate-400 font-medium block">Status</span>
@@ -383,19 +422,6 @@ function WidgetRendererInner({ widget, data, sector, loading, presentationMode =
               </div>
             )}
           </div>
-
-          {(widget.showSparkline !== false && preset.sparklineVisible) && (
-            <div className={`w-full mt-2 opacity-40 relative shrink-0 ${presentationMode ? 'h-12' : 'h-8'}`}>
-               {widget.showTarget && (
-                 <div className="absolute top-1/2 left-0 right-0 border-t border-dashed border-slate-400 z-10" />
-               )}
-               <ResponsiveContainer width="100%" height="100%">
-                 <AreaChart data={chartData.slice(0, 5)}>
-                   <Area type="monotone" dataKey="value" stroke={metric?.isPositive ? "#10b981" : "#f43f5e"} fill="transparent" strokeWidth={presentationMode ? 3 : 2} />
-                 </AreaChart>
-               </ResponsiveContainer>
-            </div>
-          )}
         </div>
       );
     }

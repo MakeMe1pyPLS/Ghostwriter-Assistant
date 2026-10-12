@@ -172,6 +172,84 @@ The rule-based analyst, dashboard generator, exporters, KPI library and plan bui
 - **KPI counts on the home, pricing, features and KPI Library pages now come from one place** (`shared/kpi-stats.ts`), so they can't disagree. The home page used to say 46 industries while the library said 45. The real count is 45, plus the cross-industry sets. The app warns in the console if the counts drift from the data.
 - The industry pickers (interview, add client) no longer list the cross-industry sets as an industry.
 
+### Phase 2, part 1: real accounts (Supabase)
+- **Real sign-up and sign-in.** Accounts are created in Supabase Auth with your email and password, replacing the pretend login.
+  - A confirmation email is sent, and its link signs you in.
+  - "Forgot password?" sends a reset link. The new **/reset-password** page sets a new password.
+  - Clear messages for a wrong password, an unconfirmed email, an email that's already registered, and too many attempts.
+- **Your workspaces are saved to your account:** your business, every client workspace, plans, actions, consult sessions, datasets and dashboards.
+  - Changes save a couple of seconds after you make them. Settings and the account menu show "Saved to your account".
+  - Sign in on another device and everything is there.
+  - The first time you sign in, anything you built before having an account is moved into it. A different account's data is never mixed in.
+  - Signing out removes this browser's copy, so the next person on the computer can't see it.
+  - Offline edits save when you reconnect.
+- **Security:** each table has row-level security, so an account can only read or change its own rows. Your plan and trial dates can't be changed from the app; billing will set them.
+- Without an account (the demo, or with `VITE_SUPABASE_URL=off`), everything still works in the browser as before.
+- The Privacy Policy now says where data is stored (Supabase, United States) and that signing out clears the browser's copy. The Clients page now says client workspaces are saved to your account when you're signed in.
+- **Before launch:**
+  - Set up custom SMTP in Supabase. Its built-in email service only delivers to members of your Supabase team and sends only a few emails an hour.
+  - Set the Auth Site URL and redirect URLs in the Supabase dashboard.
+
+### Builder as an open grid, exports that keep your layout, and layout fixes on every device
+- **The Builder is now the page, not a box.** The grid scrolls with the page instead of inside its own window.
+  - In edit mode it shows dashed column guides. The widget library stays beside the grid as you scroll.
+- **Toolbars never cut off buttons.** Every toolbar now wraps onto a second line instead of hiding buttons off-screen; this was why the last Builder button was cut off. The Builder keeps its main actions in view (Edit layout, Save, Export, View dashboard). Generate, Enhance, Templates and the JSON spec are under **More**.
+- **Two ways to arrange cards:**
+  - **Locked to grid:** cards snap into rows and gaps close automatically. This is the default.
+  - **Free:** cards stay exactly where you drop them.
+
+  The choice is saved with the dashboard.
+- **Edit on any device.** On phones you now edit the full desktop layout on a scaled canvas, with **Fit / 60% / 100%** zoom. Cards land in the same spot as on a computer, so the Dashboard and exports match. Resize handles are bigger on touch screens.
+- **Fixed:** the grid ignored some settings, so finished dashboards could be dragged, cards moved from anywhere instead of their top bar, and arranging didn't behave as set. These now work as intended. The Builder also no longer shows the old message that moving cards only works on a computer.
+- **Cards fit their content:** KPI numbers and badges size themselves to the card's width. The AI Insights card no longer scrolls inside itself; its sections sit side by side on wide cards.
+- **Templates now give different layouts:** Excel, Google Sheets, Power BI, Tableau and SQL each have their own arrangement. Before, they all produced the same three cards. Template descriptions no longer claim live or real-time features.
+- **Exports that keep your layout** (built in the browser, so they work on the live site):
+  - **Excel:** each card is placed where it sits on the grid, and AI cards come through as text. KPI numbers are formulas that read the Data sheet, so editing the data updates the dashboard. The dashboard prints as one landscape page.
+  - **Google Sheets:** the same workbook. Upload it to Google Drive and open it with Google Sheets.
+  - **Power BI starter pack:** named data tables (KPIs, Trend, Breakdown), a Layout sheet with each card's position on a 1280×720 page, a How to use sheet, and a matching colour theme (.json). It does not create .pbix files, and the export drawer says so.
+- **Scrolling and fit across devices:**
+  - The **Hub** scrolls as a normal page on phones, tablets and desktops, with the post form staying beside it on large screens.
+  - Hub tabs, KPI Library category filters and AI Analyst suggestions wrap instead of hiding off-screen.
+  - Every app page was checked at 390, 820, 1024 and 1366 px. None scrolls sideways, has buttons cut off, or has a box that scrolls inside the page.
+
+### Builder canvas: dot grid, real free movement, and a touch-friendly edit mode
+- **The Builder is a dot-grid canvas**, like a design tool. Dots mark every grid cell, and in edit mode the canvas fills the page.
+- **Real free movement.** Layouts are now saved on a fine grid of 48 columns and 24px rows.
+  - **Free** moves and sizes cards in small steps, and they stay where you drop them.
+  - **Locked to grid** edits the same layout on the classic 12-column grid, where cards snap into rows and gaps close up. Switching to Locked snaps cards to the nearest cell.
+  - Existing dashboards convert automatically. The Dashboard, Excel, Google Sheets and Power BI exports all follow the fine positions.
+- **New edit mode:**
+  - Tap or click a card to select it. A **selection bar** appears with large buttons: Edit, Duplicate, Delete, move left/up/down/right, and narrower/wider/shorter/taller.
+  - On phones the bar sits above the tab bar; on computers it floats at the bottom of the screen. The small buttons in each card's corner are gone.
+  - On touch screens only the selected card can be dragged, so swiping on other cards still scrolls the page. The resize handle shows on the selected card.
+  - With a mouse you can drag any card from anywhere on it.
+  - The keyboard works too: arrows move, Shift + arrows resize, Delete removes, Ctrl/⌘+D duplicates, Enter edits, Esc deselects.
+- **Undo and redo** (buttons and Ctrl/⌘+Z), plus an Undo button on the "Card removed" message. Moving or resizing with the bar pushes overlapping cards down instead of stacking them.
+- New and duplicated cards go to the bottom of the grid and are selected, ready to drag into place.
+
+### Builder you drag around, richer KPI cards, and a new intro
+- **The Builder is a canvas you move around by dragging.** This replaces the selection bar above.
+  - Drag the empty grid to pan, with a mouse or a finger. The scroll wheel or trackpad also pans.
+  - Ctrl/⌘ + scroll, a trackpad pinch or a two-finger pinch zooms. The zoom controls are at the bottom left (−, %, +, Fit).
+  - Fit shows the whole page width. Phones and tablets edit the same desktop layout, scaled down.
+- **Cards are click-and-drag only.**
+  - Drag a card to move it.
+  - Pull any of its four corners to resize it.
+  - Edit, Duplicate and Delete are buttons on the card. With a mouse they appear when you hover over the card. On touch screens, tap a card and they float just outside it, sized for a finger at any zoom; that card's corner handles also appear.
+  - Undo and redo still work: the buttons, Ctrl/⌘+Z, and Undo on the "Card removed" message.
+- **KPI cards show more, without overflowing.** A card shows extra detail only when it has room, so small cards stay clean and larger cards tell more:
+  - The value with its change, for example "+1.2% vs 97.2% last period". The arrow follows the direction of the change and the colour shows whether that is good or bad, so "Late shipments −12%" is a green down arrow.
+  - One plain sentence on why the KPI moved, or what it measures.
+  - Two slim bars comparing last period with now.
+  - On tall cards, a "Next step".
+  - "Last period" is worked out from the card's own value and change (`shared/kpi-detail.ts`). The "Previous", "Benchmark" and "Target" fields used to repeat the current value; they now show the real previous value, the change, or "Not set". The sparkline, which drew the same sample trend on every KPI, has been replaced by the comparison bars.
+- **New homepage intro (about 2.3s, down from 4.7s).**
+  - On a first visit, the loading screen paints the intro's dark dot grid, so loading flows straight into the intro.
+  - A five-partner chain draws itself, one link flickers red, a teal pulse fixes it, and the chain folds into the logo.
+  - The logo then flies to its place in the header while the dark layer opens from the centre. The hero plays its entrance as it is revealed, and the hero preview starts its demo only once the intro is done.
+  - Tap, click, Esc, Enter or Skip opens it straight away. It shows once per browser (`ciq_intro_seen_v3`), so visitors who saw the old intro see the new one once.
+  - It never plays with reduced motion or `?nointro`.
+
 ## Environment variables
 
 | Variable | Needed for | Default |

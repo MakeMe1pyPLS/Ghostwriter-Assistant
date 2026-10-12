@@ -195,7 +195,7 @@ export default function OnboardingPage() {
     targetKpi: savedProfile?.targetKpi,
     targetValue: savedProfile?.targetValue ?? '',
     timeframeDays: savedProfile?.timeframeDays ?? 90,
-    hasPartners: savedProfile ? savedProfile.partners.length > 0 : undefined,
+    hasPartners: savedProfile ? (savedProfile.partners?.length ?? 0) > 0 : undefined,
     partners: savedProfile?.partners ?? [],
     dataStatus: savedProfile?.dataStatus === 'uploaded' ? undefined : savedProfile?.dataStatus,
   }));

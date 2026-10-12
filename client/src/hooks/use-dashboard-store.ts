@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { type DashboardData, defaultDashboard } from '@/lib/dashboard-grid';
+import { type DashboardData, defaultDashboard, fineToClassic } from '@/lib/dashboard-grid';
 import { type ManagedDataset, MAX_PERSISTED_ROWS } from '@/lib/dataset-library';
 
 export type Sector = 'ecommerce' | 'logistics' | 'manufacturing' | 'unified' | 'custom';
@@ -100,7 +100,7 @@ interface DashboardState {
 
   // Dashboard layout/widget persistence
   ensureDashboardLoaded: (sector: string) => void;
-  saveDashboard: (sector: string, layout: any[], widgets: any[]) => void;
+  saveDashboard: (sector: string, layout: any[], widgets: any[], opts?: { arrange?: 'locked' | 'free'; grid?: 'fine' }) => void;
   resetDashboard: (sector: string) => void;
 
   // Auth actions
@@ -308,12 +308,12 @@ export const useDashboardStore = create<DashboardState>()(
         }
         set(state => ({ dashboards: { ...state.dashboards, [sector]: data! } }));
       },
-      saveDashboard: (sector, layout, widgets) => {
-        set(state => ({ dashboards: { ...state.dashboards, [sector]: { layout, widgets, savedAt: Date.now() } } }));
-        // Mirror to the legacy keys so the Export Center and dashboard-spec readers
-        // that still read raw localStorage keep working.
+      saveDashboard: (sector, layout, widgets, opts) => {
+        set(state => ({ dashboards: { ...state.dashboards, [sector]: { ...state.dashboards[sector], layout, widgets, grid: opts?.grid, savedAt: Date.now(), ...(opts?.arrange ? { arrange: opts.arrange } : {}) } } }));
+        // Mirror to the legacy keys (classic 12-column units) so the Export Center
+        // and dashboard-spec readers that still read raw localStorage keep working.
         try {
-          localStorage.setItem(`layout_${sector}`, JSON.stringify(layout));
+          localStorage.setItem(`layout_${sector}`, JSON.stringify(opts?.grid === 'fine' ? fineToClassic(layout) : layout));
           localStorage.setItem(`widgets_${sector}`, JSON.stringify(widgets));
         } catch {
           /* storage may be unavailable; store state is still the source of truth */
@@ -361,7 +361,11 @@ export const useDashboardStore = create<DashboardState>()(
         set({ currentUser: user, isDemoMode: false });
         return user;
       },
-      signOut: () => set({ currentUser: null, isDemoMode: false }),
+      signOut: () => {
+        set({ currentUser: null, isDemoMode: false });
+        // Account sync (lib/cloud-sync) listens for this to end the server session and clear this browser.
+        if (typeof window !== 'undefined') window.dispatchEvent(new Event('ciq-sign-out'));
+      },
       verifyEmail: () => set(state => ({
         currentUser: state.currentUser ? { ...state.currentUser, emailVerified: true } : null,
       })),

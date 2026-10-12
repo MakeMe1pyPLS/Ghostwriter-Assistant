@@ -22,6 +22,8 @@ import CheckoutStripeMockPage from "@/pages/checkout-stripe-mock";
 import SignInPage from "@/pages/sign-in";
 import SignUpPage from "@/pages/sign-up";
 import VerifyEmailPage from "@/pages/verify-email";
+import ResetPasswordPage from "@/pages/reset-password";
+import { startCloudSync } from "@/lib/cloud-sync";
 
 const pageLoaders = {
   BuilderPage: () => import("@/pages/builder"),
@@ -122,6 +124,7 @@ function Router() {
       <Route path="/signup" component={SignUpPage} />
       <Route path="/register" component={SignUpPage} />
       <Route path="/verify-email" component={VerifyEmailPage} />
+      <Route path="/reset-password" component={ResetPasswordPage} />
       <Route path="/welcome">
         <Suspense fallback={<PageLoader />}><OnboardingPage /></Suspense>
       </Route>
@@ -203,6 +206,8 @@ function Router() {
 
 function App() {
   usePrefetchPages();
+  // Accounts: restore the session, handle email links, keep workspaces synced.
+  useEffect(() => { startCloudSync(); }, []);
   return (
     <QueryClientProvider client={queryClient}>
       <MotionConfig reducedMotion="user">

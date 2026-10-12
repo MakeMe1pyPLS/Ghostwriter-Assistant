@@ -126,7 +126,7 @@ export default function KpiLibraryPage() {
               </optgroup>
             ))}
           </select>
-          <div className="flex gap-1.5 overflow-x-auto max-w-full pb-1 -mb-1">
+          <div className="flex flex-wrap gap-1.5 max-w-full">
             {(['all', ...CATEGORIES] as const).map((c) => (
               <button key={c} onClick={() => setCategory(c)} aria-pressed={category === c}
                 className={`relative h-10 px-3.5 rounded-xl text-xs font-black uppercase tracking-widest whitespace-nowrap transition-colors ${category === c ? 'text-white' : 'bg-white border border-slate-200 text-slate-500 hover:text-slate-900'}`}>

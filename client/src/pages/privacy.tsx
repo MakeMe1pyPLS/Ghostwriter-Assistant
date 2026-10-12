@@ -12,7 +12,7 @@ export default function PrivacyPage() {
               <span className="text-xs font-black uppercase tracking-widest">Legal</span>
             </div>
             <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tighter mb-4">Privacy Policy</h1>
-            <p className="text-slate-500">Last updated: March 2026</p>
+            <p className="text-slate-500">Last updated: October 2026</p>
           </div>
         </section>
 
@@ -45,7 +45,11 @@ export default function PrivacyPage() {
               </div>
               <div>
                 <h2 className="text-xl font-black text-slate-900 mb-3">4. Data Security</h2>
-                <p className="text-slate-600 leading-relaxed">Connections to ChainInsideIQ are encrypted with HTTPS. At present, your workspace data (such as growth plans, actions, collabs and imported datasets) is stored locally in your browser on your device, and clearing your browser data removes it. When we introduce server-side accounts, we will update this policy to describe how that data is stored and protected.</p>
+                <p className="text-slate-600 leading-relaxed mb-3">Connections to ChainInsideIQ are encrypted with HTTPS.</p>
+                <ul className="list-disc pl-6 text-slate-600 space-y-2">
+                  <li><strong>With an account:</strong> your account details and workspace data (growth plans, actions, consult sessions, client workspaces, collabs, imported datasets and dashboards) are stored in our database, hosted by Supabase in the United States. Database rules make sure each account can only read and change its own data. Passwords are handled by Supabase Auth and are never stored in plain text. A copy is also kept in your browser so the app is fast and works offline; signing out removes that copy from the browser.</li>
+                  <li><strong>Without an account</strong> (for example in the demo): your workspace data stays in your browser on your device, and clearing your browser data removes it.</li>
+                </ul>
               </div>
               <div>
                 <h2 className="text-xl font-black text-slate-900 mb-3">5. Data Retention</h2>
@@ -53,7 +57,7 @@ export default function PrivacyPage() {
               </div>
               <div>
                 <h2 className="text-xl font-black text-slate-900 mb-3">6. Third-Party Sharing</h2>
-                <p className="text-slate-600 leading-relaxed">We do not sell your personal data. We share data with service providers who help operate the platform, such as hosting providers. When you use AI features, the relevant business metrics, plan details and your question are sent to the AI provider selected for that request (Anthropic, OpenAI or Google) to generate a response; their handling of that data is governed by their own terms and policies. If you connect Microsoft Teams, Google Chat or Slack, the messages you choose to send are delivered to that service.</p>
+                <p className="text-slate-600 leading-relaxed">We do not sell your personal data. We share data with service providers who help operate the platform: Vercel (website hosting) and Supabase (accounts and database). When you use AI features, the relevant business metrics, plan details and your question are sent to the AI provider selected for that request (Anthropic, OpenAI or Google) to generate a response; their handling of that data is governed by their own terms and policies. If you connect Microsoft Teams, Google Chat or Slack, the messages you choose to send are delivered to that service.</p>
               </div>
               <div>
                 <h2 className="text-xl font-black text-slate-900 mb-3">7. Your Rights</h2>
