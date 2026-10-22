@@ -312,6 +312,18 @@ The rule-based analyst, dashboard generator, exporters, KPI library and plan bui
   - "Tidy up (close gaps)" in the ⋯ menu packs everything together, and Undo reverses it.
 - **Gauge fix:** gauges now show the real percentage instead of a made-up fallback.
 
+### Fulfillment (prototype) for 3PLs and the brands they serve
+A new **Operate → Fulfillment** page. It is a clickable prototype on **sample data** (every screen says so), with Apparel and Supplements as the two niches.
+- **Overview.** Four plain-language numbers, then an **AI insight** that names the bottleneck and says what, why, how to fix it, when, and one next step. Below it is the fulfillment flow (Receiving → Pick → Pack → Ship → Returns) with the problem stage marked, and a health card for each zone. Tap a zone for its numbers and what to do.
+  - The insight comes from the built-in analyst (`shared/fulfillment.ts`), so it works with no keys and no server. It is not a live AI engine yet.
+  - Status is always shown with an icon and a word as well as a colour.
+  - The zone cards sit behind one interface (`ZoneViewProps`), so an isometric floor illustration can replace them later without touching anything else.
+- **Orders board.** Status tabs with counts, a "late orders only" switch, and a detail panel (a bottom sheet on phones) with a progress stepper, timing against the limit, package details (actual, size-based and billed weight) and the items in the box, with lot and expiry for supplements.
+- **Load check.** Pick a cargo van, cutaway box truck or 53' trailer, then type a total weight and volume or upload a CSV. It shows % full by weight and by volume, says which limit is hit first, and warns from 85%. Columns are matched automatically and you check a preview (with problems listed by line) before anything is used. It is labeled as an **estimate**: typical vehicle limits, perfect packing assumed, no pallet layout. Excel files must be saved as CSV first (Excel upload is coming soon).
+- **Niche modules.** Apparel: stock by size and color with low and out flags, and returns by reason. Supplements: lots listed first-expiry-first-out, and subscription boxes for the next 7 days.
+- **Clients.** The 3PL chooses what each client can see (orders, stock, returns, bottleneck insight) and previews exactly that. A client only ever gets its own rows; anything not shared shows as locked. Sending real invitations is **coming soon**.
+- **Not included yet:** map, desktop app, live data connections (Shopify, ShipStation, GPS), saved load lists.
+
 ## Environment variables
 
 | Variable | Needed for | Default |
