@@ -498,10 +498,15 @@ export interface LoadImport {
   volumeComplete: boolean;
 }
 
+/** Comma, tab or semicolon, whichever the header row uses most. */
+export function delimiterOf(text: string): string {
+  const first = text.replace(/^﻿/, "").split(/\r?\n/, 1)[0] ?? "";
+  return [",", "\t", ";"].map((d) => [d, first.split(d).length] as const).sort((a, b) => b[1] - a[1])[0][0];
+}
+
 export function splitCsv(text: string): string[][] {
   const t = text.replace(/^﻿/, "");
-  const first = t.split(/\r?\n/, 1)[0] ?? "";
-  const delim = [",", "\t", ";"].map((d) => [d, first.split(d).length] as const).sort((a, b) => b[1] - a[1])[0][0];
+  const delim = delimiterOf(t);
   const rows: string[][] = [];
   let row: string[] = [];
   let cell = "";
@@ -536,14 +541,22 @@ const SYN: Record<keyof LoadImport["mapping"], RegExp> = {
   volume: /volume|cu ?ft|cubic|cbm|m3/,
 };
 
-const num = (s: string | undefined) => {
+/**
+ * Reads a number from a cell. In semicolon files a comma is the decimal mark
+ * ("1,5" is 1.5 and "1.250,5" is 1250.5); otherwise commas are thousands
+ * separators. An empty cell is "missing" (NaN), not zero.
+ */
+const num = (s: string | undefined, decimalComma = false) => {
   if (s === undefined) return NaN;
-  const v = Number(String(s).replace(/[,\s]/g, ""));
+  const t = String(s).trim().replace(/\s/g, "");
+  if (t === "") return NaN;
+  const v = Number(decimalComma ? t.replace(/\./g, "").replace(",", ".") : t.replace(/,/g, ""));
   return Number.isFinite(v) ? v : NaN;
 };
 
 export function parseLoadCsv(text: string): LoadImport {
   const table = splitCsv(text);
+  const dc = delimiterOf(text) === ";";
   const empty: LoadImport = { rows: [], issues: [], mapping: { description: null, qty: null, weight: null, length: null, width: null, height: null, volume: null }, totalWeightLb: 0, totalVolumeCuFt: 0, volumeComplete: true };
   if (table.length < 2) return { ...empty, issues: [{ line: 1, level: "error", text: "The file needs a header row and at least one item." }] };
   const headers = table[0].map((h) => h.trim());
@@ -573,9 +586,9 @@ export function parseLoadCsv(text: string): LoadImport {
     const cells = table[r];
     const line = r + 1;
     const desc = col.description !== undefined ? (cells[col.description] ?? "").trim() : `Row ${r}`;
-    const qtyRaw = col.qty !== undefined ? num(cells[col.qty]) : 1;
+    const qtyRaw = col.qty !== undefined ? num(cells[col.qty], dc) : 1;
     const qty = Number.isNaN(qtyRaw) ? NaN : qtyRaw;
-    const w = num(cells[col.weight]);
+    const w = num(cells[col.weight], dc);
     if (Number.isNaN(w)) { issues.push({ line, level: "error", text: `${desc || "Row"}: weight is missing or not a number, so this row was skipped.` }); continue; }
     if (w <= 0) { issues.push({ line, level: "error", text: `${desc || "Row"}: weight must be more than 0, so this row was skipped.` }); continue; }
     if (Number.isNaN(qty) || qty <= 0 || !Number.isInteger(qty)) { issues.push({ line, level: "error", text: `${desc || "Row"}: quantity must be a whole number above 0, so this row was skipped.` }); continue; }
@@ -583,12 +596,12 @@ export function parseLoadCsv(text: string): LoadImport {
     if (totalWeight) wLb = wLb / qty;
     if (wLb > 5000) issues.push({ line, level: "warning", text: `${desc || "Row"}: ${Math.round(wLb)} lb for one item is very heavy. Check the unit.` });
     let vol: number | null = null;
-    if (col.volume !== undefined && !Number.isNaN(num(cells[col.volume])) && num(cells[col.volume]) > 0) {
-      vol = num(cells[col.volume]) * volToCuFt;
+    if (col.volume !== undefined && !Number.isNaN(num(cells[col.volume], dc)) && num(cells[col.volume], dc) > 0) {
+      vol = num(cells[col.volume], dc) * volToCuFt;
     } else if (col.length !== undefined && col.width !== undefined && col.height !== undefined) {
-      const L = num(cells[col.length]) * dimUnit("length");
-      const W = num(cells[col.width]) * dimUnit("width");
-      const H = num(cells[col.height]) * dimUnit("height");
+      const L = num(cells[col.length], dc) * dimUnit("length");
+      const W = num(cells[col.width], dc) * dimUnit("width");
+      const H = num(cells[col.height], dc) * dimUnit("height");
       if ([L, W, H].every((x) => Number.isFinite(x) && x > 0)) vol = (L * W * H) / 1728;
     }
     if (vol === null) issues.push({ line, level: "warning", text: `${desc || "Row"}: no size, so its volume isn't counted.` });
