@@ -4,3 +4,16 @@ dist
 server/public
 vite.config.ts.*
 *.tar.gz
+# Replit and other tool leftovers (never commit)
+.local/
+.replit
+replit.md
+replit.nix
+.config/
+.upm/
+attached_assets/
+
+# Secrets
+.env
+.env.*
+!.env.example

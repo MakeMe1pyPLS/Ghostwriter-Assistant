@@ -9,3 +9,7 @@ Powered by three AI engines (Claude, ChatGPT and Gemini) with a built-in analyst
 - Shared logic (`shared/`): KPI library, growth plans, rule-based analyst, exporters
 
 See `PHASE-1-CHANGES.md` for setup, environment variables and deployment.
+
+## Licence
+
+All rights reserved. The code is public so it can be read, not reused. See `LICENSE`.
