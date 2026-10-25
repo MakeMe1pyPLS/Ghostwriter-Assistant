@@ -134,6 +134,12 @@ Rules:
 - The arrow follows the direction of the change; the colour shows whether the change is good or bad.
 - Only show numbers the card actually has. Never repeat the current value as a "previous", "benchmark" or "target".
 
+### Fulfillment screens
+- Status is never colour alone: pair green, amber and red with an icon and a word (On pace, Watch, Bottleneck).
+- Sample data is labeled with the "Sample data" badge next to the page title.
+- Orders and zones open in a drawer or bottom sheet on phones, and in a side panel on desktop.
+- Estimates (like the Load check) say "Estimate only" and explain what they assume.
+
 ## Voice and copy
 - Name things the way customers say them ("Growth Plan", "Bottlenecks", "Collabs"), not system terms.
 - Buttons say what happens ("Build my plan", "Send invite").

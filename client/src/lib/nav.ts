@@ -3,7 +3,7 @@
 import {
   Target, BrainCircuit, BookOpen, LayoutDashboard, AlertOctagon, Lightbulb, Workflow,
   Handshake, MessageSquare, Wrench, Sparkles, Wand2, Database, Plug, Download,
-  Users, Bell, Activity, KeyRound, Settings, Presentation, Briefcase,
+  Users, Bell, Activity, KeyRound, Settings, Presentation, Briefcase, Warehouse,
 } from "lucide-react";
 import type { FeatureKey } from "@/lib/pricing";
 
@@ -31,6 +31,12 @@ export const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
     items: [
       { name: "AI Consultant", href: "/consult", icon: Presentation, description: "Pricing, cash, growth & more sessions", keywords: "consultant session swot pricing cash flow hiring strategy advice" },
       { name: "Clients", href: "/clients", icon: Briefcase, description: "Workspaces for each client", feature: "client-workspaces", keywords: "consultant agency client workspace report engagement" },
+    ],
+  },
+  {
+    label: "Operate",
+    items: [
+      { name: "Fulfillment", href: "/fulfillment", icon: Warehouse, description: "Orders, zones & client sharing", keywords: "3pl warehouse orders pick pack ship returns load truck vehicle apparel supplements" },
     ],
   },
   {
