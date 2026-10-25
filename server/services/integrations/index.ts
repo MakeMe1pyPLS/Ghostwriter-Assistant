@@ -12,5 +12,5 @@ export const INTEGRATION_REGISTRY = [
   { id: 'google-sheets', name: 'Google Sheets', status: 'coming-soon' as const, adapter: 'GoogleSheetsAdapter' },
   { id: 'powerbi', name: 'Power BI', status: 'coming-soon' as const, adapter: 'PowerBIAdapter' },
   { id: 'tableau', name: 'Tableau', status: 'coming-soon' as const, adapter: 'TableauAdapter' },
-  { id: 'custom-api', name: 'Custom API', status: 'active' as const, adapter: 'CustomApiAdapter' },
+  { id: 'custom-api', name: 'Custom API', status: 'coming-soon' as const, adapter: 'CustomApiAdapter' },
 ];
