@@ -25,7 +25,7 @@ const APP: Record<string, string> = {
   "/plan": "Growth Plan", "/app": "Growth Plan", "/onboarding": "AI interview", "/welcome": "AI interview",
   "/dashboard": "Dashboard", "/builder": "Builder", "/insights": "AI Analyst", "/bottlenecks": "Bottlenecks",
   "/recommendations": "Recommendations", "/pipeline": "Pipeline", "/hub": "Hub", "/collabs": "Collabs",
-  "/kpis": "KPI Library", "/fulfillment": "Fulfillment", "/consult": "AI Consultant", "/clients": "Clients", "/connectors": "Connectors",
+  "/kpis": "KPI Library", "/fulfillment": "Fulfillment", "/design": "Design system", "/consult": "AI Consultant", "/clients": "Clients", "/connectors": "Connectors",
   "/exports": "Exports", "/data": "Data sources", "/generate": "Generate a dashboard", "/enhance": "Enhance a dashboard",
   "/settings": "Settings", "/verify-email": "Verify your email", "/reset-password": "Reset password",
   "/checkout/success": "You're in", "/checkout/cancel": "Checkout cancelled",

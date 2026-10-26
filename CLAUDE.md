@@ -1,6 +1,6 @@
 # ChainInsideIQ — project brief
 
-Read this before changing anything. It is the "setup" every AI assistant and developer works from. `docs/BRAND.md` holds the visual and motion rules; `shared/analyst-framework.ts` holds the business method the AI Analyst follows.
+Read this before changing anything. It is the "setup" every AI assistant and developer works from. `docs/BRAND.md` holds the visual, motion and data-visualization rules (shared parts live in `client/src/components/ds/`, previewed at `/design`); `shared/analyst-framework.ts` holds the business method the AI Analyst follows.
 
 ## Mission
 Be the most helpful business tool a company can have: turn a goal into a step-by-step plan, find the bottlenecks holding the business back, and help fix them together with the partners it depends on.

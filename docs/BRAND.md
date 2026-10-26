@@ -140,6 +140,29 @@ Rules:
 - Orders and zones open in a drawer or bottom sheet on phones, and in a side panel on desktop.
 - Estimates (like the Load check) say "Estimate only" and explain what they assume.
 
+## Data visualization
+Charts and status marks use the tokens in `client/src/styles/tokens.css` (`--chart-*`) and the parts in `client/src/components/ds/`. A hidden preview of every part, in light and dark, is at `/design` (unlinked, noindex, sample data only).
+
+**Rules**
+- Pick the form from the question first, then the colour. Single-series charts use the accent (`--chart-1`). A series colour is assigned by what the series is, in fixed order, never cycled.
+- Thin marks: lines 2px, bars at most 24px with a 4px rounded data end, area wash about 10%, hairline solid gridlines, a 2px surface ring around end dots.
+- Label selectively (the latest value, the target). No number on every point. Axis and legend text use ink (`--chart-label`), never a series colour.
+- Hover or focus shows a tooltip. Every chart has a Table view (`ChartFrame`) so no value depends on hovering.
+- One axis. No dual-axis charts. A donut only for four slices or fewer.
+- Status is never colour alone: icon, word and colour together (`StatusChip`). Status colours are reserved and never reused as series colours.
+- Motion: numbers count up once (`useCountUp`), lines and bars draw in once, nothing loops. `prefers-reduced-motion` shows the final state.
+- Demo values are always labelled "Sample data" (`SampleBadge`). A target marker says whose target it is ("Your target"); do not imply an industry average that is not sourced.
+
+**Palette**
+- Categorical, light: `#0e9486`, `#e0561f`, `#5b4bd1`, `#c2417a`. Dark: `#12a596`, `#d95926`, `#9085e9`, `#d55181`.
+- Status marks: good `#059669` (dark `#34d399`), watch `#d97706` (dark `#fbbf24`), problem `#e11d48` (dark `#fb7185`).
+- Sequential (magnitude): the six-step teal ramp `--chart-seq-1..6`, reversed in dark mode so darker still means more.
+- Checked with the dataviz validator: lightness band, chroma, colour-blind separation of neighbouring pairs, normal-vision separation and 3:1 contrast all pass in light and dark. Worst colour-blind pair: 13.6 (light) and 13.7 (dark) on the OKLab x100 scale. The check used the validator's default surfaces, not the app's exact `#ffffff` / `#0D131E`; re-run it if the palette changes.
+
+**Parts** (`client/src/components/ds/`): `KpiCard`, `Sparkline`, `ChartFrame`, `TrendChart`, `TargetGauge`, `HeatStrip`, `PipelineFlow`, `BottleneckCard`, `SeverityRow`, `ActionCard`, `ImpactEffort`, `IndustryCard`, `EmptyState`, `StatusChip`, `SampleBadge`.
+
+**Illustrations**: one style. 160x110 viewBox, 2.5px round strokes, teal (`currentColor`) with ink, flat fills at 12% opacity, no gradients, no shadows, always `aria-hidden`. Six exist in `illustrations.tsx`: logistics, warehouse, e-commerce, manufacturing, retail, generic. Never draw a known brand, logo or person.
+
 ## Voice and copy
 - Name things the way customers say them ("Growth Plan", "Bottlenecks", "Collabs"), not system terms.
 - Buttons say what happens ("Build my plan", "Send invite").
