@@ -41,3 +41,21 @@ Phase 2 makes the analysis screens easier to read at a glance. Same data, same f
 - New `client/src/components/viz.tsx` holds the shared pieces.
 - New helpers in `components/analyst/operations-shared.tsx`: `fixStageIndex`, `trackedStatus`, `effortOf`, `TIMING`, `IMPACT_SCORE`, `FIX_STAGES`.
 - `tsconfig.json` now sets `target: ES2022`, so `npm run check` passes (it had 18 errors about iterating Maps and Sets).
+
+## Fulfillment illustrations
+
+### Load check (`/fulfillment` → Load check)
+- New side-view drawings of a cargo van, a cutaway box truck and a 53' trailer.
+- The cargo area splits into one block per line of your load, as wide as that line's share of the vehicle. Switch between **by weight** and **by volume**. Lines with no size are left out of the volume view, and the screen says so.
+- Totals cards (by weight, room left, by volume, on board) and a table of lines. Tap a block or a row to highlight the other.
+- **Try an example load** fills it with made-up lines.
+- Still an estimate: blocks show how much of the vehicle each line uses, not where it goes.
+
+### Warehouse floor (`/fulfillment` → Overview)
+- A 3D-style floor with the five zones in the order work flows. Floor colour shows health, and each zone's pin shows its name, how many are waiting, and On pace / Watch / Bottleneck.
+- The cartons on each zone are drawn to scale with the work waiting there (the busiest zone shows 12).
+- Tap a zone (or its row underneath) to open the same drawer as before. Switch back to the cards with **Floor / Cards**. Your choice is remembered.
+
+### Orders (`/fulfillment` → Orders)
+- Each order card and the detail panel shows a small drawing of where the order is: in the queue, on the shelf, on the packing bench, boxed and waiting, with the carrier, or coming back.
+- Cards sit two to a row on wide screens.
