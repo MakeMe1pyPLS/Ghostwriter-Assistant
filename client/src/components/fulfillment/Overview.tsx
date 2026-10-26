@@ -5,7 +5,8 @@
 // illustration later, build a component that takes the same props (zones,
 // selectedId, onSelect) and pass it as `ZoneView` to <Overview/>. Nothing else
 // changes: the flow, the drawer and the insight all read the same data.
-import { ArrowRight, ChevronRight, Lightbulb, Target, HelpCircle, Wrench, Clock } from "lucide-react";
+import { useState } from "react";
+import { ArrowRight, ChevronRight, Lightbulb, Target, HelpCircle, Wrench, Clock, Box, LayoutGrid } from "lucide-react";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Stagger, StaggerItem } from "@/components/motion";
@@ -14,6 +15,7 @@ import {
   APPAREL_RETURNS, SUPPLEMENT_LOTS, type FulfillmentData, type FulfillmentInsight, type ZoneId, type ZoneStat,
 } from "@shared/fulfillment";
 import { Card, HealthBadge, Sparkline, TONE, hrs, SectionTitle } from "./parts";
+import { WarehouseIso } from "./WarehouseIso";
 
 export interface ZoneViewProps {
   zones: ZoneStat[];
@@ -52,7 +54,7 @@ export function KpiStrip({ data }: { data: FulfillmentData }) {
           <div className="h-full rounded-2xl border border-slate-200 bg-white px-4 py-3" data-testid={`ff-kpi-${k.label.split(" ")[0].toLowerCase()}`}>
             <p className={cn("text-2xl font-black tabular-nums leading-tight", (k as any).warn ? "text-warning" : "text-slate-900")}>{k.value}</p>
             <p className="text-[12px] font-bold text-slate-700 leading-tight">{k.label}</p>
-            <p className="text-[11px] text-slate-500 mt-0.5">{k.sub}</p>
+            <p className="text-xs text-slate-500 mt-0.5">{k.sub}</p>
           </div>
         </StaggerItem>
       ))}
@@ -84,14 +86,14 @@ export function FlowStrip({ zones, selectedId, onSelect }: ZoneViewProps) {
                 data-testid={`ff-flow-${z.id}`}
               >
                 <span className="flex items-center justify-between gap-2">
-                  <span className="text-[11px] font-black uppercase tracking-widest text-slate-500">{i + 1}. {z.name}</span>
+                  <span className="text-xs font-bold text-slate-500">{i + 1}. {z.name}</span>
                   <Icon className={cn("w-4 h-4 shrink-0", t.text)} aria-hidden />
                 </span>
                 <span className="flex items-baseline gap-1.5 mt-0.5">
                   <span className="text-xl font-black tabular-nums text-slate-900">{z.queue}</span>
-                  <span className="text-[11px] text-slate-500 truncate">waiting</span>
+                  <span className="text-xs text-slate-500 truncate">waiting</span>
                 </span>
-                {z.health !== "ok" && <span className={cn("text-[11px] font-black", t.text)}>{t.label}</span>}
+                {z.health !== "ok" && <span className={cn("text-xs font-black", t.text)}>{t.label}</span>}
               </button>
               {i < zones.length - 1 && (
                 <span className="hidden sm:flex items-center px-1 text-slate-400" aria-hidden><ChevronRight className="w-4 h-4" /></span>
@@ -134,7 +136,7 @@ export function ZoneCards({ zones, selectedId, onSelect }: ZoneViewProps) {
               <span className="text-[13px] font-bold text-slate-600">{z.queueLabel}</span>
             </div>
             <div className="mt-3">
-              <div className="flex justify-between text-[11px] font-bold text-slate-600 mb-1">
+              <div className="flex justify-between text-xs font-bold text-slate-600 mb-1">
                 <span>Pace: {z.throughput}/hr</span>
                 <span>Target: {z.target}/hr</span>
               </div>
@@ -144,7 +146,7 @@ export function ZoneCards({ zones, selectedId, onSelect }: ZoneViewProps) {
             </div>
             <div className="mt-3">
               <Sparkline values={z.trend} tone={z.health} label={`${z.name} pace over the last 7 days`} />
-              <p className="text-[11px] text-slate-500 mt-0.5">Pace over the last 7 days</p>
+              <p className="text-xs text-slate-500 mt-0.5">Pace over the last 7 days</p>
             </div>
             <p className={cn("text-[12px] font-semibold mt-3", z.health === "ok" ? "text-slate-600" : t.text)}>{z.reason}</p>
           </button>
@@ -179,22 +181,22 @@ export function ZoneDrawer({ zone, insight, onClose }: { zone: ZoneStat | null; 
                   { l: "Average wait", v: hrs(zone.dwellHrs), s: `Goal ${hrs(zone.dwellTargetHrs)} or less` },
                 ].map((k) => (
                   <div key={k.l} className="rounded-xl border border-slate-200 bg-white p-3">
-                    <p className="text-[11px] font-bold text-slate-500">{k.l}</p>
+                    <p className="text-xs font-bold text-slate-500">{k.l}</p>
                     <p className="text-xl font-black tabular-nums text-slate-900">{k.v}</p>
-                    <p className="text-[11px] text-slate-500">{k.s}</p>
+                    <p className="text-xs text-slate-500">{k.s}</p>
                   </div>
                 ))}
               </div>
               <div>
-                <p className="text-[11px] font-black uppercase tracking-widest text-slate-500 mb-1">Pace, last 7 days</p>
+                <p className="text-xs font-bold text-slate-500 mb-1">Pace, last 7 days</p>
                 <Sparkline values={zone.trend} tone={zone.health} label={`${zone.name} pace over the last 7 days`} className="h-16" />
               </div>
               <div className={cn("rounded-xl border p-3", TONE[zone.health].box)}>
-                <p className={cn("text-[11px] font-black uppercase tracking-widest mb-1", TONE[zone.health].text)}>What the numbers say</p>
+                <p className={cn("text-xs font-bold mb-1", TONE[zone.health].text)}>What the numbers say</p>
                 <p className="text-sm font-semibold text-slate-800">{zone.reason}</p>
               </div>
               <div className="rounded-xl border border-teal-200 bg-teal-50/60 p-3 dark:border-teal-400/30 dark:bg-teal-400/10">
-                <p className="text-[11px] font-black uppercase tracking-widest text-teal-700 dark:text-teal-300 mb-1 flex items-center gap-1"><Lightbulb className="w-3.5 h-3.5" aria-hidden /> Recommendation</p>
+                <p className="text-xs font-bold text-teal-700 dark:text-teal-300 mb-1 flex items-center gap-1"><Lightbulb className="w-3.5 h-3.5" aria-hidden /> Recommendation</p>
                 {isPick ? (
                   <ol className="list-decimal pl-5 space-y-1 text-sm font-semibold text-slate-800">
                     {insight.how.map((s) => <li key={s}>{s}</li>)}
@@ -225,7 +227,7 @@ export function InsightCard({ insight, audience = "team" }: { insight: Fulfillme
     <Card className={cn("space-y-4", insight.health === "bottleneck" && "border-danger-line")} data-testid="ff-insight">
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div className="min-w-0">
-          <p className="text-[10px] font-black uppercase tracking-widest text-primary">AI insight</p>
+          <p className="text-xs font-bold text-primary">AI insight</p>
           <h2 className="text-xl font-black tracking-tight text-slate-900 text-balance">{insight.headline}</h2>
         </div>
         <HealthBadge health={insight.health} />
@@ -233,13 +235,13 @@ export function InsightCard({ insight, audience = "team" }: { insight: Fulfillme
       <div className="grid md:grid-cols-2 gap-3">
         {blocks.map((b) => (
           <div key={b.label} className="rounded-xl border border-slate-100 bg-[#F4F7FA] p-3.5 dark:border-white/10 dark:bg-white/5">
-            <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 flex items-center gap-1.5 mb-1"><b.icon className="w-3.5 h-3.5" aria-hidden /> {b.label}</p>
+            <p className="text-xs font-bold text-slate-500 flex items-center gap-1.5 mb-1"><b.icon className="w-3.5 h-3.5" aria-hidden /> {b.label}</p>
             <p className="text-sm text-slate-700 leading-relaxed">{b.text}</p>
           </div>
         ))}
       </div>
       <div className="rounded-xl border border-slate-100 bg-[#F4F7FA] p-3.5 dark:border-white/10 dark:bg-white/5">
-        <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 flex items-center gap-1.5 mb-1"><Wrench className="w-3.5 h-3.5" aria-hidden /> How to fix it</p>
+        <p className="text-xs font-bold text-slate-500 flex items-center gap-1.5 mb-1"><Wrench className="w-3.5 h-3.5" aria-hidden /> How to fix it</p>
         <ol className="list-decimal pl-5 space-y-1 text-sm text-slate-700 leading-relaxed">
           {insight.how.map((s) => <li key={s}>{s}</li>)}
         </ol>
@@ -248,11 +250,11 @@ export function InsightCard({ insight, audience = "team" }: { insight: Fulfillme
       <div className="rounded-xl border border-teal-200 bg-teal-50/60 p-3.5 dark:border-teal-400/30 dark:bg-teal-400/10 flex items-start gap-3" data-testid="ff-next-step">
         <ArrowRight className="w-4 h-4 text-teal-700 dark:text-teal-300 mt-1 shrink-0" aria-hidden />
         <div>
-          <p className="text-[10px] font-black uppercase tracking-widest text-teal-700 dark:text-teal-300">{audience === "client" ? "Your next step" : "Do this next"}</p>
+          <p className="text-xs font-bold text-teal-700 dark:text-teal-300">{audience === "client" ? "Your next step" : "Do this next"}</p>
           <p className="text-sm font-bold text-slate-900">{insight.nextStep}</p>
         </div>
       </div>
-      <p className="text-[11px] text-slate-500">{insight.basis}</p>
+      <p className="text-xs text-slate-500">{insight.basis}</p>
     </Card>
   );
 }
@@ -260,15 +262,21 @@ export function InsightCard({ insight, audience = "team" }: { insight: Fulfillme
 // ---- The tab ------------------------------------------------------------------
 
 export function Overview({
-  data, insight, selectedId, onSelect, ZoneView = ZoneCards,
+  data, insight, selectedId, onSelect, ZoneView,
 }: {
   data: FulfillmentData;
   insight: FulfillmentInsight;
   selectedId: ZoneId | null;
   onSelect: (id: ZoneId | null) => void;
+  /** Force one zone view. Without it the person can switch between the floor and the cards. */
   ZoneView?: ZoneViewComponent;
 }) {
   const selected = data.zones.find((z) => z.id === selectedId) ?? null;
+  const [view, setView] = useState<"floor" | "cards">(() => {
+    try { return localStorage.getItem("ciq_zone_view") === "cards" ? "cards" : "floor"; } catch { return "floor"; }
+  });
+  const pickView = (v: "floor" | "cards") => { setView(v); try { localStorage.setItem("ciq_zone_view", v); } catch { /* ignore */ } };
+  const View = ZoneView ?? (view === "floor" ? WarehouseIso : ZoneCards);
   return (
     <div className="space-y-6">
       <KpiStrip data={data} />
@@ -279,9 +287,21 @@ export function Overview({
       </section>
       <section className="space-y-3">
         <SectionTitle eyebrow="Warehouse" title="Zone health">
-          <p className="text-[12px] text-slate-500">Tap a zone for its numbers and what to do.</p>
+          <div className="flex items-center gap-3">
+            <p className="hidden md:block text-sm text-slate-500">Tap a zone for its numbers and what to do.</p>
+            {!ZoneView && (
+              <div role="radiogroup" aria-label="Zone view" className="inline-flex rounded-xl border border-slate-200 bg-white p-0.5 dark:bg-white/5 dark:border-white/10">
+                {([["floor", "Floor", Box], ["cards", "Cards", LayoutGrid]] as const).map(([v, l, I]) => (
+                  <button key={v} role="radio" aria-checked={view === v} onClick={() => pickView(v)}
+                    className={cn("h-8 px-3 rounded-lg text-sm font-bold inline-flex items-center gap-1.5", view === v ? "bg-slate-900 text-white" : "text-slate-600 hover:text-slate-900")}>
+                    <I className="w-4 h-4" aria-hidden /> {l}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </SectionTitle>
-        <ZoneView zones={data.zones} selectedId={selectedId} onSelect={(id) => onSelect(id)} />
+        <View zones={data.zones} selectedId={selectedId} onSelect={(id) => onSelect(id)} />
       </section>
       <ZoneDrawer zone={selected} insight={insight} onClose={() => onSelect(null)} />
     </div>
