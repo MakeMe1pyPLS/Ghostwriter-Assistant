@@ -3,7 +3,9 @@ import { DashboardSkeleton } from "@/components/DashboardSkeleton";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import MeasuredGrid from "@/components/MeasuredGrid";
-import { Share2, ArrowLeft, BrainCircuit, BarChart2, Wand2 } from "lucide-react";
+import { BrainCircuit, BarChart2, Pencil } from "lucide-react";
+import { ShareMenu } from "@/components/ShareMenu";
+import { appLink } from "@/lib/share";
 import { useSectorData } from "@/hooks/use-sector-data";
 import { useDashboardStore } from "@/hooks/use-dashboard-store";
 import { Button } from "@/components/ui/button";
@@ -92,23 +94,10 @@ export default function DashboardPage() {
     <AppLayout>
       <div className="p-4 sm:p-6 md:p-10 max-w-[1600px] mx-auto min-h-0 flex flex-col">
         <header className="flex flex-col xl:flex-row justify-between items-start xl:items-end gap-4 mb-6 md:mb-8 shrink-0">
-          <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-            <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full bg-white shadow-sm border border-slate-200 text-slate-500 hover:text-slate-900 shrink-0" aria-label="Back to Builder" asChild>
-              <Link href="/builder">
-                <ArrowLeft className="w-5 h-5" />
-              </Link>
-            </Button>
-            <div className="min-w-0">
-              <p className="text-[13px] font-medium text-slate-500 truncate">{greeting}{businessName ? `, ${businessName}` : ""}</p>
-              <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 tracking-[-0.035em] leading-tight">Operations Center</h1>
-              <p className="mt-1 inline-flex items-center gap-2 text-[12.5px] font-semibold text-slate-500">
-                <span className="relative flex w-2 h-2">
-                  <span className="absolute inset-0 rounded-full bg-emerald-400 animate-ping opacity-60" />
-                  <span className="relative w-2 h-2 rounded-full bg-emerald-500" />
-                </span>
-                Live · {sectorLabel}
-              </p>
-            </div>
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-slate-500 truncate">{greeting}{businessName ? `, ${businessName}` : ""}</p>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 tracking-[-0.035em] leading-tight">Dashboard</h1>
+            <p className="mt-1 text-sm text-slate-500">Your health score, top priorities and the cards you built, for {sectorLabel.toLowerCase()}.</p>
           </div>
           <div className="toolbar w-full xl:w-auto md:gap-3">
             <div className="flex items-center bg-white rounded-xl border border-slate-200 shadow-sm p-1 gap-1" role="radiogroup" aria-label="View">
@@ -121,7 +110,7 @@ export default function DashboardPage() {
                   role="radio"
                   aria-checked={o.on}
                   onClick={() => setAnalystMode(o.set)}
-                  className={`relative flex items-center gap-1.5 px-3 h-8 rounded-lg text-[12.5px] font-semibold transition-colors ${o.on ? 'text-white' : 'text-slate-500 hover:text-slate-800'}`}
+                  className={`relative flex items-center gap-1.5 px-3 h-8 rounded-lg text-sm font-semibold transition-colors ${o.on ? 'text-white' : 'text-slate-500 hover:text-slate-800'}`}
                   data-testid={o.id}
                 >
                   {o.on && <motion.span layoutId="dash-mode" className={`absolute inset-0 rounded-lg shadow-sm ${o.set ? 'bg-primary' : 'bg-slate-900'}`} transition={{ type: "spring", stiffness: 500, damping: 38 }} />}
@@ -132,19 +121,25 @@ export default function DashboardPage() {
             </div>
 
             <Button
-              variant="outline"
               onClick={() => setAiPanelOpen(true)}
-              className={`rounded-xl font-semibold text-[13px] h-10 px-4 shadow-sm border-slate-200 gap-2 ${aiPanelOpen ? 'border-primary/40 text-primary bg-primary/5' : ''}`}
+              className="rounded-xl font-bold text-sm h-10 px-4 gap-2"
               data-testid="button-ai-analyst"
             >
-              <BrainCircuit className="w-4 h-4" />
-              <span className="hidden sm:inline">Ask AI Analyst</span>
+              <BrainCircuit className="w-4 h-4" aria-hidden />
+              <span>Ask the analyst</span>
             </Button>
 
             <ExportDrawer layout={fineToClassic(rawLayout, true)} widgets={widgets} sector={sector} dateRange={dateRange} metrics={metrics} chartData={chartData} donutData={donutData} allMetrics={allMetrics} />
 
-            <Button variant="outline" className="rounded-xl font-semibold text-[13px] h-10 px-4 shadow-sm border-slate-200">
-              <Share2 className="w-4 h-4" /> <span className="hidden md:inline">Share view</span>
+            <ShareMenu size="default" label="Share" className="rounded-xl font-semibold h-10" message={() => ({
+              title: `${businessName ?? "Our"} dashboard`,
+              text: `Health score, top priorities and KPIs for ${sectorLabel.toLowerCase()}.`,
+              link: appLink("/dashboard"),
+              facts: metrics.slice(0, 4).map((m) => ({ name: m.label, value: `${m.value} (${m.trend})` })),
+            })} />
+
+            <Button variant="ghost" className="rounded-xl font-semibold text-sm h-10 px-3" asChild>
+              <Link href="/builder"><Pencil className="w-4 h-4 mr-1.5" aria-hidden /> Edit layout</Link>
             </Button>
           </div>
         </header>
@@ -153,7 +148,7 @@ export default function DashboardPage() {
           <div className="flex items-center gap-2 mb-4 shrink-0">
             <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 border border-primary/20 rounded-xl">
               <BrainCircuit className="w-3.5 h-3.5 text-primary" />
-              <span className="text-[12.5px] font-semibold text-primary">Analyst view on — advanced breakdown panels are shown below</span>
+              <span className="text-sm font-semibold text-primary">Analyst view is on. Detailed breakdowns are shown below your cards.</span>
             </div>
           </div>
         )}
@@ -165,8 +160,8 @@ export default function DashboardPage() {
             <DashboardSkeleton testId="status-dashboard-loading" />
           ) : widgets.length === 0 ? (
             <div className="h-64 flex flex-col items-center justify-center text-center bg-white rounded-3xl border border-slate-200 border-dashed">
-              <h3 className="text-lg font-bold text-slate-900 mb-2">No Widgets Configured</h3>
-              <p className="text-slate-500 text-sm mb-6">Build your dashboard first to see it here in presentation mode.</p>
+              <h3 className="text-lg font-bold text-slate-900 mb-2">Build your first dashboard</h3>
+              <p className="text-slate-500 text-sm mb-6">Add the cards you care about in the Builder and they’ll show up here.</p>
               <Button asChild>
                 <Link href="/builder">Go to Builder</Link>
               </Button>

@@ -3,6 +3,8 @@ import { Sparkles } from "lucide-react";
 import type { Metric } from "@/hooks/use-sector-data";
 import { fetchOperationsIntel, ENGINE_LABELS } from "@/lib/intel-client";
 import type { AIEngineId } from "@shared/ai-types";
+import type { ActionItem } from "@/hooks/use-growth-store";
+import { LevelPill } from "@/components/viz";
 
 // Shared types + helpers for the operations intelligence pages (Bottleneck
 // Detection, AI Recommendations, Operations Pipeline). All three project from
@@ -58,26 +60,63 @@ export const SEVERITY_STYLES: Record<
 };
 
 export function SeverityBadge({ severity }: { severity: Severity }) {
-  const s = SEVERITY_STYLES[severity];
   return (
-    <span
-      className={`inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full border ${s.badge}`}
-      data-testid={`severity-${severity}`}
-    >
-      <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />
-      {s.label}
+    <span data-testid={`severity-${severity}`}>
+      <LevelPill level={severity} />
     </span>
   );
 }
 
 export function GeneratedByBadge({ generatedBy }: { generatedBy: AIEngineId }) {
   return (
-    <span className="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-slate-400" title="The engine that produced this analysis">
-      <Sparkles className="w-3 h-3 text-teal-500" />
-      AI · {ENGINE_LABELS[generatedBy] ?? generatedBy}
+    <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500" title="The engine that produced this analysis">
+      <Sparkles className="w-3.5 h-3.5 text-teal-600" aria-hidden />
+      Analysis by {ENGINE_LABELS[generatedBy] ?? generatedBy}
     </span>
   );
 }
+
+/* ---- Derived views. Each comes from data the app really has, and the UI
+   says how it was worked out. ---- */
+
+/** The road from spotting an issue to fixing it. */
+export const FIX_STAGES = ["Spotted", "Cause found", "Fix planned", "In progress", "Fixed"] as const;
+
+/**
+ * Where an issue sits on that road. Every issue from the analyst arrives with a
+ * root cause and a recommended fix ("Fix planned"). Tracking it as actions moves
+ * it on: any action started or finished → "In progress", all done → "Fixed".
+ */
+export function fixStageIndex(item: OperationsIntelItem, actions: Pick<ActionItem, "source" | "sourceRef" | "status">[]): number {
+  const mine = actions.filter((a) => a.source === "bottleneck" && a.sourceRef === item.title);
+  if (mine.length && mine.every((a) => a.status === "done")) return 4;
+  if (mine.some((a) => a.status !== "todo")) return 3;
+  if (item.recommendedAction) return 2;
+  if (item.rootCause) return 1;
+  return 0;
+}
+
+/** Board status of an issue's tracked actions, if any. */
+export function trackedStatus(item: OperationsIntelItem, actions: Pick<ActionItem, "source" | "sourceRef" | "status">[]): "untracked" | "todo" | "doing" | "done" {
+  const mine = actions.filter((a) => a.source === "bottleneck" && a.sourceRef === item.title);
+  if (!mine.length) return "untracked";
+  if (mine.every((a) => a.status === "done")) return "done";
+  if (mine.some((a) => a.status !== "todo")) return "doing";
+  return "todo";
+}
+
+/** Suggested timing, from severity. */
+export const TIMING: Record<Severity, string> = { high: "Now", medium: "This week", low: "Later" };
+
+/** Effort, from how many steps the plan has. 0–1 for charts. */
+export function effortOf(item: OperationsIntelItem): { score: number; label: "Low effort" | "Medium effort" | "High effort" } {
+  const n = Math.max(1, item.actionPlanSteps.length);
+  if (n <= 2) return { score: 0.2, label: "Low effort" };
+  if (n <= 4) return { score: 0.5, label: "Medium effort" };
+  return { score: 0.85, label: "High effort" };
+}
+
+export const IMPACT_SCORE: Record<Severity, number> = { high: 0.85, medium: 0.55, low: 0.25 };
 
 // Fetches operations intelligence with a content-based metrics key so the
 // effect only re-runs when the metric values actually change (prevents the

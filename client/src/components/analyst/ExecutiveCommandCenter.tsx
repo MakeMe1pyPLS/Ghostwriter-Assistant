@@ -93,7 +93,7 @@ function HealthRing({ score, grade }: { score: number; grade: string }) {
         <span className="text-4xl font-black text-slate-900 tabular-nums tracking-tight" data-testid="text-health-score">
           {shown}
         </span>
-        <span className={`text-[11px] font-bold ${gradeColor(grade)}`}>
+        <span className={`text-xs font-bold ${gradeColor(grade)}`}>
           {grade}
         </span>
       </div>
@@ -120,11 +120,11 @@ function PriorityCard({ priority, index }: { priority: TopPriority; index: numbe
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="font-bold text-slate-900 text-sm truncate">{priority.title}</span>
-            <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border ${sev.badge}`}>
+            <span className={`text-xs font-black px-2 py-0.5 rounded-full border ${sev.badge}`}>
               {sev.label}
             </span>
           </div>
-          <p className="text-[11px] text-slate-500 truncate mt-0.5">{priority.whatHappened}</p>
+          <p className="text-xs text-slate-500 truncate mt-0.5">{priority.whatHappened}</p>
         </div>
         <ChevronDown
           className={`w-4 h-4 text-slate-400 shrink-0 transition-transform ${open ? "rotate-180" : ""}`}
@@ -148,7 +148,7 @@ function PriorityCard({ priority, index }: { priority: TopPriority; index: numbe
           <div className="flex items-start gap-2 rounded-xl bg-emerald-50 border border-emerald-100 px-3 py-2">
             <ArrowUpRight className="w-3.5 h-3.5 text-emerald-700 mt-0.5 shrink-0" />
             <div>
-              <span className="text-[9px] font-black uppercase tracking-widest text-emerald-700">Expected outcome</span>
+              <span className="text-xs font-black text-emerald-700">Expected outcome</span>
               <p className="text-[12px] text-emerald-800 leading-relaxed mt-0.5">{priority.expectedOutcome}</p>
             </div>
           </div>
@@ -183,7 +183,7 @@ function IntelRow({
     <div className="flex items-start gap-2">
       <Icon className={`w-3.5 h-3.5 mt-0.5 shrink-0 ${TONE_STYLES[tone]}`} />
       <div>
-        <span className={`text-[9px] font-black uppercase tracking-widest ${TONE_STYLES[tone]}`}>{label}</span>
+        <span className={`text-xs font-black ${TONE_STYLES[tone]}`}>{label}</span>
         <p className="text-[12px] text-slate-700 leading-relaxed mt-0.5">{text}</p>
       </div>
     </div>
@@ -258,7 +258,7 @@ export function ExecutiveCommandCenter({
         <p className="text-[12px] text-slate-500 font-medium">Could not load the executive briefing.</p>
         <button
           onClick={load}
-          className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-1.5"
+          className="text-xs font-black text-primary flex items-center gap-1.5"
           data-testid="button-command-center-retry"
         >
           <RefreshCw className="w-3.5 h-3.5" /> Retry
@@ -273,7 +273,7 @@ export function ExecutiveCommandCenter({
         {/* Business Health Score */}
         <div className="bg-white rounded-3xl border border-slate-100 shadow-[0_10px_40px_rgb(0,0,0,0.04)] p-5 sm:p-6 flex flex-col">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Business Health Score</span>
+            <span className="text-xs font-black text-slate-400">Business health score</span>
           </div>
           <div className="flex items-center gap-5">
             <HealthRing score={data.healthScore} grade={data.healthGrade} />
@@ -281,8 +281,8 @@ export function ExecutiveCommandCenter({
               {data.healthBreakdown.map((p) => (
                 <div key={p.pillar} data-testid={`pillar-${p.pillar.replace(/\s+/g, "-").toLowerCase()}`}>
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-[10px] font-bold text-slate-600 truncate pr-2">{p.pillar}</span>
-                    <span className="text-[10px] font-black text-slate-900 tabular-nums">{p.score}</span>
+                    <span className="text-xs font-bold text-slate-600 truncate pr-2">{p.pillar}</span>
+                    <span className="text-xs font-black text-slate-900 tabular-nums">{p.score}</span>
                   </div>
                   <div className="h-1.5 rounded-full bg-slate-100 overflow-hidden">
                     <div
@@ -303,10 +303,10 @@ export function ExecutiveCommandCenter({
               <div className="w-7 h-7 rounded-xl bg-primary/20 flex items-center justify-center">
                 <Sparkles className="w-4 h-4 text-teal-300" />
               </div>
-              <span className="text-[10px] font-black uppercase tracking-widest text-teal-300">
+              <span className="text-xs font-black text-teal-300">
                 AI Executive Summary
               </span>
-              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">
+              <span className="text-xs font-bold text-slate-400">
                 · {ENGINE_LABELS[data.generatedBy] ?? data.generatedBy}
               </span>
             </div>
@@ -327,7 +327,7 @@ export function ExecutiveCommandCenter({
               {data.alerts.map((a, i) => (
                 <span
                   key={i}
-                  className="inline-flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-slate-200"
+                  className="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-slate-200"
                   data-testid={`alert-chip-${i}`}
                 >
                   <span className={`w-1.5 h-1.5 rounded-full ${SEVERITY_STYLES[a.severity].dot}`} />
@@ -342,10 +342,10 @@ export function ExecutiveCommandCenter({
       {/* Top Priorities */}
       <div className="mt-4">
         <div className="flex items-center gap-2 mb-3">
-          <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+          <span className="text-xs font-black text-slate-400">
             Top Priorities Requiring Attention
           </span>
-          <span className="text-[9px] font-bold text-slate-300">· {data.topPriorities.length}</span>
+          <span className="text-xs font-bold text-slate-300">· {data.topPriorities.length}</span>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-start">
           {data.topPriorities.map((p, i) => (
