@@ -212,7 +212,7 @@ const EXPORT_ITEMS = {
     { id: "dataset-csv", title: "Export Dataset (CSV)", desc: "Flat CSV export of all metrics, timeseries, and channel data.", icon: ArrowDownToLine, ext: ".csv", color: "text-sky-700 bg-sky-50 border-sky-100", available: true },
   ],
   integrations: [
-    { id: "custom-api", title: "Custom API", desc: "Send dashboard data and specs to your own API endpoint for integration with internal tools.", icon: Plug, ext: "API", color: "text-violet-600 bg-violet-50 border-violet-100", available: true },
+    { id: "custom-api", title: "Custom API", desc: "Send dashboard data and specs to your own API endpoint for integration with internal tools.", icon: Plug, ext: "API", color: "text-violet-600 bg-violet-50 border-violet-100", available: false },
   ],
   biTools: [
     { id: "pbix", title: "Export Power BI", desc: "Export as a Power BI template with connected data models.", icon: BarChart, ext: ".pbix", color: "text-amber-700 bg-amber-50 border-amber-100", available: false },

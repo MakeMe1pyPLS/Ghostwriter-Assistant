@@ -312,6 +312,12 @@ The rule-based analyst, dashboard generator, exporters, KPI library and plan bui
   - "Tidy up (close gaps)" in the ⋯ menu packs everything together, and Undo reverses it.
 - **Gauge fix:** gauges now show the real percentage instead of a made-up fallback.
 
+### Honesty fixes: Integration Hub and the home hero
+- **Integration Hub no longer pretends.** The tiles used to show Excel, Shopify and Email as "connected" with a made-up sync time, and every Connect button showed "Connection Successful" without connecting anything. Now each tile says **Works now** or **Coming soon** (an icon and a word). Only file import (Excel, CSV and JSON) works in the browser. Slack, Teams and Google Chat say "Works now" only when the API server is reachable, otherwise "Coming soon". Everything else is "Coming soon" with no Connect button.
+- **Removed:** the database-password forms and the Custom API drawer (its "Test connection" always said "reachable" and its "send" was simulated). Exports now marks Custom API "Coming soon".
+- **Home hero is labeled.** The product mock now says "Example · Harbor & Pine Coffee" and a line under it says the numbers are made up and the company isn't real.
+- **Home copy:** removed "build for Tableau" (no Tableau export exists). The Power BI starter pack is real.
+
 ### Fulfillment (prototype) for 3PLs and the brands they serve
 A new **Operate → Fulfillment** page. It is a clickable prototype on **sample data** (every screen says so), with Apparel and Supplements as the two niches.
 - **Overview.** Four plain-language numbers, then an **AI insight** that names the bottleneck and says what, why, how to fix it, when, and one next step. Below it is the fulfillment flow (Receiving → Pick → Pack → Ship → Returns) with the problem stage marked, and a health card for each zone. Tap a zone for its numbers and what to do.

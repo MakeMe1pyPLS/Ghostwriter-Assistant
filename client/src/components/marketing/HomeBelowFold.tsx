@@ -90,7 +90,7 @@ export default function HomeBelowFold({ isAuthed, lowest }: { isAuthed: boolean;
           <Reveal>
             <p className="text-[13px] font-semibold text-teal-300">Works with your tools</p>
             <h2 className="mt-3 text-4xl md:text-5xl font-black tracking-[-0.04em] text-balance">Keep the tools you already use.</h2>
-            <p className="mt-5 text-lg text-white/70 leading-relaxed">Export to Excel and CSV, build for Power BI and Tableau, send updates to Microsoft Teams, Google Chat and Slack, and put due dates in Outlook or Google Calendar.</p>
+            <p className="mt-5 text-lg text-white/70 leading-relaxed">Export to Excel and CSV, get a Power BI starter pack, send updates to Microsoft Teams, Google Chat and Slack, and put due dates in Outlook or Google Calendar.</p>
           </Reveal>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {["Microsoft Excel", "Microsoft Teams", "Outlook", "Google Sheets", "Google Chat", "Google Calendar", "Power BI", "Slack", "CSV / JSON"].map((t, i) => (

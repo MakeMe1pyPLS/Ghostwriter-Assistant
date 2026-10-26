@@ -7,7 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   animate, motion, useInView, useMotionValue, useReducedMotion, useSpring, useTransform, AnimatePresence,
 } from "framer-motion";
-import { Check, Sparkles, MessageSquare, RotateCcw, TrendingUp } from "lucide-react";
+import { Check, FlaskConical, Sparkles, MessageSquare, RotateCcw, TrendingUp } from "lucide-react";
 import { LogoMark } from "@/components/Logo";
 import { useIntroReady } from "@/lib/intro-gate";
 import { cn } from "@/lib/utils";
@@ -78,7 +78,7 @@ export function HeroProduct() {
           </div>
           <div className="flex items-center gap-2 min-w-0">
             <LogoMark size={20} />
-            <span className="text-[13px] font-semibold text-slate-700 truncate">Harbor &amp; Pine Coffee · Growth Plan</span>
+            <span className="text-[13px] font-semibold text-slate-700 truncate">Example · Harbor &amp; Pine Coffee</span>
           </div>
           <span className={cn("ml-auto inline-flex items-center gap-1.5 text-[11px] font-semibold rounded-full px-2 py-1 transition-colors",
             fixed ? "text-emerald-700 bg-emerald-50" : "text-rose-700 bg-rose-50")}>
@@ -150,6 +150,10 @@ export function HeroProduct() {
           </div>
         </div>
       </motion.div>
+      <p className="relative mt-4 flex items-center justify-center gap-1.5 text-center text-[12px] text-slate-600 dark:text-slate-300">
+        <FlaskConical className="w-3.5 h-3.5 shrink-0" aria-hidden />
+        Example with made-up numbers. Harbor &amp; Pine Coffee is not a real customer.
+      </p>
     </div>
   );
 }

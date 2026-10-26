@@ -49,6 +49,7 @@ If a feature doesn't help someone move through this loop, it waits.
 - Pricing lives in `client/src/lib/pricing.ts`; the reasoning is in `docs/PRICING.md`.
 - After adding or removing KPIs or industries, update the counts in `shared/kpi-stats.ts` (the app warns in the console when they drift).
 - Fulfillment (`/fulfillment`, `shared/fulfillment.ts`) runs on labeled sample data. Never present its numbers as real, and keep every client's rows separate (`ordersForClient`, `lotsFor`, `*For(clientId)`). The zone cards are swappable through `ZoneViewProps`.
+- Integration and status tiles (`/connectors`, exports, marketing): say "Works now" only for what really runs. Everything else says "Coming soon" and has no Connect button. Product mocks on marketing pages carry an "Example" or "Sample data" label.
 - Keep bundle weight in check. Prefer existing dependencies; lazy-load heavy ones (e.g. `exceljs`).
 
 ## Definition of done
