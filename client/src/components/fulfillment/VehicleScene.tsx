@@ -47,7 +47,8 @@ function Wheel({ cx, r = 13 }: { cx: number; r?: number }) {
   );
 }
 
-const ink = { className: "stroke-slate-500 dark:stroke-slate-400", strokeWidth: 1.75, strokeLinejoin: "round" as const, strokeLinecap: "round" as const };
+const INK = "stroke-slate-500 dark:stroke-slate-400";
+const ink = { strokeWidth: 1.75, strokeLinejoin: "round" as const, strokeLinecap: "round" as const };
 const body = "fill-white dark:fill-slate-800";
 const glass = "fill-sky-100 dark:fill-sky-400/20";
 
@@ -56,9 +57,9 @@ function Chassis({ id }: { id: VehicleId }) {
   if (id === "cargo-van") {
     return (
       <g>
-        <path d="M238 40h46c10 0 18 4 24 12l22 30c12 2 34 8 40 14 4 4 6 10 6 18v14H238z" className={body} {...ink} />
-        <path d="M290 50h12c4 0 8 2 10 6l18 26h-40z" className={glass} {...ink} />
-        <path d="M352 104h22" {...ink} fill="none" />
+        <path d="M238 40h46c10 0 18 4 24 12l22 30c12 2 34 8 40 14 4 4 6 10 6 18v14H238z" className={cn(body, INK)} {...ink} />
+        <path d="M290 50h12c4 0 8 2 10 6l18 26h-40z" className={cn(glass, INK)} {...ink} />
+        <path d="M352 104h22" className={INK} {...ink} fill="none" />
         <rect x="364" y="94" width="10" height="5" rx="2" className="fill-amber-300 dark:fill-amber-400/70" />
         <path d="M16 118h360v10H16z" className="fill-slate-200 dark:fill-slate-700" />
         <Wheel cx={70} r={14} /><Wheel cx={318} r={14} />
@@ -68,9 +69,9 @@ function Chassis({ id }: { id: VehicleId }) {
   if (id === "box-truck") {
     return (
       <g>
-        <path d="M276 44h46c8 0 14 4 18 10l20 28c14 2 26 6 30 10 2 3 4 8 4 14v22H276z" className={body} {...ink} />
-        <path d="M326 54h8c4 0 7 2 9 5l16 23h-33z" className={glass} {...ink} />
-        <path d="M282 54h36v28h-36z" className={glass} {...ink} />
+        <path d="M276 44h46c8 0 14 4 18 10l20 28c14 2 26 6 30 10 2 3 4 8 4 14v22H276z" className={cn(body, INK)} {...ink} />
+        <path d="M326 54h8c4 0 7 2 9 5l16 23h-33z" className={cn(glass, INK)} {...ink} />
+        <path d="M282 54h36v28h-36z" className={cn(glass, INK)} {...ink} />
         <rect x="378" y="98" width="12" height="5" rx="2" className="fill-amber-300 dark:fill-amber-400/70" />
         <rect x="10" y="118" width="384" height="10" rx="2" className="fill-slate-200 dark:fill-slate-700" />
         <rect x="120" y="120" width="60" height="12" rx="4" className="fill-slate-300 dark:fill-slate-600" />
@@ -80,13 +81,13 @@ function Chassis({ id }: { id: VehicleId }) {
   }
   return (
     <g>
-      <path d="M318 50h34c8 0 14 4 18 10l14 22c6 2 10 6 10 12v34h-76z" className={body} {...ink} />
-      <path d="M340 58h10c4 0 7 2 9 5l12 19h-31z" className={glass} {...ink} />
+      <path d="M318 50h34c8 0 14 4 18 10l14 22c6 2 10 6 10 12v34h-76z" className={cn(body, INK)} {...ink} />
+      <path d="M340 58h10c4 0 7 2 9 5l12 19h-31z" className={cn(glass, INK)} {...ink} />
       <rect x="322" y="34" width="6" height="22" rx="2" className="fill-slate-400 dark:fill-slate-500" />
       <rect x="380" y="98" width="10" height="5" rx="2" className="fill-amber-300 dark:fill-amber-400/70" />
       <rect x="6" y="116" width="300" height="8" rx="2" className="fill-slate-200 dark:fill-slate-700" />
       <rect x="296" y="120" width="98" height="8" rx="2" className="fill-slate-200 dark:fill-slate-700" />
-      <path d="M140 116v14M150 116v14" {...ink} fill="none" />
+      <path d="M140 116v14M150 116v14" className={INK} {...ink} fill="none" />
       <Wheel cx={42} r={12} /><Wheel cx={70} r={12} /><Wheel cx={332} r={12} /><Wheel cx={372} r={12} />
     </g>
   );
