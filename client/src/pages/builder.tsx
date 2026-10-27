@@ -131,11 +131,22 @@ export default function BuilderPage() {
   }, [editMode]);
   useEffect(() => {
     if (!freshId) return;
-    const el = canvasRef.current?.querySelector(`[data-testid="builder-card-${CSS.escape(freshId)}"]`);
-    el?.scrollIntoView?.({ block: "nearest", behavior: "smooth" });
-    animatePop(el);
-    const t = window.setTimeout(() => setFreshId(null), 700);
-    return () => window.clearTimeout(t);
+    // The grid places new cards a frame or two after the state update, so wait for it.
+    let frames = 0, raf = 0;
+    const find = () => {
+      const el = canvasRef.current?.querySelector(`[data-testid="builder-card-${CSS.escape(freshId)}"]`);
+      if (el) {
+        el.scrollIntoView?.({ block: "nearest", behavior: "smooth" });
+        animatePop(el);
+        setFreshId(null);
+      } else if (frames++ < 30) {
+        raf = requestAnimationFrame(find);
+      } else {
+        setFreshId(null);
+      }
+    };
+    raf = requestAnimationFrame(find);
+    return () => cancelAnimationFrame(raf);
   }, [freshId]);
   const [inspectedWidgetId, setInspectedWidgetId] = useState<string | null>(null);
   // Touch screens: the card you last tapped shows its buttons and corner handles.
