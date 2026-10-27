@@ -163,13 +163,18 @@ async function parseExcel(file: File): Promise<ImportPayload> {
   const headerVals = rowValues(headerRowNo);
   const headers = headerVals.map((h, i) => cleanHeader(h, i, seen));
   const rows: Record<string, any>[] = [];
+  const missingByRow = new Map<Record<string, any>, number>();
   for (let r = headerRowNo + 1; r <= sheet.rowCount; r++) {
+    const before = unsavedFormulas;
     const vals = rowValues(r, true);
     const row: Record<string, any> = {};
     headers.forEach((h, i) => { row[h] = vals[i] ?? null; });
+    missingByRow.set(row, unsavedFormulas - before);
     rows.push(row);
   }
   dropTotals(rows, notes);
+  // Only count blank formulas in rows that are kept.
+  unsavedFormulas = rows.reduce((n, row) => n + (missingByRow.get(row) ?? 0), 0);
   if (unsavedFormulas) notes.push(`${unsavedFormulas} formula ${unsavedFormulas === 1 ? 'cell has' : 'cells have'} no saved result, so ${unsavedFormulas === 1 ? 'it is' : 'they are'} blank here. Open the file in Excel, save it, and import again to bring those values in.`);
   if (sheets.length > 1) notes.push(`Imported the sheet "${sheet.name}" (it has the most rows). Other sheets: ${sheets.filter((w) => w !== sheet).map((w) => `"${w.name}"`).join(', ')}.`);
   const name = title || `${baseName(file.name)}${sheets.length > 1 ? ` · ${sheet.name}` : ''}`;
