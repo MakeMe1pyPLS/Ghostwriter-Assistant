@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
   LayoutTemplate, Trash2, Plus, Edit3, Copy, Download, Save, Eye, CheckCircle2, Lock, Move,
-  MoreHorizontal, RotateCcw, Upload, Undo2, Redo2, Sparkles, Wand2, Menu, X, Grid3x3, PanelRightClose, PanelRightOpen, Check,
+  MoreHorizontal, RotateCcw, Upload, Undo2, Redo2, Sparkles, Wand2, Menu, X, Grid3x3, PanelRightClose, PanelRightOpen, Check, Monitor,
 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useSectorData } from "@/hooks/use-sector-data";
@@ -95,6 +95,46 @@ const isTyping = () => {
   const el = document.activeElement as HTMLElement | null;
   return !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || el.isContentEditable);
 };
+
+/** True only on phones: a touch screen and a phone-width viewport. Tablets and computers are false. */
+const PHONE_QUERY = '(pointer: coarse) and (max-width: 767px)';
+function usePhone() {
+  const [phone, setPhone] = useState(() => typeof window !== 'undefined' && window.matchMedia(PHONE_QUERY).matches);
+  useEffect(() => {
+    const mq = window.matchMedia(PHONE_QUERY);
+    const on = () => setPhone(mq.matches);
+    mq.addEventListener('change', on);
+    return () => mq.removeEventListener('change', on);
+  }, []);
+  return phone;
+}
+
+const PHONE_NOTE_KEY = 'ciq_builder_phone_note_dismissed';
+
+/** One-time note, phones only: building is easier on a computer, viewing works fine here. */
+function PhoneNote() {
+  const phone = usePhone();
+  const [dismissed, setDismissed] = useState(() => {
+    try { return localStorage.getItem(PHONE_NOTE_KEY) === '1'; } catch { return false; }
+  });
+  if (!phone || dismissed) return null;
+  const close = () => {
+    setDismissed(true);
+    try { localStorage.setItem(PHONE_NOTE_KEY, '1'); } catch { /* private mode: it just shows again next time */ }
+  };
+  return (
+    <div role="note" className="shrink-0 z-20 mx-2 mt-2 flex items-start gap-3 rounded-xl border border-teal-200 bg-teal-50 px-3 py-2.5 animate-in fade-in slide-in-from-top-1 duration-200 dark:border-teal-400/30 dark:bg-teal-400/10" data-testid="builder-phone-note">
+      <Monitor className="w-5 h-5 mt-0.5 shrink-0 text-teal-700 dark:text-teal-300" aria-hidden />
+      <p className="flex-1 text-sm leading-snug text-slate-700 dark:text-slate-200">
+        <span className="font-bold text-slate-900 dark:text-white">Building works best on a computer.</span>{' '}
+        You can still view your dashboard and make quick edits here. Open ChainInsideIQ on your laptop to arrange cards.
+      </p>
+      <button type="button" onClick={close} className="-mr-1 -mt-0.5 w-10 h-10 shrink-0 rounded-lg inline-flex items-center justify-center text-slate-500 hover:bg-teal-100 dark:hover:bg-white/10" aria-label="Dismiss" data-testid="builder-phone-note-dismiss">
+        <X className="w-4 h-4" aria-hidden />
+      </button>
+    </div>
+  );
+}
 
 function useCoarsePointer() {
   const [coarse, setCoarse] = useState(() => typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches);
@@ -521,6 +561,8 @@ export default function BuilderPage() {
             </>
           )}
         </header>
+
+        <PhoneNote />
 
         {/* Phones and small tablets: the layout controls get their own row while editing. */}
         {editMode && (

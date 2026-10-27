@@ -67,3 +67,4 @@ Phase 2 makes the analysis screens easier to read at a glance. Same data, same f
 - **New and duplicated cards** pop in and scroll into view. **Entering edit mode** makes each card breathe once, one after another.
 - Phones that support it give a light haptic tick on pick-up and drop.
 - All of it switches off with the device's "reduce motion" setting.
+- **On phones only**, the Builder shows a one-time note: building works best on a computer, and you can still view and make quick edits on the phone. Dismiss it with the X and it doesn't come back. Tablets and computers never see it.
