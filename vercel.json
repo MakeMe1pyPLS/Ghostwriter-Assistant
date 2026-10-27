@@ -29,7 +29,7 @@
     }
   ],
   "functions": {
-    "api/spike-gen.js": {
+    "api/spike-gen.mjs": {
       "includeFiles": "dist/fn/**"
     }
   }
