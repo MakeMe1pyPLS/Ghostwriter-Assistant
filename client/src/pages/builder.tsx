@@ -11,6 +11,7 @@ import { AppLayout, openAppNav } from "@/components/layout/AppLayout";
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import MeasuredGrid from "@/components/MeasuredGrid";
 import { PanZoomCanvas } from "@/components/builder/PanZoomCanvas";
+import { useDragMotion, flash } from "@/components/builder/drag-motion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -117,6 +118,25 @@ export default function BuilderPage() {
   const [widgets, setWidgets] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [editMode, setEditMode] = useState(false);
+  // Motion: cards swing while dragged, settle on drop, pop in when added.
+  const canvasRef = useRef<HTMLElement | null>(null);
+  const dragMotion = useDragMotion(canvasRef);
+  const [freshId, setFreshId] = useState<string | null>(null);
+  const [entering, setEntering] = useState(false);
+  useEffect(() => {
+    if (!editMode) return;
+    setEntering(true);
+    const t = window.setTimeout(() => setEntering(false), 900);
+    return () => window.clearTimeout(t);
+  }, [editMode]);
+  useEffect(() => {
+    if (!freshId) return;
+    const el = canvasRef.current?.querySelector(`[data-testid="builder-card-${CSS.escape(freshId)}"]`);
+    el?.scrollIntoView?.({ block: "nearest", behavior: "smooth" });
+    flash(el?.parentElement, "ciq-pop", 700);
+    const t = window.setTimeout(() => setFreshId(null), 700);
+    return () => window.clearTimeout(t);
+  }, [freshId]);
   const [inspectedWidgetId, setInspectedWidgetId] = useState<string | null>(null);
   // Touch screens: the card you last tapped shows its buttons and corner handles.
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -258,6 +278,7 @@ export default function BuilderPage() {
     const item: Item = { i: id, x: spot.x, y: spot.y, w, h };
     commit([...layout, item], [...widgets, { id, type: widgetInfo.id, metricIndex: Math.floor(Math.random() * 4), ...(widgetInfo.defaultProps || {}) }], { history: true });
     lastPush.current = 0;
+    setFreshId(id);
     toast({ title: "Card added", description: `${widgetInfo.name} went into the first free space. Drag it anywhere.` });
   };
 
@@ -281,6 +302,7 @@ export default function BuilderPage() {
     const spot = firstFreeSpot(layout, item.w, item.h);
     commit([...layout, { ...item, i: newId, ...spot }], [...widgets, { ...src, id: newId }]);
     lastPush.current = 0;
+    setFreshId(newId);
     toast({ title: "Card duplicated", description: "The copy went into the first free space." });
   };
 
@@ -507,7 +529,8 @@ export default function BuilderPage() {
         <div className="relative flex-1 min-h-0 flex">
           <section
             aria-label="Dashboard grid"
-            className={cn("relative flex-1 min-w-0", (loading || widgets.length === 0) && "overflow-y-auto")}
+            ref={canvasRef}
+            className={cn("relative flex-1 min-w-0", (loading || widgets.length === 0) && "overflow-y-auto", entering && "ciq-enter")}
             onPointerDownCapture={(e) => {
               const t = e.target as HTMLElement;
               if (!t.closest('.react-grid-item') && !t.closest('.ciq-ui')) setActiveId(null);
@@ -560,6 +583,9 @@ export default function BuilderPage() {
                       containerPadding={GRID_PAD}
                       onLayoutChange={onLayoutChange}
                       onBreakpointChange={(_bp, cols) => { colsRef.current = cols; }}
+                      onDragStart={dragMotion.onDragStart}
+                      onDragStop={dragMotion.onDragStop}
+                      onResizeStop={dragMotion.onResizeStop}
                       draggableHandle=".ciq-card-inset"
                       draggableCancel=".ciq-nodrag"
                       isDraggable={editMode}
@@ -570,7 +596,7 @@ export default function BuilderPage() {
                       canvasScale={z}
                       minCanvasHeight={editMode ? 900 : 0}
                     >
-                      {widgets.map((w) => (
+                      {widgets.map((w, wi) => (
                         <div
                           key={w.id}
                           className={cn("group", activeId === w.id && "ciq-active")}
@@ -589,10 +615,11 @@ export default function BuilderPage() {
                           )}
                           <div
                             className={cn(
-                              "ciq-card-inset flex flex-col overflow-hidden transition-[box-shadow,transform] duration-200",
+                              "ciq-card-inset flex flex-col overflow-hidden",
                               getCardShellClasses(w.cardPreset || w.stylePreset, 'builder'),
                               editMode ? "cursor-grab active:cursor-grabbing hover:ring-2 hover:ring-primary/40" : "hover:shadow-md",
                             )}
+                            style={{ ["--i" as any]: Math.min(wi, 14) }}
                             onDoubleClick={() => { if (editMode) setInspectedWidgetId(w.id); }}
                             data-testid={`builder-card-${w.id}`}
                           >
@@ -672,15 +699,63 @@ export default function BuilderPage() {
         .react-grid-item.ciq-active { z-index: 4; }
         .ciq-touch .react-grid-item.ciq-active > .ciq-card-inset { box-shadow: 0 0 0 calc(2px / var(--z)) var(--color-teal-500); }
         .ciq-canvas .react-grid-item > .react-resizable-handle { transition: opacity .15s; }
-        /* Playful feedback: cards lift while you drag them and settle when you drop. */
-        .ciq-canvas .react-grid-item { transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1), width 180ms ease, height 180ms ease; }
+        /* ---- Motion (drag-motion.ts adds the swing; everything here is CSS) ---- */
+        /* Cards glide, with a little bounce, when they make room for each other. */
+        .ciq-canvas .react-grid-item { transition: transform 340ms cubic-bezier(0.34, 1.32, 0.64, 1), width 220ms cubic-bezier(0.22, 1, 0.36, 1), height 220ms cubic-bezier(0.22, 1, 0.36, 1); }
         .ciq-canvas .react-grid-item.react-draggable-dragging, .ciq-canvas .react-grid-item.resizing { transition: none; z-index: 20; }
-        .ciq-canvas .react-grid-item.react-draggable-dragging > .ciq-card-inset { transform: scale(1.025) rotate(-0.6deg); box-shadow: 0 28px 60px -20px rgba(15,23,42,.45), 0 0 0 2px var(--color-teal-500); }
+        .ciq-canvas .react-grid-item > .ciq-card-inset {
+          transition: scale 320ms cubic-bezier(0.34, 1.56, 0.64, 1), rotate 320ms cubic-bezier(0.34, 1.56, 0.64, 1), translate 320ms cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 260ms ease, opacity 220ms ease;
+        }
+        .ciq-editing .react-grid-item:hover > .ciq-card-inset { translate: 0 -2px; }
+        /* Pick up: spring up with a slight overshoot and a deeper shadow. The tilt is set from JS. */
+        .ciq-canvas .react-grid-item.react-draggable-dragging > .ciq-card-inset {
+          scale: 1.045; translate: 0 -6px;
+          transition: scale 300ms cubic-bezier(0.34, 1.7, 0.64, 1), translate 300ms cubic-bezier(0.34, 1.7, 0.64, 1), box-shadow 220ms ease;
+          box-shadow: 0 46px 90px -30px rgba(15,23,42,.55), 0 14px 28px -14px rgba(15,23,42,.28), 0 0 0 2px var(--color-teal-500);
+          cursor: grabbing;
+        }
+        /* While one card moves, the others step back a touch. */
+        .ciq-dragging .react-grid-item:not(.react-draggable-dragging) > .ciq-card-inset { opacity: .82; scale: .985; }
         .ciq-canvas .react-grid-item.resizing > .ciq-card-inset { box-shadow: 0 0 0 2px var(--color-teal-500), 0 18px 40px -16px rgba(15,23,42,.35); }
+        /* Drop target: springs to each new spot. */
+        .ciq-canvas .react-grid-placeholder { transition: transform 200ms cubic-bezier(0.34, 1.4, 0.64, 1), width 200ms ease, height 200ms ease !important; }
+        .ciq-canvas .react-grid-placeholder::after { animation: ciq-target-in 260ms cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+        @keyframes ciq-target-in { from { opacity: 0; scale: .9; } to { opacity: 1; scale: 1; } }
+        /* Drop: squash, bounce, settle, with a teal ripple. */
+        .ciq-canvas .react-grid-item.ciq-drop > .ciq-card-inset { animation: ciq-settle 560ms cubic-bezier(0.22, 1, 0.36, 1); }
+        @keyframes ciq-settle {
+          0% { scale: 1.045; translate: 0 -6px; }
+          35% { scale: .965 1.02; translate: 0 2px; }
+          60% { scale: 1.015 .99; translate: 0 -1px; }
+          100% { scale: 1; translate: 0 0; }
+        }
+        .ciq-canvas .react-grid-item.ciq-drop::after, .ciq-canvas .react-grid-item.ciq-pop::after {
+          content: ''; position: absolute; inset: 8px; border-radius: 1rem; pointer-events: none;
+          animation: ciq-ripple 620ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+        @keyframes ciq-ripple {
+          from { box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-teal-500) 55%, transparent); }
+          to { box-shadow: 0 0 0 calc(18px / var(--z, 1)) color-mix(in oklab, var(--color-teal-500) 0%, transparent); }
+        }
+        /* Resize: a quick elastic nudge when you let go. */
+        .ciq-canvas .react-grid-item.ciq-resized > .ciq-card-inset { animation: ciq-nudge 400ms cubic-bezier(0.34, 1.56, 0.64, 1); }
+        @keyframes ciq-nudge { 0% { scale: .985; } 60% { scale: 1.01; } 100% { scale: 1; } }
+        /* New or duplicated card: pops in. */
+        .ciq-canvas .react-grid-item.ciq-pop > .ciq-card-inset { animation: ciq-pop 560ms cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+        @keyframes ciq-pop { 0% { opacity: 0; scale: .6; translate: 0 18px; } 70% { opacity: 1; scale: 1.04; translate: 0 -2px; } 100% { scale: 1; translate: 0 0; } }
+        /* Entering edit mode: every card breathes once, one after another. */
+        .ciq-enter .react-grid-item > .ciq-card-inset { animation: ciq-breathe 520ms cubic-bezier(0.34, 1.56, 0.64, 1) both; animation-delay: calc(var(--i, 0) * 35ms); }
+        @keyframes ciq-breathe { 0% { scale: 1; } 40% { scale: .97; } 75% { scale: 1.012; } 100% { scale: 1; } }
+        /* Handles grow a little under the pointer. */
+        .ciq-canvas .react-grid-item > .react-resizable-handle::after { transition: scale 180ms cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .ciq-canvas .react-grid-item > .react-resizable-handle:hover::after, .ciq-canvas .react-grid-item > .react-resizable-handle:active::after { scale: 1.35; }
         .ciq-canvas-edit { --ciq-dot: color-mix(in oklab, var(--color-teal-600) 45%, transparent); }
+        .ciq-dragging .ciq-canvas-edit, .ciq-dragging { --ciq-dot: color-mix(in oklab, var(--color-teal-600) 75%, transparent); }
         @media (prefers-reduced-motion: reduce) {
-          .ciq-canvas .react-grid-item { transition: none; }
-          .ciq-canvas .react-grid-item.react-draggable-dragging > .ciq-card-inset { transform: none; }
+          .ciq-canvas .react-grid-item, .ciq-canvas .react-grid-item > .ciq-card-inset, .ciq-canvas .react-grid-placeholder { transition: none !important; }
+          .ciq-canvas .react-grid-item > .ciq-card-inset, .ciq-canvas .react-grid-placeholder::after, .ciq-canvas .react-grid-item::after { animation: none !important; }
+          .ciq-canvas .react-grid-item.react-draggable-dragging > .ciq-card-inset { scale: 1; translate: none; rotate: none; }
+          .ciq-dragging .react-grid-item:not(.react-draggable-dragging) > .ciq-card-inset { scale: 1; }
         }
       `}</style>
     </AppLayout>

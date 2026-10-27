@@ -59,3 +59,11 @@ Phase 2 makes the analysis screens easier to read at a glance. Same data, same f
 ### Orders (`/fulfillment` → Orders)
 - Each order card and the detail panel shows a small drawing of where the order is: in the queue, on the shelf, on the packing bench, boxed and waiting, with the carrier, or coming back.
 - Cards sit two to a row on wide screens.
+
+## Builder motion (`/builder` → Edit layout)
+- **Pick up:** the card springs up with a slight overshoot and a deeper shadow; the other cards step back a touch and the grid dots brighten.
+- **While dragging:** the card swings with your hand. It tilts up to a few degrees with how fast you move and settles when you slow down. The drop spot springs to each new position, and cards making room glide with a small bounce.
+- **Drop:** a quick squash-and-settle with a teal ripple. Resizing gets a small elastic nudge when you let go.
+- **New and duplicated cards** pop in and scroll into view. **Entering edit mode** makes each card breathe once, one after another.
+- Phones that support it give a light haptic tick on pick-up and drop.
+- All of it switches off with the device's "reduce motion" setting.
