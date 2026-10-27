@@ -240,7 +240,7 @@ function SectionHeader({ icon: Icon, title, subtitle, color = 'text-primary' }: 
       </div>
       <div>
         <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">{title}</h3>
-        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{subtitle}</p>
+        <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">{subtitle}</p>
       </div>
     </div>
   );
@@ -269,8 +269,8 @@ function AdvancedKPISection({ kpis }: { kpis: typeof SECTOR_TABLES['ecommerce'][
         return (
           <div key={kpi.label} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex flex-col gap-3" data-testid={`analyst-kpi-${kpi.label.toLowerCase().replace(/\s/g, '-')}`}>
             <div className="flex items-start justify-between">
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{kpi.label}</p>
-              <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border ${rs.badge}`}>
+              <p className="text-[11px] font-black uppercase tracking-widest text-slate-400">{kpi.label}</p>
+              <span className={`text-[11px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border ${rs.badge}`}>
                 {rs.label}
               </span>
             </div>
@@ -284,13 +284,13 @@ function AdvancedKPISection({ kpis }: { kpis: typeof SECTOR_TABLES['ecommerce'][
             </div>
 
             <div className="pt-3 border-t border-slate-100 space-y-1.5">
-              <div className="flex items-center gap-1.5 text-[10px] text-slate-500">
+              <div className="flex items-center gap-1.5 text-[11px] text-slate-500">
                 <span className="text-slate-300">vs</span>
                 <span className="font-medium text-slate-600">{kpi.comparison}</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <Users className="w-3 h-3 text-primary shrink-0" />
-                <span className="text-[10px] text-slate-500">Top: <span className="font-bold text-slate-700">{kpi.contributor}</span></span>
+                <span className="text-[11px] text-slate-500">Top: <span className="font-bold text-slate-700">{kpi.contributor}</span></span>
               </div>
             </div>
           </div>
@@ -336,8 +336,8 @@ function AnalysisTable({ title, icon: Icon, columns, rows }: {
     <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
       <div className="flex items-center gap-2 px-5 py-4 border-b border-slate-100">
         <Icon className="w-4 h-4 text-primary" />
-        <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-700">{title}</h4>
-        <span className="ml-auto text-[9px] font-bold text-slate-400 uppercase tracking-wider">{rows.length} entries · sortable</span>
+        <h4 className="text-[11px] font-black uppercase tracking-widest text-slate-700">{title}</h4>
+        <span className="ml-auto text-[11px] font-bold text-slate-400 uppercase tracking-wider">{rows.length} entries · sortable</span>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-xs">
@@ -350,7 +350,7 @@ function AnalysisTable({ title, icon: Icon, columns, rows }: {
                   onClick={() => handleSort(col)}
                   data-testid={`th-${col.toLowerCase().replace(/\s/g, '-')}`}
                 >
-                  <span className="flex items-center text-[10px] font-black uppercase tracking-wider text-slate-500">
+                  <span className="flex items-center text-[11px] font-black uppercase tracking-wider text-slate-500">
                     {col}
                     <SortIcon col={col} sortCol={sortCol} sortDir={sortDir} />
                   </span>
@@ -375,7 +375,7 @@ function AnalysisTable({ title, icon: Icon, columns, rows }: {
                           <div className="flex-1 max-w-[60px] h-1.5 bg-slate-100 rounded-full overflow-hidden">
                             <div className={`h-full rounded-full ${getScoreColor(scoreVal)}`} style={{ width: `${scoreVal}%` }} />
                           </div>
-                          <span className={`text-[10px] font-black px-1.5 py-0.5 rounded ${getScoreTextColor(scoreVal)}`}>{val}</span>
+                          <span className={`text-[11px] font-black px-1.5 py-0.5 rounded ${getScoreTextColor(scoreVal)}`}>{val}</span>
                         </div>
                       ) : pctStyle ? (
                         <span className={`px-1.5 py-0.5 rounded text-[11px] font-bold ${pctStyle}`}>{val}</span>
@@ -459,8 +459,8 @@ function HeatmapGrid({ sector }: { sector: string }) {
             <div key={c} className={`w-3 h-3 rounded-sm ${c}`} />
           ))}
         </div>
-        <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-700 ml-1">Performance Heatmap</h4>
-        <div className="ml-auto flex items-center gap-3 text-[9px] font-bold text-slate-400 uppercase tracking-wider">
+        <h4 className="text-[11px] font-black uppercase tracking-widest text-slate-700 ml-1">Performance Heatmap</h4>
+        <div className="ml-auto flex items-center gap-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
           <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-rose-400 inline-block" />Low</span>
           <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-amber-400 inline-block" />Mid</span>
           <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-emerald-500 inline-block" />High</span>
@@ -470,9 +470,9 @@ function HeatmapGrid({ sector }: { sector: string }) {
         <table className="w-full text-[11px]">
           <thead>
             <tr>
-              <th className="pb-3 pr-3 text-left text-[10px] font-black uppercase tracking-wider text-slate-400 w-28" />
+              <th className="pb-3 pr-3 text-left text-[11px] font-black uppercase tracking-wider text-slate-400 w-28" />
               {config.cols.map((c) => (
-                <th key={c} className="pb-3 px-1 text-center text-[10px] font-black uppercase tracking-wider text-slate-500 min-w-[70px]">{c}</th>
+                <th key={c} className="pb-3 px-1 text-center text-[11px] font-black uppercase tracking-wider text-slate-500 min-w-[70px]">{c}</th>
               ))}
             </tr>
           </thead>
@@ -501,15 +501,15 @@ function PivotSection({ pivot }: { pivot: typeof SECTOR_TABLES['ecommerce']['piv
     <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
       <div className="flex items-center gap-2 px-5 py-4 border-b border-slate-100">
         <Package className="w-4 h-4 text-primary" />
-        <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-700">{pivot.title}</h4>
-        <span className="ml-auto text-[9px] font-bold text-slate-400 uppercase tracking-wider">Multi-level aggregation</span>
+        <h4 className="text-[11px] font-black uppercase tracking-widest text-slate-700">{pivot.title}</h4>
+        <span className="ml-auto text-[11px] font-bold text-slate-400 uppercase tracking-wider">Multi-level aggregation</span>
       </div>
       <div className="p-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {pivot.groups.map((group) => (
             <div key={group.name} className="border border-slate-100 rounded-xl overflow-hidden">
               <div className="bg-slate-50 px-4 py-2.5 border-b border-slate-100">
-                <span className="text-[10px] font-black uppercase tracking-widest text-slate-600">{group.name}</span>
+                <span className="text-[11px] font-black uppercase tracking-widest text-slate-600">{group.name}</span>
               </div>
               <div className="divide-y divide-slate-50">
                 {group.items.map((item) => (
@@ -517,15 +517,15 @@ function PivotSection({ pivot }: { pivot: typeof SECTOR_TABLES['ecommerce']['piv
                     <div className="flex items-center justify-between mb-1.5">
                       <span className="text-[11px] font-bold text-slate-700">{item.label}</span>
                       <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-medium text-slate-500">{item.value}</span>
-                        <span className={`text-[10px] font-bold ${item.positive ? 'text-emerald-700' : 'text-rose-600'}`}>{item.trend}</span>
+                        <span className="text-[11px] font-medium text-slate-500">{item.value}</span>
+                        <span className={`text-[11px] font-bold ${item.positive ? 'text-emerald-700' : 'text-rose-600'}`}>{item.trend}</span>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
                         <div className="h-full bg-primary/70 rounded-full transition-all" style={{ width: `${item.share}%` }} />
                       </div>
-                      <span className="text-[10px] font-bold text-slate-400 w-8 text-right">{item.share}%</span>
+                      <span className="text-[11px] font-bold text-slate-400 w-8 text-right">{item.share}%</span>
                     </div>
                   </div>
                 ))}
@@ -551,7 +551,7 @@ export function AnalystPanel({ sector }: { sector: string }) {
     <div className="mt-6">
       <div className="flex items-center gap-3 mb-8">
         <div className="flex-1 h-px bg-slate-200" />
-        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-2">Analyst Deep-Dive</span>
+        <span className="text-[11px] font-black uppercase tracking-widest text-slate-400 px-2">Analyst Deep-Dive</span>
         <div className="flex-1 h-px bg-slate-200" />
       </div>
 

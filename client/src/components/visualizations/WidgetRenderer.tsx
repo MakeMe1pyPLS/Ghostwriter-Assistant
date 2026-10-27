@@ -31,12 +31,12 @@ function KpiNoData({ title, kind, unit, formula }: { title: string; kind: string
     <div className="h-full flex flex-col p-1 min-h-0" data-testid="kpi-no-data">
       <div className="flex items-start justify-between gap-2">
         <span className="text-xs font-bold text-slate-400 uppercase tracking-wider leading-tight line-clamp-2">{title}</span>
-        {unit && <span className="shrink-0 text-[10px] font-bold text-slate-400 border border-slate-200 rounded px-1.5 py-0.5">{UNIT_LABEL[unit] ?? unit}</span>}
+        {unit && <span className="shrink-0 text-[11px] font-bold text-slate-400 border border-slate-200 rounded px-1.5 py-0.5">{UNIT_LABEL[unit] ?? unit}</span>}
       </div>
       <div className="flex-1 min-h-0 flex items-center justify-center py-2">{ghost}</div>
       <div className="space-y-1">
         <p className="text-[11px] font-semibold text-slate-600">No data yet</p>
-        {formula && <p className="hidden [@container(min-height:150px)]:block text-[10.5px] leading-snug text-slate-500 line-clamp-2">How it's measured: {formula}</p>}
+        {formula && <p className="hidden [@container(min-height:150px)]:block text-[11px] leading-snug text-slate-500 line-clamp-2">How it's measured: {formula}</p>}
       </div>
     </div>
   );
@@ -125,9 +125,9 @@ function OpportunityRiskWidget({ sector, title, presentationMode }: { sector: st
                 <span className="text-base leading-none mt-0.5 shrink-0">{h.icon}</span>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-0.5">
-                    <span className={`text-[10px] font-black uppercase tracking-widest ${style.icon}`}>{h.type}</span>
+                    <span className={`text-[11px] font-black uppercase tracking-widest ${style.icon}`}>{h.type}</span>
                     {h.severity === 'high' && (
-                      <span className="text-[8px] font-black uppercase tracking-wider bg-rose-100 text-rose-600 px-1.5 py-0.5 rounded-full">High</span>
+                      <span className="text-[11px] font-black uppercase tracking-wider bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded-full">High</span>
                     )}
                   </div>
                   <p className="text-xs font-bold text-slate-800 mb-0.5">{h.title}</p>
@@ -238,7 +238,7 @@ function KpiIntelRow({ label, text, tone }: { label: string; text: string; tone:
   const toneMap = { slate: 'text-slate-500', indigo: 'text-indigo-600', amber: 'text-amber-700' } as const;
   return (
     <div>
-      <span className={`text-[9px] font-black uppercase tracking-widest ${toneMap[tone]}`}>{label}</span>
+      <span className={`text-[11px] font-black uppercase tracking-widest ${toneMap[tone]}`}>{label}</span>
       <p className="text-xs font-medium text-slate-600 leading-relaxed mt-0.5">{text}</p>
     </div>
   );
@@ -254,7 +254,7 @@ function KpiCompareBars({ detail, className = '' }: { detail: KpiDetail; classNa
   const good = detail.status === 'good';
   return (
     <div className={className} aria-hidden>
-      <div className="grid grid-cols-[auto_1fr] items-center gap-x-2 gap-y-1 text-[9px] font-bold uppercase tracking-wider text-slate-400">
+      <div className="grid grid-cols-[auto_1fr] items-center gap-x-2 gap-y-1 text-[11px] font-bold uppercase tracking-wider text-slate-400">
         <span>Last</span>
         <div className="h-1.5 rounded-full bg-slate-100 overflow-hidden"><div className="h-full rounded-full bg-slate-300" style={{ width: pct(a) }} /></div>
         <span>Now</span>
@@ -324,9 +324,9 @@ function WidgetRendererInner({ widget, data, sector, loading, presentationMode =
 
           <div className={`flex items-center justify-between ${preset.accentStrip && preset.accentPosition === 'left' ? 'pl-2' : ''}`}>
             <div className="flex flex-col min-w-0">
-              <span className={`${isCompact ? 'text-[10px]' : presentationMode ? 'text-[11px]' : 'text-xs'} font-bold text-slate-400 uppercase tracking-wider leading-tight line-clamp-2 break-words`}>{widget.title || metric?.label || 'Metric'}</span>
+              <span className={`${isCompact ? 'text-[11px]' : presentationMode ? 'text-[11px]' : 'text-xs'} font-bold text-slate-400 uppercase tracking-wider leading-tight line-clamp-2 break-words`}>{widget.title || metric?.label || 'Metric'}</span>
               {preset.subtitlePlacement !== 'hidden' && widget.description && (
-                <span className="text-[10px] text-slate-400 font-medium mt-0.5 truncate">{widget.description}</span>
+                <span className="text-[11px] text-slate-400 font-medium mt-0.5 truncate">{widget.description}</span>
               )}
             </div>
             <div className="flex items-center gap-1.5 shrink-0">
@@ -341,14 +341,14 @@ function WidgetRendererInner({ widget, data, sector, loading, presentationMode =
                         data-testid={`button-kpi-intel-${(metric?.label || 'metric').toLowerCase().replace(/\s+/g, '-')}`}
                       >
                         <BrainCircuit className="w-3 h-3" />
-                        <span className="text-[8px] font-black uppercase tracking-wider hidden @[200px]:inline">AI</span>
+                        <span className="text-[11px] font-black uppercase tracking-wider hidden @[200px]:inline">AI</span>
                       </button>
                     </PopoverTrigger>
                     <PopoverContent align="end" className="w-72 p-0 rounded-2xl border-slate-200 shadow-xl overflow-hidden">
                       <div className="bg-slate-900 px-4 py-3">
                         <div className="flex items-center gap-1.5">
                           <BrainCircuit className="w-3.5 h-3.5 text-teal-400" />
-                          <span className="text-[10px] font-black uppercase tracking-widest text-white">{metric?.label} Intelligence</span>
+                          <span className="text-[11px] font-black uppercase tracking-widest text-white">{metric?.label} Intelligence</span>
                         </div>
                       </div>
                       <div className="p-4 space-y-3">
@@ -356,7 +356,7 @@ function WidgetRendererInner({ widget, data, sector, loading, presentationMode =
                         <KpiIntelRow label="Why" text={intel.why} tone="indigo" />
                         <KpiIntelRow label="Impact" text={intel.impact} tone="amber" />
                         <div className="rounded-xl border border-teal-200 bg-teal-50/70 p-3">
-                          <span className="text-[9px] font-black uppercase tracking-widest text-teal-700">Recommended Action</span>
+                          <span className="text-[11px] font-black uppercase tracking-widest text-teal-700">Recommended Action</span>
                           <p className="text-xs font-semibold text-slate-800 leading-relaxed mt-1">{intel.action}</p>
                         </div>
                       </div>
@@ -365,7 +365,7 @@ function WidgetRendererInner({ widget, data, sector, loading, presentationMode =
                 );
               })()}
               {preset.statusBadgeVisible && widget.showBadge !== false && metric?.isPositive !== undefined && (
-                <div className={`hidden @[170px]:block px-1.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider ${metric.isPositive ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-600'}`}>
+                <div className={`hidden @[170px]:block px-1.5 py-0.5 rounded-full text-[11px] font-black uppercase tracking-wider ${metric.isPositive ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-600'}`}>
                   {metric.isPositive ? 'On Track' : 'At Risk'}
                 </div>
               )}
@@ -384,13 +384,13 @@ function WidgetRendererInner({ widget, data, sector, loading, presentationMode =
             <h3 className={`${valueSizeClass} font-bold text-slate-900 tracking-tight leading-none`}><AnimatedMetric value={String(metric?.value || '0')} /></h3>
             {(widget.showDelta !== false || preset.deltaPosition !== 'hidden') && metric?.trend && (
               <div className={`flex items-center gap-1.5 ${isCompact ? 'mt-1' : 'mt-2'} min-w-0 max-w-full`}>
-                <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[10px] font-bold shrink-0 ${detail.status === 'good' ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>
+                <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[11px] font-bold shrink-0 ${detail.status === 'good' ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>
                   {detail.direction === 'up' ? <TrendingUp className="w-3 h-3" aria-hidden /> : detail.direction === 'down' ? <TrendingDown className="w-3 h-3" aria-hidden /> : null}
                   {metric.trend}
                   <span className="sr-only">{detail.status === 'good' ? '(good)' : '(needs attention)'}</span>
                 </span>
                 {preset.comparisonLabelVisible && widget.showComparison !== false && detail.previous && (
-                  <span className="text-[10px] font-medium text-slate-400 truncate hidden @[190px]:inline">vs {detail.previous} last period</span>
+                  <span className="text-[11px] font-medium text-slate-400 truncate hidden @[190px]:inline">vs {detail.previous} last period</span>
                 )}
               </div>
             )}
@@ -403,8 +403,8 @@ function WidgetRendererInner({ widget, data, sector, loading, presentationMode =
                 )}
                 {presentationMode && intel && (
                   <div className="hidden @[230px]:block"><div className="hidden [@container(min-height:150px)]:flex items-center justify-between gap-1">
-                    <span className="text-[10px] text-slate-500 truncate min-w-0">Top driver: <span className="font-bold text-slate-700">{intel.contributor}</span></span>
-                    <span className={`text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full shrink-0 ${getRiskBadge(intel.risk)}`}>{getRiskLabel(intel.risk)}</span>
+                    <span className="text-[11px] text-slate-500 truncate min-w-0">Top driver: <span className="font-bold text-slate-700">{intel.contributor}</span></span>
+                    <span className={`text-[11px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full shrink-0 ${getRiskBadge(intel.risk)}`}>{getRiskLabel(intel.risk)}</span>
                   </div></div>
                 )}
                 {detail.prev !== null && detail.now !== null && (
@@ -420,7 +420,7 @@ function WidgetRendererInner({ widget, data, sector, loading, presentationMode =
             )}
 
             {preset.benchmarkVisible && widget.showTarget && widget.target && (
-              <div className="flex items-center gap-1.5 mt-1.5 text-[10px] text-slate-400 font-medium">
+              <div className="flex items-center gap-1.5 mt-1.5 text-[11px] text-slate-400 font-medium">
                 <Target className="w-3 h-3" />
                 <span>Target: {widget.target}</span>
               </div>
@@ -428,11 +428,11 @@ function WidgetRendererInner({ widget, data, sector, loading, presentationMode =
 
             {dataDensity === 'detailed' && (
               <div className="mt-2 pt-2 border-t border-slate-100 space-y-1">
-                <div className="flex justify-between text-[10px]">
+                <div className="flex justify-between text-[11px]">
                   <span className="text-slate-400 font-medium">Last period</span>
                   <span className="text-slate-600 font-bold">{detail.previous ?? '—'}</span>
                 </div>
-                <div className="flex justify-between text-[10px]">
+                <div className="flex justify-between text-[11px]">
                   <span className="text-slate-400 font-medium">Change</span>
                   <span className="text-slate-600 font-bold">{metric?.trend || '—'}</span>
                 </div>
@@ -441,19 +441,19 @@ function WidgetRendererInner({ widget, data, sector, loading, presentationMode =
 
             {dataDensity === 'grid' && (
               <div className="mt-2 pt-2 border-t border-slate-100 grid grid-cols-2 gap-x-3 gap-y-1.5">
-                <div className="text-[10px]">
+                <div className="text-[11px]">
                   <span className="text-slate-400 font-medium block">Target</span>
                   <span className="text-slate-700 font-bold">{widget.target || 'Not set'}</span>
                 </div>
-                <div className="text-[10px]">
+                <div className="text-[11px]">
                   <span className="text-slate-400 font-medium block">Last period</span>
                   <span className="text-slate-700 font-bold">{detail.previous ?? '—'}</span>
                 </div>
-                <div className="text-[10px]">
+                <div className="text-[11px]">
                   <span className="text-slate-400 font-medium block">Change</span>
                   <span className="text-slate-700 font-bold">{metric?.trend || '—'}</span>
                 </div>
-                <div className="text-[10px]">
+                <div className="text-[11px]">
                   <span className="text-slate-400 font-medium block">Status</span>
                   <span className={`font-bold ${metric?.isPositive ? 'text-emerald-700' : 'text-rose-600'}`}>{metric?.isPositive ? 'On Track' : 'At Risk'}</span>
                 </div>
@@ -471,7 +471,7 @@ function WidgetRendererInner({ widget, data, sector, loading, presentationMode =
       return (
         <div className={`h-full flex flex-col ${containerPadding} items-center justify-center relative`}>
           <div className="absolute top-1 left-1">
-             <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{widget.title || metric?.label}</h3>
+             <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{widget.title || metric?.label}</h3>
           </div>
           <div className="w-full h-full flex items-center justify-center relative mt-4">
              <ResponsiveContainer width="100%" height="100%" minHeight={100}>
@@ -505,7 +505,7 @@ function WidgetRendererInner({ widget, data, sector, loading, presentationMode =
         <div className={`h-full flex flex-col ${containerPadding}`}>
           <div className="flex items-center justify-between mb-4">
              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">{widget.title || 'Performance Trend'}</h3>
-             <div className={`px-1.5 py-0.5 rounded border text-[9px] font-bold uppercase tracking-widest ${getBadgeColors(widget.badgeColor)}`}>Real-time</div>
+             <div className={`px-1.5 py-0.5 rounded border text-[11px] font-bold uppercase tracking-widest ${getBadgeColors(widget.badgeColor)}`}>Real-time</div>
           </div>
           <div className="flex-1 relative min-h-0">
             {widget.showTarget && (
@@ -579,7 +579,7 @@ function WidgetRendererInner({ widget, data, sector, loading, presentationMode =
               {actualType === 'donut' && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                   <span className="text-2xl font-black text-slate-900 tracking-tighter">100%</span>
-                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Total</span>
+                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Total</span>
                 </div>
               )}
             </div>
@@ -593,7 +593,7 @@ function WidgetRendererInner({ widget, data, sector, loading, presentationMode =
                    </div>
                    <div className="text-right">
                      <div className="text-xs font-black text-slate-900">{item.value}%</div>
-                     <div className="text-[9px] font-medium text-slate-400">${(item.absolute / 1000).toFixed(0)}k</div>
+                     <div className="text-[11px] font-medium text-slate-400">${(item.absolute / 1000).toFixed(0)}k</div>
                    </div>
                 </div>
               ))}
@@ -666,7 +666,7 @@ function WidgetRendererInner({ widget, data, sector, loading, presentationMode =
            <div className="flex items-center justify-between mb-4">
              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">{widget.title || 'Demand Forecast'}</h3>
              <div className="flex gap-2">
-               <div className={`px-1.5 py-0.5 rounded border text-[9px] font-bold uppercase tracking-widest ${getBadgeColors(widget.badgeColor)} bg-indigo-50 text-indigo-700 border-indigo-200`}>Predictive</div>
+               <div className={`px-1.5 py-0.5 rounded border text-[11px] font-bold uppercase tracking-widest ${getBadgeColors(widget.badgeColor)} bg-indigo-50 text-indigo-700 border-indigo-200`}>Predictive</div>
              </div>
            </div>
            {widget.showForecastNote !== false && (
@@ -699,7 +699,7 @@ function WidgetRendererInner({ widget, data, sector, loading, presentationMode =
       
     default: return (
       <div className="h-full flex flex-col">
-        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">{widget.title || widget.type}</h3>
+        <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4">{widget.title || widget.type}</h3>
         <div className="flex-1 flex items-center justify-center text-slate-400 text-xs">
           Widget view ready
         </div>

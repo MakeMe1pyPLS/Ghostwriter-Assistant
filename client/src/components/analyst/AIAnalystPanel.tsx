@@ -96,7 +96,7 @@ function Section({
     <div>
       <div className="flex items-center gap-1.5 mb-1.5">
         <Icon className={`w-3.5 h-3.5 ${accent}`} />
-        <span className={`text-[9px] font-black uppercase tracking-widest ${accent}`}>{label}</span>
+        <span className={`text-[11px] font-black uppercase tracking-widest ${accent}`}>{label}</span>
       </div>
       {children}
     </div>
@@ -111,7 +111,7 @@ function AnalysisCard({ a }: { a: AnalystResponse }) {
     >
       {/* Business Summary */}
       <div className="rounded-xl bg-slate-900 text-white p-3">
-        <span className="text-[8px] font-black uppercase tracking-widest text-teal-300 block mb-1">
+        <span className="text-[11px] font-black uppercase tracking-widest text-teal-300 block mb-1">
           Business Summary
         </span>
         <p className="text-[12px] leading-relaxed font-medium text-slate-100">{a.businessSummary}</p>
@@ -166,13 +166,13 @@ function AnalysisCard({ a }: { a: AnalystResponse }) {
           <ol className="space-y-1.5">
             {a.recommendedActions.map((act, i) => (
               <li key={i} className="flex items-start gap-2">
-                <span className="mt-0.5 w-4 h-4 shrink-0 rounded-md bg-slate-900 text-white flex items-center justify-center text-[8px] font-black">
+                <span className="mt-0.5 w-4 h-4 shrink-0 rounded-md bg-slate-900 text-white flex items-center justify-center text-[11px] font-black">
                   {i + 1}
                 </span>
                 <div className="min-w-0">
                   <p className="text-[12px] font-bold text-slate-800 leading-relaxed">{act.action}</p>
                   {act.impact && (
-                    <p className="text-[10px] font-semibold text-teal-700 leading-relaxed">{act.impact}</p>
+                    <p className="text-[11px] font-semibold text-teal-700 leading-relaxed">{act.impact}</p>
                   )}
                 </div>
               </li>
@@ -199,7 +199,7 @@ function AnalysisCard({ a }: { a: AnalystResponse }) {
                 key={i}
                 className="flex items-start gap-2 text-[12px] font-medium text-slate-600 leading-relaxed"
               >
-                <span className="mt-0.5 w-4 h-4 shrink-0 rounded-md bg-slate-200 text-slate-600 flex items-center justify-center text-[8px] font-black">
+                <span className="mt-0.5 w-4 h-4 shrink-0 rounded-md bg-slate-200 text-slate-600 flex items-center justify-center text-[11px] font-black">
                   {i + 1}
                 </span>
                 {s}
@@ -315,7 +315,7 @@ export function AIAnalystPanel({
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-black text-slate-900 uppercase tracking-tight">AI Analyst</p>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
               {sector} data context
             </p>
@@ -382,7 +382,7 @@ export function AIAnalystPanel({
         </div>
 
         <div className="px-4 pb-3 pt-2 shrink-0">
-          <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-2 px-1">
+          <p className="text-[11px] font-black uppercase tracking-widest text-slate-400 mb-2 px-1">
             Suggested questions
           </p>
           <div className="flex flex-col gap-1.5 mb-3">

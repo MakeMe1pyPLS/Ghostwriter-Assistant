@@ -78,8 +78,8 @@ export function DashboardInsightBanner({ sector }: { sector: string }) {
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-0.5">
-          <span className={`text-[9px] font-black uppercase tracking-widest ${style.icon}`}>AI Insight</span>
-          <span className="text-[9px] text-slate-400 font-bold">· auto-rotating {idx + 1}/{insights.length}</span>
+          <span className={`text-[11px] font-black uppercase tracking-widest ${style.icon}`}>AI Insight</span>
+          <span className="text-[11px] text-slate-400 font-bold">· auto-rotating {idx + 1}/{insights.length}</span>
         </div>
         <p className={`text-[11px] font-medium leading-relaxed ${style.text}`}>{insight.text}</p>
       </div>

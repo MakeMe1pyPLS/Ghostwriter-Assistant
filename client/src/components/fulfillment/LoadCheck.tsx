@@ -2,7 +2,7 @@
 // and see how full it is. This is an ESTIMATE, not a load plan: there is no
 // pallet layout, and volume assumes the freight packs perfectly.
 import { useMemo, useRef, useState } from "react";
-import { AlertTriangle, CheckCircle2, Download, FileSpreadsheet, OctagonAlert, Pencil, Truck, Upload, X } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Download, FileSpreadsheet, OctagonAlert, Pencil, Sparkles, Truck, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { NEAR_LIMIT_PCT, VEHICLES, estimateLoad, parseLoadCsv, type LoadImport, type VehicleId } from "@shared/fulfillment";
 import { Card, Chip, TONE } from "./parts";
+import { VehicleScene, VehicleIcon, SECTION_DOTS, type LoadSection } from "./VehicleScene";
 
 const SAMPLE_CSV = `Item,Quantity,Weight (lb),Length (in),Width (in),Height (in)
 Carton of tees,40,18,24,16,12
@@ -18,35 +19,6 @@ Carton of hoodies,25,26,24,18,14
 Pallet of returns,2,420,48,40,48
 Display fixtures,6,35,
 `;
-
-// Where the cargo area sits inside each vehicle drawing: [x, y, width, height].
-const CARGO: Record<VehicleId, [number, number, number, number]> = {
-  "cargo-van": [14, 18, 120, 52],
-  "box-truck": [10, 10, 150, 62],
-  "trailer-53": [6, 22, 208, 48],
-};
-
-function VehicleArt({ id, pct, status, className }: { id: VehicleId; pct: number; status?: "empty" | "ok" | "near" | "over"; className?: string }) {
-  const [x, y, w, h] = CARGO[id];
-  const fillH = Math.max(0, Math.min(100, pct)) / 100 * h;
-  const fill = status === "over" ? "fill-rose-500" : status === "near" ? "fill-amber-500" : "fill-teal-600 dark:fill-teal-400";
-  return (
-    <svg viewBox="0 0 240 90" className={cn("w-full text-slate-400 dark:text-slate-500", className)} aria-hidden>
-      {/* cargo box */}
-      <rect x={x} y={y} width={w} height={h} rx="5" className="fill-slate-100 dark:fill-white/10" stroke="currentColor" strokeWidth="2" />
-      {pct > 0 && <rect x={x + 1.5} y={y + h - fillH + 0.5} width={w - 3} height={Math.max(0, fillH - 2)} rx="3" className={cn(fill, "opacity-80")} />}
-      {/* cab */}
-      {id === "cargo-van" && <path d="M134 28h40l24 22v20h-64z" className="fill-white dark:fill-slate-800" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />}
-      {id === "box-truck" && <path d="M160 26h30l26 22v22h-56z" className="fill-white dark:fill-slate-800" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />}
-      {id === "trailer-53" && <path d="M214 46h10v24h-10" className="fill-none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />}
-      {/* wheels */}
-      {(id === "cargo-van" ? [50, 168] : id === "box-truck" ? [46, 70, 192] : [30, 54, 78, 204]).map((cx) => (
-        <circle key={cx} cx={cx} cy="76" r="9" className="fill-slate-700 dark:fill-slate-300" stroke="currentColor" strokeWidth="2" />
-      ))}
-      <line x1="2" y1="85" x2="238" y2="85" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-    </svg>
-  );
-}
 
 function Meter({ label, pct, detail, limiting }: { label: string; pct: number; detail: string; limiting: boolean }) {
   const shown = Math.min(100, Math.round(pct));
@@ -120,11 +92,133 @@ export function LoadCheck() {
   const warnings = preview?.data.issues.filter((i) => i.level === "warning") ?? [];
   const items = list ? list.rows.reduce((s, r) => s + r.qty, 0) : 0;
 
+  // The truck view: one section per line, as wide as its share of capacity.
+  const [basisPick, setBasisPick] = useState<"weight" | "volume" | null>(null);
+  const basis: "weight" | "volume" = basisPick ?? (est.limiting === "volume" ? "volume" : "weight");
+  const [selected, setSelected] = useState<string | null>(null);
+  const lines = useMemo(() => {
+    if (!limitsOk) return [];
+    const cap = basis === "weight" ? maxW.v : maxV.v;
+    if (list) {
+      const all = list.rows.map((r) => ({
+        key: `l${r.line}`, label: r.description, qty: r.qty,
+        weightLb: r.weightLb * r.qty, volumeCuFt: r.volumeCuFt == null ? null : r.volumeCuFt * r.qty,
+      }));
+      // Keep the picture readable: the six biggest lines, then everything else together.
+      const metric = (x: typeof all[number]) => (basis === "weight" ? x.weightLb : x.volumeCuFt ?? 0);
+      const sorted = all.slice().sort((a, b) => metric(b) - metric(a));
+      const top = sorted.slice(0, 6);
+      const rest = sorted.slice(6);
+      const merged = rest.length ? [...top, {
+        key: "rest", label: `${rest.length} more lines`, qty: rest.reduce((s, x) => s + x.qty, 0),
+        weightLb: rest.reduce((s, x) => s + x.weightLb, 0), volumeCuFt: rest.reduce((s, x) => s + (x.volumeCuFt ?? 0), 0),
+      }] : top;
+      return merged.map((x) => ({ ...x, share: metric(x) / cap }));
+    }
+    const amount = basis === "weight" ? wIn.v : vIn.v;
+    return amount > 0 ? [{ key: "manual", label: "Your load", qty: 0, weightLb: wIn.v, volumeCuFt: vIn.v || null, share: amount / cap }] : [];
+  }, [list, basis, limitsOk, maxW.v, maxV.v, wIn.v, vIn.v]);
+  const sections: LoadSection[] = lines.filter((l) => l.share > 0).map(({ key, label, share }) => ({ key, label, share }));
+  const noSize = basis === "volume" && list ? list.rows.filter((r) => r.volumeCuFt == null).length : 0;
+  const tryExample = () => {
+    const data = parseLoadCsv(SAMPLE_CSV);
+    setList(data);
+    setSelected(null);
+    toast({ title: "Example load added", description: "These are made-up lines. Use “Clear list” to start fresh." });
+  };
+
   return (
-    <div className="grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-4 items-start" data-testid="ff-load">
+    <div className="space-y-4" data-testid="ff-load">
+    <Card className="p-4 sm:p-6" data-testid="load-scene">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 className="text-lg font-black text-slate-900">How full is the {preset.name.toLowerCase()}?</h2>
+          <p className="text-sm text-slate-500">
+            {sections.length ? "Each block is one line of your load, as wide as its share of the vehicle. Tap one to find it in the list." : "Add your load below, or try an example, to see it inside the vehicle."}
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Chip tone="info">Estimate only</Chip>
+          <div role="radiogroup" aria-label="Size the blocks by" className="inline-flex rounded-xl border border-slate-200 bg-white p-0.5 dark:bg-white/5 dark:border-white/10">
+            {(["weight", "volume"] as const).map((b) => (
+              <button key={b} role="radio" aria-checked={basis === b} onClick={() => setBasisPick(b)}
+                className={cn("h-8 px-3 rounded-lg text-sm font-bold capitalize", basis === b ? "bg-slate-900 text-white" : "text-slate-600 hover:text-slate-900")}>
+                By {b}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-4 rounded-2xl bg-slate-50 dark:bg-white/5 px-2 sm:px-6 pt-4 pb-1">
+        <VehicleScene id={vid} sections={sections} selectedKey={selected} basisLabel={basis}
+          onSelect={(k) => setSelected((cur) => (cur === k ? null : k))} className="max-h-[260px] mx-auto" />
+      </div>
+
+      {limitsOk && (
+        <dl className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {[
+            { k: "By weight", v: `${Math.round(est.weightPct)}%`, d: `${Math.round(weight).toLocaleString()} of ${maxW.v.toLocaleString()} lb`, bad: est.weightPct > 100 },
+            { k: "Room left", v: `${est.roomWeightLb.toLocaleString()} lb`, d: `${est.roomVolumeCuFt.toLocaleString()} cu ft of space`, bad: false },
+            { k: "By volume", v: `${Math.round(est.volumePct)}%`, d: `${Math.round(volume * 10) / 10} of ${maxV.v.toLocaleString()} cu ft${list && !list.volumeComplete ? " (at least)" : ""}`, bad: est.volumePct > 100 },
+            { k: "On board", v: list ? `${items.toLocaleString()} items` : sections.length ? "1 load" : "Nothing yet", d: list ? `${list.rows.length} lines` : "Entered by hand", bad: false },
+          ].map((s) => (
+            <div key={s.k} className="rounded-xl bg-slate-50 dark:bg-white/5 p-3">
+              <dt className="text-xs font-semibold text-slate-500">{s.k}</dt>
+              <dd className={cn("text-xl font-black tabular-nums", s.bad ? "text-danger" : "text-slate-900")}>{s.v}</dd>
+              <dd className="text-xs text-slate-500 mt-0.5">{s.d}</dd>
+            </div>
+          ))}
+        </dl>
+      )}
+
+      {list && lines.length > 0 && (
+        <div className="mt-4 rounded-xl border border-slate-200 dark:border-white/10 overflow-x-auto">
+          <table className="w-full text-sm" data-testid="load-lines">
+            <caption className="sr-only">Load lines and their share of the vehicle</caption>
+            <thead>
+              <tr className="text-left text-xs font-semibold text-slate-500 border-b border-slate-200 dark:border-white/10">
+                <th className="p-2.5 pl-3">Item</th><th className="p-2.5 text-right">Qty</th><th className="p-2.5 text-right">Weight</th>
+                <th className="p-2.5 text-right">Volume</th><th className="p-2.5 pr-3 text-right">Share by {basis}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {lines.map((l, i) => {
+                const on = selected === l.key;
+                return (
+                  <tr key={l.key} onClick={() => setSelected((cur) => (cur === l.key ? null : l.key))}
+                    className={cn("border-t border-slate-100 dark:border-white/10 cursor-pointer", on ? "bg-teal-50 dark:bg-teal-400/10" : "hover:bg-slate-50 dark:hover:bg-white/5")}>
+                    <td className="p-2.5 pl-3">
+                      <button type="button" className="flex items-center gap-2 text-left font-semibold text-slate-900 focus-visible:outline-none focus-visible:underline" aria-pressed={on}
+                        onClick={(e) => { e.stopPropagation(); setSelected((cur) => (cur === l.key ? null : l.key)); }}>
+                        <span className={cn("w-2.5 h-2.5 rounded-sm shrink-0", SECTION_DOTS[i % SECTION_DOTS.length])} aria-hidden />{l.label}
+                      </button>
+                    </td>
+                    <td className="p-2.5 text-right tabular-nums">{l.qty.toLocaleString()}</td>
+                    <td className="p-2.5 text-right tabular-nums">{Math.round(l.weightLb).toLocaleString()} lb</td>
+                    <td className="p-2.5 text-right tabular-nums">{l.volumeCuFt == null ? <span className="text-slate-400">No size</span> : `${Math.round(l.volumeCuFt * 10) / 10} cu ft`}</td>
+                    <td className="p-2.5 pr-3 text-right font-bold tabular-nums">{Math.round(l.share * 1000) / 10}%</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+          {noSize > 0 && <p className="p-2.5 text-xs text-slate-500 border-t border-slate-100 dark:border-white/10">{noSize} line{noSize === 1 ? " has" : "s have"} no size, so {noSize === 1 ? "it isn't" : "they aren't"} shown by volume.</p>}
+        </div>
+      )}
+
+      {!list && !sections.length && (
+        <div className="mt-4 flex flex-wrap gap-2">
+          <Button variant="outline" onClick={tryExample} data-testid="load-example"><Sparkles className="w-4 h-4 mr-2" aria-hidden /> Try an example load</Button>
+        </div>
+      )}
+      <p className="mt-3 text-xs text-slate-500">Blocks show how much of the vehicle each line uses, not where it goes. Loading order and placement are up to your team.</p>
+    </Card>
+
+    <div className="grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-4 items-start">
       <Card className="space-y-5">
         <div>
-          <p className="text-[10px] font-black uppercase tracking-widest text-primary">Step 1</p>
+          <p className="text-xs font-bold text-primary">Step 1</p>
           <h2 className="text-lg font-black text-slate-900">Pick a vehicle</h2>
         </div>
         <div role="radiogroup" aria-label="Vehicle type" className="grid grid-cols-3 gap-2">
@@ -137,9 +231,9 @@ export function LoadCheck() {
               className={cn("rounded-2xl border p-2 sm:p-3 text-left min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring", vid === o.id ? "border-primary ring-1 ring-primary/30 bg-teal-50/40 dark:bg-teal-400/10" : "border-slate-200 bg-white hover:bg-slate-50 dark:hover:bg-white/5")}
               data-testid={`load-vehicle-${o.id}`}
             >
-              <VehicleArt id={o.id} pct={0} className="h-12 sm:h-14" />
-              <p className="text-[12px] sm:text-sm font-black text-slate-900 mt-1 leading-tight">{o.name}</p>
-              <p className="hidden sm:block text-[11px] text-slate-500">Up to {o.maxWeightLb.toLocaleString()} lb · {o.maxVolumeCuFt.toLocaleString()} cu ft</p>
+              <VehicleIcon id={o.id} tone="none" className="h-12 sm:h-14" />
+              <p className="text-xs sm:text-sm font-black text-slate-900 mt-1 leading-tight">{o.name}</p>
+              <p className="hidden sm:block text-xs text-slate-500">Up to {o.maxWeightLb.toLocaleString()} lb · {o.maxVolumeCuFt.toLocaleString()} cu ft</p>
             </button>
           ))}
         </div>
@@ -164,7 +258,7 @@ export function LoadCheck() {
         </div>
 
         <div>
-          <p className="text-[10px] font-black uppercase tracking-widest text-primary">Step 2</p>
+          <p className="text-xs font-bold text-primary">Step 2</p>
           <h2 className="text-lg font-black text-slate-900">Tell us what's going on</h2>
         </div>
         {list ? (
@@ -174,7 +268,7 @@ export function LoadCheck() {
               <p className="text-sm font-black text-slate-900">{list.rows.length} lines · {items.toLocaleString()} items</p>
               <p className="text-[13px] text-slate-600">{Math.round(list.totalWeightLb).toLocaleString()} lb · {list.totalVolumeCuFt.toLocaleString()} cu ft{!list.volumeComplete && " (at least: some lines have no size)"}</p>
             </div>
-            <Button variant="outline" size="sm" onClick={() => setList(null)} data-testid="load-clear-list"><X className="w-4 h-4 mr-1" aria-hidden /> Clear list</Button>
+            <Button variant="outline" size="sm" onClick={() => { setList(null); setSelected(null); }} data-testid="load-clear-list"><X className="w-4 h-4 mr-1" aria-hidden /> Clear list</Button>
           </div>
         ) : (
           <div className="space-y-3">
@@ -193,6 +287,7 @@ export function LoadCheck() {
             <p className="text-[12px] text-slate-500">Cubic feet = length × width × height in feet. Not sure? Upload a list and we'll work it out.</p>
             <div className="flex flex-wrap gap-2">
               <Button variant="outline" onClick={() => fileRef.current?.click()} data-testid="load-upload"><Upload className="w-4 h-4 mr-2" aria-hidden /> Upload a CSV list</Button>
+              <Button variant="ghost" onClick={tryExample}><Sparkles className="w-4 h-4 mr-2" aria-hidden /> Example load</Button>
               <Button variant="ghost" onClick={downloadSample}><Download className="w-4 h-4 mr-2" aria-hidden /> Sample file</Button>
               <input ref={fileRef} type="file" accept=".csv,.tsv,.txt,text/csv" className="sr-only" aria-label="Upload a CSV load list" data-testid="load-file" onChange={(e) => { onFile(e.target.files?.[0]); e.currentTarget.value = ""; }} />
             </div>
@@ -203,12 +298,11 @@ export function LoadCheck() {
       <Card className="space-y-5 lg:sticky lg:top-4" data-testid="load-result">
         <div className="flex items-start justify-between gap-2 flex-wrap">
           <div>
-            <p className="text-[10px] font-black uppercase tracking-widest text-primary">Result</p>
+            <p className="text-xs font-bold text-primary">Result</p>
             <h2 className="text-lg font-black text-slate-900 flex items-center gap-2"><Truck className="w-5 h-5 text-slate-500" aria-hidden /> {preset.name}</h2>
           </div>
           <Chip tone="info">Estimate only</Chip>
         </div>
-        <VehicleArt id={vid} pct={Math.max(est.weightPct, est.volumePct)} status={est.status} className="h-24 sm:h-28" />
         {limitsOk ? (
           <>
             <Meter label="Weight" pct={est.weightPct} detail={`${Math.round(weight).toLocaleString()} of ${maxW.v.toLocaleString()} lb · ${est.roomWeightLb.toLocaleString()} lb of room left`} limiting={est.limiting === "weight"} />
@@ -235,11 +329,11 @@ export function LoadCheck() {
           {preview && (
             <div className="space-y-4">
               <div>
-                <p className="text-[11px] font-black uppercase tracking-widest text-slate-500 mb-1">Columns we matched</p>
+                <p className="text-xs font-bold text-slate-500 mb-1">Columns we matched</p>
                 <dl className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-[13px]">
                   {([["description", "Item"], ["qty", "Quantity"], ["weight", "Weight"], ["length", "Length"], ["width", "Width"], ["height", "Height"]] as const).map(([k, l]) => (
                     <div key={k} className="rounded-lg border border-slate-200 p-2">
-                      <dt className="text-[11px] text-slate-500">{l}</dt>
+                      <dt className="text-xs text-slate-500">{l}</dt>
                       <dd className={cn("font-bold truncate", preview.data.mapping[k] ? "text-slate-900" : "text-warning")}>{preview.data.mapping[k] ?? "Not found"}</dd>
                     </div>
                   ))}
@@ -248,7 +342,7 @@ export function LoadCheck() {
               {preview.data.rows.length > 0 && (
                 <div className="rounded-xl border border-slate-200 overflow-x-auto">
                   <table className="w-full text-[13px]">
-                    <thead><tr className="text-left text-[11px] uppercase tracking-wider text-slate-500"><th className="p-2">Item</th><th className="p-2 text-right">Qty</th><th className="p-2 text-right">Each (lb)</th><th className="p-2 text-right">Each (cu ft)</th></tr></thead>
+                    <thead><tr className="text-left text-xs font-semibold text-slate-500"><th className="p-2">Item</th><th className="p-2 text-right">Qty</th><th className="p-2 text-right">Each (lb)</th><th className="p-2 text-right">Each (cu ft)</th></tr></thead>
                     <tbody>
                       {preview.data.rows.slice(0, 6).map((r) => (
                         <tr key={r.line} className="border-t border-slate-100 dark:border-white/10">
@@ -288,6 +382,7 @@ export function LoadCheck() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+    </div>
     </div>
   );
 }

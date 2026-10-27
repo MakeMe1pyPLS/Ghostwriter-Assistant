@@ -78,7 +78,7 @@ function PipelineRow({ item, rank }: { item: OperationsIntelItem; rank: number }
           <div className="flex items-center gap-2 flex-wrap">
             <h4 className="text-sm font-black text-slate-900 truncate">{item.title}</h4>
             <span
-              className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border ${
+              className={`text-[11px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border ${
                 item.type === "bottleneck"
                   ? "bg-red-50 text-red-700 border-red-100"
                   : "bg-emerald-50 text-emerald-700 border-emerald-100"
@@ -87,7 +87,7 @@ function PipelineRow({ item, rank }: { item: OperationsIntelItem; rank: number }
               {item.type}
             </span>
           </div>
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
             {item.affectedWorkflow}
           </span>
         </div>
@@ -103,7 +103,7 @@ function PipelineRow({ item, rank }: { item: OperationsIntelItem; rank: number }
                 <div className={`flex-1 rounded-xl border p-3 ${stage.bg} min-w-0`}>
                   <div className="flex items-center gap-1.5 mb-1.5">
                     <stage.icon className={`w-3.5 h-3.5 ${stage.color}`} />
-                    <span className={`text-[8px] font-black uppercase tracking-widest ${stage.color}`}>
+                    <span className={`text-[11px] font-black uppercase tracking-widest ${stage.color}`}>
                       {stage.label}
                     </span>
                   </div>
@@ -123,12 +123,12 @@ function PipelineRow({ item, rank }: { item: OperationsIntelItem; rank: number }
           <div className="rounded-xl border border-slate-100 bg-slate-50/70 p-3">
             <div className="flex items-center gap-1.5 mb-2">
               <ListChecks className="w-3.5 h-3.5 text-slate-500" />
-              <span className="text-[8px] font-black uppercase tracking-widest text-slate-500">Action Plan</span>
+              <span className="text-[11px] font-black uppercase tracking-widest text-slate-500">Action Plan</span>
             </div>
             <ol className="space-y-1">
               {item.actionPlanSteps.map((stepText, i) => (
                 <li key={i} className="flex items-start gap-2 text-[11px] font-medium text-slate-600 leading-relaxed">
-                  <span className="mt-0.5 w-4 h-4 shrink-0 rounded-md bg-slate-900 text-white flex items-center justify-center text-[8px] font-black">
+                  <span className="mt-0.5 w-4 h-4 shrink-0 rounded-md bg-slate-900 text-white flex items-center justify-center text-[11px] font-black">
                     {i + 1}
                   </span>
                   {stepText}
@@ -141,7 +141,7 @@ function PipelineRow({ item, rank }: { item: OperationsIntelItem; rank: number }
         <div className="flex items-start gap-2 rounded-xl border border-emerald-100 bg-emerald-50/70 p-3">
           <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700 mt-0.5 shrink-0" />
           <div>
-            <span className="text-[8px] font-black uppercase tracking-widest text-emerald-700 block mb-0.5">
+            <span className="text-[11px] font-black uppercase tracking-widest text-emerald-700 block mb-0.5">
               Expected Outcome
             </span>
             <p className="text-[11px] font-medium text-slate-600 leading-relaxed">{item.expectedOutcome}</p>
@@ -180,7 +180,7 @@ function HighlightCard({
         <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${t.iconBg}`}>
           <Icon className="w-4 h-4" />
         </div>
-        <span className={`text-[9px] font-black uppercase tracking-widest ${t.labelText}`}>{label}</span>
+        <span className={`text-[11px] font-black uppercase tracking-widest ${t.labelText}`}>{label}</span>
       </div>
       <p className="text-sm font-black text-slate-900 leading-snug mb-1">{title}</p>
       <p className="text-[12px] font-medium text-slate-500 leading-relaxed">{body}</p>
@@ -272,7 +272,7 @@ export function ExecutivePreview({
         </p>
         <button
           onClick={load}
-          className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-primary"
+          className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-widest text-primary"
           data-testid="button-preview-retry"
         >
           <RefreshCw className="w-3.5 h-3.5" /> Retry
@@ -305,10 +305,10 @@ export function ExecutivePreview({
             <div className={`w-7 h-7 rounded-xl flex items-center justify-center ${accentBg}`}>
               <Sparkles className={`w-4 h-4 ${variant === "enhance" ? "text-indigo-300" : "text-teal-300"}`} />
             </div>
-            <span className={`text-[10px] font-black uppercase tracking-widest ${variant === "enhance" ? "text-indigo-300" : "text-teal-300"}`}>
+            <span className={`text-[11px] font-black uppercase tracking-widest ${variant === "enhance" ? "text-indigo-300" : "text-teal-300"}`}>
               AI Executive Preview
             </span>
-            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
               {sectorLabel(sector === "unified-chain" ? "unified" : sector)}
             </span>
           </div>
@@ -318,7 +318,7 @@ export function ExecutivePreview({
                 {cc.healthScore}
               </span>
               <span
-                className="text-[9px] font-black uppercase tracking-widest"
+                className="text-[11px] font-black uppercase tracking-widest"
                 style={{ color: ringColor(cc.healthScore) }}
               >
                 {cc.healthGrade}

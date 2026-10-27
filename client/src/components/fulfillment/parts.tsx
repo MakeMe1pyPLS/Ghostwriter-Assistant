@@ -17,7 +17,7 @@ export function HealthBadge({ health, className, label }: { health: Health; clas
   const t = TONE[health];
   const Icon = t.icon;
   return (
-    <span className={cn("inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-black whitespace-nowrap", t.box, t.text, className)}>
+    <span className={cn("inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-black whitespace-nowrap", t.box, t.text, className)}>
       <Icon className="w-3.5 h-3.5" aria-hidden /> {label ?? t.label}
     </span>
   );
@@ -25,10 +25,10 @@ export function HealthBadge({ health, className, label }: { health: Health; clas
 
 export function Chip({ tone, children, className }: { tone: "ok" | "watch" | "bottleneck" | "info" | "neutral"; children: React.ReactNode; className?: string }) {
   if (tone === "neutral") {
-    return <span className={cn("inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[11px] font-bold text-slate-600 whitespace-nowrap dark:border-white/10 dark:bg-white/5 dark:text-slate-300", className)}>{children}</span>;
+    return <span className={cn("inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-xs font-bold text-slate-600 whitespace-nowrap dark:border-white/10 dark:bg-white/5 dark:text-slate-300", className)}>{children}</span>;
   }
   const t = TONE[tone];
-  return <span className={cn("inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-bold whitespace-nowrap", t.box, t.text, className)}>{children}</span>;
+  return <span className={cn("inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-bold whitespace-nowrap", t.box, t.text, className)}>{children}</span>;
 }
 
 /** A small line of recent values. The last point is marked. */
@@ -49,7 +49,7 @@ export function Sparkline({ values, tone = "info", label, className }: { values:
 
 export function SampleBadge({ className }: { className?: string }) {
   return (
-    <span className={cn("inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[11px] font-bold text-slate-600 dark:border-white/10 dark:bg-white/5 dark:text-slate-300", className)} title="Every name and number on this screen is made up for the demo.">
+    <span className={cn("inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2 py-0.5 text-xs font-bold text-slate-600 dark:border-white/10 dark:bg-white/5 dark:text-slate-300", className)} title="Every name and number on this screen is made up for the demo.">
       <FlaskConical className="w-3 h-3" aria-hidden /> Sample data
     </span>
   );
@@ -59,7 +59,7 @@ export function SectionTitle({ eyebrow, title, children }: { eyebrow?: string; t
   return (
     <div className="flex items-end justify-between gap-3 flex-wrap">
       <div>
-        {eyebrow && <p className="text-[10px] font-black uppercase tracking-widest text-primary">{eyebrow}</p>}
+        {eyebrow && <p className="text-xs font-bold text-primary">{eyebrow}</p>}
         <h2 className="text-lg font-black tracking-tight text-slate-900">{title}</h2>
       </div>
       {children}

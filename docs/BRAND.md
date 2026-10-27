@@ -134,6 +134,20 @@ Rules:
 - The arrow follows the direction of the change; the colour shows whether the change is good or bad.
 - Only show numbers the card actually has. Never repeat the current value as a "previous", "benchmark" or "target".
 
+### Visual system (analysis screens)
+Pipeline, Bottlenecks, Recommendations, the KPI Library and the Dashboard share one set of pieces in `client/src/components/viz.tsx`. Use them before building new ones.
+- **Every screen answers three questions, top to bottom:** what's happening, what's wrong, what to do.
+- **Headers:** `PageHeader`: sentence-case title (never all caps), one plain sentence that states the situation in numbers ("4 slowing logistics down, 2 with high impact"), then actions.
+- **Type floor:** nothing under 12px on these screens (11px only inside resizable dashboard cards). No uppercase eyebrows; use `FieldLabel` (12px, bold, sentence case).
+- **Severity:** `LevelPill` (icon + word + colour) or `LevelMeter` (1–3 bars + word). Never colour alone.
+- **Lead with the #1:** the most important item gets a hero card; the rest are a ranked, collapsible list.
+- **Flows:** `StageFlow` for "how many sit at each stage" (the busiest open stage is marked), `StageTrack` for where one item is.
+- **Prioritising:** `ImpactEffortChart` (top left = quick wins). Its caption must say how impact and effort were worked out.
+- **Breakdowns:** `BreakdownBars`, not pie charts.
+- **Illustrations:** `IndustryArt`: 64×48 line drawings, 1.75px ink strokes, one teal shape. Add new scenes in the same style, never stock images.
+- **Empty and error states:** `EmptyState` says what the space is for and what to do next.
+- **Honest derived numbers:** anything computed (fix stage, effort, timing) comes from real data and the screen says how. Pipeline stage = analyst output + tracked actions; effort = number of plan steps; timing = severity. Never invent costs, trends or benchmarks the data doesn't have.
+
 ### Fulfillment screens
 - Status is never colour alone: pair green, amber and red with an icon and a word (On pace, Watch, Bottleneck).
 - Sample data is labeled with the "Sample data" badge next to the page title.

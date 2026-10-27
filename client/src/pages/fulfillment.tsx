@@ -37,7 +37,7 @@ export default function FulfillmentPage() {
       <PageTransition className="p-4 md:p-6 lg:p-8 max-w-[1200px] mx-auto w-full space-y-5">
         <header className="flex flex-col sm:flex-row sm:items-end gap-4 justify-between">
           <div>
-            <p className="text-[10px] font-black uppercase tracking-widest text-primary">Operate</p>
+            <p className="text-xs font-bold text-primary">Operate</p>
             <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 flex items-center gap-3 flex-wrap">Fulfillment <SampleBadge /></h1>
             <p className="text-slate-600 mt-1 max-w-2xl">
               See where orders get stuck, what to do about it, and share the right numbers with each client. This is a prototype running on sample data.

@@ -11,11 +11,12 @@ import { AppLayout, openAppNav } from "@/components/layout/AppLayout";
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import MeasuredGrid from "@/components/MeasuredGrid";
 import { PanZoomCanvas } from "@/components/builder/PanZoomCanvas";
+import { useDragMotion, animatePop } from "@/components/builder/drag-motion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
   LayoutTemplate, Trash2, Plus, Edit3, Copy, Download, Save, Eye, CheckCircle2, Lock, Move,
-  MoreHorizontal, RotateCcw, Upload, Undo2, Redo2, Sparkles, Wand2, Menu, X, Grid3x3, PanelRightClose, PanelRightOpen, Check,
+  MoreHorizontal, RotateCcw, Upload, Undo2, Redo2, Sparkles, Wand2, Menu, X, Grid3x3, PanelRightClose, PanelRightOpen, Check, Monitor,
 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useSectorData } from "@/hooks/use-sector-data";
@@ -95,6 +96,46 @@ const isTyping = () => {
   return !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || el.isContentEditable);
 };
 
+/** True only on phones: a touch screen and a phone-width viewport. Tablets and computers are false. */
+const PHONE_QUERY = '(pointer: coarse) and (max-width: 767px)';
+function usePhone() {
+  const [phone, setPhone] = useState(() => typeof window !== 'undefined' && window.matchMedia(PHONE_QUERY).matches);
+  useEffect(() => {
+    const mq = window.matchMedia(PHONE_QUERY);
+    const on = () => setPhone(mq.matches);
+    mq.addEventListener('change', on);
+    return () => mq.removeEventListener('change', on);
+  }, []);
+  return phone;
+}
+
+const PHONE_NOTE_KEY = 'ciq_builder_phone_note_dismissed';
+
+/** One-time note, phones only: building is easier on a computer, viewing works fine here. */
+function PhoneNote() {
+  const phone = usePhone();
+  const [dismissed, setDismissed] = useState(() => {
+    try { return localStorage.getItem(PHONE_NOTE_KEY) === '1'; } catch { return false; }
+  });
+  if (!phone || dismissed) return null;
+  const close = () => {
+    setDismissed(true);
+    try { localStorage.setItem(PHONE_NOTE_KEY, '1'); } catch { /* private mode: it just shows again next time */ }
+  };
+  return (
+    <div role="note" className="shrink-0 z-20 mx-2 mt-2 flex items-start gap-3 rounded-xl border border-teal-200 bg-teal-50 px-3 py-2.5 animate-in fade-in slide-in-from-top-1 duration-200 dark:border-teal-400/30 dark:bg-teal-400/10" data-testid="builder-phone-note">
+      <Monitor className="w-5 h-5 mt-0.5 shrink-0 text-teal-700 dark:text-teal-300" aria-hidden />
+      <p className="flex-1 text-sm leading-snug text-slate-700 dark:text-slate-200">
+        <span className="font-bold text-slate-900 dark:text-white">Building works best on a computer.</span>{' '}
+        You can still view your dashboard and make quick edits here. Open ChainInsideIQ on your laptop to arrange cards.
+      </p>
+      <button type="button" onClick={close} className="-mr-1 -mt-0.5 w-10 h-10 shrink-0 rounded-lg inline-flex items-center justify-center text-slate-500 hover:bg-teal-100 dark:hover:bg-white/10" aria-label="Dismiss" data-testid="builder-phone-note-dismiss">
+        <X className="w-4 h-4" aria-hidden />
+      </button>
+    </div>
+  );
+}
+
 function useCoarsePointer() {
   const [coarse, setCoarse] = useState(() => typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches);
   useEffect(() => {
@@ -117,6 +158,36 @@ export default function BuilderPage() {
   const [widgets, setWidgets] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [editMode, setEditMode] = useState(false);
+  // Motion: cards swing while dragged, settle on drop, pop in when added.
+  const canvasRef = useRef<HTMLElement | null>(null);
+  const dragMotion = useDragMotion(canvasRef);
+  const [freshId, setFreshId] = useState<string | null>(null);
+  const [entering, setEntering] = useState(false);
+  useEffect(() => {
+    if (!editMode) return;
+    setEntering(true);
+    const t = window.setTimeout(() => setEntering(false), 900);
+    return () => window.clearTimeout(t);
+  }, [editMode]);
+  useEffect(() => {
+    if (!freshId) return;
+    // The grid places new cards a frame or two after the state update, so wait for it.
+    let frames = 0, raf = 0;
+    const find = () => {
+      const el = canvasRef.current?.querySelector(`[data-testid="builder-card-${CSS.escape(freshId)}"]`);
+      if (el) {
+        el.scrollIntoView?.({ block: "nearest", behavior: "smooth" });
+        animatePop(el);
+        setFreshId(null);
+      } else if (frames++ < 30) {
+        raf = requestAnimationFrame(find);
+      } else {
+        setFreshId(null);
+      }
+    };
+    raf = requestAnimationFrame(find);
+    return () => cancelAnimationFrame(raf);
+  }, [freshId]);
   const [inspectedWidgetId, setInspectedWidgetId] = useState<string | null>(null);
   // Touch screens: the card you last tapped shows its buttons and corner handles.
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -258,6 +329,7 @@ export default function BuilderPage() {
     const item: Item = { i: id, x: spot.x, y: spot.y, w, h };
     commit([...layout, item], [...widgets, { id, type: widgetInfo.id, metricIndex: Math.floor(Math.random() * 4), ...(widgetInfo.defaultProps || {}) }], { history: true });
     lastPush.current = 0;
+    setFreshId(id);
     toast({ title: "Card added", description: `${widgetInfo.name} went into the first free space. Drag it anywhere.` });
   };
 
@@ -281,6 +353,7 @@ export default function BuilderPage() {
     const spot = firstFreeSpot(layout, item.w, item.h);
     commit([...layout, { ...item, i: newId, ...spot }], [...widgets, { ...src, id: newId }]);
     lastPush.current = 0;
+    setFreshId(newId);
     toast({ title: "Card duplicated", description: "The copy went into the first free space." });
   };
 
@@ -489,6 +562,8 @@ export default function BuilderPage() {
           )}
         </header>
 
+        <PhoneNote />
+
         {/* Phones and small tablets: the layout controls get their own row while editing. */}
         {editMode && (
           <div className="md:hidden shrink-0 z-20 flex items-center gap-2 px-2 py-2 border-b border-slate-200/70 bg-white/80 backdrop-blur overflow-x-auto no-scrollbar-on-mobile" data-testid="builder-edit-controls">
@@ -507,7 +582,8 @@ export default function BuilderPage() {
         <div className="relative flex-1 min-h-0 flex">
           <section
             aria-label="Dashboard grid"
-            className={cn("relative flex-1 min-w-0", (loading || widgets.length === 0) && "overflow-y-auto")}
+            ref={canvasRef}
+            className={cn("relative flex-1 min-w-0", (loading || widgets.length === 0) && "overflow-y-auto", entering && "ciq-enter")}
             onPointerDownCapture={(e) => {
               const t = e.target as HTMLElement;
               if (!t.closest('.react-grid-item') && !t.closest('.ciq-ui')) setActiveId(null);
@@ -560,6 +636,9 @@ export default function BuilderPage() {
                       containerPadding={GRID_PAD}
                       onLayoutChange={onLayoutChange}
                       onBreakpointChange={(_bp, cols) => { colsRef.current = cols; }}
+                      onDragStart={dragMotion.onDragStart}
+                      onDragStop={dragMotion.onDragStop}
+                      onResizeStop={dragMotion.onResizeStop}
                       draggableHandle=".ciq-card-inset"
                       draggableCancel=".ciq-nodrag"
                       isDraggable={editMode}
@@ -570,7 +649,7 @@ export default function BuilderPage() {
                       canvasScale={z}
                       minCanvasHeight={editMode ? 900 : 0}
                     >
-                      {widgets.map((w) => (
+                      {widgets.map((w, wi) => (
                         <div
                           key={w.id}
                           className={cn("group", activeId === w.id && "ciq-active")}
@@ -589,10 +668,11 @@ export default function BuilderPage() {
                           )}
                           <div
                             className={cn(
-                              "ciq-card-inset flex flex-col overflow-hidden transition-[box-shadow,transform] duration-200",
+                              "ciq-card-inset flex flex-col overflow-hidden",
                               getCardShellClasses(w.cardPreset || w.stylePreset, 'builder'),
                               editMode ? "cursor-grab active:cursor-grabbing hover:ring-2 hover:ring-primary/40" : "hover:shadow-md",
                             )}
+                            style={{ ["--i" as any]: Math.min(wi, 14) }}
                             onDoubleClick={() => { if (editMode) setInspectedWidgetId(w.id); }}
                             data-testid={`builder-card-${w.id}`}
                           >
@@ -672,15 +752,41 @@ export default function BuilderPage() {
         .react-grid-item.ciq-active { z-index: 4; }
         .ciq-touch .react-grid-item.ciq-active > .ciq-card-inset { box-shadow: 0 0 0 calc(2px / var(--z)) var(--color-teal-500); }
         .ciq-canvas .react-grid-item > .react-resizable-handle { transition: opacity .15s; }
-        /* Playful feedback: cards lift while you drag them and settle when you drop. */
-        .ciq-canvas .react-grid-item { transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1), width 180ms ease, height 180ms ease; }
+        /* ---- Motion (drag-motion.ts adds the swing; everything here is CSS) ---- */
+        /* Cards glide, with a little bounce, when they make room for each other. */
+        .ciq-canvas .react-grid-item { transition: transform 340ms cubic-bezier(0.34, 1.32, 0.64, 1), width 220ms cubic-bezier(0.22, 1, 0.36, 1), height 220ms cubic-bezier(0.22, 1, 0.36, 1); }
         .ciq-canvas .react-grid-item.react-draggable-dragging, .ciq-canvas .react-grid-item.resizing { transition: none; z-index: 20; }
-        .ciq-canvas .react-grid-item.react-draggable-dragging > .ciq-card-inset { transform: scale(1.025) rotate(-0.6deg); box-shadow: 0 28px 60px -20px rgba(15,23,42,.45), 0 0 0 2px var(--color-teal-500); }
+        .ciq-canvas .react-grid-item > .ciq-card-inset {
+          transition: scale 320ms cubic-bezier(0.34, 1.56, 0.64, 1), rotate 320ms cubic-bezier(0.34, 1.56, 0.64, 1), translate 320ms cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 260ms ease, opacity 220ms ease;
+        }
+        .ciq-editing .react-grid-item:hover > .ciq-card-inset { translate: 0 -2px; }
+        /* Pick up: spring up with a slight overshoot and a deeper shadow. The tilt is set from JS. */
+        .ciq-canvas .react-grid-item.react-draggable-dragging > .ciq-card-inset {
+          scale: 1.045; translate: 0 -6px;
+          transition: scale 300ms cubic-bezier(0.34, 1.7, 0.64, 1), translate 300ms cubic-bezier(0.34, 1.7, 0.64, 1), box-shadow 220ms ease;
+          box-shadow: 0 46px 90px -30px rgba(15,23,42,.55), 0 14px 28px -14px rgba(15,23,42,.28), 0 0 0 2px var(--color-teal-500);
+          cursor: grabbing;
+        }
+        /* While one card moves, the others step back a touch. */
+        .ciq-dragging .react-grid-item:not(.react-draggable-dragging) > .ciq-card-inset { opacity: .82; scale: .985; }
         .ciq-canvas .react-grid-item.resizing > .ciq-card-inset { box-shadow: 0 0 0 2px var(--color-teal-500), 0 18px 40px -16px rgba(15,23,42,.35); }
+        /* Drop target: springs to each new spot. */
+        .ciq-canvas .react-grid-placeholder { transition: transform 200ms cubic-bezier(0.34, 1.4, 0.64, 1), width 200ms ease, height 200ms ease !important; }
+        .ciq-canvas .react-grid-placeholder::after { animation: ciq-target-in 260ms cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+        @keyframes ciq-target-in { from { opacity: 0; scale: .9; } to { opacity: 1; scale: 1; } }
+        /* Entering edit mode: every card breathes once, one after another. */
+        .ciq-enter .react-grid-item > .ciq-card-inset { animation: ciq-breathe 520ms cubic-bezier(0.34, 1.56, 0.64, 1) both; animation-delay: calc(var(--i, 0) * 35ms); }
+        @keyframes ciq-breathe { 0% { scale: 1; } 40% { scale: .97; } 75% { scale: 1.012; } 100% { scale: 1; } }
+        /* Handles grow a little under the pointer. */
+        .ciq-canvas .react-grid-item > .react-resizable-handle::after { transition: scale 180ms cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .ciq-canvas .react-grid-item > .react-resizable-handle:hover::after, .ciq-canvas .react-grid-item > .react-resizable-handle:active::after { scale: 1.35; }
         .ciq-canvas-edit { --ciq-dot: color-mix(in oklab, var(--color-teal-600) 45%, transparent); }
+        .ciq-dragging .ciq-canvas-edit, .ciq-dragging { --ciq-dot: color-mix(in oklab, var(--color-teal-600) 75%, transparent); }
         @media (prefers-reduced-motion: reduce) {
-          .ciq-canvas .react-grid-item { transition: none; }
-          .ciq-canvas .react-grid-item.react-draggable-dragging > .ciq-card-inset { transform: none; }
+          .ciq-canvas .react-grid-item, .ciq-canvas .react-grid-item > .ciq-card-inset, .ciq-canvas .react-grid-placeholder { transition: none !important; }
+          .ciq-canvas .react-grid-item > .ciq-card-inset, .ciq-canvas .react-grid-placeholder::after { animation: none !important; }
+          .ciq-canvas .react-grid-item.react-draggable-dragging > .ciq-card-inset { scale: 1; translate: none; rotate: none; }
+          .ciq-dragging .react-grid-item:not(.react-draggable-dragging) > .ciq-card-inset { scale: 1; }
         }
       `}</style>
     </AppLayout>
