@@ -160,7 +160,7 @@ async function parseExcel(file: File): Promise<ImportPayload> {
   let title = '';
   for (let r = 1; r < headerRowNo; r++) { const v = filled(rowValues(r)); if (v.length && new Set(v.map(String)).size === 1) { title = String(v[0]).trim(); break; } }
   const seen = new Set<string>();
-  const headerVals = (sheet.getRow(headerRowNo).values as any[]).slice(1).map(cellValue);
+  const headerVals = rowValues(headerRowNo);
   const headers = headerVals.map((h, i) => cleanHeader(h, i, seen));
   const rows: Record<string, any>[] = [];
   for (let r = headerRowNo + 1; r <= sheet.rowCount; r++) {
