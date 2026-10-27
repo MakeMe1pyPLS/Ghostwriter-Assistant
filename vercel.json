@@ -4,6 +4,10 @@
   "outputDirectory": "dist/public",
   "rewrites": [
     {
+      "source": "/api/:path*",
+      "destination": "/api"
+    },
+    {
       "source": "/((?!api/|assets/|.*\\.[a-zA-Z0-9]+$).*)",
       "destination": "/index.html"
     }
@@ -29,7 +33,7 @@
     }
   ],
   "functions": {
-    "api/[...path].mjs": {
+    "api/index.mjs": {
       "includeFiles": "dist/fn/**",
       "maxDuration": 60
     }

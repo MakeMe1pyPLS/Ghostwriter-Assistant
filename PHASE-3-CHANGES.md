@@ -30,7 +30,7 @@ Phase 3 gets the business side ready for launch: real plans that are paid throug
 
 ## Behind the scenes
 - New API routes: `/api/me/status`, `/api/billing/checkout`, `/api/billing/portal`, `/api/billing/webhook` (Stripe-signed) and `/api/ai/keys`.
-- The API now runs on Vercel as a single bundled function (`script/build-api.mjs` → `dist/fn/server.cjs`, served by `api/[...path].mjs`).
+- The API now runs on Vercel as a single bundled function (`script/build-api.mjs` → `dist/fn/server.cjs`, served by `api/index.mjs`).
 - Database migration `supabase/migrations/20261027_billing_and_ai_keys.sql`: billing fields on `profiles` (users can't edit them), plus `billing_events`, `ai_keys` and `ai_usage` tables, all with row-level security.
 
 ## Setup the owner must do before taking payments

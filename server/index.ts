@@ -4,7 +4,7 @@ import { serveStatic } from "./static";
 import { log } from "./app";
 
 // Local and self-hosted server. On Vercel the same app runs as a function
-// (api/[...path].mjs → server/vercel.ts) and Vercel serves the static files.
+// (api/index.mjs → server/vercel.ts) and Vercel serves the static files.
 (async () => {
   const { app, httpServer } = await createApp();
   // importantly only setup vite in development and after
