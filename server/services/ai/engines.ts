@@ -39,11 +39,21 @@ async function postJson(url: string, headers: Record<string, string>, body: unkn
   }
 }
 
-function claudeAdapter(): EngineAdapter | null {
-  const key = process.env.ANTHROPIC_API_KEY;
+export const DEFAULT_MODELS: Record<LLMEngineId, string> = {
+  claude: process.env.ANTHROPIC_MODEL || 'claude-sonnet-5',
+  openai: process.env.OPENAI_MODEL || 'gpt-6-luna',
+  gemini: process.env.GEMINI_MODEL || 'gemini-3.8-flash',
+};
+
+/** An adapter for any key: ours (from the environment) or one a customer connected. */
+export function makeAdapter(id: LLMEngineId, key: string, model?: string): EngineAdapter {
+  const m = model || DEFAULT_MODELS[id];
+  return id === 'claude' ? claudeAdapter(key, m)! : id === 'openai' ? openaiAdapter(key, m)! : geminiAdapter(key, m)!;
+}
+
+function claudeAdapter(key = process.env.ANTHROPIC_API_KEY, model = DEFAULT_MODELS.claude): EngineAdapter | null {
   if (!key) return null;
   const client = new Anthropic({ apiKey: key, timeout: TIMEOUT_MS });
-  const model = process.env.ANTHROPIC_MODEL || 'claude-sonnet-5';
   return {
     id: 'claude', label: 'Claude', model,
     async complete(system, prompt, maxTokens) {
@@ -57,10 +67,8 @@ function claudeAdapter(): EngineAdapter | null {
   };
 }
 
-function openaiAdapter(): EngineAdapter | null {
-  const key = process.env.OPENAI_API_KEY;
+function openaiAdapter(key = process.env.OPENAI_API_KEY, model = DEFAULT_MODELS.openai): EngineAdapter | null {
   if (!key) return null;
-  const model = process.env.OPENAI_MODEL || 'gpt-6-luna';
   const base = (process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1').replace(/\/$/, '');
   return {
     id: 'openai', label: 'ChatGPT', model,
@@ -76,10 +84,8 @@ function openaiAdapter(): EngineAdapter | null {
   };
 }
 
-function geminiAdapter(): EngineAdapter | null {
-  const key = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+function geminiAdapter(key = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY, model = DEFAULT_MODELS.gemini): EngineAdapter | null {
   if (!key) return null;
-  const model = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
   return {
     id: 'gemini', label: 'Gemini', model,
     async complete(system, prompt, maxTokens) {

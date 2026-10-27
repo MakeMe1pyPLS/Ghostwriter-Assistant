@@ -1,4 +1,4 @@
-import { Switch, Route, useLocation } from "wouter";
+import { Switch, Route, Redirect, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -26,7 +26,6 @@ const marketingLoaders = {
   TermsPage: () => import("@/pages/terms"),
   CheckoutSuccessPage: () => import("@/pages/checkout-success"),
   CheckoutCancelPage: () => import("@/pages/checkout-cancel"),
-  CheckoutStripeMockPage: () => import("@/pages/checkout-stripe-mock"),
   VerifyEmailPage: () => import("@/pages/verify-email"),
   ResetPasswordPage: () => import("@/pages/reset-password"),
 };
@@ -35,7 +34,6 @@ const PrivacyPage = lazy(marketingLoaders.PrivacyPage);
 const TermsPage = lazy(marketingLoaders.TermsPage);
 const CheckoutSuccessPage = lazy(marketingLoaders.CheckoutSuccessPage);
 const CheckoutCancelPage = lazy(marketingLoaders.CheckoutCancelPage);
-const CheckoutStripeMockPage = lazy(marketingLoaders.CheckoutStripeMockPage);
 const VerifyEmailPage = lazy(marketingLoaders.VerifyEmailPage);
 const ResetPasswordPage = lazy(marketingLoaders.ResetPasswordPage);
 
@@ -165,7 +163,8 @@ function Router() {
       <Route path="/request-setup" component={ContactPage} />
       <Route path="/checkout/success" component={CheckoutSuccessPage} />
       <Route path="/checkout/cancel" component={CheckoutCancelPage} />
-      <Route path="/checkout/stripe-mock" component={CheckoutStripeMockPage} />
+      {/* The old pretend checkout. Real checkout is Stripe (lib/account.ts). */}
+      <Route path="/checkout/stripe-mock"><Redirect to="/pricing" /></Route>
       <Route path="/sign-in" component={SignInPage} />
       <Route path="/login" component={SignInPage} />
       <Route path="/sign-up" component={SignUpPage} />

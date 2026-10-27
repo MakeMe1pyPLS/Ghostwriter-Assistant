@@ -10,6 +10,8 @@ import { GridBackdrop, SectionHeading } from "@/components/marketing/primitives"
 import { Reveal, EASE_OUT } from "@/components/motion";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
+import { startCheckout, type PaidPlan } from "@/lib/account";
 
 type Billing = "monthly" | "yearly";
 
@@ -234,7 +236,9 @@ export default function PricingPage() {
   const urlPlan = new URLSearchParams(search).get("plan");
   const [finderPlan, setFinderPlan] = useState<string | null>(null);
   const recommendedPlan = finderPlan ?? urlPlan;
-  const [billing, setBilling] = useState<Billing>("yearly");
+  const urlBilling = new URLSearchParams(search).get("billing");
+  const [billing, setBilling] = useState<Billing>(urlBilling === "monthly" ? "monthly" : "yearly");
+  const { toast } = useToast();
   const [loadingTier, setLoadingTier] = useState<string | null>(null);
   const savePct = useMemo(() => {
     const t = PRICING_TIERS.find((x) => x.price && x.priceAnnual)!;
@@ -242,9 +246,23 @@ export default function PricingPage() {
   }, []);
 
   const handleCheckout = async (tierId: string) => {
+    if (!["starter", "professional", "business"].includes(tierId)) return;
     setLoadingTier(tierId);
-    await new Promise((resolve) => setTimeout(resolve, 600));
-    setLocation(`/checkout/stripe-mock?plan=${tierId}&billing=${billing}`);
+    const r = await startCheckout(tierId as PaidPlan, billing);
+    if (r.kind === "redirect") { window.location.assign(r.url); return; }
+    setLoadingTier(null);
+    if (r.kind === "sign-up") {
+      toast({ title: "Create your account first", description: "It takes a minute. You'll come back here to finish choosing your plan." });
+      setLocation("/sign-up");
+    } else if (r.kind === "not-ready") {
+      toast({ title: "Card payments open soon", description: "You can start your 14-day free trial now. No card needed." });
+      setLocation("/sign-up");
+    } else if (r.kind === "already") {
+      toast({ title: "You already have a plan", description: "Change or cancel it from Settings → Billing." });
+      setLocation("/settings#billing");
+    } else {
+      toast({ title: "Checkout didn't open", description: r.message, variant: "destructive" });
+    }
   };
 
   return (
