@@ -22,15 +22,48 @@ function buzz(pattern: number | number[]) {
   try { if (!reducedMotion()) navigator.vibrate?.(pattern); } catch { /* not supported */ }
 }
 
-/** Briefly add a class to an element so a CSS animation plays once. */
-export function flash(el: Element | null | undefined, cls: string, ms: number) {
-  if (!el || reducedMotion()) return;
-  el.classList.remove(cls);
-  // Force a reflow so re-adding restarts the animation.
-  void (el as HTMLElement).offsetWidth;
-  el.classList.add(cls);
-  window.setTimeout(() => el.classList.remove(cls), ms);
+// One-shot animations use the Web Animations API rather than CSS classes, so a
+// React re-render (which rewrites className) can't cut them short.
+const SPRING_OUT = "cubic-bezier(0.22, 1, 0.36, 1)";
+const OVERSHOOT = "cubic-bezier(0.34, 1.56, 0.64, 1)";
+const TEAL = (a: number) => `rgba(20, 184, 166, ${a})`;
+
+function play(el: Element | null | undefined, frames: Keyframe[], opts: KeyframeAnimationOptions) {
+  if (!el || reducedMotion() || typeof (el as HTMLElement).animate !== "function") return;
+  try { (el as HTMLElement).animate(frames, opts); } catch { /* older browsers: skip */ }
 }
+
+function ripple(card: Element | null | undefined) {
+  play(card, [{ boxShadow: `0 0 0 0 ${TEAL(0.55)}` }, { boxShadow: `0 0 0 18px ${TEAL(0)}` }], { duration: 640, easing: SPRING_OUT });
+}
+
+/** Drop: squash, bounce, settle, with a teal ripple. */
+export function animateDrop(card: Element | null | undefined) {
+  play(card, [
+    { scale: "1.045", translate: "0 -6px" },
+    { scale: "0.965 1.02", translate: "0 2px", offset: 0.35 },
+    { scale: "1.015 0.99", translate: "0 -1px", offset: 0.6 },
+    { scale: "1", translate: "0 0" },
+  ], { duration: 560, easing: SPRING_OUT });
+  ripple(card);
+}
+
+/** New or duplicated card: pops in. */
+export function animatePop(card: Element | null | undefined) {
+  play(card, [
+    { opacity: 0, scale: "0.6", translate: "0 18px" },
+    { opacity: 1, scale: "1.04", translate: "0 -2px", offset: 0.7 },
+    { opacity: 1, scale: "1", translate: "0 0" },
+  ], { duration: 560, easing: OVERSHOOT });
+  ripple(card);
+}
+
+/** After a resize: a quick elastic nudge. */
+export function animateNudge(card: Element | null | undefined) {
+  play(card, [{ scale: "0.985" }, { scale: "1.01", offset: 0.6 }, { scale: "1" }], { duration: 400, easing: OVERSHOOT });
+}
+
+const cardOf = (item: Element | null | undefined) => item?.querySelector(":scope > .ciq-card-inset") ?? null;
 
 /**
  * Returns handlers for the grid's onDragStart / onDragStop / onResizeStop.
@@ -94,7 +127,7 @@ export function useDragMotion(rootRef: React.RefObject<HTMLElement | null>) {
     stopLoop();
     if (s.card) s.card.style.rotate = "";
     buzz([6, 40, 6]);
-    flash(s.item, "ciq-drop", 620);
+    animateDrop(s.card ?? cardOf(s.item));
     s.card = null; s.item = null;
   }, [rootRef, onMove, stopLoop]);
 
@@ -110,7 +143,7 @@ export function useDragMotion(rootRef: React.RefObject<HTMLElement | null>) {
 
   const onResizeStop = useCallback(() => {
     buzz(6);
-    flash(lastPressed.current, "ciq-resized", 420);
+    animateNudge(cardOf(lastPressed.current));
   }, []);
 
   useEffect(() => () => {

@@ -11,7 +11,7 @@ import { AppLayout, openAppNav } from "@/components/layout/AppLayout";
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import MeasuredGrid from "@/components/MeasuredGrid";
 import { PanZoomCanvas } from "@/components/builder/PanZoomCanvas";
-import { useDragMotion, flash } from "@/components/builder/drag-motion";
+import { useDragMotion, animatePop } from "@/components/builder/drag-motion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -133,7 +133,7 @@ export default function BuilderPage() {
     if (!freshId) return;
     const el = canvasRef.current?.querySelector(`[data-testid="builder-card-${CSS.escape(freshId)}"]`);
     el?.scrollIntoView?.({ block: "nearest", behavior: "smooth" });
-    flash(el?.parentElement, "ciq-pop", 700);
+    animatePop(el);
     const t = window.setTimeout(() => setFreshId(null), 700);
     return () => window.clearTimeout(t);
   }, [freshId]);
@@ -721,28 +721,6 @@ export default function BuilderPage() {
         .ciq-canvas .react-grid-placeholder { transition: transform 200ms cubic-bezier(0.34, 1.4, 0.64, 1), width 200ms ease, height 200ms ease !important; }
         .ciq-canvas .react-grid-placeholder::after { animation: ciq-target-in 260ms cubic-bezier(0.34, 1.56, 0.64, 1) both; }
         @keyframes ciq-target-in { from { opacity: 0; scale: .9; } to { opacity: 1; scale: 1; } }
-        /* Drop: squash, bounce, settle, with a teal ripple. */
-        .ciq-canvas .react-grid-item.ciq-drop > .ciq-card-inset { animation: ciq-settle 560ms cubic-bezier(0.22, 1, 0.36, 1); }
-        @keyframes ciq-settle {
-          0% { scale: 1.045; translate: 0 -6px; }
-          35% { scale: .965 1.02; translate: 0 2px; }
-          60% { scale: 1.015 .99; translate: 0 -1px; }
-          100% { scale: 1; translate: 0 0; }
-        }
-        .ciq-canvas .react-grid-item.ciq-drop::after, .ciq-canvas .react-grid-item.ciq-pop::after {
-          content: ''; position: absolute; inset: 8px; border-radius: 1rem; pointer-events: none;
-          animation: ciq-ripple 620ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
-        }
-        @keyframes ciq-ripple {
-          from { box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-teal-500) 55%, transparent); }
-          to { box-shadow: 0 0 0 calc(18px / var(--z, 1)) color-mix(in oklab, var(--color-teal-500) 0%, transparent); }
-        }
-        /* Resize: a quick elastic nudge when you let go. */
-        .ciq-canvas .react-grid-item.ciq-resized > .ciq-card-inset { animation: ciq-nudge 400ms cubic-bezier(0.34, 1.56, 0.64, 1); }
-        @keyframes ciq-nudge { 0% { scale: .985; } 60% { scale: 1.01; } 100% { scale: 1; } }
-        /* New or duplicated card: pops in. */
-        .ciq-canvas .react-grid-item.ciq-pop > .ciq-card-inset { animation: ciq-pop 560ms cubic-bezier(0.34, 1.56, 0.64, 1) both; }
-        @keyframes ciq-pop { 0% { opacity: 0; scale: .6; translate: 0 18px; } 70% { opacity: 1; scale: 1.04; translate: 0 -2px; } 100% { scale: 1; translate: 0 0; } }
         /* Entering edit mode: every card breathes once, one after another. */
         .ciq-enter .react-grid-item > .ciq-card-inset { animation: ciq-breathe 520ms cubic-bezier(0.34, 1.56, 0.64, 1) both; animation-delay: calc(var(--i, 0) * 35ms); }
         @keyframes ciq-breathe { 0% { scale: 1; } 40% { scale: .97; } 75% { scale: 1.012; } 100% { scale: 1; } }
@@ -753,7 +731,7 @@ export default function BuilderPage() {
         .ciq-dragging .ciq-canvas-edit, .ciq-dragging { --ciq-dot: color-mix(in oklab, var(--color-teal-600) 75%, transparent); }
         @media (prefers-reduced-motion: reduce) {
           .ciq-canvas .react-grid-item, .ciq-canvas .react-grid-item > .ciq-card-inset, .ciq-canvas .react-grid-placeholder { transition: none !important; }
-          .ciq-canvas .react-grid-item > .ciq-card-inset, .ciq-canvas .react-grid-placeholder::after, .ciq-canvas .react-grid-item::after { animation: none !important; }
+          .ciq-canvas .react-grid-item > .ciq-card-inset, .ciq-canvas .react-grid-placeholder::after { animation: none !important; }
           .ciq-canvas .react-grid-item.react-draggable-dragging > .ciq-card-inset { scale: 1; translate: none; rotate: none; }
           .ciq-dragging .react-grid-item:not(.react-draggable-dragging) > .ciq-card-inset { scale: 1; }
         }
