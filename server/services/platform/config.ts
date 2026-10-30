@@ -16,8 +16,8 @@
 //                                Your own keys for the AI answers included in plans.
 
 // Keep in step with client/src/lib/supabase.ts.
-const DEFAULT_SUPABASE_URL = 'https://bjqgdosujsttghbddhrf.supabase.co';
-const DEFAULT_PUBLISHABLE_KEY = 'sb_publishable_JL023gIP2GjxDYj3C_EKRw_ycS38OG-';
+const DEFAULT_SUPABASE_URL = 'https://fcpkbuqstfwtucyivboa.supabase.co';
+const DEFAULT_PUBLISHABLE_KEY = 'sb_publishable_sJg834km87CIbpB4-ezHtg_iV-UExXq';
 
 const env = (k: string) => (process.env[k] || '').trim();
 

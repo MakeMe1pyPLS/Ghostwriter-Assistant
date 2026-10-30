@@ -34,7 +34,7 @@ If a feature doesn't help someone move through this loop, it waits.
 - `server/` holds Express 5. The AI router is `server/services/ai/` (Claude, ChatGPT and Gemini, with fallback).
 - `shared/` holds logic used by both client and server: the KPI library, growth plans, the rule-based analyst, the dashboard generator, exporters and the analyst framework.
 - State: `use-dashboard-store` (dashboards and data), `use-growth-store` (plan, actions, collabs, Hub, integrations, consult sessions) and `use-clients-store` (consultant client workspaces). The app always works from these browser stores.
-- Accounts: Supabase (project `bjqgdosujsttghbddhrf`). `client/src/lib/supabase.ts` is a small fetch client (auth + REST); `client/src/lib/cloud-sync.ts` mirrors the stores to the `workspaces` table for signed-in users. Schema and row-level security live in `supabase/migrations/`. Every new table needs RLS so users only see their own rows. The publishable key is public by design; never put the secret/service-role key in the client.
+- Accounts: Supabase (project `fcpkbuqstfwtucyivboa`). `client/src/lib/supabase.ts` is a small fetch client (auth + REST); `client/src/lib/cloud-sync.ts` mirrors the stores to the `workspaces` table for signed-in users. Schema and row-level security live in `supabase/migrations/`. Every new table needs RLS so users only see their own rows. The publishable key is public by design; never put the secret/service-role key in the client.
 - Deploy: Vercel serves the frontend (`vercel.json` rewrites); the API is optional (`VITE_API_URL`).
 
 ## Rules for changes
