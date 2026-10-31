@@ -115,8 +115,13 @@ export async function aiAccessFor(req: Request): Promise<AiAccess> {
       try { own[k.provider] = makeAdapter(k.provider, open(k.secret), k.model || undefined); } catch { /* unreadable key: skip it */ }
     }
     const plan = profile?.plan || 'trial';
-    const trialOver = plan === 'trial' && profile?.trial_started_at && !profile.subscription_status
-      && Date.now() - new Date(profile.trial_started_at).getTime() > 14 * 86_400_000;
+    // Included AI on the free trial lasts 14 days. Someone whose paid plan has
+    // ended (cancelled, unpaid) is back on 'trial' with a subscription status,
+    // and gets no included AI either; their own keys still work.
+    const trialOver = plan === 'trial' && (
+      Boolean(profile?.subscription_status)
+      || (!!profile?.trial_started_at && Date.now() - new Date(profile.trial_started_at).getTime() > 14 * 86_400_000)
+    );
     const { used, limit } = await usageFor(user.id, plan);
     const allowance = !trialOver && (limit === null || used < limit);
     const engines: EngineSet = {
