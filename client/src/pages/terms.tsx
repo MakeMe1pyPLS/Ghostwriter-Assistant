@@ -12,7 +12,7 @@ export default function TermsPage() {
               <span className="text-xs font-black uppercase tracking-widest">Legal</span>
             </div>
             <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tighter mb-4">Terms of Service</h1>
-            <p className="text-slate-500">Last updated: March 2026</p>
+            <p className="text-slate-500">Last updated: October 31, 2026</p>
           </div>
         </section>
 
@@ -25,7 +25,7 @@ export default function TermsPage() {
               </div>
               <div>
                 <h2 className="text-xl font-black text-slate-900 mb-3">2. Description of Service</h2>
-                <p className="text-slate-600 leading-relaxed">ChainInsideIQ is an AI-powered dashboard generator platform that enables users to create, customize, analyze, and export supply chain operational dashboards across multiple formats and BI tools.</p>
+                <p className="text-slate-600 leading-relaxed">ChainInsideIQ is subscription business software. You upload your own business data (for example Excel or CSV files), and the Platform helps you build a growth plan, find operational bottlenecks, track the actions that fix them, and export dashboards and reports. AI features give suggestions; you decide what to act on.</p>
               </div>
               <div>
                 <h2 className="text-xl font-black text-slate-900 mb-3">3. Account Registration</h2>
@@ -33,7 +33,11 @@ export default function TermsPage() {
               </div>
               <div>
                 <h2 className="text-xl font-black text-slate-900 mb-3">4. Subscription & Billing</h2>
-                <p className="text-slate-600 leading-relaxed">Paid plans are billed monthly or annually. All plans include a 14-day free trial period. You may cancel your subscription at any time. Refunds are handled in accordance with our refund policy.</p>
+                <div className="text-slate-600 leading-relaxed space-y-3" id="refunds">
+                  <p>Paid plans (Starter, Professional and Business) are billed in advance, monthly or yearly, through our payment processor, Stripe. We never see or store your card number. Each account can start one 14-day free trial; you are first charged when the trial ends unless you cancel before then.</p>
+                  <p><strong className="text-slate-800">Cancelling.</strong> You can cancel any time in Settings → Billing → Manage billing. Your plan stays active until the end of the period you have paid for, and you are not charged again.</p>
+                  <p><strong className="text-slate-800">Refunds.</strong> Because you can try the product free for 14 days, payments are generally not refunded for partial months or unused time. If you were charged by mistake (for example, a duplicate charge, or a renewal you cancelled before it happened), email us within 14 days of the charge and we will refund it in full. Yearly plans cancelled within 14 days of the first yearly charge get a full refund. Nothing here limits any refund rights you have under the law.</p>
+                </div>
               </div>
               <div>
                 <h2 className="text-xl font-black text-slate-900 mb-3">5. Acceptable Use</h2>
@@ -64,7 +68,7 @@ export default function TermsPage() {
               </div>
               <div>
                 <h2 className="text-xl font-black text-slate-900 mb-3">10. Contact</h2>
-                <p className="text-slate-600 leading-relaxed">For questions about these terms, contact us at legal@chaininsideiq.com.</p>
+                <p className="text-slate-600 leading-relaxed">For questions about these terms, contact us at Laishon.dev@gmail.com.</p>
               </div>
             </div>
           </div>

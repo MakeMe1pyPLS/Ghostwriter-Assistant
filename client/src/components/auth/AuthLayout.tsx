@@ -87,7 +87,7 @@ export function AuthLayout({ children, title, subtitle, side = "signin" }: AuthL
         </div>
 
         <div className="text-center mt-10 text-[12px] text-slate-400">
-          Partners only see what you choose to share. Questions? <a href="mailto:support@chaininsideiq.com" className="font-semibold text-primary hover:underline">support@chaininsideiq.com</a>
+          Partners only see what you choose to share. Questions? <a href="mailto:Laishon.dev@gmail.com" className="font-semibold text-primary hover:underline">Laishon.dev@gmail.com</a>
         </div>
       </main>
     </div>

@@ -223,7 +223,7 @@ export default function SupportPage() {
         <section className="py-16 px-4 md:px-6 bg-[#F4F7FA]">
           <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-6">
             {[
-              { icon: Mail, title: "Email Support", desc: "Reach our team directly for technical questions or account issues.", action: "support@chaininsideiq.com", color: "text-primary bg-primary/10 border-primary/20" },
+              { icon: Mail, title: "Email Support", desc: "Reach our team directly for technical questions or account issues.", action: "Laishon.dev@gmail.com", color: "text-primary bg-primary/10 border-primary/20" },
               { icon: MessageCircle, title: "AI Analyst", desc: "Ask the in-app AI Analyst how to use a feature or what a number means, any time.", action: "Inside the app", color: "text-indigo-600 bg-indigo-50 border-indigo-100" },
               { icon: BookOpen, title: "Guides", desc: "Step-by-step guides for every part of the platform.", action: "Sections below", color: "text-amber-700 bg-amber-50 border-amber-100" }
             ].map((item, i) => (

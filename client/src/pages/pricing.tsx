@@ -409,7 +409,7 @@ export default function PricingPage() {
               </AccordionItem>
             ))}
           </Accordion>
-          <p className="mt-10 text-center text-[14px] text-slate-500">Questions? <a href="mailto:support@chaininsideiq.com" className="font-semibold text-primary hover:underline">Talk to sales</a></p>
+          <p className="mt-10 text-center text-[14px] text-slate-500">Questions? <a href="mailto:Laishon.dev@gmail.com" className="font-semibold text-primary hover:underline">Talk to sales</a></p>
         </div>
       </section>
     </MarketingLayout>
