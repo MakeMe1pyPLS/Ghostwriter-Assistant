@@ -48,7 +48,9 @@ export async function admin(path: string, init: { method?: string; body?: unknow
     method: init.method || 'GET',
     headers: {
       apikey: config.serviceRoleKey,
-      Authorization: `Bearer ${config.serviceRoleKey}`,
+      // New-style keys (sb_secret_…) go only in `apikey`; Supabase rejects them
+      // as a Bearer token. Legacy service_role keys are JWTs and need both.
+      ...(config.serviceRoleKey.startsWith('eyJ') ? { Authorization: `Bearer ${config.serviceRoleKey}` } : {}),
       'Content-Type': 'application/json',
       ...(init.prefer ? { Prefer: init.prefer } : {}),
     },
