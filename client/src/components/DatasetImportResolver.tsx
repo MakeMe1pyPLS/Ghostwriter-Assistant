@@ -15,6 +15,8 @@ export interface ImportPayload {
   rows: Record<string, any>[];
   rowCount: number;
   sourceType: ManagedDataset['sourceType'];
+  /** Things the importer changed or left out, shown before the user saves. */
+  notes?: string[];
 }
 
 type ConflictMode = 'new' | 'overwrite' | 'merge';
@@ -128,6 +130,15 @@ export function DatasetImportResolver({ payload, onApplied }: { payload: ImportP
           <p className="text-xs text-emerald-700">{payload.rowCount} rows · {payload.columns.length} columns detected</p>
         </div>
       </div>
+
+      {!!payload.notes?.length && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4" data-testid="import-notes">
+          <p className="text-sm font-bold text-amber-800">Check before you save</p>
+          <ul className="mt-1.5 space-y-1 list-disc pl-4 text-xs text-amber-800 leading-relaxed">
+            {payload.notes.map((n) => <li key={n}>{n}</li>)}
+          </ul>
+        </div>
+      )}
 
       {/* Detection */}
       <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-3">

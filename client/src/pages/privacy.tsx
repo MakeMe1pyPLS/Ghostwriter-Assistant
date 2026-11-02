@@ -53,7 +53,7 @@ export default function PrivacyPage() {
               </div>
               <div>
                 <h2 className="text-xl font-black text-slate-900 mb-3">5. Data Retention</h2>
-                <p className="text-slate-600 leading-relaxed">We retain your data for as long as your account is active or as needed to provide services. You may request deletion of your data at any time by contacting support@chaininsideiq.com.</p>
+                <p className="text-slate-600 leading-relaxed">We retain your data for as long as your account is active or as needed to provide services. You may request deletion of your data at any time by contacting Laishon.dev@gmail.com.</p>
               </div>
               <div>
                 <h2 className="text-xl font-black text-slate-900 mb-3">6. Third-Party Sharing</h2>
@@ -61,11 +61,11 @@ export default function PrivacyPage() {
               </div>
               <div>
                 <h2 className="text-xl font-black text-slate-900 mb-3">7. Your Rights</h2>
-                <p className="text-slate-600 leading-relaxed">You have the right to access, correct, export, or delete your personal data. For GDPR/CCPA requests, contact us at privacy@chaininsideiq.com.</p>
+                <p className="text-slate-600 leading-relaxed">You have the right to access, correct, export, or delete your personal data. For GDPR/CCPA requests, contact us at Laishon.dev@gmail.com.</p>
               </div>
               <div>
                 <h2 className="text-xl font-black text-slate-900 mb-3">8. Contact</h2>
-                <p className="text-slate-600 leading-relaxed">For questions about this policy, contact us at privacy@chaininsideiq.com or via our Contact page.</p>
+                <p className="text-slate-600 leading-relaxed">For questions about this policy, contact us at Laishon.dev@gmail.com or via our Contact page.</p>
               </div>
             </div>
           </div>

@@ -17,6 +17,21 @@ import { buildRuleBasedConsult, type ConsultRequest, type ConsultResult } from '
 
 const rules = new RuleBasedIntelligenceProvider();
 
+// Tells the person once per visit when answers come from the built-in analyst
+// because they're past their monthly AI answers.
+let noticeShown = false;
+function noticeOnce<T>(result: T): T {
+  const n = (result as any)?.aiNotice;
+  if (n === 'limit_reached' && !noticeShown) {
+    noticeShown = true;
+    import('@/hooks/use-toast').then(({ toast }) => toast({
+      title: "You've used this month's AI answers",
+      description: 'The built-in analyst is answering for now. Upgrade your plan or connect your own AI key in Settings → AI engine.',
+    }));
+  }
+  return result;
+}
+
 function engine(): AIEnginePreference {
   try { return useGrowthStore.getState().aiEngine; } catch { return 'auto'; }
 }
@@ -27,7 +42,7 @@ function context(): string | undefined {
 
 export async function fetchCommandCenter(req: CommandCenterRequest): Promise<CommandCenterResult> {
   try {
-    return await postJson<CommandCenterResult>('/api/ai/command-center', { ...req, engine: engine() });
+    return noticeOnce(await postJson<CommandCenterResult>('/api/ai/command-center', { ...req, engine: engine() }));
   } catch {
     return rules.generateCommandCenter(req);
   }
@@ -35,7 +50,7 @@ export async function fetchCommandCenter(req: CommandCenterRequest): Promise<Com
 
 export async function fetchOperationsIntel(req: CommandCenterRequest): Promise<OperationsIntelResult> {
   try {
-    return await postJson<OperationsIntelResult>('/api/ai/operations-intel', { ...req, engine: engine() });
+    return noticeOnce(await postJson<OperationsIntelResult>('/api/ai/operations-intel', { ...req, engine: engine() }));
   } catch {
     return rules.generateOperationsIntel(req);
   }
@@ -43,7 +58,7 @@ export async function fetchOperationsIntel(req: CommandCenterRequest): Promise<O
 
 export async function fetchAnalystAnswer(req: AnalystChatRequest): Promise<AnalystResponse> {
   try {
-    return await postJson<AnalystResponse>('/api/ai/chat', { ...req, businessContext: context(), engine: engine() });
+    return noticeOnce(await postJson<AnalystResponse>('/api/ai/chat', { ...req, businessContext: context(), engine: engine() }));
   } catch {
     return buildRuleBasedAnalystResponse(req);
   }
@@ -51,7 +66,7 @@ export async function fetchAnalystAnswer(req: AnalystChatRequest): Promise<Analy
 
 export async function fetchGrowthPlan(profile: GrowthProfile, engineOverride?: AIEnginePreference): Promise<GrowthPlan> {
   try {
-    return await postJson<GrowthPlan>('/api/ai/growth-plan', { profile, engine: engineOverride ?? engine() }, 90_000);
+    return noticeOnce(await postJson<GrowthPlan>('/api/ai/growth-plan', { profile, engine: engineOverride ?? engine() }, 90_000));
   } catch {
     // Small delay so the "building your plan" moment reads as intentional.
     await new Promise((r) => setTimeout(r, 900));
@@ -62,7 +77,7 @@ export async function fetchGrowthPlan(profile: GrowthProfile, engineOverride?: A
 export async function fetchConsult(req: ConsultRequest): Promise<ConsultResult> {
   const withContext = { ...req, businessContext: req.businessContext ?? context() };
   try {
-    return await postJson<ConsultResult>('/api/ai/consult', { ...withContext, engine: engine() }, 60_000);
+    return noticeOnce(await postJson<ConsultResult>('/api/ai/consult', { ...withContext, engine: engine() }, 60_000));
   } catch {
     await new Promise((r) => setTimeout(r, 700));
     return buildRuleBasedConsult(withContext);
@@ -98,7 +113,7 @@ const dashboardGenerator = new DemoAIProvider();
 
 export async function generateDashboard(answers: any): Promise<any> {
   try {
-    return await postJson<any>('/api/ai/generate-dashboard', answers);
+    return noticeOnce(await postJson<any>('/api/ai/generate-dashboard', answers));
   } catch {
     return dashboardGenerator.generateDashboard(answers);
   }
@@ -106,7 +121,7 @@ export async function generateDashboard(answers: any): Promise<any> {
 
 export async function enhanceDashboard(body: any): Promise<any> {
   try {
-    return await postJson<any>('/api/ai/enhance-dashboard', body);
+    return noticeOnce(await postJson<any>('/api/ai/enhance-dashboard', body));
   } catch {
     return dashboardGenerator.enhanceDashboard(body);
   }

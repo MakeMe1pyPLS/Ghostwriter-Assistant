@@ -15,6 +15,7 @@ import { fetchApiData } from "./services/data-sources/api-source";
 import { getAllDatasets, getDataset, deleteDataset, getDatasetRows, inferColumns, registerDataset } from "./services/data-sources/dataset-registry";
 import { DemoAIProvider } from "./services/ai/demo-provider";
 import { getIntelligenceProvider } from "./services/ai/intelligence-router";
+import type { AiAccess } from "./services/platform/ai-access";
 import { engineStatus } from "./services/ai/engines";
 import type { CommandCenterRequest, AnalystChatRequest, AIEnginePreference } from "@shared/ai-types";
 import type { GrowthProfile } from "@shared/growth";
@@ -116,6 +117,20 @@ export async function registerRoutes(
     return r.success ? r.data : 'auto';
   };
 
+  // The engines this request may use (set by platform-routes.ts): the customer's
+  // own keys first, then ours within their monthly allowance, else built-in.
+  const providerFor = (req: any, res: any) => {
+    const access = res.locals.ai as AiAccess | undefined;
+    let pref = enginePref(req.body);
+    if (pref === 'auto' && access?.ownFirst) pref = access.ownFirst;
+    return getIntelligenceProvider(pref, access?.engines);
+  };
+  const sendAi = (res: any, result: any) => {
+    const access = res.locals.ai as AiAccess | undefined;
+    access?.record(result?.generatedBy);
+    res.json(access?.notice ? { ...result, aiNotice: access.notice } : result);
+  };
+
   app.get('/api/ai/engines', (_req, res) => {
     res.json(engineStatus());
   });
@@ -133,13 +148,13 @@ export async function registerRoutes(
     }
 
     try {
-      const provider = getIntelligenceProvider(enginePref(req.body));
+      const provider = providerFor(req, res);
       const result = await provider.generateAnalystResponse({
         ...normalizeIntelRequest(parsed.data),
         message: parsed.data.message,
         businessContext: parsed.data.businessContext,
       } satisfies AnalystChatRequest & { businessContext?: string });
-      res.json(result);
+      sendAi(res, result);
     } catch (err) {
       console.error('[ai/chat] error:', err);
       res.status(500).json({ error: 'Failed to generate analyst response' });
@@ -234,9 +249,9 @@ export async function registerRoutes(
     }
 
     try {
-      const provider = getIntelligenceProvider(enginePref(req.body));
+      const provider = providerFor(req, res);
       const result = await provider.generateCommandCenter(normalizeIntelRequest(parsed.data));
-      res.json(result);
+      sendAi(res, result);
     } catch (err) {
       console.error('[command-center] error:', err);
       res.status(500).json({ error: 'Failed to generate command center briefing' });
@@ -250,9 +265,9 @@ export async function registerRoutes(
     }
 
     try {
-      const provider = getIntelligenceProvider(enginePref(req.body));
+      const provider = providerFor(req, res);
       const result = await provider.generateOperationsIntel(normalizeIntelRequest(parsed.data));
-      res.json(result);
+      sendAi(res, result);
     } catch (err) {
       console.error('[operations-intel] error:', err);
       res.status(500).json({ error: 'Failed to generate operations intelligence' });
@@ -283,8 +298,8 @@ export async function registerRoutes(
       return res.status(400).json({ error: 'Invalid growth profile', details: parsed.error.flatten() });
     }
     try {
-      const plan = await getIntelligenceProvider(enginePref(req.body)).generateGrowthPlan(parsed.data as GrowthProfile);
-      res.json(plan);
+      const plan = await providerFor(req, res).generateGrowthPlan(parsed.data as GrowthProfile);
+      sendAi(res, plan);
     } catch (err) {
       console.error('[growth-plan] error:', err);
       res.status(500).json({ error: 'Failed to build growth plan' });
@@ -304,8 +319,8 @@ export async function registerRoutes(
       return res.status(400).json({ error: 'Invalid consult request', details: parsed.error.flatten() });
     }
     try {
-      const result = await getIntelligenceProvider(enginePref(req.body)).generateConsult(parsed.data as ConsultRequest);
-      res.json(result);
+      const result = await providerFor(req, res).generateConsult(parsed.data as ConsultRequest);
+      sendAi(res, result);
     } catch (err) {
       console.error('[consult] error:', err);
       res.status(500).json({ error: 'Failed to run consult session' });

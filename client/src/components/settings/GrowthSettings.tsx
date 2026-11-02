@@ -10,6 +10,8 @@ import { useGrowthStore } from "@/hooks/use-growth-store";
 import { fetchEngineStatus, ENGINE_LABELS, type EngineStatus } from "@/lib/intel-client";
 import { sendToChannel, CHANNEL_LABELS, type ShareChannel } from "@/lib/share";
 import type { AIEnginePreference } from "@shared/ai-types";
+import { OwnKeysPanel } from "@/components/settings/AccountSettings";
+import type { ConnectedKey } from "@/lib/account";
 
 function SectionShell({ id, icon: Icon, title, children }: { id?: string; icon: any; title: string; children: React.ReactNode }) {
   return (
@@ -34,22 +36,26 @@ export function AIEngineSection() {
   const { aiEngine, setAiEngine } = useGrowthStore();
   const [status, setStatus] = useState<EngineStatus | null | undefined>(undefined);
   useEffect(() => { fetchEngineStatus().then(setStatus); }, []);
+  const [ownKeys, setOwnKeys] = useState<ConnectedKey[]>([]);
   const configured = (id: string) => status?.engines.find((e) => e.id === id)?.configured;
+  const own = (id: string) => ownKeys.some((k) => k.provider === id && k.connected);
 
   return (
     <SectionShell id="ai" icon={BrainCircuit} title="AI engine">
-      <p className="text-sm text-slate-500">ChainInsideIQ runs on three AI engines. Pick one, or let it choose automatically. If an engine isn’t available, the next one answers, and the built-in analyst covers everything when none are connected.</p>
+      <p className="text-sm text-slate-600">Pick the AI that writes your strategy, plans and analyses, or let ChainInsideIQ choose. If one is busy the next answers, and the built-in analyst always has an answer.</p>
       <div className="grid sm:grid-cols-2 gap-2">
         {(['auto', 'claude', 'openai', 'gemini'] as AIEnginePreference[]).map((e) => {
-          const ok = e === 'auto' ? true : configured(e);
+          const mine = e !== 'auto' && own(e);
+          const ok = e === 'auto' ? true : mine || configured(e);
           return (
             <button key={e} onClick={() => setAiEngine(e)} aria-pressed={aiEngine === e}
               className={`text-left rounded-xl border p-4 transition-colors ${aiEngine === e ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'border-slate-200 hover:bg-slate-50'}`}>
               <span className="flex items-center gap-2">
                 <span className="font-black text-slate-900">{ENGINE_LABELS[e]}</span>
                 {e !== 'auto' && status !== undefined && (
-                  ok ? <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-emerald-700"><CheckCircle2 className="w-3 h-3" /> Connected</span>
-                     : <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-slate-400"><CircleDashed className="w-3 h-3" /> Not connected</span>
+                  mine ? <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700"><CheckCircle2 className="w-3.5 h-3.5" aria-hidden /> Your key</span>
+                  : ok ? <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700"><CheckCircle2 className="w-3.5 h-3.5" aria-hidden /> Included</span>
+                     : <span className="inline-flex items-center gap-1 text-xs font-bold text-slate-500"><CircleDashed className="w-3.5 h-3.5" aria-hidden /> Not available</span>
                 )}
               </span>
               <span className="block text-xs text-slate-500 mt-1">{ENGINE_BLURB[e]}</span>
@@ -58,10 +64,11 @@ export function AIEngineSection() {
         })}
       </div>
       {status === null && (
-        <p className="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-xl p-3">
-          The AI server isn’t reachable from this deployment, so the built-in analyst is answering. Connect the API server and add <code className="font-mono">ANTHROPIC_API_KEY</code>, <code className="font-mono">OPENAI_API_KEY</code> or <code className="font-mono">GEMINI_API_KEY</code> to switch on the AI engines.
+        <p className="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-xl p-3">
+          The AI engines can’t be reached right now, so the built-in analyst is answering. Your work isn’t affected.
         </p>
       )}
+      <OwnKeysPanel onChange={setOwnKeys} />
     </SectionShell>
   );
 }

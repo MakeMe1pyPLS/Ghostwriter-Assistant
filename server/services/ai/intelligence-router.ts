@@ -12,7 +12,7 @@ import {
 } from '@shared/intelligence';
 import { type GrowthProfile, type GrowthPlan, buildRuleBasedGrowthPlan } from '@shared/growth';
 import { type ConsultRequest, type ConsultResult, buildRuleBasedConsult } from '@shared/consult';
-import { configuredEngines, defaultOrder, type LLMEngineId } from './engines';
+import { configuredEngines, defaultOrder, type LLMEngineId, type EngineAdapter } from './engines';
 import { LLMIntelligenceProvider } from './llm-provider';
 
 export interface GrowthCapableProvider extends OperationalIntelligenceProvider {
@@ -21,8 +21,10 @@ export interface GrowthCapableProvider extends OperationalIntelligenceProvider {
   generateAnalystResponse(req: AnalystChatRequest & { businessContext?: string }): ReturnType<OperationalIntelligenceProvider['generateAnalystResponse']>;
 }
 
-function engineChain(pref: AIEnginePreference = 'auto'): LLMIntelligenceProvider[] {
-  const engines = configuredEngines();
+export type EngineSet = Record<LLMEngineId, EngineAdapter | null>;
+
+function engineChain(pref: AIEnginePreference = 'auto', override?: EngineSet): LLMIntelligenceProvider[] {
+  const engines = override ?? configuredEngines();
   const order: LLMEngineId[] = pref !== 'auto' && engines[pref]
     ? [pref, ...defaultOrder().filter((e) => e !== pref)]
     : defaultOrder();
@@ -40,8 +42,13 @@ async function firstSuccess<T>(chain: LLMIntelligenceProvider[], run: (p: LLMInt
   return fallback();
 }
 
-export function getIntelligenceProvider(pref: AIEnginePreference = 'auto'): GrowthCapableProvider {
-  const chain = engineChain(pref);
+/**
+ * `engines` lets a request run on a specific set of adapters (a customer's own
+ * keys, or none when they're over their monthly limit). Without it the
+ * server's own keys are used.
+ */
+export function getIntelligenceProvider(pref: AIEnginePreference = 'auto', engines?: EngineSet): GrowthCapableProvider {
+  const chain = engineChain(pref, engines);
   const rules = new RuleBasedIntelligenceProvider();
   return {
     generateCommandCenter: (req: CommandCenterRequest) =>

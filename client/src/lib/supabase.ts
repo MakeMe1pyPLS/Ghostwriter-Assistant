@@ -10,8 +10,8 @@
 const ENV_URL = (import.meta as any).env?.VITE_SUPABASE_URL as string | undefined;
 const ENV_KEY = (import.meta as any).env?.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined;
 
-export const SUPABASE_URL = ENV_URL === 'off' ? '' : (ENV_URL || 'https://bjqgdosujsttghbddhrf.supabase.co');
-const SUPABASE_KEY = ENV_KEY || 'sb_publishable_JL023gIP2GjxDYj3C_EKRw_ycS38OG-';
+export const SUPABASE_URL = ENV_URL === 'off' ? '' : (ENV_URL || 'https://fcpkbuqstfwtucyivboa.supabase.co');
+const SUPABASE_KEY = ENV_KEY || 'sb_publishable_sJg834km87CIbpB4-ezHtg_iV-UExXq';
 
 /** True when accounts are available. When false the app keeps everything in the browser, as before. */
 export const cloudEnabled = !!SUPABASE_URL && !!SUPABASE_KEY;
