@@ -19,7 +19,7 @@ export async function fetchGoogleSheet(url: string): Promise<{ success: boolean;
   const exportUrl = buildExportUrl(sheetId);
 
   try {
-    const response = await fetch(exportUrl);
+    const response = await fetch(exportUrl, { signal: AbortSignal.timeout(15_000) });
     if (!response.ok) {
       return {
         success: false,

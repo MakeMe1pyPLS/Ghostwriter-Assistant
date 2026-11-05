@@ -75,22 +75,37 @@ export async function postWebhook(n: NotifyInput): Promise<void> {
   }
 }
 
-function isPrivateIp(ip: string): boolean {
+/** True for addresses a public import URL must never reach (private, loopback, link-local, metadata, multicast). */
+export function isPrivateIp(ip: string): boolean {
   if (net.isIPv4(ip)) {
-    const [a, b] = ip.split('.').map(Number);
+    const [a, b, c] = ip.split('.').map(Number);
     return a === 10 || a === 127 || a === 0 || (a === 169 && b === 254) || (a === 172 && b >= 16 && b <= 31) ||
-      (a === 192 && b === 168) || (a === 100 && b >= 64 && b <= 127) || a >= 224;
+      (a === 192 && b === 168) || (a === 192 && b === 0 && c === 0) || (a === 100 && b >= 64 && b <= 127) ||
+      (a === 198 && (b === 18 || b === 19)) || a >= 224;
   }
   const v = ip.toLowerCase();
-  return v === '::1' || v === '::' || v.startsWith('fc') || v.startsWith('fd') || v.startsWith('fe80') ||
-    (v.startsWith('::ffff:') && isPrivateIp(v.slice(7)));
+  if (v.startsWith('::ffff:')) {
+    const rest = v.slice(7);
+    if (net.isIPv4(rest)) return isPrivateIp(rest);
+    // ::ffff:7f00:1 is the same address written in hex.
+    const m = rest.match(/^([0-9a-f]{1,4}):([0-9a-f]{1,4})$/);
+    if (m) {
+      const hi = parseInt(m[1], 16), lo = parseInt(m[2], 16);
+      return isPrivateIp(`${hi >> 8}.${hi & 255}.${lo >> 8}.${lo & 255}`);
+    }
+    return true;
+  }
+  return v === '::1' || v === '::' || /^f[cd]/.test(v) || /^fe[89abcdef]/.test(v) || v.startsWith('ff');
 }
 
+export interface ResolvedTarget { url: URL; address: string; family: 4 | 6 }
+
 /**
- * Rejects URLs that point at private, loopback or cloud-metadata addresses so
- * user-supplied import URLs cannot be used to probe internal networks.
+ * Checks a user-supplied import URL and works out ONE public address for it. Callers must
+ * connect to that address (see safe-fetch.ts) rather than looking the host up again, so a
+ * hostile DNS server cannot answer "public" to this check and "internal" to the request.
  */
-export async function assertPublicHttpUrl(url: string): Promise<void> {
+export async function resolvePublicTarget(url: string): Promise<ResolvedTarget> {
   let u: URL;
   try { u = new URL(url); } catch { throw new Error('Enter a full URL starting with https://'); }
   if (u.protocol !== 'https:' && u.protocol !== 'http:') throw new Error('Only http and https URLs are supported.');
@@ -99,7 +114,14 @@ export async function assertPublicHttpUrl(url: string): Promise<void> {
   if (/^(localhost|metadata\.google\.internal)$/i.test(host) || host.endsWith('.local') || host.endsWith('.internal')) {
     throw new Error('That address is not reachable from ChainInsideIQ.');
   }
-  const addrs = net.isIP(host) ? [{ address: host }] : await lookup(host, { all: true }).catch(() => []);
+  const addrs = net.isIP(host) ? [{ address: host, family: net.isIP(host) }] : await lookup(host, { all: true }).catch(() => []);
   if (!addrs.length) throw new Error('That address could not be found.');
   if (addrs.some((a) => isPrivateIp(a.address))) throw new Error('That address is not reachable from ChainInsideIQ.');
+  const first = addrs[0];
+  return { url: u, address: first.address, family: first.family === 6 ? 6 : 4 };
+}
+
+/** Kept for callers that only want the yes/no check. */
+export async function assertPublicHttpUrl(url: string): Promise<void> {
+  await resolvePublicTarget(url);
 }
