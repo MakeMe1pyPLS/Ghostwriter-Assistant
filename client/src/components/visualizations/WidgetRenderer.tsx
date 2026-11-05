@@ -10,7 +10,7 @@ import { useEffect, useRef, useState, memo } from "react";
 import { animate, useReducedMotion } from "framer-motion";
 import { getAllMetrics } from "@/hooks/use-sector-data";
 import { CARD_PRESETS, type CardPresetId } from "@/lib/kpi-card-presets";
-import { getHighlights, type OpportunityRiskHighlight } from "@/lib/opportunity-risk-engine";
+import { Link } from "wouter";
 import { kpiDetail, type KpiDetail } from "@shared/kpi-detail";
 import { ALL_INDUSTRY_KPIS } from "@shared/kpi-industries";
 import { kpiKey } from "@shared/kpi-viz";
@@ -42,105 +42,20 @@ function KpiNoData({ title, kind, unit, formula }: { title: string; kind: string
   );
 }
 
-const InsightsWidgetContent = memo(function InsightsWidgetContent({ sector, title }: { sector: string, title?: string }) {
-  const [insights, setInsights] = useState<any>(null);
-  
-  useEffect(() => {
-    import('@/lib/ai-provider').then(({ ai }) => {
-      ai.generateInsights(sector, {}).then(setInsights);
-    });
-  }, [sector]);
-
-  if (!insights) {
-    return (
-      <div className="h-full flex flex-col p-1 animate-pulse">
-        <div className="flex items-center gap-2 mb-4">
-          <BrainCircuit className="w-4 h-4 text-primary opacity-50" />
-          <div className="h-4 w-32 bg-slate-200 rounded"></div>
-        </div>
-        <div className="flex-1 space-y-3">
-          <div className="h-20 bg-slate-100 rounded-lg"></div>
-          <div className="h-20 bg-slate-100 rounded-lg"></div>
-        </div>
-      </div>
-    );
-  }
-
+/** A card that points to where the real answer lives. It shows no findings of its own: an earlier version showed canned text as if it were a detection. */
+function PointerCard({ icon: Icon, title, text, href, cta }: { icon: typeof BrainCircuit; title: string; text: string; href: string; cta: string }) {
   return (
     <div className="h-full flex flex-col p-1 overflow-hidden">
-      <div className="flex items-center gap-2 mb-2.5 shrink-0">
-        <BrainCircuit className="w-4 h-4 text-primary" />
-        <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider truncate">{title || 'AI Recommendations'}</h3>
+      <div className="flex items-center gap-2 mb-2 shrink-0">
+        <Icon className="w-4 h-4 text-primary" aria-hidden />
+        <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider truncate">{title}</h3>
       </div>
-      {/* Fits the card: sections sit side by side when the card is wide, and lines are clamped instead of scrolling. */}
-      <div className="grid gap-2 flex-1 min-h-0 content-start @[560px]:grid-cols-3">
-        <div className="p-2.5 bg-slate-50 rounded-lg border border-slate-100 min-w-0">
-          <p className="text-[11px] font-bold text-slate-700 mb-1">What changed</p>
-          <ul className="text-[11px] text-slate-500 leading-snug list-disc pl-3 space-y-0.5">
-            {insights.what_changed?.slice(0, 3).map((c: string, i: number) => <li key={i} className="line-clamp-2">{c}</li>)}
-          </ul>
-        </div>
-        <div className="p-2.5 bg-teal-50/50 rounded-lg border border-teal-100 min-w-0">
-          <p className="text-[11px] font-bold text-teal-700 mb-1">Recommended actions</p>
-          <ul className="text-[11px] text-teal-700/80 leading-snug list-disc pl-3 space-y-0.5">
-            {insights.actions?.slice(0, 2).map((a: string, i: number) => <li key={i} className="line-clamp-2">{a}</li>)}
-          </ul>
-        </div>
-        {insights.forecast_note && (
-          <div className="p-2.5 bg-indigo-50/50 rounded-lg border border-indigo-100 min-w-0">
-            <p className="text-[11px] font-bold text-indigo-700 mb-0.5">Forecast</p>
-            <p className="text-[11px] text-indigo-700/80 leading-snug line-clamp-3">{insights.forecast_note}</p>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-});
-
-const SEVERITY_STYLES: Record<string, { bg: string; border: string; icon: string }> = {
-  risk: { bg: 'bg-rose-50', border: 'border-rose-200', icon: 'text-rose-600' },
-  opportunity: { bg: 'bg-emerald-50', border: 'border-emerald-200', icon: 'text-emerald-700' },
-  urgent: { bg: 'bg-amber-50', border: 'border-amber-200', icon: 'text-amber-700' },
-  action: { bg: 'bg-blue-50', border: 'border-blue-200', icon: 'text-blue-700' },
-  forecast: { bg: 'bg-indigo-50', border: 'border-indigo-200', icon: 'text-indigo-600' },
-};
-
-function OpportunityRiskWidget({ sector, title, presentationMode }: { sector: string; title?: string; presentationMode: boolean }) {
-  const highlights = getHighlights(sector);
-
-  return (
-    <div className="h-full flex flex-col p-1">
-      <div className="flex items-center gap-2 mb-3 shrink-0">
-        <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-amber-500 to-rose-500 flex items-center justify-center">
-          <AlertTriangle className="w-3.5 h-3.5 text-white" />
-        </div>
-        <h3 className={`${presentationMode ? 'text-xs' : 'text-[11px]'} font-black text-slate-900 uppercase tracking-widest`}>{title || 'Opportunity & Risk Highlights'}</h3>
-      </div>
-      <div className="flex-1 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
-        {highlights.map((h, i) => {
-          const style = SEVERITY_STYLES[h.type] || SEVERITY_STYLES.risk;
-          return (
-            <div key={i} className={`${style.bg} ${style.border} border rounded-xl p-3 transition-all hover:shadow-sm`} data-testid={`highlight-${h.type}-${i}`}>
-              <div className="flex items-start gap-2.5">
-                <span className="text-base leading-none mt-0.5 shrink-0">{h.icon}</span>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-0.5">
-                    <span className={`text-[11px] font-black uppercase tracking-widest ${style.icon}`}>{h.type}</span>
-                    {h.severity === 'high' && (
-                      <span className="text-[11px] font-black uppercase tracking-wider bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded-full">High</span>
-                    )}
-                  </div>
-                  <p className="text-xs font-bold text-slate-800 mb-0.5">{h.title}</p>
-                  <p className="text-[11px] text-slate-600 leading-relaxed">{h.description}</p>
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+      <p className="text-[12px] text-slate-700 leading-snug">{text}</p>
+      <Link href={href} className="mt-auto pt-2 inline-flex items-center min-h-10 text-[12px] font-bold text-primary hover:underline">{cta}</Link>
     </div>
   );
 }
+
 
 const getBadgeColors = (color: string) => {
   switch(color) {
@@ -631,32 +546,17 @@ function WidgetRendererInner({ widget, data, sector, loading, presentationMode =
       );
       
     case 'chat':
-      return (
-        <div className={`h-full flex flex-col ${containerPadding}`}>
-           <div className="flex items-center gap-2 mb-4">
-              <Bot className="w-4 h-4 text-primary" />
-              <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">{widget.title || 'AI Assistant'}</h3>
-           </div>
-           <div className="flex-1 flex flex-col gap-3 overflow-auto mb-3 px-1">
-             <div className="bg-slate-100 rounded-lg rounded-tl-none p-3 text-xs text-slate-700 self-start max-w-[85%] shadow-sm">
-               How can I help you analyze the {sector} data today?
-             </div>
-             <div className="bg-primary/10 rounded-lg rounded-tr-none p-3 text-xs text-primary font-bold self-end max-w-[85%] shadow-sm">
-               What's our biggest risk?
-             </div>
-             <div className="bg-slate-100 rounded-lg rounded-tl-none p-3 text-xs text-slate-700 self-start max-w-[85%] shadow-sm">
-               The biggest risk currently is a potential bottleneck at the Central Hub.
-             </div>
-           </div>
-           <div className="h-9 border border-slate-200 rounded-lg flex items-center px-3 text-xs text-slate-400 bg-slate-50">Ask a question...</div>
-        </div>
-      );
-      
+      return <PointerCard icon={Bot} title={widget.title || 'AI Assistant'} text="Ask questions about your numbers on the AI Analyst page. This card does not hold a conversation itself." href="/insights" cta="Open the AI Analyst" />;
+
     case 'summary':
       return (
         <div className={`h-full flex flex-col justify-center ${containerPadding}`}>
           <h3 className="text-sm font-black text-slate-900 mb-2 uppercase tracking-widest">{widget.title || 'Executive Summary'}</h3>
-          <p className={`${presentationMode ? 'text-[15px]' : 'text-sm'} text-slate-600 leading-relaxed`}>Overall performance in {sector} is showing a <strong className={metrics[0]?.isPositive ? 'text-emerald-700 bg-emerald-50 px-1 rounded' : 'text-rose-600 bg-rose-50 px-1 rounded'}>{metrics[0]?.trend || 'stable'}</strong> trend. Key indicators suggest strong operational health despite minor localized disruptions. Focus should remain on sustaining current throughput and mitigating identified supply chain risks.</p>
+          {metrics[0]?.trend ? (
+            <p className={`${presentationMode ? 'text-[15px]' : 'text-sm'} text-slate-600 leading-relaxed`}>Overall performance in {sector} is showing a <strong className={metrics[0]?.isPositive ? 'text-emerald-700 bg-emerald-50 px-1 rounded' : 'text-rose-600 bg-rose-50 px-1 rounded'}>{metrics[0].trend}</strong> trend on the first number shown on this dashboard.</p>
+          ) : (
+            <p className={`${presentationMode ? 'text-[15px]' : 'text-sm'} text-slate-600 leading-relaxed`}>No trend is available for the first number on this dashboard yet.</p>
+          )}
         </div>
       );
       
@@ -666,13 +566,13 @@ function WidgetRendererInner({ widget, data, sector, loading, presentationMode =
            <div className="flex items-center justify-between mb-4">
              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">{widget.title || 'Demand Forecast'}</h3>
              <div className="flex gap-2">
-               <div className={`px-1.5 py-0.5 rounded border text-[11px] font-bold uppercase tracking-widest ${getBadgeColors(widget.badgeColor)} bg-indigo-50 text-indigo-700 border-indigo-200`}>Predictive</div>
+               <div className={`px-1.5 py-0.5 rounded border text-[11px] font-bold uppercase tracking-widest ${getBadgeColors(widget.badgeColor)} bg-indigo-50 text-indigo-700 border-indigo-200`}>Example</div>
              </div>
            </div>
            {widget.showForecastNote !== false && (
               <div className="mb-4 text-[11px] text-slate-500 bg-slate-50 p-2 rounded-lg border border-slate-100 flex items-center gap-2">
                 <BrainCircuit className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
-                AI projects a 12% upside over the next 7 days based on current {sector} trends.
+                Forecasting from your own history is coming soon. The dashed line is a built-in example, not a prediction about your business.
               </div>
            )}
            <div className="flex-1 relative min-h-0">
@@ -692,10 +592,10 @@ function WidgetRendererInner({ widget, data, sector, loading, presentationMode =
       );
       
     case 'insights':
-      return <InsightsWidgetContent sector={sector} title={widget.title} />;
+      return <PointerCard icon={BrainCircuit} title={widget.title || 'AI insights'} text="The AI Analyst answers from the numbers in your workspace. Nothing is shown here until you ask, so no finding on this card is made up." href="/insights" cta="Ask the AI Analyst" />;
       
     case 'opportunity-risk':
-      return <OpportunityRiskWidget sector={sector} title={widget.title} presentationMode={presentationMode} />;
+      return <PointerCard icon={AlertTriangle} title={widget.title || 'Risks and opportunities'} text="Risks and opportunities are worked out from your uploaded data, so none are listed here until you have some. The Bottlenecks page shows what was found and how sure we are." href="/bottlenecks" cta="See what we found" />;
       
     default: return (
       <div className="h-full flex flex-col">

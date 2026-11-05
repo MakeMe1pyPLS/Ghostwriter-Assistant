@@ -8,6 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { useSectorData } from "@/hooks/use-sector-data";
+import { SampleDataNotice } from "@/components/SampleDataNotice";
 import { useDashboardStore } from "@/hooks/use-dashboard-store";
 import { downloadFromResponse, buildExcelPayload, buildDashboardPayload, exportFilename, sectorLabel, dateRangeLabel } from "@/lib/export-helpers";
 import {
@@ -376,6 +377,7 @@ export default function ExportsPage() {
     <AppLayout>
       <div className="flex flex-col min-h-full bg-[#F4F7FA]">
         <div className="bg-white border-b border-slate-200 px-4 sm:px-6 md:px-8 py-6 md:py-8 shrink-0 shadow-sm relative z-10">
+          <SampleDataNotice className="max-w-6xl mx-auto mb-5" />
           <div className="max-w-6xl mx-auto flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div>
               <h1 className="text-3xl font-black text-slate-900 tracking-tight uppercase" data-testid="text-export-title">Export Center</h1>

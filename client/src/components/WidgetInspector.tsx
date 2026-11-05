@@ -249,34 +249,9 @@ export function WidgetInspector({
                     </Select>
                   </div>
                 )}
-                {widget.type === 'insights' && (
-                  <div className="space-y-2">
-                    <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Insight Density</Label>
-                    <Select value={widget.insightDensity || "standard"} onValueChange={(val) => handleUpdate({ insightDensity: val })}>
-                      <SelectTrigger className="h-9 text-xs rounded-xl shadow-sm border-slate-200 bg-white"><SelectValue placeholder="Select density" /></SelectTrigger>
-                      <SelectContent className="rounded-xl z-[105]">
-                        <SelectItem value="brief" className="text-xs">Top 2 Only</SelectItem>
-                        <SelectItem value="standard" className="text-xs">Standard (Up to 4)</SelectItem>
-                        <SelectItem value="detailed" className="text-xs">Detailed (All available)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-                {widget.type === 'chat' && (
-                  <div className="space-y-2">
-                    <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Placeholder Prompt</Label>
-                    <Input placeholder="Ask a question..." className="h-9 text-xs rounded-xl shadow-sm border-slate-200 bg-white" value={widget.placeholderPrompt || ''} onChange={(e) => handleUpdate({ placeholderPrompt: e.target.value })} />
-                  </div>
-                )}
-                {(widget.type === 'insights' || widget.type === 'summary') && (
-                  <div className="flex items-center justify-between group bg-slate-50 p-3 rounded-xl border border-slate-100 transition-colors hover:border-slate-200">
-                    <Label htmlFor="show-actions" className="text-xs font-bold text-slate-700 cursor-pointer group-hover:text-slate-900">Show Suggested Actions</Label>
-                    <Switch id="show-actions" checked={widget.showActions !== false} onCheckedChange={(c) => handleUpdate({ showActions: c })} className="data-[state=checked]:bg-primary" />
-                  </div>
-                )}
                 {widget.type === 'forecast' && (
                   <div className="flex items-center justify-between group bg-slate-50 p-3 rounded-xl border border-slate-100 transition-colors hover:border-slate-200">
-                    <Label htmlFor="show-forecast-note" className="text-xs font-bold text-slate-700 cursor-pointer group-hover:text-slate-900">Show AI Forecast Note</Label>
+                    <Label htmlFor="show-forecast-note" className="text-xs font-bold text-slate-700 cursor-pointer group-hover:text-slate-900">Show forecast note</Label>
                     <Switch id="show-forecast-note" checked={widget.showForecastNote !== false} onCheckedChange={(c) => handleUpdate({ showForecastNote: c })} className="data-[state=checked]:bg-primary" />
                   </div>
                 )}

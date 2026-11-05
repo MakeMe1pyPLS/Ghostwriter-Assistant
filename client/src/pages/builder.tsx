@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useSectorData } from "@/hooks/use-sector-data";
+import { SampleDataNotice } from "@/components/SampleDataNotice";
 import { useDashboardStore } from "@/hooks/use-dashboard-store";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { motion, AnimatePresence } from "framer-motion";
@@ -561,6 +562,8 @@ export default function BuilderPage() {
             </>
           )}
         </header>
+
+        <SampleDataNotice className="mx-2 sm:mx-3 mt-2 shrink-0" />
 
         <PhoneNote />
 
