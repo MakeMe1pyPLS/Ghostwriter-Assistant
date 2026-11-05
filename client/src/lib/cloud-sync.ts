@@ -15,6 +15,7 @@ import {
 } from '@/lib/supabase';
 import { useGrowthStore, GROWTH_WORKSPACE_KEYS, emptyGrowthWorkspace } from '@/hooks/use-growth-store';
 import { useAuditStore, pauseAudit } from '@/hooks/use-audit-store';
+import { cleanEvents } from '@shared/report-activity';
 import { useDashboardStore, type AuthUser, type PlanTier } from '@/hooks/use-dashboard-store';
 import {
   useClientsStore, DASHBOARD_WORKSPACE_KEYS, emptyDashboardWorkspace, loadLiveWorkspace,
@@ -53,7 +54,7 @@ function snapshotOf(id: string): WorkspaceSnapshot | null {
   return c.clients.find((x) => x.id === id)?.workspace ?? null;
 }
 
-const META_KEYS = ['industryId', 'contactName', 'contactEmail', 'engagement', 'status', 'nextReview', 'notes', 'createdAt'] as const;
+const META_KEYS = ['industryId', 'contactName', 'contactEmail', 'engagement', 'status', 'nextReview', 'notes', 'createdAt', 'reportEvents'] as const;
 const metaOf = (c: ClientRecord) => pickKeys(c, META_KEYS);
 
 function clientFromRow(row: WorkspaceRow): ClientRecord {
@@ -69,6 +70,7 @@ function clientFromRow(row: WorkspaceRow): ClientRecord {
     nextReview: m.nextReview,
     notes: Array.isArray(m.notes) ? m.notes : [],
     createdAt: Number(m.createdAt) || Date.now(),
+    reportEvents: cleanEvents(m.reportEvents),
     workspace: snapshotFromRow(row),
   };
 }

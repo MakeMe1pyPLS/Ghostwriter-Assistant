@@ -25,6 +25,7 @@ import {
 import { useGrowthStore } from "@/hooks/use-growth-store";
 import { useSyncStatus } from "@/lib/cloud-sync";
 import { BUSINESS_INDUSTRIES, getIndustry } from "@shared/kpi-industries";
+import { summariseReports, agoText, cleanEvents } from "@shared/report-activity";
 import { Stagger, StaggerItem, EASE_OUT } from "@/components/motion";
 import { cn } from "@/lib/utils";
 
@@ -158,6 +159,7 @@ function ClientCard({ client, stats, active, onOpen, onDetails }: { client: Clie
   const pct = stats.total ? Math.round((stats.done / stats.total) * 100) : 0;
   const reviewSoon = client.nextReview && client.nextReview <= inDays(7) && client.status !== "Completed";
   const reviewLate = client.nextReview && client.nextReview < todayISO() && client.status !== "Completed";
+  const report = summariseReports(client.reportEvents, client, Date.now());
   return (
     <article className={cn("h-full rounded-3xl border bg-white p-5 flex flex-col gap-4 transition-shadow hover:shadow-md", active ? "border-primary/50 ring-1 ring-primary/20" : "border-slate-200")} data-testid={`client-card-${client.id}`}>
       <div className="flex items-start gap-3">
@@ -175,6 +177,7 @@ function ClientCard({ client, stats, active, onOpen, onDetails }: { client: Clie
         <span className={cn("rounded-full px-2 py-0.5", STATUS_STYLE[client.status])}>{client.status}</span>
         {active && <span className="rounded-full px-2 py-0.5 bg-primary text-white">Open now</span>}
         {stats.overdue > 0 && <span className="rounded-full px-2 py-0.5 bg-rose-50 text-rose-700">{stats.overdue} overdue</span>}
+        {report.state === "due" && <span className="rounded-full px-2 py-0.5 bg-amber-50 text-amber-700" data-testid={`client-report-due-${client.id}`}>Report due</span>}
         {client.nextReview && <span className={cn("rounded-full px-2 py-0.5", reviewLate ? "bg-rose-50 text-rose-700" : reviewSoon ? "bg-amber-50 text-amber-700" : "bg-slate-100 text-slate-600")}>Review {fmtDate(client.nextReview)}</span>}
       </div>
 
@@ -195,6 +198,8 @@ function ClientCard({ client, stats, active, onOpen, onDetails }: { client: Clie
           <p className="text-[13px] text-slate-500 flex items-start gap-2"><Sparkles className="w-4 h-4 text-primary shrink-0 mt-0.5" /> No plan yet. Open the workspace to run the AI interview with this client.</p>
         )}
       </div>
+
+      <p className="text-[11px] text-slate-500 -mt-2" data-testid={`client-report-activity-${client.id}`}>{report.text}</p>
 
       <div className="flex gap-2">
         <Button onClick={onOpen} className="flex-1 h-10 rounded-xl font-bold" variant={active ? "outline" : "default"} data-testid={`client-open-${client.id}`}>
@@ -304,6 +309,29 @@ function AddClientDialog({ open, onOpenChange, onCreated }: { open: boolean; onO
   );
 }
 
+function ReportActivity({ events }: { events?: ClientRecord["reportEvents"] }) {
+  const list = cleanEvents(events).slice(0, 5);
+  const now = Date.now();
+  return (
+    <section className="space-y-2" data-testid="report-activity">
+      <h3 className={cn(FIELD_LABEL, "flex items-center gap-1.5")}><FileText className="w-3.5 h-3.5" /> Report activity</h3>
+      {list.length === 0 ? (
+        <p className="text-[13px] text-slate-500">No report opened yet. Open this client's report from their card.</p>
+      ) : (
+        <ul className="space-y-1">
+          {list.map((e) => (
+            <li key={`${e.at}-${e.kind}`} className="text-[13px] text-slate-700 flex justify-between gap-3">
+              <span>{e.kind === "printed" ? "Print or save opened" : "Report opened"}</span>
+              <span className="text-slate-500 shrink-0">{new Date(e.at).toLocaleDateString(undefined, { month: "short", day: "numeric" })} · {agoText(e.at, now)}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+      <p className="text-[11px] text-slate-500">Recorded on this account only. "Print or save opened" means the print window was opened; we can't see whether you saved or sent it.</p>
+    </section>
+  );
+}
+
 function ClientSheet({ clientId, onClose }: { clientId: string | null; onClose: () => void }) {
   const client = useClientsStore((s) => s.clients.find((c) => c.id === clientId));
   const { updateClient, removeClient, addNote, removeNote } = useClientsStore();
@@ -367,6 +395,8 @@ function ClientSheet({ clientId, onClose }: { clientId: string | null; onClose: 
                 <a href={`mailto:${encodeURIComponent(client.contactEmail)}`} className="inline-flex items-center gap-1.5 text-sm font-bold text-primary"><Mail className="w-4 h-4" /> Email {client.contactName || "contact"}</a>
               )}
             </section>
+
+            <ReportActivity events={client.reportEvents} />
 
             <SharingPanel clientId={client.id} />
 

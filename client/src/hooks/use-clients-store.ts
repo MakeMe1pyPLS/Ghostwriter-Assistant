@@ -7,6 +7,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { useGrowthStore, GROWTH_WORKSPACE_KEYS, emptyGrowthWorkspace, type GrowthWorkspace, type ActionItem } from './use-growth-store';
 import { useDashboardStore } from './use-dashboard-store';
+import { addReportEvent, type ReportEvent, type ReportEventKind } from '@shared/report-activity';
 
 export type EngagementType = 'Project' | 'Monthly retainer' | 'Advisory' | 'One-off review';
 export type ClientStatus = 'Onboarding' | 'Active' | 'Paused' | 'Completed';
@@ -36,6 +37,8 @@ export interface ClientRecord {
   nextReview?: string;
   notes: ClientNote[];
   createdAt: number;
+  /** When the progress report was opened or printed (newest first). Your own record; never shown to viewers. */
+  reportEvents?: ReportEvent[];
   /** Parked workspace. Undefined while this client is the active one (or before first use). */
   workspace?: WorkspaceSnapshot;
 }
@@ -87,11 +90,13 @@ interface ClientsState {
   ownWorkspace: WorkspaceSnapshot | null;
 
   activeClient: () => ClientRecord | undefined;
-  addClient: (c: Pick<ClientRecord, 'name'> & Partial<Omit<ClientRecord, 'id' | 'createdAt' | 'notes' | 'workspace'>>) => ClientRecord;
+  addClient: (c: Pick<ClientRecord, 'name'> & Partial<Omit<ClientRecord, 'id' | 'createdAt' | 'notes' | 'workspace' | 'reportEvents'>>) => ClientRecord;
   updateClient: (id: string, patch: Partial<Omit<ClientRecord, 'id' | 'workspace'>>) => void;
   removeClient: (id: string) => void;
   addNote: (id: string, text: string) => void;
   removeNote: (id: string, noteId: string) => void;
+  /** Remember that this client's report was opened or printed. */
+  recordReport: (id: string, kind: ReportEventKind) => void;
   /** Switch the live workspace to a client, or back to your own business (null). */
   switchTo: (id: string | null) => void;
   /** The workspace for a client (or your own business), live or parked. */
@@ -128,6 +133,8 @@ export const useClientsStore = create<ClientsState>()(
         set((s) => ({ clients: s.clients.map((c) => (c.id === id ? { ...c, notes: [{ id: uid('note'), text: t, createdAt: Date.now() }, ...c.notes] } : c)) }));
       },
       removeNote: (id, noteId) => set((s) => ({ clients: s.clients.map((c) => (c.id === id ? { ...c, notes: c.notes.filter((n) => n.id !== noteId) } : c)) })),
+
+      recordReport: (id, kind) => set((s) => ({ clients: s.clients.map((c) => (c.id === id ? { ...c, reportEvents: addReportEvent(c.reportEvents, kind, Date.now()) } : c)) })),
 
       switchTo: (target) => {
         const { activeClientId, clients, ownWorkspace } = get();
