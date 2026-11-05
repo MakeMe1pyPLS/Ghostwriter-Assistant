@@ -24,6 +24,7 @@ import {
   type GoalId, type CompanySize, type BusinessStage, type ChallengeId, type Timeframe, type GrowthProfile, type GrowthPlan, type DataStatus,
 } from "@shared/growth";
 import { INDUSTRIES, INDUSTRY_GROUPS, BUSINESS_INDUSTRIES, getIndustry } from "@shared/kpi-industries";
+import { sectorFamilyFor } from '@shared/company-types';
 import { EASE_OUT } from "@/components/motion";
 
 type StepId = 'goal' | 'name' | 'industry' | 'size' | 'stage' | 'challenges' | 'kpi' | 'data' | 'partners';
@@ -52,12 +53,6 @@ interface Draft {
   dataStatus?: DataStatus;
   upload?: UploadState;
 }
-
-const SECTOR_BY_INDUSTRY: Record<string, Sector> = {
-  ecommerce: 'ecommerce', 'retail-store': 'ecommerce', grocery: 'ecommerce', wholesale: 'ecommerce',
-  '3pl': 'logistics', trucking: 'logistics', 'last-mile': 'logistics', 'freight-forwarding': 'logistics',
-  manufacturing: 'manufacturing', 'food-production': 'manufacturing', construction: 'manufacturing', agriculture: 'manufacturing', energy: 'manufacturing',
-};
 
 function AnalystAvatar({ size = 36 }: { size?: number }) {
   return (
@@ -178,7 +173,7 @@ function answerText(step: StepId, d: Draft): string {
 export default function OnboardingPage() {
   const [, navigate] = useLocation();
   const currentUser = useDashboardStore((s) => s.currentUser);
-  const { completeSetup, setBusinessStructure, setSector, setSectorMode, setConnectedSectors, setDataSharingEnabled, addDataset } = useDashboardStore();
+  const { completeSetup, setCompanyTypes, setBusinessStructure, setSector, setSectorMode, setConnectedSectors, setDataSharingEnabled, addDataset } = useDashboardStore();
   const { profile: savedProfile, setProfile, setPlan, completeOnboarding, restartTour, aiEngine } = useGrowthStore();
   const firstName = currentUser?.fullName?.split(' ')[0] ?? '';
 
@@ -329,7 +324,7 @@ export default function OnboardingPage() {
         status: client.status === 'Onboarding' ? 'Active' : client.status,
       });
     }
-    const sector = SECTOR_BY_INDUSTRY[profile.industryId] ?? 'custom';
+    const sector = sectorFamilyFor(profile.industryId) as Sector;
     if (profile.partners.length) {
       setBusinessStructure('partnered');
       setDataSharingEnabled(true);
@@ -338,6 +333,8 @@ export default function OnboardingPage() {
     }
     setSectorMode('single');
     setSector(sector);
+    // Remember the exact kind of business, not just its sector family.
+    setCompanyTypes([profile.industryId]);
     // The sector switcher models supply-chain sectors; businesses outside them
     // start partnered as a seller + carrier pair, which they can change in Settings.
     const partneredPair: Sector[] = sector === 'custom' ? ['ecommerce', 'logistics'] : [sector, sector === 'logistics' ? 'ecommerce' : 'logistics'];
