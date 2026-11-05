@@ -402,3 +402,7 @@ export function calculateKpis(rows: Row[], headersHint?: string[]): KpiRun {
 
 /** What each role is called in plain words (for showing "columns used"). */
 export const roleName = (r: Role) => ROLES[r].name;
+
+/** The numbers this engine can calculate from an uploaded file, without running it. */
+export const CALCULABLE_KPIS: { id: string; label: string; unit: KpiUnitKind; direction: 'up' | 'down'; how: string }[] =
+  SPECS.map(({ id, label, unit, direction, how }) => ({ id, label, unit, direction, how }));

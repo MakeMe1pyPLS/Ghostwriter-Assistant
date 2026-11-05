@@ -17,6 +17,7 @@ import { useGrowthStore, GROWTH_WORKSPACE_KEYS, emptyGrowthWorkspace } from '@/h
 import { useAuditStore, pauseAudit } from '@/hooks/use-audit-store';
 import { cleanEvents } from '@shared/report-activity';
 import { cleanAssessments } from '@shared/assessments';
+import { cleanKpiConfig } from '@shared/kpi-config';
 import { useDashboardStore, type AuthUser, type PlanTier } from '@/hooks/use-dashboard-store';
 import {
   useClientsStore, DASHBOARD_WORKSPACE_KEYS, emptyDashboardWorkspace, loadLiveWorkspace,
@@ -55,7 +56,7 @@ function snapshotOf(id: string): WorkspaceSnapshot | null {
   return c.clients.find((x) => x.id === id)?.workspace ?? null;
 }
 
-const META_KEYS = ['industryId', 'contactName', 'contactEmail', 'engagement', 'status', 'nextReview', 'notes', 'createdAt', 'reportEvents', 'assessments'] as const;
+const META_KEYS = ['industryId', 'contactName', 'contactEmail', 'engagement', 'status', 'nextReview', 'notes', 'createdAt', 'reportEvents', 'assessments', 'kpiConfig'] as const;
 const metaOf = (c: ClientRecord) => pickKeys(c, META_KEYS);
 
 function clientFromRow(row: WorkspaceRow): ClientRecord {
@@ -73,6 +74,7 @@ function clientFromRow(row: WorkspaceRow): ClientRecord {
     createdAt: Number(m.createdAt) || Date.now(),
     reportEvents: cleanEvents(m.reportEvents),
     assessments: cleanAssessments(m.assessments),
+    kpiConfig: cleanKpiConfig(m.kpiConfig),
     workspace: snapshotFromRow(row),
   };
 }

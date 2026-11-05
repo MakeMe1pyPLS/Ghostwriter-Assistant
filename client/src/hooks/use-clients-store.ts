@@ -8,6 +8,8 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { useGrowthStore, GROWTH_WORKSPACE_KEYS, emptyGrowthWorkspace, type GrowthWorkspace, type ActionItem } from './use-growth-store';
 import { useDashboardStore } from './use-dashboard-store';
 import { addReportEvent, type ReportEvent, type ReportEventKind } from '@shared/report-activity';
+import { toggleKpi, setKpiTarget, type KpiConfig } from '@shared/kpi-config';
+import { STANDARD_KPIS } from '@shared/consultant';
 import { updateAssessment, type AssessmentRecord, type AssessmentKind, type AssessmentPatch } from '@shared/assessments';
 
 export type EngagementType = 'Project' | 'Monthly retainer' | 'Advisory' | 'One-off review';
@@ -42,6 +44,8 @@ export interface ClientRecord {
   reportEvents?: ReportEvent[];
   /** Your own checklist of the three assessments for this client. Private to you; never shown to viewers. */
   assessments?: AssessmentRecord[];
+  /** Which calculated numbers this client's summary and report show, and your target for each. Private to you. */
+  kpiConfig?: KpiConfig;
   /** Parked workspace. Undefined while this client is the active one (or before first use). */
   workspace?: WorkspaceSnapshot;
 }
@@ -93,7 +97,7 @@ interface ClientsState {
   ownWorkspace: WorkspaceSnapshot | null;
 
   activeClient: () => ClientRecord | undefined;
-  addClient: (c: Pick<ClientRecord, 'name'> & Partial<Omit<ClientRecord, 'id' | 'createdAt' | 'notes' | 'workspace' | 'reportEvents' | 'assessments'>>) => ClientRecord;
+  addClient: (c: Pick<ClientRecord, 'name'> & Partial<Omit<ClientRecord, 'id' | 'createdAt' | 'notes' | 'workspace' | 'reportEvents' | 'assessments' | 'kpiConfig'>>) => ClientRecord;
   updateClient: (id: string, patch: Partial<Omit<ClientRecord, 'id' | 'workspace'>>) => void;
   removeClient: (id: string) => void;
   addNote: (id: string, text: string) => void;
@@ -102,6 +106,10 @@ interface ClientsState {
   recordReport: (id: string, kind: ReportEventKind) => void;
   /** Change the status, due date or note of one assessment for a client. */
   setAssessment: (id: string, kind: AssessmentKind, patch: AssessmentPatch) => void;
+  /** Add or drop a KPI for this client. The first change starts from the standard set. */
+  toggleClientKpi: (id: string, kpiId: string) => void;
+  /** Set (or clear with null) the target for one of this client's KPIs. */
+  setClientKpiTarget: (id: string, kpiId: string, value: number | null) => void;
   /** Switch the live workspace to a client, or back to your own business (null). */
   switchTo: (id: string | null) => void;
   /** The workspace for a client (or your own business), live or parked. */
@@ -142,6 +150,9 @@ export const useClientsStore = create<ClientsState>()(
       recordReport: (id, kind) => set((s) => ({ clients: s.clients.map((c) => (c.id === id ? { ...c, reportEvents: addReportEvent(c.reportEvents, kind, Date.now()) } : c)) })),
 
       setAssessment: (id, kind, patch) => set((s) => ({ clients: s.clients.map((c) => (c.id === id ? { ...c, assessments: updateAssessment(c.assessments, kind, patch, Date.now()) } : c)) })),
+
+      toggleClientKpi: (id, kpiId) => set((s) => ({ clients: s.clients.map((c) => (c.id === id ? { ...c, kpiConfig: toggleKpi(c.kpiConfig, kpiId, STANDARD_KPIS) } : c)) })),
+      setClientKpiTarget: (id, kpiId, value) => set((s) => ({ clients: s.clients.map((c) => (c.id === id ? { ...c, kpiConfig: setKpiTarget(c.kpiConfig, kpiId, value) } : c)) })),
 
       switchTo: (target) => {
         const { activeClientId, clients, ownWorkspace } = get();

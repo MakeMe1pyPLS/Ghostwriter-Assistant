@@ -201,13 +201,16 @@ export default function ClientReportPage() {
           </section>
         )}
 
-        {summary && (summary.kpis.length > 0 || summary.outcomes.items.length > 0) && (
+        {summary && (summary.kpis.length > 0 || summary.outcomes.items.length > 0 || summary.unavailableKpis.length > 0) && (
           <section className="break-inside-avoid" data-testid="report-results">
             <H2>Results from the data</H2>
             {summary.kpis.length > 0 && (
               <ul className="grid sm:grid-cols-2 gap-x-6 gap-y-1 text-sm">
-                {summary.kpis.map((k) => <li key={k.id}>{k.label}: <span className="font-bold">{k.display}</span>{k.changeText ? <span className="text-slate-500"> ({k.changeText}{k.better === true ? ", better" : k.better === false ? ", worse" : ""})</span> : null}</li>)}
+                {summary.kpis.map((k) => <li key={k.id}>{k.label}: <span className="font-bold">{k.display}</span>{k.changeText ? <span className="text-slate-500"> ({k.changeText}{k.better === true ? ", better" : k.better === false ? ", worse" : ""})</span> : null}{k.target && <span className={k.target.state === "met" ? "block text-xs font-semibold text-emerald-800" : "block text-xs font-semibold text-amber-800"}>{k.target.text}</span>}</li>)}
               </ul>
+            )}
+            {summary.unavailableKpis.length > 0 && (
+              <p className="mt-3 text-xs text-slate-600">Not calculated: {summary.unavailableKpis.map((u) => `${u.label} (${u.reason})`).join("; ")}.</p>
             )}
             {summary.outcomes.items.length > 0 && (
               <ul className="mt-3 space-y-1.5 text-sm">
