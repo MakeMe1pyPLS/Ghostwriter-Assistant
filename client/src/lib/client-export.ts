@@ -1,11 +1,14 @@
 // Export with a browser fallback. The server renders the richest files (the
 // styled Excel workbook); when it is unreachable the browser builds the same
 // CSV/JSON files and a clean multi-sheet Excel workbook itself.
+import { recordAudit } from '@/hooks/use-audit-store';
+import { workspaceLabel } from '@/lib/audit-watchers';
 import { generateCsvExport } from '@shared/exporters/csv-exporter';
 import { generateJsonExport } from '@shared/exporters/json-exporter';
 import { generateDatasetExport, generateDatasetCsv } from '@shared/exporters/dataset-exporter';
 
 export function downloadBlob(blob: Blob, filename: string) {
+  recordAudit('export', `Downloaded "${filename}".`, workspaceLabel());
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;

@@ -32,7 +32,7 @@ Phase 4 grows ChainInsideIQ from operations into business, operational and go-to
 - Not done yet: the same format on the Command Center and Analyst chat answers, and a consultant-wide view of outcomes.
 
 ## Stage 2: Go-to-market (ads and deals) from your files
-- New **Go-to-market** page (in the Grow menu). It reads an **ad export** or a **deals export** that you have already uploaded on Data Sources. Nothing is shown until you have uploaded one.
+- New **Go-to-market** page (under Go-to-market intelligence in the menu). It reads an **ad export** or a **deals export** that you have already uploaded on Data Sources. Nothing is shown until you have uploaded one.
 - **Ads:** spend, conversions, click rate, return on ad spend (or cost per conversion if there is no revenue column), by campaign or channel, with a table. It points out:
   - spend that produced no conversions (and says to check tracking first),
   - big-spend campaigns that return far less than your own average,
@@ -61,8 +61,19 @@ Phase 4 grows ChainInsideIQ from operations into business, operational and go-to
 - The printable **client report** gets a **"Results from the data"** section (headline numbers and before/after for tracked fixes) and a **"Prepared by [your business]"** line.
 - Not built: client logins or a client-facing portal (still "coming soon" on the Clients page), custom logos or colours on reports, and anything involving enterprise access control.
 
+## Stage 5: clearer menu, activity log, and an honest security review
+- The menu is regrouped by what you are doing: **Overview**, **Business intelligence**, **Operational intelligence**, **Go-to-market intelligence**, **AI intelligence**, **Clients & partners** and **Data**. No page was removed or renamed. Planned items (Team Management, Notifications, Forecasting, Team audit trail, API Access) stay marked Coming soon.
+- New **Activity log** in Settings. It lists data files added or removed, actions created or updated, clients added or removed, workspace switches and downloads, with a CSV download and a Clear button. It records names and counts only, never your file contents, and hides anything that looks like a key. It is kept in this browser only, it is cleared when you sign out, and it is not tamper-proof or shared. A shared team audit trail is not built.
+- **The SQL Database tab was not real, so it now says Coming soon.** It used to report "Connected" and import randomly generated rows. If you imported a table that way, the Data page now warns you that those files are made-up example rows and should be removed. Upload a CSV export of the table instead.
+- **Server dataset routes locked down.** Datasets imported through the server can no longer be listed or deleted by other callers. Ids are random, rows are kept for one hour, and the data and export routes are rate-limited.
+- **"Send to your own API" now answers that it is not available** instead of reporting a simulated success.
+- **Collab "access you agree on" is described honestly.** Partners do not sign in yet, so the setting records what you agreed and is not enforced. The page now says so.
+- **Support page** no longer says your data only lives in your browser (accounts store it in our database with per-account row rules).
+- New `docs/ENTERPRISE-READINESS.md` lists what works, what is not built (roles, team accounts, SSO, certifications), and what to fix next.
+
 ## Fix: Fulfillment warehouse map labels
 - The zone labels on the warehouse map were too narrow, so "24 waiting" and "Bottleneck" overlapped on wide screens (and phones using the desktop view). Labels are wider and the floor sits lower so the top label is no longer clipped.
 
 ## Not built yet
-- The insight format on the Command Center and Analyst chat, and the consultant overview are the next stages. Until they ship, nothing in the app claims them.
+- The insight format (how we know, confidence, before and after) is not yet on the Command Center or the Analyst chat answers. Until it ships, nothing in the app claims it there.
+- Roles, team accounts, partner or client sign-in, a shared audit trail and SSO. See `docs/ENTERPRISE-READINESS.md`.

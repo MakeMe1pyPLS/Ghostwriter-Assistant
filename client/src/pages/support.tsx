@@ -17,7 +17,7 @@ const faqs = [
   { q: "How does the pricing work?", a: getPricingSummary() },
   { q: "Can multiple team members use the same account?", a: "Not yet. Today each account is for one person. Team members (up to 5 on Professional and 15 on Business), role-based access, SSO and audit logs are coming soon. In the meantime you can share plans, bottlenecks and updates with your team through Microsoft Teams, Google Chat, Slack or email." },
   { q: "Do you offer onboarding or setup assistance?", a: "Absolutely. We offer guided onboarding sessions for Business and Enterprise customers. Enterprise plans include dedicated onboarding assistance, custom KPI engineering, and direct support. You can also request a custom setup through our Contact page." },
-  { q: "Is my data secure?", a: "Data travels over encrypted HTTPS connections. Right now your workspace (plans, actions, collabs and imported data) is stored in your own browser on your device. When you use an AI feature, the relevant numbers and your question are sent to the AI provider you've chosen to generate the answer. We do not sell your data. See our Privacy Policy for details." },
+  { q: "Is my data secure?", a: "Data travels over encrypted HTTPS connections. With an account, your workspace (plans, actions, collabs and imported data) is saved to your account in our database, and each account can only read its own rows. Without an account it stays in your own browser. The Activity log in Settings lists what changed on this device. When you use an AI feature, the relevant numbers and your question are sent to the AI provider you've chosen to generate the answer. We do not sell your data. See our Privacy Policy for details." },
   { q: "What is the difference between Single and Unified sector mode?", a: "Single mode focuses your dashboard on one sector (e.g. E-commerce only). Unified mode displays cross-sector KPIs that bridge manufacturing, logistics, and e-commerce together, showing end-to-end supply chain health." },
   { q: "Can I customize the look of individual KPI cards?", a: "Yes. Each KPI card supports 8 style presets, 4 data density modes (minimal, standard, detailed, grid), adjustable border radius, shadow intensity, padding, and toggles for sparklines, badges, icons, and comparison labels." },
   { q: "What are the three business structure types?", a: "Single Business: one company operating in one sector. Partnered Business: two sectors working together (e.g. E-commerce + Logistics), with Hub and data sharing enabled by default. Unified Supply Chain: three sectors connected end-to-end (e.g. Manufacturing → E-commerce → Logistics), unlocking cross-sector dashboards, shared intelligence, and the unified sector mode." },
@@ -111,9 +111,9 @@ const docSections = [
     title: "Security & Compliance",
     color: "text-slate-600 bg-slate-50 border-slate-200",
     content: [
-      "Connections to ChainInsideIQ use HTTPS encryption. Today your workspace data is stored in your own browser; server-side accounts with encrypted storage are coming soon.",
+      "Connections to ChainInsideIQ use HTTPS encryption. With an account, your workspace data is stored in our Supabase database, where each account can only read its own rows. Without an account it stays in your browser. Any API keys you add are stored on our server and never shown again.",
       "AI features send the relevant numbers and your question to the AI provider you choose (Anthropic, OpenAI or Google) to generate an answer. Imports from Google Sheets and APIs are fetched by our server. We do not sell customer data.",
-      "Audit logging, SSO, dedicated environments and formal security certifications are on our roadmap for business and enterprise customers.",
+      "There is a simple Activity log in Settings, kept in your browser only. A shared team audit trail, roles and permissions, SSO, dedicated environments and formal security certifications are not built yet. They are on our roadmap for business and enterprise customers.",
     ]
   },
   {

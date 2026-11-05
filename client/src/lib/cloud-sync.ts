@@ -14,6 +14,7 @@ import {
   deleteWorkspaces, signOut as cloudSignOut, CloudError, type CloudSession, type WorkspaceRow,
 } from '@/lib/supabase';
 import { useGrowthStore, GROWTH_WORKSPACE_KEYS, emptyGrowthWorkspace } from '@/hooks/use-growth-store';
+import { useAuditStore, pauseAudit } from '@/hooks/use-audit-store';
 import { useDashboardStore, type AuthUser, type PlanTier } from '@/hooks/use-dashboard-store';
 import {
   useClientsStore, DASHBOARD_WORKSPACE_KEYS, emptyDashboardWorkspace, loadLiveWorkspace,
@@ -238,6 +239,7 @@ async function doActivate(s: CloudSession): Promise<void> {
   }
 
   applying = true;
+  pauseAudit(true);
   const toPush: string[] = [];
   try {
     // Data left in this browser by a different account is never merged in.
@@ -266,6 +268,7 @@ async function doActivate(s: CloudSession): Promise<void> {
     // Local-only clients are absent from lastMeta, so the next flush uploads them with their workspaces.
     try { localStorage.setItem(OWNER_KEY, s.user.id); } catch { /* ignore */ }
   } finally {
+    pauseAudit(false);
     applying = false;
   }
 
@@ -279,11 +282,15 @@ async function doActivate(s: CloudSession): Promise<void> {
 /** Empty this browser's copy of every workspace. */
 export function clearLocalData() {
   applying = true;
+  pauseAudit(true);
   try {
     useClientsStore.setState({ clients: [], activeClientId: null, ownWorkspace: null });
     loadLiveWorkspace(null);
     useGrowthStore.setState({ tourComplete: false });
+    // The activity log belongs to the person who was signed in: the next person on this computer must not see it.
+    useAuditStore.getState().clear();
   } finally {
+    pauseAudit(false);
     applying = false;
   }
   dirty.clear();
