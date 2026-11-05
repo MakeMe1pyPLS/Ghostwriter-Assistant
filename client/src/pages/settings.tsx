@@ -1,5 +1,5 @@
 import { AppLayout } from "@/components/layout/AppLayout";
-import { AIEngineSection, IntegrationsSection, OnboardingSection } from "@/components/settings/GrowthSettings";
+import { AIEngineSection, IntegrationsSection, OnboardingSection, ActivityLogSection } from "@/components/settings/GrowthSettings";
 import { BillingSection } from "@/components/settings/AccountSettings";
 import { useEffect as useEffectHash } from "react";
 import { Button } from "@/components/ui/button";
@@ -310,6 +310,7 @@ export default function SettingsPage() {
           <BillingSection />
           <AIEngineSection />
           <IntegrationsSection />
+          <ActivityLogSection />
           <OnboardingSection />
         </div>
       </div>

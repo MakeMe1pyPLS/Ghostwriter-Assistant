@@ -1,3 +1,5 @@
+import { recordAudit } from '@/hooks/use-audit-store';
+import { workspaceLabel } from '@/lib/audit-watchers';
 export function formatExportDate(): string {
   return new Date().toISOString().slice(0, 10);
 }
@@ -45,6 +47,7 @@ export async function downloadFromResponse(response: Response, fallbackFilename:
 }
 
 export function downloadBlob(content: string, filename: string, mime: string) {
+  recordAudit('export', `Downloaded "${filename}".`, workspaceLabel());
   const blob = new Blob([content], { type: mime });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');

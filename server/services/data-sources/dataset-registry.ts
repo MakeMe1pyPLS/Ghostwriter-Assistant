@@ -1,3 +1,5 @@
+import { randomUUID } from 'crypto';
+
 export interface DatasetColumn {
   name: string;
   type: 'string' | 'number' | 'date' | 'boolean' | 'unknown';
@@ -15,7 +17,13 @@ export interface Dataset {
   source_meta?: Record<string, any>;
 }
 
+// Rows the server read while importing, kept briefly so the browser can fetch them in pages.
+// The browser keeps its own copy, so these are removed after an hour and the store is capped.
+// Ids are random and are never listed: knowing the id is what allows reading the rows.
 const datasets: Map<string, Dataset> = new Map();
+const KEEP_MS = 60 * 60 * 1000;
+const KEEP_MAX = 100;
+const addedAt = new Map<string, number>();
 
 export function detectColumnType(values: any[]): 'string' | 'number' | 'date' | 'boolean' | 'unknown' {
   const samples = values.filter(v => v !== null && v !== undefined && v !== '').slice(0, 20);
@@ -45,7 +53,8 @@ export function inferColumns(rows: Record<string, any>[]): DatasetColumn[] {
 }
 
 export function registerDataset(ds: Omit<Dataset, 'id' | 'created_at' | 'row_count'>): Dataset {
-  const id = `ds_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  sweep();
+  const id = `ds_${randomUUID()}`;
   const dataset: Dataset = {
     ...ds,
     id,
@@ -53,6 +62,7 @@ export function registerDataset(ds: Omit<Dataset, 'id' | 'created_at' | 'row_cou
     created_at: new Date().toISOString()
   };
   datasets.set(id, dataset);
+  addedAt.set(id, Date.now());
   return dataset;
 }
 
@@ -60,14 +70,14 @@ export function getDataset(id: string): Dataset | undefined {
   return datasets.get(id);
 }
 
-export function getAllDatasets(): Omit<Dataset, 'rows'>[] {
-  return Array.from(datasets.values()).map(({ rows, ...rest }) => ({
-    ...rest
-  }));
-}
-
-export function deleteDataset(id: string): boolean {
-  return datasets.delete(id);
+function sweep() {
+  const now = Date.now();
+  addedAt.forEach((t, id) => { if (now - t > KEEP_MS) { datasets.delete(id); addedAt.delete(id); } });
+  while (datasets.size >= KEEP_MAX) {
+    const oldest = datasets.keys().next().value as string | undefined;
+    if (oldest === undefined) break;
+    datasets.delete(oldest); addedAt.delete(oldest);
+  }
 }
 
 export function getDatasetRows(id: string, limit = 100, offset = 0): Record<string, any>[] {

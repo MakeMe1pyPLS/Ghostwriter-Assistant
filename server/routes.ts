@@ -9,10 +9,9 @@ import { generateDatasetExport, generateDatasetCsv } from "./services/exports/da
 import { exportFilename } from "./services/exports";
 import multer from "multer";
 import { importCsvDataset, parseCsvText } from "./services/data-sources/csv-source";
-import { testSqlConnection, fetchTableSchema, importTableData } from "./services/data-sources/sql-source";
 import { fetchGoogleSheet } from "./services/data-sources/google-sheets-source";
 import { fetchApiData } from "./services/data-sources/api-source";
-import { getAllDatasets, getDataset, deleteDataset, getDatasetRows, inferColumns, registerDataset } from "./services/data-sources/dataset-registry";
+import { getDatasetRows } from "./services/data-sources/dataset-registry";
 import { DemoAIProvider } from "./services/ai/demo-provider";
 import { getIntelligenceProvider } from "./services/ai/intelligence-router";
 import type { AiAccess } from "./services/platform/ai-access";
@@ -109,6 +108,8 @@ export async function registerRoutes(
 ): Promise<Server> {
 
   // AI endpoints cost money per call: cap them per client IP.
+  app.use('/api/data', rateLimit({ windowMs: 60_000, max: 30 }));
+  app.use('/api/export', rateLimit({ windowMs: 60_000, max: 30 }));
   app.use('/api/ai', rateLimit({ windowMs: 60_000, max: Number(process.env.AI_RATE_LIMIT_PER_MIN || 30) }));
 
   const engineSchema = z.enum(['auto', 'claude', 'openai', 'gemini']).optional().default('auto');
@@ -440,17 +441,9 @@ export async function registerRoutes(
     }
   });
 
-  app.post('/api/export/custom-api', (req, res) => {
-    const { endpoint, method, apiKey, payload } = req.body;
-    if (!endpoint) return res.status(400).json({ error: 'Endpoint URL is required' });
-
-    res.json({
-      success: true,
-      message: `Dashboard payload would be sent to ${endpoint} via ${method || 'POST'}`,
-      payload_size: JSON.stringify(payload || {}).length,
-      timestamp: new Date().toISOString(),
-      note: 'This is a simulated response. In production, the payload would be forwarded to the specified endpoint.'
-    });
+  // Sending a dashboard to your own API is not built yet.
+  app.post('/api/export/custom-api', (_req, res) => {
+    res.status(501).json({ success: false, message: 'Sending to your own API is not available yet.' });
   });
 
   const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
@@ -480,42 +473,9 @@ export async function registerRoutes(
     }
   });
 
-  app.post('/api/data/sql/test', async (req, res) => {
-    try {
-      const result = await testSqlConnection(req.body);
-      res.json(result);
-    } catch (err: any) {
-      res.status(500).json({ success: false, message: err.message });
-    }
-  });
-
-  app.post('/api/data/sql/schema', async (req, res) => {
-    try {
-      const { config, table } = req.body;
-      const schema = await fetchTableSchema(config, table);
-      res.json({ table, columns: schema });
-    } catch (err: any) {
-      res.status(500).json({ error: err.message });
-    }
-  });
-
-  app.post('/api/data/sql/import', async (req, res) => {
-    try {
-      const { config, table } = req.body;
-      const rows = await importTableData(config, table);
-      const columns = inferColumns(rows);
-      const dataset = registerDataset({
-        name: `${config.database}.${table}`,
-        source_type: 'sql',
-        columns,
-        rows,
-        source_meta: { host: config.host, database: config.database, table }
-      });
-      const { rows: _, ...meta } = dataset;
-      res.json({ success: true, dataset: meta, preview: rows.slice(0, 10) });
-    } catch (err: any) {
-      res.status(500).json({ error: err.message });
-    }
+  // Direct database connections are not built yet. These answer plainly instead of returning made-up rows.
+  app.all('/api/data/sql/:step', (_req, res) => {
+    res.status(501).json({ success: false, error: 'Database connections are not available yet. Export the table as a CSV and upload it instead.' });
   });
 
   app.post('/api/data/google-sheets', async (req, res) => {
@@ -562,27 +522,11 @@ export async function registerRoutes(
     }
   });
 
-  app.get('/api/data/datasets', (_req, res) => {
-    res.json({ datasets: getAllDatasets() });
-  });
-
-  app.get('/api/data/datasets/:id', (req, res) => {
-    const ds = getDataset(req.params.id);
-    if (!ds) return res.status(404).json({ error: 'Dataset not found' });
-    const { rows, ...meta } = ds;
-    res.json({ dataset: meta, preview: rows.slice(0, 50) });
-  });
-
   app.get('/api/data/datasets/:id/rows', (req, res) => {
-    const limit = parseInt(req.query.limit as string) || 100;
-    const offset = parseInt(req.query.offset as string) || 0;
+    const limit = Math.min(1000, Math.max(1, parseInt(req.query.limit as string) || 100));
+    const offset = Math.max(0, parseInt(req.query.offset as string) || 0);
     const rows = getDatasetRows(req.params.id, limit, offset);
     res.json({ rows, count: rows.length });
-  });
-
-  app.delete('/api/data/datasets/:id', (req, res) => {
-    const deleted = deleteDataset(req.params.id);
-    res.json({ success: deleted });
   });
 
   const dashboardAI = new DemoAIProvider();

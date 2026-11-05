@@ -269,6 +269,7 @@ function App() {
   usePrefetchPages();
   // Accounts: restore the session, handle email links, keep workspaces synced.
   useEffect(() => { import("@/lib/cloud-sync").then((m) => m.startCloudSync()).catch(() => {}); }, []);
+  useEffect(() => { import("@/lib/audit-watchers").then((m) => m.startAuditWatchers()).catch(() => {}); }, []);
   return (
     <QueryClientProvider client={queryClient}>
       <MotionConfig reducedMotion="user">

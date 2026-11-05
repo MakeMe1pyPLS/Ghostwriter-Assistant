@@ -2,11 +2,14 @@
 // (Microsoft Teams, Google Chat, Slack, calendars) and onboarding controls.
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
-import { BrainCircuit, Plug, CheckCircle2, CircleDashed, Loader2, Send, RotateCcw, Compass } from "lucide-react";
+import { BrainCircuit, Plug, CheckCircle2, CircleDashed, Loader2, Send, RotateCcw, Compass, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useGrowthStore } from "@/hooks/use-growth-store";
+import { useAuditStore } from "@/hooks/use-audit-store";
+import { auditCsv, AUDIT_KIND_LABEL } from "@shared/audit";
+import { downloadBlob } from "@/lib/export-helpers";
 import { fetchEngineStatus, ENGINE_LABELS, type EngineStatus } from "@/lib/intel-client";
 import { sendToChannel, CHANNEL_LABELS, type ShareChannel } from "@/lib/share";
 import type { AIEnginePreference } from "@shared/ai-types";
@@ -154,6 +157,63 @@ export function OnboardingSection() {
         </Button>
         <Button variant="outline" className="rounded-xl font-bold" disabled={!onboardingComplete} onClick={() => { restartTour(); navigate('/plan'); toast({ title: 'Tour restarted' }); }}>
           <Compass className="w-4 h-4 mr-2" /> Replay the product tour
+        </Button>
+      </div>
+    </SectionShell>
+  );
+}
+
+
+/** What changed in this browser, newest first. Honest about what it is not. */
+export function ActivityLogSection() {
+  const { toast } = useToast();
+  const entries = useAuditStore((s) => s.entries);
+  const clear = useAuditStore((s) => s.clear);
+  const [showAll, setShowAll] = useState(false);
+  const shown = showAll ? entries : entries.slice(0, 8);
+  return (
+    <SectionShell id="activity-log" icon={History} title="Activity log">
+      <p className="text-sm text-slate-600 leading-relaxed" data-testid="text-activity-note">
+        A simple list of what changed on this device: data added or removed, actions created or updated, clients added, and files downloaded.
+        It records names and counts only, never the contents of your files.
+        It is kept in this browser only, it can be cleared by anyone using this browser, and it is not tamper-proof or shared with anyone.
+        A team audit trail kept on a server is not built yet.
+      </p>
+      {entries.length === 0 ? (
+        <p className="text-sm text-slate-500" data-testid="text-activity-empty">Nothing recorded yet. Changes you make from now on will appear here.</p>
+      ) : (
+        <ul className="divide-y divide-slate-100 border border-slate-100 rounded-xl" data-testid="list-activity">
+          {shown.map((e) => (
+            <li key={e.id} className="px-4 py-3 text-sm">
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-slate-500">
+                <span className="font-bold text-slate-700">{AUDIT_KIND_LABEL[e.kind]}</span>
+                <span>·</span><span>{e.workspace}</span>
+                <span>·</span><time dateTime={new Date(e.at).toISOString()}>{new Date(e.at).toLocaleString()}</time>
+              </div>
+              <p className="text-slate-700 mt-0.5 break-words">{e.summary}</p>
+            </li>
+          ))}
+        </ul>
+      )}
+      <div className="flex flex-wrap gap-2">
+        {entries.length > 8 && (
+          <Button variant="outline" className="min-h-10" onClick={() => setShowAll((v) => !v)} data-testid="button-activity-more">
+            {showAll ? 'Show fewer' : `Show all ${entries.length}`}
+          </Button>
+        )}
+        <Button
+          variant="outline" className="min-h-10" disabled={!entries.length}
+          onClick={() => downloadBlob(auditCsv(entries), `chaininsideiq_activity_log_${new Date().toISOString().slice(0, 10)}.csv`, 'text/csv;charset=utf-8')}
+          data-testid="button-activity-csv"
+        >
+          Download as CSV
+        </Button>
+        <Button
+          variant="outline" className="min-h-10" disabled={!entries.length}
+          onClick={() => { clear(); toast({ title: 'Activity log cleared' }); }}
+          data-testid="button-activity-clear"
+        >
+          Clear log
         </Button>
       </div>
     </SectionShell>

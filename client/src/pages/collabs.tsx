@@ -24,9 +24,9 @@ import { Stagger, StaggerItem, EASE_OUT } from "@/components/motion";
 import { kpisForIndustry, ALL_INDUSTRY_KPIS } from "@shared/kpi-industries";
 
 const PERMISSIONS: { id: CollabPermission; label: string; hint: string; icon: any }[] = [
-  { id: 'view', label: 'View only', hint: 'Partners see the shared numbers', icon: Eye },
-  { id: 'comment', label: 'View & discuss', hint: 'They can also comment in the Hub', icon: MessageCircle },
-  { id: 'edit', label: 'Full collaboration', hint: 'They can add data and create actions', icon: Pencil },
+  { id: 'view', label: 'View only', hint: 'You agree they only look at the shared numbers', icon: Eye },
+  { id: 'comment', label: 'View & discuss', hint: 'You agree they can also discuss them with you', icon: MessageCircle },
+  { id: 'edit', label: 'Full collaboration', hint: 'You agree they can add data and take on actions', icon: Pencil },
 ];
 const CADENCES: { id: CollabCadence; label: string }[] = [
   { id: 'weekly', label: 'Weekly review' },
@@ -198,7 +198,7 @@ function CollabEditor({ open, onOpenChange, initial }: { open: boolean; onOpenCh
 
               <div className="grid sm:grid-cols-2 gap-4">
                 <section className="space-y-2">
-                  <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-500 flex items-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5" /> Partner access</h3>
+                  <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-500 flex items-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5" /> Access you agree on</h3>
                   <div className="space-y-1.5">
                     {PERMISSIONS.map((p) => (
                       <button key={p.id} onClick={() => set({ permission: p.id })} aria-pressed={draft.permission === p.id}
@@ -208,6 +208,7 @@ function CollabEditor({ open, onOpenChange, initial }: { open: boolean; onOpenCh
                       </button>
                     ))}
                   </div>
+                  <p className="text-xs text-slate-500 leading-relaxed" data-testid="text-collab-access-note">Partners do not sign in to ChainInsideIQ yet, so this is a record of what you agreed with them. The app does not enforce it.</p>
                 </section>
                 <section className="space-y-2">
                   <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-500 flex items-center gap-1.5"><CalendarClock className="w-3.5 h-3.5" /> Review together</h3>

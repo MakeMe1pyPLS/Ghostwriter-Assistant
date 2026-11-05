@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
+import { useDashboardStore } from "@/hooks/use-dashboard-store";
 import { DatasetImportResolver, type ImportPayload } from "@/components/DatasetImportResolver";
 import { DatasetManagementPanel } from "@/components/DatasetManagementPanel";
 import { KpiCoveragePanel } from "@/components/KpiCoveragePanel";
@@ -18,7 +19,6 @@ import {
   Globe,
   AlertCircle,
   Loader2,
-  Table2,
   ArrowRight,
 } from "lucide-react";
 
@@ -54,10 +54,25 @@ async function buildImportPayload(dataset: DatasetMeta, fallbackPreview: any[] |
 
 const TABS: { id: TabId; label: string; icon: any; desc: string }[] = [
   { id: 'csv', label: 'File Upload', icon: Upload, desc: 'CSV, Excel (.xlsx) or JSON from your computer' },
-  { id: 'sql', label: 'SQL Database', icon: Database, desc: 'Connect to PostgreSQL or MySQL' },
+  { id: 'sql', label: 'SQL Database', icon: Database, desc: 'Coming soon' },
   { id: 'sheets', label: 'Google Sheets', icon: FileSpreadsheet, desc: 'Import from a public Google Sheet' },
   { id: 'api', label: 'API Endpoint', icon: Globe, desc: 'Fetch JSON data from an API' },
 ];
+
+/** An earlier version of the SQL tab filled files with made-up rows. Say so, so nobody makes decisions on them. */
+function GeneratedRowsNotice() {
+  const names = useDashboardStore((st) => st.datasetLibrary.filter((d) => d.sourceType === 'sql').map((d) => d.name));
+  if (!names.length) return null;
+  return (
+    <div role="alert" className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 space-y-1" data-testid="notice-generated-rows">
+      <p className="font-bold">Some files here are not your real data</p>
+      <p className="leading-relaxed">
+        An earlier version of the SQL tab did not connect to a database. It filled these files with made-up example rows: {names.map((n) => `"${n}"`).join(', ')}.
+        Please remove them below and upload a CSV export of your table instead.
+      </p>
+    </div>
+  );
+}
 
 function CsvTab() {
   const { toast } = useToast();
@@ -138,113 +153,13 @@ function CsvTab() {
 }
 
 function SqlTab() {
-  const { toast } = useToast();
-  const [config, setConfig] = useState({ host: '', port: 5432, database: '', username: '', password: '', dbType: 'postgresql' as const });
-  const [status, setStatus] = useState<ImportStatus>('idle');
-  const [tables, setTables] = useState<string[]>([]);
-  const [selectedTable, setSelectedTable] = useState('');
-  const [payload, setPayload] = useState<ImportPayload | null>(null);
-
-  const handleTestConnection = async () => {
-    setStatus('loading');
-    setTables([]);
-    try {
-      const res = await fetch('/api/data/sql/test', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(config)
-      });
-      const data = await res.json();
-      if (data.success) {
-        setTables(data.tables || []);
-        setStatus('success');
-        toast({ title: "Connected", description: data.message });
-      } else {
-        setStatus('error');
-        toast({ title: "Connection failed", description: data.message, variant: "destructive" });
-      }
-    } catch (err: any) {
-      setStatus('error');
-      toast({ title: "Connection error", description: err.message, variant: "destructive" });
-    }
-  };
-
-  const handleImportTable = async () => {
-    if (!selectedTable) return;
-    setStatus('loading');
-    try {
-      const res = await fetch('/api/data/sql/import', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ config, table: selectedTable })
-      });
-      const data = await res.json();
-      if (data.success) {
-        const built = await buildImportPayload(data.dataset, data.preview);
-        setPayload(built);
-        setStatus('success');
-        toast({ title: "Table imported", description: `${data.dataset.row_count} rows from ${selectedTable}` });
-      }
-    } catch (err: any) {
-      setStatus('error');
-      toast({ title: "Import failed", description: err.message, variant: "destructive" });
-    }
-  };
-
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-2 gap-4">
-        <div className="col-span-2 sm:col-span-1 space-y-2">
-          <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Host</Label>
-          <Input placeholder="localhost" value={config.host} onChange={(e) => setConfig({ ...config, host: e.target.value })} className="rounded-xl bg-slate-50 border-slate-200 font-mono text-sm" data-testid="input-sql-host" />
-        </div>
-        <div className="col-span-2 sm:col-span-1 space-y-2">
-          <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Port</Label>
-          <Input type="number" value={config.port} onChange={(e) => setConfig({ ...config, port: parseInt(e.target.value) || 5432 })} className="rounded-xl bg-slate-50 border-slate-200 font-mono text-sm" data-testid="input-sql-port" />
-        </div>
-        <div className="col-span-2 space-y-2">
-          <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Database</Label>
-          <Input placeholder="supply_chain_db" value={config.database} onChange={(e) => setConfig({ ...config, database: e.target.value })} className="rounded-xl bg-slate-50 border-slate-200 font-mono text-sm" data-testid="input-sql-database" />
-        </div>
-        <div className="space-y-2">
-          <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Username</Label>
-          <Input placeholder="admin" value={config.username} onChange={(e) => setConfig({ ...config, username: e.target.value })} className="rounded-xl bg-slate-50 border-slate-200 text-sm" data-testid="input-sql-username" />
-        </div>
-        <div className="space-y-2">
-          <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Password</Label>
-          <Input type="password" placeholder="••••••••" value={config.password} onChange={(e) => setConfig({ ...config, password: e.target.value })} className="rounded-xl bg-slate-50 border-slate-200 text-sm" data-testid="input-sql-password" />
-        </div>
-      </div>
-
-      <Button onClick={handleTestConnection} disabled={status === 'loading' || !config.host || !config.database || !config.username} className="rounded-xl font-black text-[10px] uppercase tracking-widest shadow-md w-full sm:w-auto" data-testid="button-sql-test">
-        {status === 'loading' ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Database className="w-4 h-4 mr-2" />}
-        Test Connection
-      </Button>
-
-      {tables.length > 0 && (
-        <div className="space-y-4 pt-4 border-t border-slate-100">
-          <div>
-            <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3">Available Tables</h4>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {tables.map(t => (
-                <button key={t} onClick={() => setSelectedTable(t)} className={`text-left px-3 py-2 rounded-xl text-xs font-bold border transition-all ${selectedTable === t ? 'bg-primary/5 border-primary/30 text-primary' : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'}`} data-testid={`button-table-${t}`}>
-                  <Table2 className="w-3 h-3 inline mr-1.5" />{t}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {selectedTable && (
-            <Button onClick={handleImportTable} className="rounded-xl font-black text-[10px] uppercase tracking-widest shadow-md" data-testid="button-sql-import">
-              <ArrowRight className="w-4 h-4 mr-2" /> Import {selectedTable}
-            </Button>
-          )}
-        </div>
-      )}
-
-      {payload && (
-        <DatasetImportResolver payload={payload} onApplied={() => { setPayload(null); setStatus('idle'); }} />
-      )}
+    <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 space-y-2" data-testid="panel-sql-coming-soon">
+      <Badge variant="secondary" className="bg-slate-200 text-slate-700 font-bold text-[10px] uppercase tracking-wider rounded-lg">Coming soon</Badge>
+      <p className="text-sm font-bold text-slate-800">Connecting straight to a database is not built yet.</p>
+      <p className="text-sm text-slate-600 leading-relaxed">
+        For now, export the table from your database as a CSV file and upload it on the File Upload tab. Your numbers will be calculated from your real rows.
+      </p>
     </div>
   );
 }
@@ -463,6 +378,7 @@ export default function DataSourcesPage() {
               </CardContent>
             </Card>
 
+            <GeneratedRowsNotice />
             <KpiCoveragePanel />
 
             <DatasetManagementPanel />
