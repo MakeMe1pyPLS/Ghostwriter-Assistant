@@ -24,6 +24,14 @@ export async function createApp(): Promise<{ app: Express; httpServer: Server }>
   app.set("trust proxy", 1);
   app.disable("x-powered-by");
 
+  // Same basic protections the hosting layer adds to the web pages, for the API when it runs on its own.
+  app.use((_req, res, next) => {
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    res.setHeader("X-Frame-Options", "SAMEORIGIN");
+    res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+    next();
+  });
+
   // Keep the raw body: the Stripe webhook signature is checked against it.
   app.use(express.json({ limit: "2mb", verify: (req, _res, buf) => { req.rawBody = buf; } }));
   app.use(express.urlencoded({ extended: false, limit: "2mb" }));

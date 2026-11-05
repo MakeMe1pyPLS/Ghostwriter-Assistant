@@ -1,4 +1,5 @@
 import { inferColumns, registerDataset, type Dataset } from './dataset-registry';
+import { safeFetch } from '../integrations/safe-fetch';
 
 function flattenObject(obj: Record<string, any>, prefix = ''): Record<string, any> {
   const result: Record<string, any> = {};
@@ -42,30 +43,24 @@ export async function fetchApiData(
   }
 
   try {
-    const response = await fetch(url, {
-      method: method.toUpperCase(),
-      redirect: 'error', // a redirect could point at an internal address
-      signal: AbortSignal.timeout(15_000),
-      headers: {
-        'Accept': 'application/json',
-        ...headers
-      }
+    const response = await safeFetch(url, {
+      method: method.toUpperCase() === 'POST' ? 'POST' : 'GET',
+      headers,
     });
 
-    if (!response.ok) {
+    if (response.status < 200 || response.status >= 300) {
       return { success: false, error: `API returned HTTP ${response.status}: ${response.statusText}` };
     }
 
-    const contentType = response.headers.get('content-type') || '';
-    if (!contentType.includes('json')) {
-      const text = await response.text();
+    if (!response.contentType.includes('json')) {
       return {
         success: false,
-        error: `Expected JSON response but received ${contentType}. Response preview: ${text.slice(0, 200)}`
+        error: `Expected JSON response but received ${response.contentType || 'no content type'}. Response preview: ${response.body.slice(0, 200)}`
       };
     }
 
-    const json = await response.json();
+    let json: any;
+    try { json = JSON.parse(response.body); } catch { return { success: false, error: 'The response said it was JSON but could not be read.' }; }
     const rows = jsonToRows(json);
 
     if (rows.length === 0) {

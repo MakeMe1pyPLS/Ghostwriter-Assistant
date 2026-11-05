@@ -118,5 +118,11 @@ An acceptance audit found screens that looked like analysis of your business but
 - **Sample data notice:** Dashboard, Builder and Export Center show a "Sample data" note whenever no file of yours is in use, because the cards and charts are then built-in examples. It disappears once you upload and select a file.
 - A new test (`tests/honesty-guard.test.ts`, part of `npm test`) fails if the canned text, the fake provider or the notice goes missing.
 
+## Security hardening
+- **Page headers:** every page now tells the browser not to guess file types, not to be shown inside other sites, to send less in the referrer, and not to use the camera, microphone or location. A content security policy is added in report-only mode, so it cannot break anything yet.
+- **API import:** the address you type is checked and then connected to exactly as checked (no second lookup), more private ranges are refused, redirects are refused, a response over 5 MB is stopped with a clear message, and a slow server times out after 15 seconds. Google Sheets import also times out now.
+- Two new tests (`tests/safe-fetch.test.ts`, `tests/security-headers.test.ts`) are part of `npm test`.
+- **Still open:** rate limits are still per server instance (see `docs/ENTERPRISE-READINESS.md`).
+
 ## Not built yet
 - Editor and admin roles, team accounts, invite emails, collab partner sign-in, a full audit trail and SSO. See `docs/ENTERPRISE-READINESS.md`.

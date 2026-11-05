@@ -89,8 +89,7 @@ From `docs/ENTERPRISE-READINESS.md`, which holds the full list:
 
 - Rate limits are per server instance, so they are soft on serverless hosting.
 - Anonymous calls to the built-in analyst are allowed, limited only by IP.
-- The API-import address check does not pin the resolved IP, so DNS rebinding is possible in theory.
-- No security headers (CSP, frame, referrer) are set in `vercel.json`.
+- Page security headers are set, but the Content-Security-Policy is report-only until it is checked on the live site. The policy still allows inline styles.
 - Supabase leaked-password protection is off.
 - The Activity log lives in one browser and is not tamper-proof. It is not compliance evidence.
 - No SSO, two-factor sign-in, certifications, data-residency choices or tested recovery objective. None is claimed anywhere.
@@ -99,7 +98,7 @@ From `docs/ENTERPRISE-READINESS.md`, which holds the full list:
 
 ## 7. Test results
 
-- `npm test`: 331 checks pass, 0 fail across 13 test files. They cover:
+- `npm test`: 392 checks pass, 0 fail across 15 test files. They cover:
   - the KPI engine
   - company types
   - insight confidence
@@ -113,6 +112,8 @@ From `docs/ENTERPRISE-READINESS.md`, which holds the full list:
   - branding
   - a static guard on the sharing migration
   - the honesty guard
+  - API import safety (address pinning, redirects, size and time limits)
+  - the page security headers
 - Database permission script `supabase/tests/sharing.test.sql`: 51 PASS, `FAILED: 0`. Run by the owner against the live project as five users inside a rolled-back statement.
 - Logo handling was exercised in headless Chromium.
 - Every merged change had both Vercel builds (`ghostwriter-assistant`, `ghostwriter-assistant-94fg`) green before merge, so the production build succeeds.
@@ -130,9 +131,8 @@ From `docs/ENTERPRISE-READINESS.md`, which holds the full list:
    - Test with a Stripe test card.
    - Check the plan and webhook handling in `docs/PRICING.md`.
 3. In Supabase, turn on leaked-password protection (Authentication → Policies).
-4. Add security headers in `vercel.json` and test the app under them.
+4. Check the live site's browser console for Content-Security-Policy warnings, then switch the header from report-only to enforced (steps in `docs/ENTERPRISE-READINESS.md`).
 5. Move rate limits to a shared store before relying on them.
-6. Pin the resolved IP address for API-import fetches.
 7. Run `npm run check`, `npm run build` and the 390px/1440px checks in a normal checkout, and fix anything they show.
 8. Keep `docs/ENTERPRISE-READINESS.md` and each `PHASE-*-CHANGES.md` updated in the same change as any feature.
 
