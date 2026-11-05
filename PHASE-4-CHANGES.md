@@ -52,6 +52,15 @@ Phase 4 grows ChainInsideIQ from operations into business, operational and go-to
 - With sample data, or too little history, it says so and shows no links.
 - Limits: it can miss real but weaker links, it only sees the rows kept in the browser, and it cannot tell you why numbers move together. Links between two different companies' data are not part of this yet.
 
+## Stage 4: consultant overview
+- **Clients** now opens with an **"Across all clients"** section (it appears once you have at least one client):
+  - **Needs attention:** the most urgent items first. A fix whose number moved the wrong way, overdue actions, a review due within a week, an active client with no data uploaded yet, or an active client with no activity for 30 days. Each has an **Open** button that switches into that client's workspace. Paused and completed clients are not nagged about reviews, data or quiet spells.
+  - **Are the fixes working?** Counts of tracked fixes that moved the right way, the wrong way, did not really change, or are waiting for newer data. It says that before and after does not prove a fix caused the change.
+  - **Clients side by side:** status, which file the numbers come from, up to three headline numbers (revenue, margin, on-time and so on), open and overdue actions, and fix results. Clients with no uploaded file show no numbers.
+- Every number comes from that client's own uploaded file (the one set as active, or the newest). Nothing is shared between clients, and the page says so.
+- The printable **client report** gets a **"Results from the data"** section (headline numbers and before/after for tracked fixes) and a **"Prepared by [your business]"** line.
+- Not built: client logins or a client-facing portal (still "coming soon" on the Clients page), custom logos or colours on reports, and anything involving enterprise access control.
+
 ## Fix: Fulfillment warehouse map labels
 - The zone labels on the warehouse map were too narrow, so "24 waiting" and "Bottleneck" overlapped on wide screens (and phones using the desktop view). Labels are wider and the floor sits lower so the top label is no longer clipped.
 

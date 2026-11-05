@@ -7,6 +7,8 @@ import { ArrowLeft, Printer, Check } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { useClientsStore, workspaceStats, isOverdue } from "@/hooks/use-clients-store";
+import { clientInputFrom } from "@/lib/portfolio";
+import { summariseClient } from "@shared/consultant";
 import { GOALS } from "@shared/growth";
 import { getIndustry } from "@shared/kpi-industries";
 import { cn } from "@/lib/utils";
@@ -20,6 +22,8 @@ export default function ClientReportPage() {
   const workspaceFor = useClientsStore((s) => s.workspaceFor);
   const ws = useMemo(() => (client ? workspaceFor(client.id) : null), [client, workspaceFor]);
   const [showNotes, setShowNotes] = useState(false);
+  const summary = useMemo(() => (client ? summariseClient(clientInputFrom(client, ws)) : null), [client, ws]);
+  const preparedBy = useMemo(() => workspaceFor(null)?.growth.profile?.businessName, [workspaceFor]);
 
   // Paper is white: print in the light theme even when the app is in dark mode.
   useEffect(() => {
@@ -174,6 +178,23 @@ export default function ClientReportPage() {
           </section>
         )}
 
+        {summary && (summary.kpis.length > 0 || summary.outcomes.items.length > 0) && (
+          <section className="break-inside-avoid" data-testid="report-results">
+            <H2>Results from the data</H2>
+            {summary.kpis.length > 0 && (
+              <ul className="grid sm:grid-cols-2 gap-x-6 gap-y-1 text-sm">
+                {summary.kpis.map((k) => <li key={k.id}>{k.label}: <span className="font-bold">{k.display}</span>{k.changeText ? <span className="text-slate-500"> ({k.changeText}{k.better === true ? ", better" : k.better === false ? ", worse" : ""})</span> : null}</li>)}
+              </ul>
+            )}
+            {summary.outcomes.items.length > 0 && (
+              <ul className="mt-3 space-y-1.5 text-sm">
+                {summary.outcomes.items.map((i) => <li key={i.actionId}><span className="font-bold">{i.actionTitle}:</span> {i.message}</li>)}
+              </ul>
+            )}
+            <p className="mt-3 text-xs text-slate-500">Calculated from {summary.datasetName ?? "the uploaded file"}{summary.partial ? ` (first ${summary.rowsUsed?.toLocaleString()} rows only)` : ""}. Before and after compares numbers and does not prove that an action caused the change.</p>
+          </section>
+        )}
+
         {showNotes && client.notes.length > 0 && (
           <section className="break-inside-avoid">
             <H2>Notes</H2>
@@ -186,7 +207,7 @@ export default function ClientReportPage() {
         <footer className="border-t border-slate-200 pt-4 flex flex-wrap gap-x-6 gap-y-1 text-sm">
           <p><span className="font-bold">Next review:</span> {fmt(client.nextReview)}</p>
           {client.contactName && <p><span className="font-bold">Contact:</span> {client.contactName}</p>}
-          <p className="text-slate-400 w-full text-xs mt-2">Prepared with ChainInsideIQ. Figures come from the numbers entered in this workspace.</p>
+          <p className="text-slate-400 w-full text-xs mt-2">{preparedBy ? `Prepared by ${preparedBy} with ChainInsideIQ.` : "Prepared with ChainInsideIQ."} Figures come from the numbers entered in this workspace.</p>
         </footer>
       </article>
     </div>
