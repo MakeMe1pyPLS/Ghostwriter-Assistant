@@ -58,6 +58,18 @@ ok(summariseClient({ ...B, assessments: allDone }, NOW).assessments.pending === 
 ok(rollUp([sa, sb, sc, sd]).pendingAssessments === 9, 'the roll-up adds up pending assessments across clients', rollUp([sa, sb, sc, sd]).pendingAssessments);
 ok(asmA.attention.findIndex((x) => x.kind === 'assessment') < asmA.attention.findIndex((x) => x.kind === 'no-data') || !asmA.attention.some((x) => x.kind === 'no-data'), 'assessment ranks above no-data');
 
+// Per-client KPI choice and targets.
+const cfgA = summariseClient({ ...B, kpiConfig: { ids: ['return-rate', 'revenue', 'net-margin', 'conversion'], targets: { revenue: 100000, 'return-rate': 10 } } }, NOW);
+ok(cfgA.kpis.map((k) => k.id).join() === 'return-rate,revenue,conversion', 'shows the chosen KPIs, in the chosen order, that can be calculated', cfgA.kpis.map((k) => k.id));
+ok(cfgA.unavailableKpis.length === 1 && cfgA.unavailableKpis[0].id === 'net-margin' && /needs/.test(cfgA.unavailableKpis[0].reason), 'a chosen KPI that cannot be calculated is named with the reason, not invented', cfgA.unavailableKpis);
+ok(cfgA.kpis.find((k) => k.id === 'revenue')!.target?.state === 'behind' && cfgA.kpis.find((k) => k.id === 'return-rate')!.target?.state === 'met', 'targets are compared the right way round (revenue below, return rate under)', cfgA.kpis.map((k) => k.target));
+ok(cfgA.kpis.find((k) => k.id === 'conversion')!.target === undefined, 'no target, no status');
+ok(sb.kpis.length <= 4 && sb.unavailableKpis.length === 0 && sb.kpis.every((k) => k.target === undefined), 'with no choice the standard set shows, unchanged, with no targets', sb.kpis.map((k) => k.id));
+const noFile = summariseClient({ ...B, dataset: undefined, kpiConfig: { ids: ['revenue'], targets: { revenue: 5 } } }, NOW);
+ok(noFile.kpis.length === 0 && noFile.unavailableKpis[0]?.reason === 'there is no data file yet', 'no file: no numbers and no invented target status', noFile.unavailableKpis);
+const bad = summariseClient({ ...B, kpiConfig: { ids: ['bogus', 'revenue'], targets: { revenue: 'x' as any } } as any }, NOW);
+ok(bad.kpis.map((k) => k.id).join() === 'revenue' && bad.kpis[0].target === undefined, 'a bad saved config is cleaned, not trusted', bad.kpis);
+
 // Junk and empty never throw.
 ok(rollUp([]).clients === 0 && rollUp([]).attention.length === 0, 'empty roll-up');
 const junk = summariseClient({ id: 'j', name: 'J', status: 'Active', actions: [], dataset: { name: 'x', rows: [null as any, 5 as any], rowCount: 2 } }, NOW);

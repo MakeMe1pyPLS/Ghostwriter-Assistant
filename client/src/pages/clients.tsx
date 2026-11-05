@@ -6,7 +6,7 @@ import { Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
 import {
   Briefcase, Plus, ArrowRight, FileText, CalendarClock, AlertTriangle, CheckCircle2, Building, MoreHorizontal,
-  Trash2, StickyNote, Users, Sparkles, Mail, HardDrive, ClipboardCheck,
+  Trash2, StickyNote, Users, Sparkles, Mail, HardDrive, ClipboardCheck, Target,
 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { PortfolioOverview } from "@/components/PortfolioOverview";
@@ -27,6 +27,9 @@ import { useDashboardStore } from "@/hooks/use-dashboard-store";
 import { useSyncStatus } from "@/lib/cloud-sync";
 import { BUSINESS_INDUSTRIES, getIndustry } from "@shared/kpi-industries";
 import { summariseReports, agoText, cleanEvents } from "@shared/report-activity";
+import { CALCULABLE_KPIS } from "@shared/kpi-engine";
+import { cleanKpiConfig, MAX_KPIS, targetMax } from "@shared/kpi-config";
+import { STANDARD_KPIS } from "@shared/consultant";
 import {
   ASSESSMENT_INFO, ASSESSMENT_KINDS, ASSESSMENT_STATUSES, STATUS_LABEL, SUMMARY_MAX, cleanAssessments, summariseAssessments,
   type AssessmentKind, type AssessmentStatus,
@@ -317,6 +320,66 @@ function AddClientDialog({ open, onOpenChange, onCreated }: { open: boolean; onO
   );
 }
 
+/** A number box that saves when you leave it, so half-typed values like "4" on the way to "40" are never stored. */
+function TargetInput({ id, saved, unit, max, onSave }: { id: string; saved: number | undefined; unit: string; max: number; onSave: (v: number | null) => void }) {
+  const show = (v: number | undefined) => (v === undefined ? "" : String(v));
+  const [draft, setDraft] = useState(show(saved));
+  useEffect(() => { setDraft(show(saved)); }, [saved]);
+  const n = draft.trim() === "" ? null : Number(draft);
+  const bad = n !== null && (!Number.isFinite(n) || n < 0 || n > max);
+  return (
+    <div className="space-y-1">
+      <label htmlFor={id} className="sr-only">Target ({unit})</label>
+      <Input id={id} inputMode="decimal" value={draft} placeholder="Target" aria-invalid={bad}
+        onChange={(e) => setDraft(e.target.value)}
+        onBlur={() => { if (bad) { setDraft(show(saved)); return; } if ((n ?? undefined) !== saved) onSave(n); }}
+        className={cn("h-10 rounded-xl w-28", bad && "border-rose-400")} />
+      {bad && <p className="text-[11px] font-bold text-rose-700">0 to {max.toLocaleString("en-US")}{unit === "%" ? "%" : ""}</p>}
+    </div>
+  );
+}
+
+function KpiConfigPanel({ client }: { client: ClientRecord }) {
+  const toggle = useClientsStore((s) => s.toggleClientKpi);
+  const setTarget = useClientsStore((s) => s.setClientKpiTarget);
+  const updateClient = useClientsStore((s) => s.updateClient);
+  const cfg = cleanKpiConfig(client.kpiConfig);
+  const own = cfg.ids.length > 0;
+  const shown = own ? cfg.ids : STANDARD_KPIS;
+  const unitWord = (u: string) => (u === "%" ? "%" : u === "$" ? "$" : u === "x" ? "x" : u === "days" ? "days" : "count");
+  return (
+    <section className="space-y-3" data-testid="kpi-config">
+      <div>
+        <h3 className={cn(FIELD_LABEL, "flex items-center gap-1.5")}><Target className="w-3.5 h-3.5" /> KPIs and targets</h3>
+        <p className="text-[13px] text-slate-600 mt-1">
+          {own ? `You chose ${cfg.ids.length} of ${MAX_KPIS} possible.` : "Showing the standard set (the first four it can calculate)."} These are the numbers on this client's report and in "Clients side by side".
+        </p>
+      </div>
+      <ul className="space-y-2">
+        {CALCULABLE_KPIS.map((k) => {
+          const on = shown.includes(k.id);
+          const atMax = !on && own && cfg.ids.length >= MAX_KPIS;
+          return (
+            <li key={k.id} className="rounded-2xl border border-slate-200 p-3 flex flex-wrap items-center gap-x-3 gap-y-2">
+              <label className="flex items-center gap-2.5 min-h-10 flex-1 min-w-[180px] cursor-pointer">
+                <input type="checkbox" className="w-5 h-5 accent-teal-600" checked={on} disabled={atMax} onChange={() => toggle(client.id, k.id)} data-testid={`kpi-pick-${k.id}`} />
+                <span>
+                  <span className="block text-sm font-bold text-slate-900">{k.label}</span>
+                  <span className="block text-[11px] text-slate-600">{k.direction === "up" ? "Higher is better" : "Lower is better"} · {unitWord(k.unit)}</span>
+                </span>
+              </label>
+              {on && own && <TargetInput id={`target-${k.id}`} saved={cfg.targets[k.id]} unit={k.unit} max={targetMax(k.unit)} onSave={(v) => setTarget(client.id, k.id, v)} />}
+            </li>
+          );
+        })}
+      </ul>
+      {!own && <p className="text-[12px] text-slate-600">Tick or untick a number to start your own list. Targets can be set once you have.</p>}
+      {own && <Button type="button" variant="ghost" className="h-10 rounded-xl font-bold" onClick={() => updateClient(client.id, { kpiConfig: undefined })}>Back to the standard set</Button>}
+      <p className="text-[11px] text-slate-500">Only numbers we can calculate from the client's uploaded file can be chosen. A target is your own goal, compared with the calculated number as it is. It is not a forecast or an industry benchmark. Targets are private to you and are not shown to people you share the workspace with. This does not change the Dashboard or Builder.</p>
+    </section>
+  );
+}
+
 /** Typed freely, saved when you leave the box (saving tidies spaces, so doing it on every key would eat them). */
 function AssessmentNote({ id, saved, onSave }: { id: string; saved: string; onSave: (text: string) => void }) {
   const [draft, setDraft] = useState(saved);
@@ -475,6 +538,8 @@ function ClientSheet({ clientId, onClose }: { clientId: string | null; onClose: 
                 <a href={`mailto:${encodeURIComponent(client.contactEmail)}`} className="inline-flex items-center gap-1.5 text-sm font-bold text-primary"><Mail className="w-4 h-4" /> Email {client.contactName || "contact"}</a>
               )}
             </section>
+
+            <KpiConfigPanel client={client} />
 
             <AssessmentsPanel client={client} onNavigate={onClose} />
 

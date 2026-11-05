@@ -94,6 +94,13 @@ Phase 4 grows ChainInsideIQ from operations into business, operational and go-to
 - Finished assessments are listed (name and date only) on the printed client report. Your notes are never printed and are never shown to people you share a workspace with.
 - This is your own tracker. Nothing checks that an assessment was actually carried out, and status is never worked out from the client's data. The screen says so. "Numbers uploaded, ready to start" only means the client has a data file.
 
+## Consultant: KPIs and targets per client
+- In a client's details, **KPIs and targets** lets you choose which calculated numbers (up to 8 of the 12 the app can work out from a data file) appear for that client, and set your own target for each. Until you choose, the client keeps the standard set, exactly as before.
+- Those numbers drive that client's printed report and their row in "Clients side by side". Each one with a target says "Target 40.0% met" or "Target 40.0%: 3.2 points below" (the direction that counts as better is respected, so a lower return rate under its target is met).
+- A KPI you picked that can't be worked out from the file is listed as "Not calculated" with the reason (for example, "needs net profit"), never filled in.
+- A target is your own goal compared with the calculated number. It is not a forecast or an industry benchmark. Targets are private to you and never shown to people you share the workspace with.
+- This does not change the Dashboard or Builder, and it is separate from starring KPIs in the KPI Library.
+
 ## Fix: Fulfillment warehouse map labels
 - The zone labels on the warehouse map were too narrow, so "24 waiting" and "Bottleneck" overlapped on wide screens (and phones using the desktop view). Labels are wider and the floor sits lower so the top label is no longer clipped.
 

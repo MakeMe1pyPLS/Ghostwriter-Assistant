@@ -99,7 +99,7 @@ export function PortfolioOverview() {
                   </td>
                   <td className="p-2 text-slate-700">
                     {s.kpis.length ? s.kpis.slice(0, 3).map((k) => (
-                      <span key={k.id} className="block">{k.label}: <span className="font-bold">{k.display}</span>{k.changeText ? <span className="text-slate-600"> ({k.changeText}{k.better === true ? ", better" : k.better === false ? ", worse" : ""})</span> : null}</span>
+                      <span key={k.id} className="block">{k.label}: <span className="font-bold">{k.display}</span>{k.changeText ? <span className="text-slate-600"> ({k.changeText}{k.better === true ? ", better" : k.better === false ? ", worse" : ""})</span> : null}{k.target && <span className={k.target.state === "met" ? "block text-xs font-semibold text-emerald-800" : "block text-xs font-semibold text-amber-800"}>{k.target.text}</span>}</span>
                     )) : <span className="text-slate-600">—</span>}
                   </td>
                   <td className="p-2 text-right tabular-nums">{s.actions.open} / <span className={s.actions.overdue ? "font-black" : ""}>{s.actions.overdue}</span></td>

@@ -10,6 +10,7 @@
 import { calculateKpis, type Row } from './kpi-engine';
 import { compareOutcome, type InsightBaseline } from './insight';
 import { summariseAssessments, type AssessmentRecord } from './assessments';
+import { cleanKpiConfig, targetStatus, MAX_KPIS, type KpiConfig, type TargetStatus } from './kpi-config';
 
 const DAY = 86400000;
 
@@ -35,6 +36,8 @@ export interface ClientInput {
   lastActivity?: number;
   /** The consultant's own assessment checklist for this client. */
   assessments?: AssessmentRecord[];
+  /** This client's own choice of KPIs and targets. Without one, the standard set is shown. */
+  kpiConfig?: KpiConfig;
 }
 
 export type OutcomeState = 'improved' | 'worse' | 'same' | 'no-data';
@@ -47,7 +50,9 @@ export interface ClientOutcome {
   message: string;
 }
 
-export interface ClientKpi { id: string; label: string; display: string; changeText?: string; better?: boolean | null }
+export interface ClientKpi { id: string; label: string; display: string; changeText?: string; better?: boolean | null; /** Your target compared with the calculated number, when you set one. */ target?: TargetStatus }
+/** A KPI you chose that could not be calculated from this client's file, and why. */
+export interface UnavailableKpi { id: string; label: string; reason: string }
 
 export type AttentionKind = 'wrong-way' | 'overdue' | 'review-due' | 'assessment' | 'no-data' | 'quiet';
 
@@ -69,6 +74,7 @@ export interface ClientSummary {
   rowsUsed?: number;
   partial?: boolean;
   kpis: ClientKpi[];
+  unavailableKpis: UnavailableKpi[];
   actions: { total: number; done: number; open: number; overdue: number };
   outcomes: { improved: number; worse: number; same: number; noData: number; items: ClientOutcome[] };
   attention: AttentionItem[];
@@ -87,6 +93,8 @@ export interface Portfolio {
 }
 
 const KPI_ORDER = ['revenue', 'orders', 'gross-margin', 'net-margin', 'roas', 'on-time', 'return-rate', 'conversion'];
+/** What a client shows until you choose your own: the first four of the usual order that can be calculated. */
+export const STANDARD_KPIS = KPI_ORDER.slice(0, 4);
 const iso = (t: number) => new Date(t).toISOString().slice(0, 10);
 
 export function summariseClient(c: ClientInput, now: number = Date.now()): ClientSummary {
@@ -97,11 +105,26 @@ export function summariseClient(c: ClientInput, now: number = Date.now()): Clien
   let run = null as ReturnType<typeof calculateKpis> | null;
   try { run = c.dataset && c.dataset.rows.length ? calculateKpis(c.dataset.rows, c.dataset.headers) : null; } catch { run = null; }
 
+  // Your own choice if you made one; otherwise the usual order, first four that can be calculated.
+  const cfg = cleanKpiConfig(c.kpiConfig);
+  const chosen = cfg.ids.length > 0;
+  const toKpi = (r: NonNullable<typeof run>['results'][number]): ClientKpi => ({
+    id: r.id, label: r.label, display: r.display as string, changeText: r.change?.text, better: r.change ? r.change.better : undefined,
+    target: r.value !== undefined ? targetStatus({ id: r.id, value: r.value }, cfg.targets[r.id]) : undefined,
+  });
   const kpis: ClientKpi[] = run
-    ? KPI_ORDER.map((id) => run!.results.find((r) => r.id === id && r.status === 'ok' && r.display))
+    ? (chosen ? cfg.ids : KPI_ORDER).map((id) => run!.results.find((r) => r.id === id && r.status === 'ok' && r.display))
       .filter((r): r is NonNullable<typeof r> => !!r)
-      .slice(0, 4)
-      .map((r) => ({ id: r.id, label: r.label, display: r.display as string, changeText: r.change?.text, better: r.change ? r.change.better : undefined }))
+      .slice(0, chosen ? MAX_KPIS : 4)
+      .map(toKpi)
+    : [];
+  const unavailableKpis: UnavailableKpi[] = chosen
+    ? cfg.ids.filter((id) => !kpis.some((k) => k.id === id)).map((id) => {
+      const r = run?.results.find((x) => x.id === id);
+      const label = r?.label ?? id;
+      const reason = !run ? 'there is no data file yet' : r?.missing?.length ? `needs ${r.missing.join(', ')}` : r?.limits?.[0] ?? 'there is not enough data';
+      return { id, label, reason };
+    })
     : [];
 
   const items: ClientOutcome[] = c.actions.filter((a) => a.baseline).map((a) => {
@@ -132,7 +155,7 @@ export function summariseClient(c: ClientInput, now: number = Date.now()): Clien
     id: c.id, name: c.name, status: c.status,
     hasData: !!run, datasetName: c.dataset?.name, rowsUsed: run ? c.dataset!.rows.length : undefined,
     partial: !!(run && c.dataset && c.dataset.rowCount > c.dataset.rows.length),
-    kpis,
+    kpis, unavailableKpis,
     actions: { total: c.actions.length, done: c.actions.length - open.length, open: open.length, overdue: overdue.length },
     outcomes: { improved: count('improved'), worse: count('worse'), same: count('same'), noData: count('no-data'), items },
     attention,
