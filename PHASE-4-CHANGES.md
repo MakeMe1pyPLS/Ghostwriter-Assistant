@@ -101,6 +101,12 @@ Phase 4 grows ChainInsideIQ from operations into business, operational and go-to
 - A target is your own goal compared with the calculated number. It is not a forecast or an industry benchmark. Targets are private to you and never shown to people you share the workspace with.
 - This does not change the Dashboard or Builder, and it is separate from starring KPIs in the KPI Library.
 
+## Consultant: branded client reports
+- New **Report branding** card on the Clients page. Add your business name and logo, and optionally hide the ChainInsideIQ logo and name. Your name is printed as "Prepared by", your logo appears in the report header, and a preview shows both before you print.
+- Logos can be PNG, JPG or WebP. The browser re-draws and shrinks them to a small bitmap (SVG files are refused). With no branding set, reports read exactly as before.
+- When the ChainInsideIQ mark is hidden, the line saying figures come from the numbers entered in the workspace stays.
+- **Limits, stated on the screen:** branding is saved in this browser only for now (set it up again on another device, and it is cleared when you sign out). It applies to reports you print or save here. People you share a workspace with see the standard report. It is not tied to a plan, and no pricing or marketing page mentions it.
+
 ## Fix: Fulfillment warehouse map labels
 - The zone labels on the warehouse map were too narrow, so "24 waiting" and "Bottleneck" overlapped on wide screens (and phones using the desktop view). Labels are wider and the floor sits lower so the top label is no longer clipped.
 

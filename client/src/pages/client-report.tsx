@@ -11,6 +11,7 @@ import { clientInputFrom } from "@/lib/portfolio";
 import { useSharedWorkspace } from "@/hooks/use-shared-workspace";
 import { summariseClient } from "@shared/consultant";
 import { ASSESSMENT_INFO, cleanAssessments } from "@shared/assessments";
+import { reportBranding } from "@shared/branding";
 import { GOALS } from "@shared/growth";
 import { getIndustry } from "@shared/kpi-industries";
 import { cn } from "@/lib/utils";
@@ -34,6 +35,9 @@ export default function ClientReportPage() {
   const printReport = () => { if (ownClientId) recordReport(ownClientId, "printed"); window.print(); };
   const summary = useMemo(() => (client ? summariseClient(clientInputFrom(client, ws)) : null), [client, ws]);
   const preparedBy = useMemo(() => (isShared ? shared.ownerName : workspaceFor(null)?.growth.profile?.businessName), [isShared, shared.ownerName, workspaceFor]);
+  // Your own branding applies to reports you print. A shared viewer sees the standard report.
+  const brand = useClientsStore((s) => s.brand);
+  const branding = useMemo(() => reportBranding(isShared ? undefined : brand, preparedBy), [isShared, brand, preparedBy]);
   const backHref = isShared ? "/shared" : "/clients";
 
   // Paper is white: print in the light theme even when the app is in dark mode.
@@ -109,7 +113,10 @@ export default function ClientReportPage() {
               {getIndustry(client.industryId ?? profile?.industryId)?.name ?? "Industry not set"} · {client.engagement} · {new Date().toLocaleDateString(undefined, { month: "long", day: "numeric", year: "numeric" })}
             </p>
           </div>
-          <Logo size={30} />
+          <div className="flex items-center gap-4 shrink-0">
+            {branding.logo && <img src={branding.logo} alt={branding.preparedBy ? `${branding.preparedBy} logo` : "Logo"} className="max-h-[44px] max-w-[160px] object-contain" data-testid="report-brand-logo" />}
+            {branding.showProductMark && <Logo size={30} />}
+          </div>
         </header>
 
         {!plan ? (
@@ -244,7 +251,7 @@ export default function ClientReportPage() {
         <footer className="border-t border-slate-200 pt-4 flex flex-wrap gap-x-6 gap-y-1 text-sm">
           <p><span className="font-bold">Next review:</span> {fmt(client.nextReview)}</p>
           {client.contactName && <p><span className="font-bold">Contact:</span> {client.contactName}</p>}
-          <p className="text-slate-400 w-full text-xs mt-2">{preparedBy ? `Prepared by ${preparedBy} with ChainInsideIQ.` : "Prepared with ChainInsideIQ."} Figures come from the numbers entered in this workspace.</p>
+          <p className="text-slate-400 w-full text-xs mt-2" data-testid="report-footer">{branding.footer}</p>
         </footer>
       </article>
     </div>

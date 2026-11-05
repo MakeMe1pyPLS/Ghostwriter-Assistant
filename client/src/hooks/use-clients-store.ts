@@ -8,6 +8,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { useGrowthStore, GROWTH_WORKSPACE_KEYS, emptyGrowthWorkspace, type GrowthWorkspace, type ActionItem } from './use-growth-store';
 import { useDashboardStore } from './use-dashboard-store';
 import { addReportEvent, type ReportEvent, type ReportEventKind } from '@shared/report-activity';
+import { updateBrand, type Brand } from '@shared/branding';
 import { toggleKpi, setKpiTarget, type KpiConfig } from '@shared/kpi-config';
 import { STANDARD_KPIS } from '@shared/consultant';
 import { updateAssessment, type AssessmentRecord, type AssessmentKind, type AssessmentPatch } from '@shared/assessments';
@@ -95,6 +96,10 @@ interface ClientsState {
   activeClientId: string | null;
   /** The consultant's own business, parked while a client workspace is open. */
   ownWorkspace: WorkspaceSnapshot | null;
+  /** Your name and logo for printed client reports. Saved in this browser only, and cleared on sign-out. */
+  brand?: Brand;
+  /** Change report branding. null clears a field; invalid logos are ignored. */
+  setBrand: (patch: { name?: string | null; logo?: string | null; hideProduct?: boolean }) => void;
 
   activeClient: () => ClientRecord | undefined;
   addClient: (c: Pick<ClientRecord, 'name'> & Partial<Omit<ClientRecord, 'id' | 'createdAt' | 'notes' | 'workspace' | 'reportEvents' | 'assessments' | 'kpiConfig'>>) => ClientRecord;
@@ -122,6 +127,8 @@ export const useClientsStore = create<ClientsState>()(
       clients: [],
       activeClientId: null,
       ownWorkspace: null,
+      brand: undefined,
+      setBrand: (patch) => set((s) => ({ brand: updateBrand(s.brand, patch) })),
 
       activeClient: () => {
         const { clients, activeClientId } = get();
@@ -185,7 +192,7 @@ export const useClientsStore = create<ClientsState>()(
       name: 'chaininsideiq-clients',
       version: 1,
       storage: safeStorage,
-      partialize: (s) => ({ clients: s.clients, activeClientId: s.activeClientId, ownWorkspace: s.ownWorkspace }),
+      partialize: (s) => ({ clients: s.clients, activeClientId: s.activeClientId, ownWorkspace: s.ownWorkspace, brand: s.brand }),
     },
   ),
 );

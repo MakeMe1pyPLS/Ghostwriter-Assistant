@@ -11,6 +11,7 @@ import {
 import { AppLayout } from "@/components/layout/AppLayout";
 import { PortfolioOverview } from "@/components/PortfolioOverview";
 import { SharingPanel } from "@/components/SharingPanel";
+import { BrandingCard } from "@/components/BrandingCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -147,6 +148,8 @@ export default function ClientsPage() {
             ))}
           </Stagger>
         )}
+
+        <BrandingCard />
 
         <div className="rounded-3xl border border-slate-200 bg-white p-4 sm:p-5 flex gap-3 items-start">
           <HardDrive className="w-5 h-5 text-slate-400 shrink-0 mt-0.5" aria-hidden />
