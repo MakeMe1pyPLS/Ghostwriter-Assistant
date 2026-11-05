@@ -23,11 +23,11 @@ export const widgetCategories = [
     id: "ai",
     name: "AI & Insights",
     items: [
-      { id: 'insights', name: 'AI Insights', icon: BrainCircuit, w: 4, h: 4, desc: "Automated anomaly detection", alwaysAvailable: true },
-      { id: 'chat', name: 'AI Chat', icon: Bot, w: 4, h: 4, desc: "Conversational assistant", alwaysAvailable: true },
-      { id: 'forecast', name: 'Demand Forecast', icon: TrendingUp, w: 8, h: 4, desc: "Predictive modeling", alwaysAvailable: true },
-      { id: 'summary', name: 'Executive Summary', icon: MessageSquareQuote, w: 12, h: 2, desc: "Text-based overview", alwaysAvailable: true },
-      { id: 'opportunity-risk', name: 'Opportunity & Risk', icon: AlertTriangle, w: 6, h: 4, desc: "Real-time risk/opportunity highlights", alwaysAvailable: true },
+      { id: 'insights', name: 'AI Insights', icon: BrainCircuit, w: 4, h: 4, desc: "Points to the AI Analyst (shows no findings itself)", alwaysAvailable: true },
+      { id: 'chat', name: 'AI Chat', icon: Bot, w: 4, h: 4, desc: "Points to the AI Analyst (no chat inside the card)", alwaysAvailable: true },
+      { id: 'forecast', name: 'Demand Forecast', icon: TrendingUp, w: 8, h: 4, desc: "Chart with an example dashed line (forecasting coming soon)", alwaysAvailable: true },
+      { id: 'summary', name: 'Executive Summary', icon: MessageSquareQuote, w: 12, h: 2, desc: "One sentence on the first number's trend", alwaysAvailable: true },
+      { id: 'opportunity-risk', name: 'Opportunity & Risk', icon: AlertTriangle, w: 6, h: 4, desc: "Points to the Bottlenecks page (lists nothing itself)", alwaysAvailable: true },
     ]
   }
 ];

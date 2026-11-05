@@ -110,5 +110,13 @@ Phase 4 grows ChainInsideIQ from operations into business, operational and go-to
 ## Fix: Fulfillment warehouse map labels
 - The zone labels on the warehouse map were too narrow, so "24 waiting" and "Bottleneck" overlapped on wide screens (and phones using the desktop view). Labels are wider and the floor sits lower so the top label is no longer clipped.
 
+## Fix: no more made-up AI content
+An acceptance audit found screens that looked like analysis of your business but were fixed text or random numbers. They are removed or relabelled.
+- **Analyst page:** the pre-written insights, the fixed forecast and the "recommended KPIs" with invented current values are gone. The page now explains what the Analyst does, shows the KPI guide for your sector, and the Forecast area says **Coming soon**.
+- **Dashboard widgets:** "AI Insights", "AI Chat" and "Opportunity & Risk" no longer show invented text or scores. Each is now a short pointer to the page that does the real work (Analyst, Bottlenecks). The summary and forecast widget text says what it is. Controls that did nothing were removed from the widget settings.
+- **Server:** `/api/ai/insights`, `/api/ai/forecast` and `/api/ai/recommend-kpis` used to return random numbers. They now answer "not available" (HTTP 501). The AI Analyst chat and the built-in analyst are unchanged.
+- **Sample data notice:** Dashboard, Builder and Export Center show a "Sample data" note whenever no file of yours is in use, because the cards and charts are then built-in examples. It disappears once you upload and select a file.
+- A new test (`tests/honesty-guard.test.ts`, part of `npm test`) fails if the canned text, the fake provider or the notice goes missing.
+
 ## Not built yet
 - Editor and admin roles, team accounts, invite emails, collab partner sign-in, a full audit trail and SSO. See `docs/ENTERPRISE-READINESS.md`.

@@ -7,6 +7,7 @@ import { BrainCircuit, BarChart2, Pencil } from "lucide-react";
 import { ShareMenu } from "@/components/ShareMenu";
 import { appLink } from "@/lib/share";
 import { useSectorData } from "@/hooks/use-sector-data";
+import { SampleDataNotice } from "@/components/SampleDataNotice";
 import { useDashboardStore } from "@/hooks/use-dashboard-store";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -93,6 +94,7 @@ export default function DashboardPage() {
   return (
     <AppLayout>
       <div className="p-4 sm:p-6 md:p-10 max-w-[1600px] mx-auto min-h-0 flex flex-col">
+        <SampleDataNotice className="mb-4 shrink-0" />
         <header className="flex flex-col xl:flex-row justify-between items-start xl:items-end gap-4 mb-6 md:mb-8 shrink-0">
           <div className="min-w-0">
             <p className="text-sm font-medium text-slate-500 truncate">{greeting}{businessName ? `, ${businessName}` : ""}</p>
