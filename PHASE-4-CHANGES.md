@@ -19,5 +19,8 @@ Phase 4 grows ChainInsideIQ from operations into business, operational and go-to
 - New **"What we calculated"** panel on Data Sources: each KPI with its value, change, how it was worked out, the columns used, and a list of KPIs that need more data.
 - Limit: only the first 1,000 rows of each file are kept in your browser, so for larger files the panel says the numbers cover those rows only.
 
+## Fix: Fulfillment warehouse map labels
+- The zone labels on the warehouse map were too narrow, so "24 waiting" and "Bottleneck" overlapped on wide screens (and phones using the desktop view). Labels are wider and the floor sits lower so the top label is no longer clipped.
+
 ## Not built yet
 - The "what, why, impact, next, evidence, confidence" insight format, go-to-market and ad analysis, and the consultant overview are the next stages. Until they ship, nothing in the app claims them.

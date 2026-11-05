@@ -12,7 +12,7 @@ import type { ZoneViewProps } from "./Overview";
 
 const S = 24; // one grid unit, in px
 const C = Math.cos(Math.PI / 6), N = Math.sin(Math.PI / 6);
-const OX = 236, OY = 58;
+const OX = 236, OY = 72;
 /** Grid (x, y, height) → screen. x runs down-right, y runs down-left. */
 const P = (x: number, y: number, z = 0): [number, number] => [OX + (x - y) * C * S, OY + (x + y) * N * S - z * S];
 const pts = (...ps: [number, number][]) => ps.map(([a, b]) => `${a.toFixed(1)},${b.toFixed(1)}`).join(" ");
@@ -117,7 +117,7 @@ function Cartons({ id, x, y, w, d, count, delay }: { id: ZoneId; x: number; y: n
 
 function Pin({ zone, cx, cy, selected }: { zone: ZoneStat; cx: number; cy: number; selected: boolean }) {
   const t = TONE[zone.health];
-  const w = 118, h = 38;
+  const w = 152, h = 38;
   return (
     <g transform={`translate(${cx - w / 2} ${cy - h - 10})`} className="hidden sm:inline pointer-events-none">
       <rect width={w} height={h} rx="8" className={cn("fill-white dark:fill-slate-800", selected ? "stroke-primary" : zone.health === "bottleneck" ? "stroke-rose-500" : "stroke-slate-300 dark:stroke-slate-600")} strokeWidth={selected || zone.health === "bottleneck" ? 2 : 1} />
@@ -137,7 +137,7 @@ export function WarehouseIso({ zones, selectedId, onSelect }: ZoneViewProps) {
 
   return (
     <div className="rounded-card border border-slate-200 bg-white shadow-card p-3 sm:p-5" data-testid="ff-zones">
-      <svg viewBox="0 0 500 330" className="w-full h-auto" role="group" aria-label="Warehouse floor. Each zone shows how much work is waiting there.">
+      <svg viewBox="0 0 500 344" className="w-full h-auto" role="group" aria-label="Warehouse floor. Each zone shows how much work is waiting there.">
         {/* building slab and back walls */}
         <polygon points={pts(P(-0.4, -0.4, 0), P(12.4, -0.4, 0), P(12.4, 8, 0), P(-0.4, 8, 0))} className="fill-slate-100 stroke-slate-300 dark:fill-white/5 dark:stroke-white/10" strokeWidth="1" />
         <polygon points={pts(P(-0.4, -0.4, 0), P(12.4, -0.4, 0), P(12.4, -0.4, 2.6), P(-0.4, -0.4, 2.6))} className="fill-slate-50 stroke-slate-300 dark:fill-white/[0.03] dark:stroke-white/10" strokeWidth="1" />
