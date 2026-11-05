@@ -290,7 +290,7 @@ export function clearLocalData() {
   applying = true;
   pauseAudit(true);
   try {
-    useClientsStore.setState({ clients: [], activeClientId: null, ownWorkspace: null });
+    useClientsStore.setState({ clients: [], activeClientId: null, ownWorkspace: null, brand: undefined });
     loadLiveWorkspace(null);
     useGrowthStore.setState({ tourComplete: false });
     // The activity log belongs to the person who was signed in: the next person on this computer must not see it.
