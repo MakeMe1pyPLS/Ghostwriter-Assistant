@@ -82,6 +82,12 @@ Phase 4 grows ChainInsideIQ from operations into business, operational and go-to
 - Access is enforced in the database (row-level security and server functions), not by hiding buttons. `supabase/tests/sharing.test.sql` checks it as a stranger, the owner, an invited viewer, an unconfirmed email and a removed viewer. `tests/sharing-migration.test.ts` guards the migration in `npm test`.
 - Only the read-only viewer role exists. There is no editor or admin role, no team accounts and no per-plan limit on sharing yet. See `docs/ENTERPRISE-READINESS.md`.
 
+## Consultant: recent reporting activity
+- Each client card now says when its progress report was last printed or opened ("Report printed 3 days ago", "Report opened yesterday, not printed", or "No report yet"). A client that is Active or Onboarding and has had no report printed for 30 days shows a **Report due** tag. Paused and Completed clients are never flagged.
+- The client's details list their last five report events.
+- "Print or save opened" means the print window was opened. The browser does not tell us whether you saved it, and we cannot see whether it was sent to the client, so the screen says so.
+- The record is saved with the client (and to your account when signed in). People you share a workspace with never see it.
+
 ## Fix: Fulfillment warehouse map labels
 - The zone labels on the warehouse map were too narrow, so "24 waiting" and "Bottleneck" overlapped on wide screens (and phones using the desktop view). Labels are wider and the floor sits lower so the top label is no longer clipped.
 

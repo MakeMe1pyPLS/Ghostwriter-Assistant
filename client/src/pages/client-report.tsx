@@ -26,6 +26,11 @@ export default function ClientReportPage() {
   const client = isShared ? shared.client : storeClient;
   const ws = useMemo(() => (isShared ? shared.ws : storeClient ? workspaceFor(storeClient.id) : null), [isShared, shared.ws, storeClient, workspaceFor]);
   const [showNotes, setShowNotes] = useState(false);
+  const recordReport = useClientsStore((s) => s.recordReport);
+  const ownClientId = !isShared ? storeClient?.id : undefined;
+  // Your own record of when this report was opened and printed. Viewers never write one.
+  useEffect(() => { if (ownClientId) recordReport(ownClientId, "opened"); }, [ownClientId, recordReport]);
+  const printReport = () => { if (ownClientId) recordReport(ownClientId, "printed"); window.print(); };
   const summary = useMemo(() => (client ? summariseClient(clientInputFrom(client, ws)) : null), [client, ws]);
   const preparedBy = useMemo(() => (isShared ? shared.ownerName : workspaceFor(null)?.growth.profile?.businessName), [isShared, shared.ownerName, workspaceFor]);
   const backHref = isShared ? "/shared" : "/clients";
@@ -81,7 +86,7 @@ export default function ClientReportPage() {
           {!isShared && <label className="ml-auto flex items-center gap-2 text-sm font-semibold text-slate-600 cursor-pointer h-10 px-2">
             <input type="checkbox" className="w-4 h-4 accent-teal-600" checked={showNotes} onChange={(e) => setShowNotes(e.target.checked)} /> Include notes
           </label>}
-          <Button onClick={() => window.print()} className={cn("h-10 rounded-xl font-bold", isShared && "ml-auto")} data-testid="report-print"><Printer className="w-4 h-4 mr-1.5" /> Print or save PDF</Button>
+          <Button onClick={printReport} className={cn("h-10 rounded-xl font-bold", isShared && "ml-auto")} data-testid="report-print"><Printer className="w-4 h-4 mr-1.5" /> Print or save PDF</Button>
         </div>
       </div>
 
