@@ -31,8 +31,22 @@ Phase 4 grows ChainInsideIQ from operations into business, operational and go-to
 - Behind the scenes: `shared/insight.ts` (pure logic) and `npm test`, which runs the KPI engine, company-type and insight tests.
 - Not done yet: the same format on the Command Center and Analyst chat answers, and a consultant-wide view of outcomes.
 
+## Stage 2: Go-to-market (ads and deals) from your files
+- New **Go-to-market** page (in the Grow menu). It reads an **ad export** or a **deals export** that you have already uploaded on Data Sources. Nothing is shown until you have uploaded one.
+- **Ads:** spend, conversions, click rate, return on ad spend (or cost per conversion if there is no revenue column), by campaign or channel, with a table. It points out:
+  - spend that produced no conversions (and says to check tracking first),
+  - big-spend campaigns that return far less than your own average,
+  - campaigns doing much better than average that could take a small budget test,
+  - ads few people click, ads people click but do not buy from,
+  - too much spend in one channel, and spend that rose while results got worse.
+- **Deals:** win rate, average won deal, time to win, which lead sources and segments close well or badly, open deals that have gone stale, and the most common lost reason.
+- Every finding says what we see, a **possible reason** (never stated as proven), what it means, one step to do next, the numbers behind it, and a confidence level with its reason. **Track as action** puts the step on your Growth Plan.
+- Everything compares against **your own file's average**. We do not quote industry benchmarks. Small samples are listed as "too early to tell" and are not judged.
+- If your file is not recognised, the page lists what each kind of file needs and offers a blank CSV template (headers only).
+- **Coming soon:** direct connections to Google Ads, Meta Ads, HubSpot and Salesforce. For now, export a CSV and upload it. Lifetime value and before/after tracking for ad results are not built yet.
+
 ## Fix: Fulfillment warehouse map labels
 - The zone labels on the warehouse map were too narrow, so "24 waiting" and "Bottleneck" overlapped on wide screens (and phones using the desktop view). Labels are wider and the floor sits lower so the top label is no longer clipped.
 
 ## Not built yet
-- The insight format on the Command Center and Analyst chat, go-to-market and ad analysis, and the consultant overview are the next stages. Until they ship, nothing in the app claims them.
+- The insight format on the Command Center and Analyst chat, and the consultant overview are the next stages. Until they ship, nothing in the app claims them.
