@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Settings, Building, Users, Layers, Sparkles, ArrowRight, Check, Info } from "lucide-react";
 import { useDashboardStore, type BusinessStructure } from "@/hooks/use-dashboard-store";
 import { useLocation } from "wouter";
+import { CompanyTypePicker } from "@/components/CompanyTypePicker";
+import { MAX_COMPANIES } from "@shared/company-types";
 
 const STRUCTURES: {
   value: BusinessStructure;
@@ -51,12 +53,13 @@ const STRUCTURES: {
 ];
 
 export function OnboardingModal() {
-  const { setupComplete, completeSetup, dismissSetup, setBusinessStructure, isDemoMode } = useDashboardStore();
+  const { setupComplete, completeSetup, dismissSetup, setBusinessStructure, setCompanyTypes, isDemoMode } = useDashboardStore();
   // The AI interview (/onboarding) already captures industry and partners, so
   // people who finished it, and demo visitors, never see this older setup step.
   const interviewDone = useGrowthStore((s) => s.onboardingComplete);
   const [, setLocation] = useLocation();
   const [selected, setSelected] = useState<BusinessStructure>("single");
+  const [types, setTypes] = useState<string[]>([]);
 
   if (setupComplete || interviewDone || isDemoMode) return null;
 
@@ -64,8 +67,10 @@ export function OnboardingModal() {
 
   const handleContinue = () => {
     setBusinessStructure(selected);
+    if (types.some(Boolean)) setCompanyTypes(types);
     completeSetup();
-    setLocation(current.needsSettings ? "/settings" : "/builder");
+    const allChosen = Array.from({ length: MAX_COMPANIES[selected] }).every((_, i) => !!types[i]);
+    setLocation(current.needsSettings && !allChosen ? "/settings" : "/builder");
   };
 
   const handleRemindLater = () => {
@@ -129,6 +134,11 @@ export function OnboardingModal() {
                 </button>
               );
             })}
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">What kind of company{MAX_COMPANIES[selected] > 1 ? "s" : ""}?</p>
+            <CompanyTypePicker structure={selected} value={types} onChange={setTypes} />
           </div>
 
           <div className="flex items-start gap-2.5 rounded-xl border border-slate-200 bg-slate-50 p-3.5" data-testid="onboarding-guidance">

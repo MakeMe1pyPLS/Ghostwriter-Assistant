@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { cleanCompanyTypes, familiesFor } from '@shared/company-types';
 import { type DashboardData, defaultDashboard, fineToClassic } from '@/lib/dashboard-grid';
 import { type ManagedDataset, MAX_PERSISTED_ROWS } from '@/lib/dataset-library';
 
@@ -45,6 +46,8 @@ interface DashboardState {
 
   businessStructure: BusinessStructure;
   connectedSectors: Sector[];
+  /** Which kind of business each company is (industry ids): you first, then partners. */
+  companyTypes: string[];
   dataSharingEnabled: boolean;
   hubEnabled: boolean;
   dataShareRequests: DataShareRequest[];
@@ -90,6 +93,7 @@ interface DashboardState {
 
   setBusinessStructure: (structure: BusinessStructure) => void;
   setConnectedSectors: (sectors: Sector[]) => void;
+  setCompanyTypes: (ids: string[]) => void;
   setDataSharingEnabled: (enabled: boolean) => void;
   setHubEnabled: (enabled: boolean) => void;
   addDataShareRequest: (request: Omit<DataShareRequest, 'id' | 'createdAt' | 'status'>) => void;
@@ -129,6 +133,7 @@ export const useDashboardStore = create<DashboardState>()(
 
       businessStructure: 'single',
       connectedSectors: ['ecommerce'],
+      companyTypes: [],
       dataSharingEnabled: false,
       hubEnabled: true,
       dataShareRequests: [],
@@ -272,9 +277,29 @@ export const useDashboardStore = create<DashboardState>()(
           updates.selectedSector = 'unified';
           updates.hubEnabled = true;
         }
+        // Company types, when chosen, decide the sectors (and are trimmed to fit).
+        const types = cleanCompanyTypes(get().companyTypes, structure);
+        if (types.length) {
+          updates.companyTypes = types;
+          const families = familiesFor(types) as Sector[];
+          updates.connectedSectors = families;
+          if (structure === 'single') updates.selectedSector = families[0];
+          else if (structure === 'partnered') updates.selectedSector = families[0];
+        }
         set(updates as any);
       },
       setConnectedSectors: (sectors) => set({ connectedSectors: sectors }),
+      setCompanyTypes: (ids) => {
+        const structure = get().businessStructure;
+        const types = cleanCompanyTypes(ids, structure);
+        const updates: Partial<DashboardState> = { companyTypes: types };
+        if (types.length) {
+          const families = familiesFor(types) as Sector[];
+          updates.connectedSectors = families;
+          if (structure !== 'unified-chain' && !families.includes(get().selectedSector)) updates.selectedSector = families[0];
+        }
+        set(updates as any);
+      },
       setDataSharingEnabled: (enabled) => set({ dataSharingEnabled: enabled }),
       setHubEnabled: (enabled) => set({ hubEnabled: enabled }),
       addDataShareRequest: (request) => set(state => ({

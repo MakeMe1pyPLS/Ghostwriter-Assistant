@@ -13,7 +13,7 @@ export type ClientStatus = 'Onboarding' | 'Active' | 'Paused' | 'Completed';
 export const ENGAGEMENT_TYPES: EngagementType[] = ['Project', 'Monthly retainer', 'Advisory', 'One-off review'];
 export const CLIENT_STATUSES: ClientStatus[] = ['Onboarding', 'Active', 'Paused', 'Completed'];
 
-export const DASHBOARD_WORKSPACE_KEYS = ['datasetLibrary', 'activeDatasetBySector', 'dashboards', 'connectedSectors', 'businessStructure', 'selectedSector', 'sectorMode'] as const;
+export const DASHBOARD_WORKSPACE_KEYS = ['datasetLibrary', 'activeDatasetBySector', 'dashboards', 'connectedSectors', 'companyTypes', 'businessStructure', 'selectedSector', 'sectorMode'] as const;
 type DashboardState = ReturnType<typeof useDashboardStore.getState>;
 export type DashboardWorkspace = Pick<DashboardState, typeof DASHBOARD_WORKSPACE_KEYS[number]>;
 
@@ -52,7 +52,7 @@ function structuredCloneSafe<V>(v: V): V {
 }
 
 export function emptyDashboardWorkspace(): DashboardWorkspace {
-  return { datasetLibrary: [], activeDatasetBySector: {}, dashboards: {}, connectedSectors: ['ecommerce'], businessStructure: 'single', selectedSector: 'unified', sectorMode: 'unified' };
+  return { datasetLibrary: [], activeDatasetBySector: {}, dashboards: {}, connectedSectors: ['ecommerce'], companyTypes: [], businessStructure: 'single', selectedSector: 'unified', sectorMode: 'unified' };
 }
 
 /** Copy of whatever workspace is live right now. */

@@ -15,6 +15,8 @@ import {
 import { SyncBadge } from "@/components/SyncBadge";
 import { useDashboardStore, getTrialStatus, type BusinessStructure, type Sector } from "@/hooks/use-dashboard-store";
 import { DataShareRequestsPanel, DataShareModal } from "@/components/DataShareModal";
+import { CompanyTypePicker } from "@/components/CompanyTypePicker";
+import { legacyCompanyTypes } from "@shared/company-types";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Link, useLocation } from "wouter";
@@ -25,17 +27,10 @@ const STRUCTURE_OPTIONS: { value: BusinessStructure; label: string; desc: string
   { value: 'unified-chain', label: 'Unified Supply Chain', desc: 'Three sectors connected', icon: Layers },
 ];
 
-const SECTOR_OPTIONS: { value: Sector; label: string; icon: any }[] = [
-  { value: 'ecommerce', label: 'E-commerce', icon: ShoppingCart },
-  { value: 'logistics', label: 'Logistics', icon: Truck },
-  { value: 'manufacturing', label: 'Manufacturing', icon: Building2 },
-  { value: 'custom', label: 'Custom', icon: Puzzle },
-];
-
 export default function SettingsPage() {
   const {
-    businessStructure, connectedSectors, dataSharingEnabled, hubEnabled,
-    setBusinessStructure, setConnectedSectors, setDataSharingEnabled, setHubEnabled,
+    businessStructure, connectedSectors, companyTypes, dataSharingEnabled, hubEnabled,
+    setBusinessStructure, setConnectedSectors, setCompanyTypes, setDataSharingEnabled, setHubEnabled,
     setupComplete, completeSetup, currentUser, signOut,
   } = useDashboardStore();
   const { toast } = useToast();
@@ -43,17 +38,8 @@ export default function SettingsPage() {
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const trial = getTrialStatus(currentUser);
 
+  const shownTypes = companyTypes.length ? companyTypes : legacyCompanyTypes(connectedSectors);
   const maxSectors = businessStructure === 'single' ? 1 : businessStructure === 'partnered' ? 2 : 3;
-
-  const toggleSector = (sector: Sector) => {
-    if (connectedSectors.includes(sector)) {
-      if (connectedSectors.length <= 1) return;
-      setConnectedSectors(connectedSectors.filter(s => s !== sector));
-    } else {
-      if (connectedSectors.length >= maxSectors) return;
-      setConnectedSectors([...connectedSectors, sector]);
-    }
-  };
 
   useEffectHash(() => {
     const id = window.location.hash.slice(1);
@@ -239,43 +225,22 @@ export default function SettingsPage() {
             <div className="px-6 py-4 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Layers className="w-4 h-4 text-slate-400" />
-                <h2 className="text-sm font-black text-slate-700 uppercase tracking-widest">Connected Sectors</h2>
+                <h2 className="text-sm font-black text-slate-700 uppercase tracking-widest">Company types</h2>
               </div>
               <Badge variant="outline" className="text-[9px] font-black uppercase tracking-widest rounded-lg border-slate-200">
-                {connectedSectors.length} / {maxSectors} selected
+                {shownTypes.filter(Boolean).length} / {maxSectors} chosen
               </Badge>
             </div>
             <div className="p-6">
-              <p className="text-xs text-slate-500 mb-4">
-                {businessStructure === 'single' && 'Select the single sector your business operates in.'}
-                {businessStructure === 'partnered' && 'Select the two sectors that form your partnership or co-op.'}
-                {businessStructure === 'unified-chain' && 'Select up to three sectors for your unified supply chain.'}
+              <p className="text-xs text-slate-600 mb-4">
+                {businessStructure === 'single' && 'Choose the kind of business you run. Your KPIs and checks follow it.'}
+                {businessStructure === 'partnered' && 'Choose the kind of business you are, then the kind of partner you work with.'}
+                {businessStructure === 'unified-chain' && 'Choose your company and the two partners in your chain. Any kind of business works, not only logistics.'}
               </p>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {SECTOR_OPTIONS.map(opt => {
-                  const isSelected = connectedSectors.includes(opt.value);
-                  const isDisabled = !isSelected && connectedSectors.length >= maxSectors;
-                  return (
-                    <button
-                      key={opt.value}
-                      onClick={() => !isDisabled && toggleSector(opt.value)}
-                      disabled={isDisabled}
-                      className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
-                        isSelected
-                          ? 'border-primary bg-primary/5 text-primary'
-                          : isDisabled
-                          ? 'border-slate-100 bg-slate-50 text-slate-300 cursor-not-allowed'
-                          : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300'
-                      }`}
-                      data-testid={`sector-toggle-${opt.value}`}
-                    >
-                      <opt.icon className="w-5 h-5" />
-                      <span className="text-xs font-bold">{opt.label}</span>
-                      {isSelected && <CheckCircle2 className="w-3.5 h-3.5" />}
-                    </button>
-                  );
-                })}
-              </div>
+              <CompanyTypePicker structure={businessStructure} value={shownTypes} onChange={setCompanyTypes} />
+              {!companyTypes.length && shownTypes.length > 0 && (
+                <p className="mt-3 text-[12px] text-slate-600">Filled in from your earlier sector choice. Pick a more exact type to replace it.</p>
+              )}
             </div>
           </section>
 
