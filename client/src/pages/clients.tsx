@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { PortfolioOverview } from "@/components/PortfolioOverview";
+import { SharingPanel } from "@/components/SharingPanel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -366,6 +367,8 @@ function ClientSheet({ clientId, onClose }: { clientId: string | null; onClose: 
                 <a href={`mailto:${encodeURIComponent(client.contactEmail)}`} className="inline-flex items-center gap-1.5 text-sm font-bold text-primary"><Mail className="w-4 h-4" /> Email {client.contactName || "contact"}</a>
               )}
             </section>
+
+            <SharingPanel clientId={client.id} />
 
             <section className="space-y-3">
               <h3 className={cn(FIELD_LABEL, "flex items-center gap-1.5")}><StickyNote className="w-3.5 h-3.5" /> Notes</h3>

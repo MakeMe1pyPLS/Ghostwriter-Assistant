@@ -8,6 +8,7 @@ import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { useClientsStore, workspaceStats, isOverdue } from "@/hooks/use-clients-store";
 import { clientInputFrom } from "@/lib/portfolio";
+import { useSharedWorkspace } from "@/hooks/use-shared-workspace";
 import { summariseClient } from "@shared/consultant";
 import { GOALS } from "@shared/growth";
 import { getIndustry } from "@shared/kpi-industries";
@@ -17,13 +18,17 @@ const fmt = (iso?: string) => (iso ? new Date(iso + "T00:00").toLocaleDateString
 const fmtTs = (ts: number) => new Date(ts).toLocaleDateString(undefined, { month: "short", day: "numeric" });
 
 export default function ClientReportPage() {
-  const [, params] = useRoute<{ id: string }>("/clients/:id/report");
-  const client = useClientsStore((s) => s.clients.find((c) => c.id === params?.id));
+  const [, ownParams] = useRoute<{ id: string }>("/clients/:id/report");
+  const [isShared, sharedParams] = useRoute<{ owner: string; id: string }>("/shared/:owner/:id");
+  const storeClient = useClientsStore((s) => s.clients.find((c) => c.id === ownParams?.id));
   const workspaceFor = useClientsStore((s) => s.workspaceFor);
-  const ws = useMemo(() => (client ? workspaceFor(client.id) : null), [client, workspaceFor]);
+  const shared = useSharedWorkspace(isShared ? sharedParams!.owner : null, isShared ? sharedParams!.id : null);
+  const client = isShared ? shared.client : storeClient;
+  const ws = useMemo(() => (isShared ? shared.ws : storeClient ? workspaceFor(storeClient.id) : null), [isShared, shared.ws, storeClient, workspaceFor]);
   const [showNotes, setShowNotes] = useState(false);
   const summary = useMemo(() => (client ? summariseClient(clientInputFrom(client, ws)) : null), [client, ws]);
-  const preparedBy = useMemo(() => workspaceFor(null)?.growth.profile?.businessName, [workspaceFor]);
+  const preparedBy = useMemo(() => (isShared ? shared.ownerName : workspaceFor(null)?.growth.profile?.businessName), [isShared, shared.ownerName, workspaceFor]);
+  const backHref = isShared ? "/shared" : "/clients";
 
   // Paper is white: print in the light theme even when the app is in dark mode.
   useEffect(() => {
@@ -37,11 +42,14 @@ export default function ClientReportPage() {
   }, []);
 
   if (!client) {
+    const loading = isShared && (shared.state === "loading" || shared.state === "idle");
     return (
       <div className="min-h-[100dvh] bg-[#F4F7FA] flex items-center justify-center p-6">
-        <div className="text-center">
-          <p className="font-black text-slate-900">Client not found</p>
-          <Link href="/clients" className="text-primary font-bold text-sm">Back to clients</Link>
+        <div className="text-center max-w-sm">
+          <p className="font-black text-slate-900">{loading ? "Loading…" : isShared && shared.state === "error" ? "Could not load this workspace" : isShared ? "This workspace is not shared with you" : "Client not found"}</p>
+          {isShared && shared.state === "error" && <p className="text-sm text-slate-500 mt-1">{shared.error}</p>}
+          {isShared && shared.state === "missing" && <p className="text-sm text-slate-500 mt-1">The link may be old, or access may have been removed. Ask the person who shared it.</p>}
+          {!loading && <Link href={backHref} className="text-primary font-bold text-sm inline-block mt-2">{isShared ? "Back to Shared with you" : "Back to clients"}</Link>}
         </div>
       </div>
     );
@@ -67,15 +75,23 @@ export default function ClientReportPage() {
       {/* Toolbar (hidden when printing) */}
       <div className="print:hidden sticky top-0 z-10 bg-white/85 backdrop-blur-xl border-b border-slate-200">
         <div className="max-w-[860px] mx-auto px-4 h-14 flex items-center gap-2">
-          <Link href="/clients" className="inline-flex items-center gap-1.5 h-10 px-2 rounded-xl text-sm font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100">
-            <ArrowLeft className="w-4 h-4" /> Clients
+          <Link href={backHref} className="inline-flex items-center gap-1.5 h-10 px-2 rounded-xl text-sm font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100">
+            <ArrowLeft className="w-4 h-4" /> {isShared ? "Shared with you" : "Clients"}
           </Link>
-          <label className="ml-auto flex items-center gap-2 text-sm font-semibold text-slate-600 cursor-pointer h-10 px-2">
+          {!isShared && <label className="ml-auto flex items-center gap-2 text-sm font-semibold text-slate-600 cursor-pointer h-10 px-2">
             <input type="checkbox" className="w-4 h-4 accent-teal-600" checked={showNotes} onChange={(e) => setShowNotes(e.target.checked)} /> Include notes
-          </label>
-          <Button onClick={() => window.print()} className="h-10 rounded-xl font-bold" data-testid="report-print"><Printer className="w-4 h-4 mr-1.5" /> Print or save PDF</Button>
+          </label>}
+          <Button onClick={() => window.print()} className={cn("h-10 rounded-xl font-bold", isShared && "ml-auto")} data-testid="report-print"><Printer className="w-4 h-4 mr-1.5" /> Print or save PDF</Button>
         </div>
       </div>
+
+      {isShared && (
+        <div className="print:hidden max-w-[860px] mx-auto px-4 pt-4" data-testid="shared-banner">
+          <p className="rounded-xl border border-sky-200 bg-sky-50 text-sky-900 text-sm px-4 py-2.5">
+            View only. Shared with you by {shared.ownerName ?? "your consultant"}{shared.updatedAt ? `. Last saved ${new Date(shared.updatedAt).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}` : ""}. You cannot change anything here.
+          </p>
+        </div>
+      )}
 
       <article className="max-w-[860px] mx-auto bg-white my-4 sm:my-8 print:my-0 rounded-3xl print:rounded-none border border-slate-200 print:border-0 p-5 sm:p-10 print:p-0 text-slate-900 space-y-8">
         <header className="flex flex-col sm:flex-row sm:items-start gap-4 justify-between border-b border-slate-200 pb-6">

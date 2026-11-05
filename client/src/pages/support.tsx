@@ -15,7 +15,7 @@ const faqs = [
   { q: "What export formats are supported?", a: "You can export to Excel (.xlsx), CSV and JSON, and export your growth plan's due dates to Google Calendar, Outlook or Apple Calendar. Generated dashboards can be laid out for Excel, Google Sheets, Power BI or Tableau. PDF reports, scheduled exports and direct Power BI and Tableau connectors are coming soon." },
   { q: "Is the AI analysis powered by real machine learning?", a: "Yes. ChainInsideIQ runs on three AI engines (Anthropic Claude, OpenAI ChatGPT and Google Gemini) and you can choose which one to use. If none is available, a built-in rule-based analyst answers instead, and every answer shows which engine produced it." },
   { q: "How does the pricing work?", a: getPricingSummary() },
-  { q: "Can multiple team members use the same account?", a: "Not yet. Today each account is for one person. Team members (up to 5 on Professional and 15 on Business), role-based access, SSO and audit logs are coming soon. In the meantime you can share plans, bottlenecks and updates with your team through Microsoft Teams, Google Chat, Slack or email." },
+  { q: "Can multiple team members use the same account?", a: "Not yet. Today each account is for one person. Consultants can share a client workspace read only with someone who signs in with their own account (Clients → open a client → Share with the client). Team members (up to 5 on Professional and 15 on Business), editor and admin roles, SSO and a full audit trail are coming soon. In the meantime you can share plans, bottlenecks and updates with your team through Microsoft Teams, Google Chat, Slack or email." },
   { q: "Do you offer onboarding or setup assistance?", a: "Absolutely. We offer guided onboarding sessions for Business and Enterprise customers. Enterprise plans include dedicated onboarding assistance, custom KPI engineering, and direct support. You can also request a custom setup through our Contact page." },
   { q: "Is my data secure?", a: "Data travels over encrypted HTTPS connections. With an account, your workspace (plans, actions, collabs and imported data) is saved to your account in our database, and each account can only read its own rows. Without an account it stays in your own browser. The Activity log in Settings lists what changed on this device. When you use an AI feature, the relevant numbers and your question are sent to the AI provider you've chosen to generate the answer. We do not sell your data. See our Privacy Policy for details." },
   { q: "What is the difference between Single and Unified sector mode?", a: "Single mode focuses your dashboard on one sector (e.g. E-commerce only). Unified mode displays cross-sector KPIs that bridge manufacturing, logistics, and e-commerce together, showing end-to-end supply chain health." },
@@ -103,7 +103,7 @@ const docSections = [
     content: [
       "Data collabs let you agree with a partner which data and KPIs you share, invite them by email, and save the setup as a preset for your next partner.",
       "The Hub is where you discuss issues: every post has a reply thread, can be tied to a collab, and can be turned into a tracked action or sent to Teams, Google Chat or Slack.",
-      "Team member accounts with roles, live shared workspaces, SSO and audit logs are coming soon.",
+      "Consultants can share a client workspace read only; the person signs in and can look but not change anything. Team member accounts, editor and admin roles, SSO and a full audit trail are coming soon.",
     ]
   },
   {

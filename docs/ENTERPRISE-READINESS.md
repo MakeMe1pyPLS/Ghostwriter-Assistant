@@ -2,7 +2,7 @@
 
 Written from reading the code, not from the marketing. Each "Works" line names where to check it. Anything not listed under "Works" must not be described to customers as available. Update this file in the same change that adds or removes any of it.
 
-Last reviewed: November 2026 (Phase 4, stage 5).
+Last reviewed: November 2026 (Phase 4, stage 6).
 
 ## Works today
 
@@ -18,14 +18,19 @@ Last reviewed: November 2026 (Phase 4, stage 5).
 | Outbound fetches | The API-import route refuses private, loopback and cloud-metadata addresses. | `server/services/integrations/webhooks.ts` (`assertPublicHttpUrl`) |
 | Rate limits | Per-IP limits on AI, data import, export, billing and key routes. | `server/services/rate-limit.ts`, `server/routes.ts` |
 | Activity log | A local list of data added or removed, actions created or updated, clients added or removed, workspace switches and downloads. Names and counts only, never file contents, and anything that looks like a key is hidden. Downloadable as CSV. | `shared/audit.ts`, `tests/audit.test.ts`, Settings → Activity log |
-| Data sharing with partners | A record of what was agreed and an email invite. Not enforced by the app (see below). | `client/src/pages/collabs.tsx` |
+| Share a client workspace (read only) | The owner of a client workspace can share it with a person by email. That person signs in with their own account (confirmed email required) and sees a trimmed, read-only copy: plan, actions and results from the data. They cannot read the owner's private notes, contact details, webhook addresses or per-action notes, and they cannot change anything. The owner can remove access at any time, and a member can leave. Enforced by the database, not the screens. | `supabase/migrations/20261105_share_client_workspaces.sql`, `client/src/components/SharingPanel.tsx`, `client/src/pages/shared.tsx` |
+| Server-side history of sharing | Every invite, cancellation, join, removal and (once an hour per person) view is written on the server. The owner can read it. Browsers cannot insert, edit or delete a row. | `audit_log` table, same migration |
+| Permission tests | A script of about 50 checks that runs as five different users (stranger, owner, invited viewer, unconfirmed email, removed viewer) inside one statement that always rolls back. Run it against the database after any change to sharing. A static guard of the migration runs in `npm test`. | `supabase/tests/sharing.test.sql`, `tests/sharing-migration.test.ts` |
+| Data sharing with partners (collabs) | A record of what was agreed and an email invite. Not enforced by the app (see below). | `client/src/pages/collabs.tsx` |
 
 ## Not built (do not claim any of these)
 
-- **Roles and permissions.** There is one role: the account owner. No admin / member / viewer, no per-page or per-dataset permission checks.
-- **Team accounts.** One account is one person. No invites into a shared workspace, no seats.
-- **Partner or client logins.** Partners and consultant clients do not sign in. The collab "access you agree on" setting is a label and is not enforced. A consultant's client reports are printed or shared by the consultant.
-- **A shared audit trail.** The Activity log lives in one browser, can be cleared by anyone using it, and is not tamper-proof. It is not evidence for a compliance review.
+- **Roles beyond owner and read-only viewer.** There is no editor or admin role, no per-page or per-dataset permission checks, and viewers see one client workspace at a time as a report, not the full app.
+- **Team accounts.** One account is one person. No seats, no shared billing, no joint ownership of a workspace, no editing together.
+- **Partner logins for collabs.** Collab partners do not sign in. The collab "access you agree on" setting is a label and is not enforced. (Consultant clients can now be given read-only access; see above.)
+- **Invite emails.** We do not send them yet. The owner tells the person to sign in with that address. Invites last 14 days.
+- **Plan limits on sharing.** Sharing is not tied to a paid plan yet.
+- **A full audit trail.** The server history covers sharing only. The Activity log in Settings lives in one browser, can be cleared by anyone using it, and is not tamper-proof. Neither is evidence for a compliance review.
 - **SSO / SAML / SCIM**, two-factor sign-in, session management screens, IP allow-lists.
 - **Certifications and attestations** (SOC 2, ISO 27001, HIPAA and similar), penetration-test reports, a data-processing agreement template, a subprocessor page beyond the privacy policy list.
 - **Dedicated environments**, data residency choices, customer-managed encryption keys.
@@ -52,9 +57,9 @@ Last reviewed: November 2026 (Phase 4, stage 5).
 
 ## Suggested build order when a customer asks for it
 
-1. Team accounts with an owner / member split, checked on the server and in row-level security, with tests that prove one member cannot read another workspace.
-2. A server-side audit table (insert-only, one row per change, readable by the workspace owner), replacing the local log for those customers.
-3. Partner and client sign-in with read-only sharing that is actually enforced by row-level security.
-4. SSO, then a security questionnaire pack, then certifications.
+1. An editor role (so a client can mark actions done), with writes checked by row-level security and tested the same way as the viewer role. Merge changes by action, not by overwriting the whole workspace.
+2. Team accounts with an owner / member split on the owner's own workspace, using the same members table.
+3. Extend the server history to cover edits, exports and deletions.
+4. Send invite emails; tie sharing to the plan; SSO; a security questionnaire pack; then certifications.
 
-Do not build role screens before step 1's server checks exist. A role picker that is not enforced is worse than none.
+Do not add a role picker before the server checks for that role exist and are tested. A role that is not enforced is worse than none.
