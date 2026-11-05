@@ -1,4 +1,6 @@
 import { fetchAnalystAnswer } from "@/lib/intel-client";
+import { InsightTrust } from "@/components/analyst/InsightTrust";
+import { fromAnalystAnswer } from "@shared/insight";
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -104,6 +106,7 @@ function Section({
 }
 
 function AnalysisCard({ a }: { a: AnalystResponse }) {
+  const trustItem = useMemo(() => fromAnalystAnswer(a, a.question.slice(0, 24).replace(/\W+/g, '-')), [a]);
   return (
     <div
       className="w-full max-w-[92%] bg-white border border-slate-100 rounded-2xl rounded-bl-sm shadow-sm p-4 space-y-3.5"
@@ -116,6 +119,8 @@ function AnalysisCard({ a }: { a: AnalystResponse }) {
         </span>
         <p className="text-[12px] leading-relaxed font-medium text-slate-100">{a.businessSummary}</p>
       </div>
+
+      <InsightTrust item={trustItem} />
 
       {/* Key Findings */}
       {a.keyFindings.length > 0 && (

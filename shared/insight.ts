@@ -8,7 +8,7 @@
 // from uploaded rows, or, on sample data, the sample metrics, labelled as such.
 //
 // Pure TypeScript, no dependencies, so the client and server can both use it.
-import type { OperationsIntelItem, CommandCenterMetric } from './ai-types';
+import type { OperationsIntelItem, CommandCenterMetric, TopPriority, AnalystResponse } from './ai-types';
 import type { KpiRun, KpiResult } from './kpi-engine';
 
 /** Where the evidence comes from. */
@@ -251,5 +251,29 @@ export function compareOutcome(baseline: InsightBaseline, run: KpiRun | null | u
     better,
     note: NOT_PROOF,
     message: `${baseline.label}: ${baseline.display} before, ${now.display} now (${changeText}). ${word}.`,
+  };
+}
+
+
+// ---------------------------------------------------------------- other places findings appear
+// The Command Center and the Analyst chat use their own shapes. These turn them into the same
+// finding shape so they get the same "how we know" label. Only the part that says WHAT is happening
+// is matched against the KPI words; the reason ("why it matters", the root cause) never is.
+
+export function fromTopPriority(p: TopPriority): OperationsIntelItem {
+  return {
+    id: `priority-${p.id}`, type: 'bottleneck', title: p.title, severity: p.severity, priorityRank: 1,
+    affectedWorkflow: '', currentState: p.whatHappened, issueDetected: '',
+    rootCause: p.whyItMatters, reasoning: p.whyItMatters, recommendedAction: p.recommendedAction,
+    actionPlanSteps: [], estimatedImpact: p.businessImpact, expectedOutcome: p.expectedOutcome,
+  };
+}
+
+export function fromAnalystAnswer(a: AnalystResponse, key: string): OperationsIntelItem {
+  return {
+    id: `chat-${key}`, type: 'bottleneck', title: a.question, severity: a.bottlenecks[0]?.severity ?? 'medium', priorityRank: 1,
+    affectedWorkflow: '', currentState: a.keyFindings.join(' '), issueDetected: a.bottlenecks.map((b) => b.title).join(' '),
+    rootCause: a.rootCause, reasoning: a.rootCause, recommendedAction: a.recommendedActions[0]?.action ?? '',
+    actionPlanSteps: [], estimatedImpact: a.recommendedActions[0]?.impact ?? '', expectedOutcome: '',
   };
 }
