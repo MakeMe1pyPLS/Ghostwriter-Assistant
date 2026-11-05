@@ -75,8 +75,15 @@ Phase 4 grows ChainInsideIQ from operations into business, operational and go-to
 - Each Top Priority on the Command Center (when opened) and each Analyst chat answer now shows the same strip as Bottlenecks: verified from your data, sample data or AI hypothesis, a confidence level with its reason, and the numbers behind it.
 - The numbers are chosen from what the finding says is happening, never from its explanation. With no data uploaded the label says Sample data. If no number of yours matches, it says AI hypothesis.
 
+## Stage 6: share a client workspace, read only, enforced by the database
+- In a client's details (Clients page) there is now a **Share with the client** section. Enter an email and that person can sign in with their own account and open **Shared with you** in the menu. They see the plan, actions and results from the data as a report. They cannot change anything, and they do not see your private notes, contact details, chat webhook addresses or notes on individual actions.
+- You can cancel an invite or remove access any time, and a person can leave on their own. Up to 10 people per client. Invites last 14 days. We do not send invite emails yet, so tell the person which email to sign in with.
+- A **sharing history** (who was invited, who joined, who was removed, and when someone looked) is kept on the server. You can read it. Nobody can change or delete it from the app.
+- Access is enforced in the database (row-level security and server functions), not by hiding buttons. `supabase/tests/sharing.test.sql` checks it as a stranger, the owner, an invited viewer, an unconfirmed email and a removed viewer. `tests/sharing-migration.test.ts` guards the migration in `npm test`.
+- Only the read-only viewer role exists. There is no editor or admin role, no team accounts and no per-plan limit on sharing yet. See `docs/ENTERPRISE-READINESS.md`.
+
 ## Fix: Fulfillment warehouse map labels
 - The zone labels on the warehouse map were too narrow, so "24 waiting" and "Bottleneck" overlapped on wide screens (and phones using the desktop view). Labels are wider and the floor sits lower so the top label is no longer clipped.
 
 ## Not built yet
-- Roles, team accounts, partner or client sign-in, a shared audit trail and SSO. See `docs/ENTERPRISE-READINESS.md`.
+- Editor and admin roles, team accounts, invite emails, collab partner sign-in, a full audit trail and SSO. See `docs/ENTERPRISE-READINESS.md`.

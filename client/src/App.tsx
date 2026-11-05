@@ -58,6 +58,7 @@ const pageLoaders = {
   ConsultPage: () => import("@/pages/consult"),
   ClientsPage: () => import("@/pages/clients"),
   ClientReportPage: () => import("@/pages/client-report"),
+  SharedPage: () => import("@/pages/shared"),
   FulfillmentPage: () => import("@/pages/fulfillment"),
   GtmPage: () => import("@/pages/gtm"),
   DesignPage: () => import("@/pages/design"),
@@ -82,6 +83,7 @@ const KpiLibraryPage = lazy(pageLoaders.KpiLibraryPage);
 const ConsultPage = lazy(pageLoaders.ConsultPage);
 const ClientsPage = lazy(pageLoaders.ClientsPage);
 const ClientReportPage = lazy(pageLoaders.ClientReportPage);
+const SharedPage = lazy(pageLoaders.SharedPage);
 const FulfillmentPage = lazy(pageLoaders.FulfillmentPage);
 const GtmPage = lazy(pageLoaders.GtmPage);
 const DesignPage = lazy(pageLoaders.DesignPage);
@@ -201,6 +203,12 @@ function Router() {
         <Suspense fallback={<PageLoader />}><ClientsPage /></Suspense>
       </Route>
       <Route path="/clients/:id/report">
+        <Suspense fallback={<PageLoader />}><ClientReportPage /></Suspense>
+      </Route>
+      <Route path="/shared">
+        <Suspense fallback={<PageLoader />}><SharedPage /></Suspense>
+      </Route>
+      <Route path="/shared/:owner/:id">
         <Suspense fallback={<PageLoader />}><ClientReportPage /></Suspense>
       </Route>
       <Route path="/design">

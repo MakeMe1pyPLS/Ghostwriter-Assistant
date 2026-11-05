@@ -25,7 +25,7 @@ const APP: Record<string, string> = {
   "/plan": "Growth Plan", "/app": "Growth Plan", "/onboarding": "AI interview", "/welcome": "AI interview",
   "/dashboard": "Dashboard", "/builder": "Builder", "/insights": "AI Analyst", "/bottlenecks": "Bottlenecks",
   "/recommendations": "Recommendations", "/pipeline": "Pipeline", "/hub": "Hub", "/collabs": "Collabs",
-  "/kpis": "KPI Library", "/fulfillment": "Fulfillment", "/gtm": "Go-to-market", "/design": "Design system", "/consult": "AI Consultant", "/clients": "Clients", "/connectors": "Connectors",
+  "/kpis": "KPI Library", "/fulfillment": "Fulfillment", "/gtm": "Go-to-market", "/design": "Design system", "/consult": "AI Consultant", "/clients": "Clients", "/shared": "Shared with you", "/connectors": "Connectors",
   "/exports": "Exports", "/data": "Data sources", "/generate": "Generate a dashboard", "/enhance": "Enhance a dashboard",
   "/settings": "Settings", "/verify-email": "Verify your email", "/reset-password": "Reset password",
   "/checkout/success": "You're in", "/checkout/cancel": "Checkout cancelled",
@@ -34,7 +34,7 @@ const APP: Record<string, string> = {
 export function metaFor(path: string): Meta {
   if (MARKETING[path]) return MARKETING[path];
   const base = "/" + (path.split("/")[1] ?? "");
-  const name = APP[path] ?? APP[base] ?? (path.startsWith("/clients/") ? "Client report" : path.startsWith("/consult/") ? "AI Consultant" : null);
+  const name = APP[path] ?? APP[base] ?? (path.startsWith("/clients/") ? "Client report" : path.startsWith("/shared/") ? "Shared workspace" : path.startsWith("/consult/") ? "AI Consultant" : null);
   return { title: name ? `${name} · ${BRAND}` : BRAND, index: false };
 }
 

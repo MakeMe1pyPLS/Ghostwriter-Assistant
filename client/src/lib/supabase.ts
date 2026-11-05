@@ -286,6 +286,44 @@ export async function deleteWorkspaces(ids: string[]): Promise<void> {
   await request('/rest/v1/workspaces', { method: 'DELETE', auth: true, query: { id: `in.(${list})` }, headers: { Prefer: 'return=minimal' } });
 }
 
+// ------------------------------------------------------------------ sharing (read-only client workspaces)
+
+export interface SharedItem { owner_id: string; workspace_id: string; name: string; role: string; owner_name: string; shared_at: string }
+export interface SharedWorkspace {
+  id: string; name: string; role: string; owner_name: string; updated_at?: string;
+  meta: Record<string, any>; growth: any; dashboard: any;
+}
+export interface MemberRow { user_id: string; email: string; role: string; created_at: string }
+export interface InviteRow { id: string; email: string; expires_at: string }
+export interface HistoryRow { id: number; kind: string; summary: string; at: string }
+
+const rpc = (name: string, args: Record<string, unknown> = {}) =>
+  request(`/rest/v1/rpc/${name}`, { method: 'POST', auth: true, body: JSON.stringify(args) });
+
+/** Joins any invites sent to this account's confirmed email. Returns how many workspaces were joined. */
+export async function acceptMyInvites(): Promise<number> {
+  const n = await rpc('accept_my_invites');
+  return typeof n === 'number' ? n : 0;
+}
+export async function listSharedWithMe(): Promise<SharedItem[]> { return (await rpc('shared_with_me')) ?? []; }
+export async function getSharedWorkspace(ownerId: string, workspaceId: string): Promise<SharedWorkspace | null> {
+  return (await rpc('shared_workspace', { p_owner: ownerId, p_workspace: workspaceId })) ?? null;
+}
+export async function inviteToWorkspace(workspaceId: string, email: string): Promise<void> { await rpc('invite_to_workspace', { p_workspace: workspaceId, p_email: email }); }
+export async function revokeInvite(inviteId: string): Promise<void> { await rpc('revoke_workspace_invite', { p_invite: inviteId }); }
+export async function removeMember(ownerId: string, workspaceId: string, userId: string): Promise<void> {
+  await rpc('remove_workspace_member', { p_owner: ownerId, p_workspace: workspaceId, p_user: userId });
+}
+export async function listMembers(workspaceId: string): Promise<MemberRow[]> {
+  return (await request('/rest/v1/workspace_members', { auth: true, query: { select: 'user_id,email,role,created_at', workspace_id: `eq.${workspaceId}`, owner_id: `eq.${getSession()?.user.id ?? ''}`, order: 'created_at.asc' } })) ?? [];
+}
+export async function listInvites(workspaceId: string): Promise<InviteRow[]> {
+  return (await request('/rest/v1/workspace_invites', { auth: true, query: { select: 'id,email,expires_at', workspace_id: `eq.${workspaceId}`, owner_id: `eq.${getSession()?.user.id ?? ''}`, order: 'created_at.asc' } })) ?? [];
+}
+export async function listHistory(workspaceId: string, limit = 20): Promise<HistoryRow[]> {
+  return (await request('/rest/v1/audit_log', { auth: true, query: { select: 'id,kind,summary,at', workspace_id: `eq.${workspaceId}`, owner_id: `eq.${getSession()?.user.id ?? ''}`, order: 'at.desc', limit: String(limit) } })) ?? [];
+}
+
 /** Plain-language versions of Supabase auth errors. */
 export function friendly(e: CloudError): string {
   switch (e.code) {

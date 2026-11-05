@@ -3,7 +3,7 @@
 import {
   Target, BrainCircuit, BookOpen, LayoutDashboard, AlertOctagon, Lightbulb, Workflow,
   Handshake, MessageSquare, Wrench, Sparkles, Wand2, Database, Plug, Download,
-  Users, Bell, Activity, KeyRound, Settings, Presentation, Briefcase, Warehouse, Megaphone, TrendingUp,
+  Users, Bell, Activity, KeyRound, Settings, Presentation, Briefcase, Warehouse, Megaphone, TrendingUp, Eye,
 } from "lucide-react";
 import type { FeatureKey } from "@/lib/pricing";
 
@@ -61,6 +61,7 @@ export const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
     label: "Clients & partners",
     items: [
       { name: "Clients", href: "/clients", icon: Briefcase, description: "Workspaces for each client", feature: "client-workspaces", keywords: "consultant agency client workspace report engagement" },
+      { name: "Shared with you", href: "/shared", icon: Eye, description: "Workspaces shared with you, view only", keywords: "client portal shared read only view invited" },
       { name: "Collabs", href: "/collabs", icon: Handshake, description: "Share data with partners", tour: "collabs", keywords: "partners suppliers share invite" },
       { name: "Hub", href: "/hub", icon: MessageSquare, description: "Discuss & resolve together", tour: "hub", keywords: "messages threads team teams chat" },
     ],
@@ -91,5 +92,5 @@ export const TAB_ITEMS: NavItem[] = ["/plan", "/insights", "/bottlenecks", "/hub
 export const ALL_NAV_ITEMS: NavItem[] = [...NAV_GROUPS.flatMap((g) => g.items), SETTINGS_ITEM];
 
 export function isActivePath(location: string, href: string): boolean {
-  return location === href || (location === "/app" && href === "/plan") || ((href === "/consult" || href === "/clients") && location.startsWith(href + "/"));
+  return location === href || (location === "/app" && href === "/plan") || ((href === "/consult" || href === "/clients" || href === "/shared") && location.startsWith(href + "/"));
 }
