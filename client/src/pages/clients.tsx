@@ -9,6 +9,7 @@ import {
   Trash2, StickyNote, Users, Sparkles, Mail, HardDrive,
 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { PortfolioOverview } from "@/components/PortfolioOverview";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -96,6 +97,8 @@ export default function ClientsPage() {
             ))}
           </Stagger>
         )}
+
+        <PortfolioOverview />
 
         {/* Own business */}
         <div className={cn("rounded-3xl border bg-white p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-4", activeClientId === null ? "border-primary/40 ring-1 ring-primary/20" : "border-slate-200")}>
