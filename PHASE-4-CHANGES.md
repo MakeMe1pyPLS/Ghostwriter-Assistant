@@ -10,5 +10,14 @@ Phase 4 grows ChainInsideIQ from operations into business, operational and go-to
 - Company types are saved per workspace, so each client workspace keeps its own.
 - Behind the scenes each type still maps to one of the older sector families (e-commerce, logistics, manufacturing, or custom) so the Hub, data sharing and sample dashboards keep working. Types outside those three use the "custom" family for now.
 
+## Stage 1b: KPIs calculated from your own data
+- When you upload a file, ChainInsideIQ now **calculates 12 KPIs from the rows**: revenue, orders, average order value, gross margin, net margin, expense ratio, conversion rate, return on ad spend, customer acquisition cost, return rate, on-time rate and order-to-ship time.
+- It finds the right columns by name ("Revenue ($)", "Order Date", "Ad Spend" and similar) and shows which column it used for each number.
+- "Change" compares the latest stretch of your dates with the stretch before it, and only when there are at least 14 days of dated rows. Otherwise it says there is not enough data.
+- If a KPI can't be calculated (missing column, or dividing by zero), it says exactly what is missing. It never shows a made-up number.
+- This **replaces the old placeholder numbers** on the Dashboard that were read from the first row of an upload.
+- New **"What we calculated"** panel on Data Sources: each KPI with its value, change, how it was worked out, the columns used, and a list of KPIs that need more data.
+- Limit: only the first 1,000 rows of each file are kept in your browser, so for larger files the panel says the numbers cover those rows only.
+
 ## Not built yet
-- KPI values calculated from your own data, the "what, why, impact, next, evidence, confidence" insight format, go-to-market and ad analysis, and the consultant overview are the next stages. Until they ship, nothing in the app claims them.
+- The "what, why, impact, next, evidence, confidence" insight format, go-to-market and ad analysis, and the consultant overview are the next stages. Until they ship, nothing in the app claims them.

@@ -93,6 +93,11 @@ export const useSectorData = () => {
   const allMetrics = useMemo(() => getAllMetrics(rangeMultiplier), [rangeMultiplier]);
 
   // The active, non-archived dataset rows for the currently selected sector (if any).
+  const activeTotalRows = useMemo<number | undefined>(() => {
+    const activeId = activeDatasetBySector[selectedSector];
+    return activeId ? datasetLibrary.find((d) => d.id === activeId && !d.archived)?.rowCount : undefined;
+  }, [activeDatasetBySector, datasetLibrary, selectedSector]);
+
   const activeRows = useMemo<Record<string, any>[] | null>(() => {
     const activeId = activeDatasetBySector[selectedSector];
     if (activeId) {
@@ -108,14 +113,14 @@ export const useSectorData = () => {
 
   const metrics = useMemo((): Metric[] => {
     if (activeRows && activeRows.length > 0) {
-      const derived = deriveMetricsFromRows(activeRows, selectedSector);
+      const derived = deriveMetricsFromRows(activeRows, selectedSector, activeTotalRows);
       if (derived.length > 0) return derived;
     }
     if (selectedSector === 'custom') {
       return allMetrics.filter(m => m.category === 'unified');
     }
     return allMetrics.filter(m => m.category === selectedSector);
-  }, [selectedSector, allMetrics, activeRows]);
+  }, [selectedSector, allMetrics, activeRows, activeTotalRows]);
 
   const chartData = useMemo(() => {
     if (activeRows && activeRows.length > 0) {

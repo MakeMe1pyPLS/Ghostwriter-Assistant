@@ -1,4 +1,5 @@
 import type { Sector } from "@/hooks/use-dashboard-store";
+import { calculateKpis } from "@shared/kpi-engine";
 
 export interface ManagedDatasetColumn {
   name: string;
@@ -110,24 +111,42 @@ export function classifySector(columnNames: string[]): SectorDetection {
 }
 
 /** Derive simple metric cards from the first row of a dataset's rows. */
+/**
+ * Real KPIs from an uploaded dataset. Each value comes from the shared KPI engine,
+ * which only calculates what your columns support and says how it did it. If none of
+ * your columns match a KPI, the first few columns are shown as plain values, labelled
+ * as such (never as a KPI with a trend).
+ */
 export function deriveMetricsFromRows(
   rows: Record<string, any>[],
   sector: Sector,
+  totalRows?: number,
 ): Array<{ category: Sector; label: string; value: string; trend: string; isPositive: boolean; helpText: string }> {
   if (!rows || rows.length === 0) return [];
+  const run = calculateKpis(rows);
+  const ok = run.results.filter((r) => r.status === 'ok');
+  if (ok.length > 0) {
+    const partial = totalRows && totalRows > rows.length ? ` Only ${rows.length.toLocaleString()} of ${totalRows.toLocaleString()} rows are kept in this browser.` : '';
+    return ok.map((r) => ({
+      category: sector,
+      label: r.label,
+      value: r.display ?? '',
+      trend: r.change?.text ?? '—',
+      isPositive: r.change ? r.change.better !== false : true,
+      helpText: `${r.how} Calculated from your file: ${r.rowsUsed.toLocaleString()} rows${r.change ? `, change is the ${r.change.windowLabel}` : ', no change shown (needs dated rows over two weeks or more)'}.${partial}`,
+    }));
+  }
   const firstRow = rows[0];
-  const keys = Object.keys(firstRow).slice(0, 4);
-  return keys.map((key) => ({
+  return Object.keys(firstRow).slice(0, 4).map((key) => ({
     category: sector,
     label: key,
     value: String(firstRow[key]),
-    trend: '+0%',
+    trend: '—',
     isPositive: true,
-    helpText: `Imported data column: ${key}`,
+    helpText: `The first value in your column "${key}". We could not match your columns to a KPI yet. See Data Sources, "What we calculated", for what each KPI needs.`,
   }));
 }
 
-/** Derive a chart series from the first numeric + first string column. */
 export function deriveChartFromRows(
   rows: Record<string, any>[],
 ): Array<{ name: string; value: number }> | null {

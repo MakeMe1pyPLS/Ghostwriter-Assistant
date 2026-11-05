@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { DatasetImportResolver, type ImportPayload } from "@/components/DatasetImportResolver";
 import { DatasetManagementPanel } from "@/components/DatasetManagementPanel";
+import { KpiCoveragePanel } from "@/components/KpiCoveragePanel";
 import { parseDataFile, ACCEPTED_DATA_FILES } from "@/lib/file-import";
 import {
   Upload,
@@ -461,6 +462,8 @@ export default function DataSourcesPage() {
                 {activeTab === 'api' && <ApiTab />}
               </CardContent>
             </Card>
+
+            <KpiCoveragePanel />
 
             <DatasetManagementPanel />
           </div>
