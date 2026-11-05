@@ -19,8 +19,20 @@ Phase 4 grows ChainInsideIQ from operations into business, operational and go-to
 - New **"What we calculated"** panel on Data Sources: each KPI with its value, change, how it was worked out, the columns used, and a list of KPIs that need more data.
 - Limit: only the first 1,000 rows of each file are kept in your browser, so for larger files the panel says the numbers cover those rows only.
 
+## Stage 1c: findings say how sure they are, and show before and after
+- Every **Bottleneck**, **Recommendation** and Pipeline finding now has a **"How we know"** strip with:
+  - a source label: **Verified from your data** (the numbers behind it were calculated from your uploaded file), **Sample data** (example numbers, not yours), or **AI hypothesis** (none of your numbers match it);
+  - a **confidence** level (High, Medium or Low) and the rule behind it, such as how many numbers back it, whether there is a change over time, how many rows were used, and whether only part of your file was read;
+  - the exact numbers behind the finding, how each was worked out, and any caveats.
+- The reason for a finding is now labelled **"Possible reason"** on Bottlenecks. Your data shows what changed, not what caused it, and the panel says so.
+- **Track as actions** now saves your current number for the finding (when it comes from your own data) as the "before".
+- On the **Growth Plan** board, an action with a saved "before" shows **Before and after** against the latest numbers: it says whether the number moved the right way, the wrong way, or not really, and that this does not prove the action caused it. If there is no newer data it says to upload some.
+- Actions also have a **Notes** box. Owner, due date and status were already there, and Done marks it resolved.
+- Behind the scenes: `shared/insight.ts` (pure logic) and `npm test`, which runs the KPI engine, company-type and insight tests.
+- Not done yet: the same format on the Command Center and Analyst chat answers, and a consultant-wide view of outcomes.
+
 ## Fix: Fulfillment warehouse map labels
 - The zone labels on the warehouse map were too narrow, so "24 waiting" and "Bottleneck" overlapped on wide screens (and phones using the desktop view). Labels are wider and the floor sits lower so the top label is no longer clipped.
 
 ## Not built yet
-- The "what, why, impact, next, evidence, confidence" insight format, go-to-market and ad analysis, and the consultant overview are the next stages. Until they ship, nothing in the app claims them.
+- The insight format on the Command Center and Analyst chat, go-to-market and ad analysis, and the consultant overview are the next stages. Until they ship, nothing in the app claims them.
