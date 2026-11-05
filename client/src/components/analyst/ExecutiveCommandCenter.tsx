@@ -1,4 +1,6 @@
 import { fetchCommandCenter, ENGINE_LABELS } from "@/lib/intel-client";
+import { InsightTrust } from "@/components/analyst/InsightTrust";
+import { fromTopPriority } from "@shared/insight";
 import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { AnimatePresence, animate, motion, useReducedMotion } from "framer-motion";
 import {
@@ -102,6 +104,7 @@ function HealthRing({ score, grade }: { score: number; grade: string }) {
 }
 
 function PriorityCard({ priority, index }: { priority: TopPriority; index: number }) {
+  const trustItem = useMemo(() => fromTopPriority(priority), [priority]);
   const [open, setOpen] = useState(false);
   const sev = SEVERITY_STYLES[priority.severity];
 
@@ -141,6 +144,7 @@ function PriorityCard({ priority, index }: { priority: TopPriority; index: numbe
           className="overflow-hidden"
         >
         <div className="px-4 pb-4 pt-1 space-y-3 border-t border-slate-50" data-testid={`priority-detail-${index}`}>
+          <InsightTrust item={trustItem} />
           <IntelRow icon={Activity} label="What happened" tone="slate" text={priority.whatHappened} />
           <IntelRow icon={Zap} label="Why it matters" tone="amber" text={priority.whyItMatters} />
           <IntelRow icon={AlertTriangle} label="Business impact" tone="red" text={priority.businessImpact} />

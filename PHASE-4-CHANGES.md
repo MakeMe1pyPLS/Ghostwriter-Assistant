@@ -71,9 +71,12 @@ Phase 4 grows ChainInsideIQ from operations into business, operational and go-to
 - **Support page** no longer says your data only lives in your browser (accounts store it in our database with per-account row rules).
 - New `docs/ENTERPRISE-READINESS.md` lists what works, what is not built (roles, team accounts, SSO, certifications), and what to fix next.
 
+## Stage 1d: the same "how we know" label on the Command Center and the Analyst chat
+- Each Top Priority on the Command Center (when opened) and each Analyst chat answer now shows the same strip as Bottlenecks: verified from your data, sample data or AI hypothesis, a confidence level with its reason, and the numbers behind it.
+- The numbers are chosen from what the finding says is happening, never from its explanation. With no data uploaded the label says Sample data. If no number of yours matches, it says AI hypothesis.
+
 ## Fix: Fulfillment warehouse map labels
 - The zone labels on the warehouse map were too narrow, so "24 waiting" and "Bottleneck" overlapped on wide screens (and phones using the desktop view). Labels are wider and the floor sits lower so the top label is no longer clipped.
 
 ## Not built yet
-- The insight format (how we know, confidence, before and after) is not yet on the Command Center or the Analyst chat answers. Until it ships, nothing in the app claims it there.
 - Roles, team accounts, partner or client sign-in, a shared audit trail and SSO. See `docs/ENTERPRISE-READINESS.md`.

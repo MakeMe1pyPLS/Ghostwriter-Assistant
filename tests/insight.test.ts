@@ -1,5 +1,5 @@
 import { calculateKpis } from '../shared/kpi-engine';
-import { standardiseInsight, compareOutcome, relatedKpis } from '../shared/insight';
+import { standardiseInsight, compareOutcome, relatedKpis, fromTopPriority, fromAnalystAnswer } from '../shared/insight';
 let fails = 0; const ok = (c: boolean, m: string, x?: unknown) => { console.log(c ? 'PASS' : 'FAIL', m, c ? '' : JSON.stringify(x)); if (!c) fails++; };
 const start = Date.UTC(2026, 8, 1);
 const mk = (n: number, onTimeFrom = 35, rev = 1000) => Array.from({ length: n }, (_, d) => ({ 'Order Date': new Date(start + d * 86400000).toISOString().slice(0, 10), 'Revenue ($)': rev + 10 * d, Orders: 20, COGS: 600, Sessions: 1000, 'Ad Spend': 200, 'New Customers': 10, Returns: 1, 'On Time': d >= onTimeFrom ? 'No' : 'Yes' }));
@@ -57,4 +57,15 @@ ok(cheaper.better === true && /^-/.test(cheaper.changeText!), 'lower CAC is bett
 // zero baseline doesn't divide by zero
 const z = compareOutcome({ ...cacBase, value: 0, display: '$0' }, calculateKpis(mk(40)));
 ok(!/NaN|Infinity/.test(JSON.stringify(z)), 'zero baseline safe', z);
+
+// Command Center and Analyst chat use the same label
+const prio: any = { id: 'p1', title: 'Deliveries are slipping', severity: 'high', whatHappened: 'On-time delivery fell this month.', whyItMatters: 'Revenue and returns and margin are at risk.', businessImpact: 'Repeat orders drop', recommendedAction: 'Call the carrier', expectedOutcome: 'Back to 95%' };
+const pi = standardiseInsight(fromTopPriority(prio), { run, totalRows: 40 });
+ok(pi.basis === 'verified' && pi.evidence.some((e) => e.kpiId === 'on-time') && !pi.evidence.some((e) => e.kpiId === 'revenue'), 'priority: evidence from what happened, not from why it matters', pi.evidence.map((e) => e.kpiId));
+ok(standardiseInsight(fromTopPriority(prio), { run: null }).basis === 'sample', 'priority with no data is sample');
+const ans: any = { question: 'What are my biggest bottlenecks?', businessSummary: 'x', keyFindings: ['Late deliveries are rising.'], bottlenecks: [{ title: 'Carrier handoff', severity: 'high', detail: '' }], rootCause: 'Revenue and margin and returns', recommendedActions: [{ action: 'Call the carrier', impact: 'fewer late orders' }], expectedImpact: '', nextSteps: [], generatedBy: 'built-in' };
+const ci = standardiseInsight(fromAnalystAnswer(ans, 'k1'), { run, totalRows: 40 });
+ok(ci.basis === 'verified' && ci.evidence.some((e) => e.kpiId === 'on-time') && !ci.evidence.some((e) => e.kpiId === 'revenue'), 'chat: findings pick evidence, root cause does not', ci.evidence.map((e) => e.kpiId));
+const vague = standardiseInsight(fromAnalystAnswer({ ...ans, keyFindings: ['Things look uneven.'], bottlenecks: [] }, 'k2'), { run, totalRows: 40 });
+ok(vague.basis === 'hypothesis' && vague.baseline === undefined, 'chat answer with no matching number is a hypothesis with no baseline', vague);
 console.log(fails ? `${fails} FAILED` : 'all passed'); process.exit(fails ? 1 : 0);
