@@ -11,6 +11,9 @@ export interface ActiveKpiRun {
   /** Rows in the original file; the browser keeps only the first part. */
   totalRows?: number;
   datasetName?: string;
+  /** The rows and column names behind `run`, for analyses that need the rows themselves. */
+  rows?: Record<string, unknown>[];
+  headers?: string[];
 }
 
 export function useKpiRun(): ActiveKpiRun {
@@ -19,6 +22,7 @@ export function useKpiRun(): ActiveKpiRun {
     const activeId = activeDatasetBySector[selectedSector];
     const ds = activeId ? datasetLibrary.find((d) => d.id === activeId && !d.archived && d.rows.length > 0) : undefined;
     if (!ds) return { run: null };
-    return { run: calculateKpis(ds.rows, ds.columns.map((c) => c.name)), totalRows: ds.rowCount, datasetName: ds.name };
+    const headers = ds.columns.map((c) => c.name);
+    return { run: calculateKpis(ds.rows, headers), totalRows: ds.rowCount, datasetName: ds.name, rows: ds.rows, headers };
   }, [datasetLibrary, activeDatasetBySector, selectedSector]);
 }
