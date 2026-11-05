@@ -8,6 +8,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { useGrowthStore, GROWTH_WORKSPACE_KEYS, emptyGrowthWorkspace, type GrowthWorkspace, type ActionItem } from './use-growth-store';
 import { useDashboardStore } from './use-dashboard-store';
 import { addReportEvent, type ReportEvent, type ReportEventKind } from '@shared/report-activity';
+import { updateAssessment, type AssessmentRecord, type AssessmentKind, type AssessmentPatch } from '@shared/assessments';
 
 export type EngagementType = 'Project' | 'Monthly retainer' | 'Advisory' | 'One-off review';
 export type ClientStatus = 'Onboarding' | 'Active' | 'Paused' | 'Completed';
@@ -39,6 +40,8 @@ export interface ClientRecord {
   createdAt: number;
   /** When the progress report was opened or printed (newest first). Your own record; never shown to viewers. */
   reportEvents?: ReportEvent[];
+  /** Your own checklist of the three assessments for this client. Private to you; never shown to viewers. */
+  assessments?: AssessmentRecord[];
   /** Parked workspace. Undefined while this client is the active one (or before first use). */
   workspace?: WorkspaceSnapshot;
 }
@@ -90,13 +93,15 @@ interface ClientsState {
   ownWorkspace: WorkspaceSnapshot | null;
 
   activeClient: () => ClientRecord | undefined;
-  addClient: (c: Pick<ClientRecord, 'name'> & Partial<Omit<ClientRecord, 'id' | 'createdAt' | 'notes' | 'workspace' | 'reportEvents'>>) => ClientRecord;
+  addClient: (c: Pick<ClientRecord, 'name'> & Partial<Omit<ClientRecord, 'id' | 'createdAt' | 'notes' | 'workspace' | 'reportEvents' | 'assessments'>>) => ClientRecord;
   updateClient: (id: string, patch: Partial<Omit<ClientRecord, 'id' | 'workspace'>>) => void;
   removeClient: (id: string) => void;
   addNote: (id: string, text: string) => void;
   removeNote: (id: string, noteId: string) => void;
   /** Remember that this client's report was opened or printed. */
   recordReport: (id: string, kind: ReportEventKind) => void;
+  /** Change the status, due date or note of one assessment for a client. */
+  setAssessment: (id: string, kind: AssessmentKind, patch: AssessmentPatch) => void;
   /** Switch the live workspace to a client, or back to your own business (null). */
   switchTo: (id: string | null) => void;
   /** The workspace for a client (or your own business), live or parked. */
@@ -135,6 +140,8 @@ export const useClientsStore = create<ClientsState>()(
       removeNote: (id, noteId) => set((s) => ({ clients: s.clients.map((c) => (c.id === id ? { ...c, notes: c.notes.filter((n) => n.id !== noteId) } : c)) })),
 
       recordReport: (id, kind) => set((s) => ({ clients: s.clients.map((c) => (c.id === id ? { ...c, reportEvents: addReportEvent(c.reportEvents, kind, Date.now()) } : c)) })),
+
+      setAssessment: (id, kind, patch) => set((s) => ({ clients: s.clients.map((c) => (c.id === id ? { ...c, assessments: updateAssessment(c.assessments, kind, patch, Date.now()) } : c)) })),
 
       switchTo: (target) => {
         const { activeClientId, clients, ownWorkspace } = get();

@@ -10,6 +10,7 @@ import { useClientsStore, workspaceStats, isOverdue } from "@/hooks/use-clients-
 import { clientInputFrom } from "@/lib/portfolio";
 import { useSharedWorkspace } from "@/hooks/use-shared-workspace";
 import { summariseClient } from "@shared/consultant";
+import { ASSESSMENT_INFO, cleanAssessments } from "@shared/assessments";
 import { GOALS } from "@shared/growth";
 import { getIndustry } from "@shared/kpi-industries";
 import { cn } from "@/lib/utils";
@@ -72,6 +73,7 @@ export default function ClientReportPage() {
     .sort((a, b) => (a.dueDate ?? "9999").localeCompare(b.dueDate ?? "9999"))
     .slice(0, 10);
   const decisions = (g?.consultSessions ?? []).filter((s) => s.chosenOptionId).slice(0, 5);
+  const doneAssessments = cleanAssessments(client.assessments).filter((a) => a.status === "done");
   const pct = stats.total ? Math.round((stats.done / stats.total) * 100) : 0;
   const goal = GOALS.find((x) => x.id === profile?.goal)?.label;
 
@@ -213,6 +215,17 @@ export default function ClientReportPage() {
               </ul>
             )}
             <p className="mt-3 text-xs text-slate-500">Calculated from {summary.datasetName ?? "the uploaded file"}{summary.partial ? ` (first ${summary.rowsUsed?.toLocaleString()} rows only)` : ""}. Before and after compares numbers and does not prove that an action caused the change.</p>
+          </section>
+        )}
+
+        {!isShared && doneAssessments.length > 0 && (
+          <section className="break-inside-avoid" data-testid="report-assessments">
+            <H2>Assessments completed</H2>
+            <ul className="space-y-1.5 text-sm">
+              {doneAssessments.map((a) => (
+                <li key={a.kind} className="flex gap-2"><Check className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" /><span>{ASSESSMENT_INFO[a.kind].label}{a.completedAt ? <span className="text-slate-500"> · {fmtTs(a.completedAt)}</span> : null}</span></li>
+              ))}
+            </ul>
           </section>
         )}
 

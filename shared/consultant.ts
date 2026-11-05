@@ -9,6 +9,7 @@
 // Pure TypeScript with no dependencies.
 import { calculateKpis, type Row } from './kpi-engine';
 import { compareOutcome, type InsightBaseline } from './insight';
+import { summariseAssessments, type AssessmentRecord } from './assessments';
 
 const DAY = 86400000;
 
@@ -32,6 +33,8 @@ export interface ClientInput {
   dataset?: { name: string; rows: Row[]; headers?: string[]; rowCount: number };
   /** Latest time anything happened in this workspace (ms). */
   lastActivity?: number;
+  /** The consultant's own assessment checklist for this client. */
+  assessments?: AssessmentRecord[];
 }
 
 export type OutcomeState = 'improved' | 'worse' | 'same' | 'no-data';
@@ -46,7 +49,7 @@ export interface ClientOutcome {
 
 export interface ClientKpi { id: string; label: string; display: string; changeText?: string; better?: boolean | null }
 
-export type AttentionKind = 'wrong-way' | 'overdue' | 'review-due' | 'no-data' | 'quiet';
+export type AttentionKind = 'wrong-way' | 'overdue' | 'review-due' | 'assessment' | 'no-data' | 'quiet';
 
 export interface AttentionItem {
   clientId: string;
@@ -69,6 +72,8 @@ export interface ClientSummary {
   actions: { total: number; done: number; open: number; overdue: number };
   outcomes: { improved: number; worse: number; same: number; noData: number; items: ClientOutcome[] };
   attention: AttentionItem[];
+  /** Assessments not done yet (only counted for Active and Onboarding clients), and how many are past their due date. */
+  assessments: { pending: number; overdue: number; done: number };
 }
 
 export interface Portfolio {
@@ -76,6 +81,7 @@ export interface Portfolio {
   withData: number;
   openActions: number;
   overdueActions: number;
+  pendingAssessments: number;
   outcomes: { tracked: number; improved: number; worse: number; same: number; noData: number };
   attention: AttentionItem[];
 }
@@ -114,9 +120,12 @@ export function summariseClient(c: ClientInput, now: number = Date.now()): Clien
   if (live && c.nextReview && c.nextReview <= iso(now + 7 * DAY)) {
     add('review-due', 3, c.nextReview < today ? `Review was due ${c.nextReview}.` : `Review due ${c.nextReview}.`);
   }
-  if (c.status === 'Active' && !run) add('no-data', 4, 'No data uploaded yet, so there are no numbers to track.');
+  const asm = summariseAssessments(c.assessments, c.status, now);
+  const lateAsm = asm.pending.filter((p) => p.overdue);
+  if (lateAsm.length) add('assessment', 4, `${lateAsm.map((p) => p.label).join(', ')} assessment${lateAsm.length > 1 ? 's are' : ' is'} past the due date.`);
+  if (c.status === 'Active' && !run) add('no-data', 5, 'No data uploaded yet, so there are no numbers to track.');
   if (c.status === 'Active' && c.lastActivity !== undefined && now - c.lastActivity > 30 * DAY) {
-    add('quiet', 5, `No activity for ${Math.floor((now - c.lastActivity) / DAY)} days.`);
+    add('quiet', 6, `No activity for ${Math.floor((now - c.lastActivity) / DAY)} days.`);
   }
 
   return {
@@ -127,6 +136,7 @@ export function summariseClient(c: ClientInput, now: number = Date.now()): Clien
     actions: { total: c.actions.length, done: c.actions.length - open.length, open: open.length, overdue: overdue.length },
     outcomes: { improved: count('improved'), worse: count('worse'), same: count('same'), noData: count('no-data'), items },
     attention,
+    assessments: { pending: asm.pending.length, overdue: asm.overdue, done: asm.done },
   };
 }
 
@@ -138,6 +148,7 @@ export function rollUp(summaries: ClientSummary[]): Portfolio {
     withData: summaries.filter((s) => s.hasData).length,
     openActions: sum((s) => s.actions.open),
     overdueActions: sum((s) => s.actions.overdue),
+    pendingAssessments: sum((s) => s.assessments.pending),
     outcomes: { tracked: improved + worse + same + noData, improved, worse, same, noData },
     attention: summaries.flatMap((s) => s.attention).sort((a, b) => a.priority - b.priority || a.clientName.localeCompare(b.clientName)),
   };

@@ -88,6 +88,12 @@ Phase 4 grows ChainInsideIQ from operations into business, operational and go-to
 - "Print or save opened" means the print window was opened. The browser does not tell us whether you saved it, and we cannot see whether it was sent to the client, so the screen says so.
 - The record is saved with the client (and to your account when signed in). People you share a workspace with never see it.
 
+## Consultant: pending assessments
+- Each client now has a checklist of three assessments: **Business performance**, **Operational** and **Go-to-market**. Mark each Not started, In progress or Done, set a due date, write a private note on what you found, and jump to the matching page in that client's workspace.
+- Client cards say "2 of 3 assessments pending" (Active and Onboarding clients only), and a new **Assessments pending** tile counts them across clients. An assessment past its due date appears under **Needs attention** in "Across all clients". Not-started assessments are counted but never raise an alert.
+- Finished assessments are listed (name and date only) on the printed client report. Your notes are never printed and are never shown to people you share a workspace with.
+- This is your own tracker. Nothing checks that an assessment was actually carried out, and status is never worked out from the client's data. The screen says so. "Numbers uploaded, ready to start" only means the client has a data file.
+
 ## Fix: Fulfillment warehouse map labels
 - The zone labels on the warehouse map were too narrow, so "24 waiting" and "Bottleneck" overlapped on wide screens (and phones using the desktop view). Labels are wider and the floor sits lower so the top label is no longer clipped.
 
