@@ -1,12 +1,12 @@
 // Consultant workspace: every client business in one place. Open a client to
 // work inside their plan, data and sessions; track status, next review and
 // notes; print a progress report for the client.
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
 import {
   Briefcase, Plus, ArrowRight, FileText, CalendarClock, AlertTriangle, CheckCircle2, Building, MoreHorizontal,
-  Trash2, StickyNote, Users, Sparkles, Mail, HardDrive,
+  Trash2, StickyNote, Users, Sparkles, Mail, HardDrive, ClipboardCheck,
 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { PortfolioOverview } from "@/components/PortfolioOverview";
@@ -23,9 +23,14 @@ import {
   type ClientRecord, type ClientStatus, type EngagementType, type WorkspaceStats, type WorkspaceSnapshot,
 } from "@/hooks/use-clients-store";
 import { useGrowthStore } from "@/hooks/use-growth-store";
+import { useDashboardStore } from "@/hooks/use-dashboard-store";
 import { useSyncStatus } from "@/lib/cloud-sync";
 import { BUSINESS_INDUSTRIES, getIndustry } from "@shared/kpi-industries";
 import { summariseReports, agoText, cleanEvents } from "@shared/report-activity";
+import {
+  ASSESSMENT_INFO, ASSESSMENT_KINDS, ASSESSMENT_STATUSES, STATUS_LABEL, SUMMARY_MAX, cleanAssessments, summariseAssessments,
+  type AssessmentKind, type AssessmentStatus,
+} from "@shared/assessments";
 import { Stagger, StaggerItem, EASE_OUT } from "@/components/motion";
 import { cn } from "@/lib/utils";
 
@@ -55,6 +60,7 @@ export default function ClientsPage() {
   const active = rows.filter((r) => r.client.status === "Active" || r.client.status === "Onboarding").length;
   const overdue = rows.reduce((n, r) => n + r.stats.overdue, 0);
   const open = rows.reduce((n, r) => n + (r.stats.total - r.stats.done), 0);
+  const pendingAssessments = rows.reduce((n, r) => n + summariseAssessments(r.client.assessments, r.client.status, Date.now()).pending.length, 0);
   const reviewsDue = rows.filter((r) => r.client.nextReview && r.client.nextReview <= inDays(7) && r.client.status !== "Completed").length;
   const usageMb = storageUsage() / 1_000_000;
   const signedIn = useSyncStatus((s) => s.state !== "off");
@@ -80,12 +86,13 @@ export default function ClientsPage() {
         <UpgradeBanner feature="client-workspaces" />
 
         {clients.length > 0 && (
-          <Stagger className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
+          <Stagger className="grid grid-cols-2 lg:grid-cols-5 gap-2 sm:gap-3">
             {[
               { label: "Active clients", value: active, icon: Users, tone: "text-slate-900" },
               { label: "Open actions", value: open, icon: CheckCircle2, tone: "text-slate-900" },
               { label: "Overdue", value: overdue, icon: AlertTriangle, tone: overdue ? "text-rose-600" : "text-slate-900" },
               { label: "Reviews this week", value: reviewsDue, icon: CalendarClock, tone: reviewsDue ? "text-amber-700" : "text-slate-900" },
+              { label: "Assessments pending", value: pendingAssessments, icon: ClipboardCheck, tone: "text-slate-900" },
             ].map((s) => (
               <StaggerItem key={s.label}>
                 <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 flex items-center gap-3">
@@ -160,6 +167,7 @@ function ClientCard({ client, stats, active, onOpen, onDetails }: { client: Clie
   const reviewSoon = client.nextReview && client.nextReview <= inDays(7) && client.status !== "Completed";
   const reviewLate = client.nextReview && client.nextReview < todayISO() && client.status !== "Completed";
   const report = summariseReports(client.reportEvents, client, Date.now());
+  const asm = summariseAssessments(client.assessments, client.status, Date.now());
   return (
     <article className={cn("h-full rounded-3xl border bg-white p-5 flex flex-col gap-4 transition-shadow hover:shadow-md", active ? "border-primary/50 ring-1 ring-primary/20" : "border-slate-200")} data-testid={`client-card-${client.id}`}>
       <div className="flex items-start gap-3">
@@ -199,7 +207,7 @@ function ClientCard({ client, stats, active, onOpen, onDetails }: { client: Clie
         )}
       </div>
 
-      <p className="text-[11px] text-slate-500 -mt-2" data-testid={`client-report-activity-${client.id}`}>{report.text}</p>
+      <p className="text-[11px] text-slate-500 -mt-2" data-testid={`client-report-activity-${client.id}`}>{report.text}{asm.text ? ` · ${asm.text}` : ""}</p>
 
       <div className="flex gap-2">
         <Button onClick={onOpen} className="flex-1 h-10 rounded-xl font-bold" variant={active ? "outline" : "default"} data-testid={`client-open-${client.id}`}>
@@ -309,6 +317,78 @@ function AddClientDialog({ open, onOpenChange, onCreated }: { open: boolean; onO
   );
 }
 
+/** Typed freely, saved when you leave the box (saving tidies spaces, so doing it on every key would eat them). */
+function AssessmentNote({ id, saved, onSave }: { id: string; saved: string; onSave: (text: string) => void }) {
+  const [draft, setDraft] = useState(saved);
+  useEffect(() => { setDraft(saved); }, [saved]);
+  return (
+    <Textarea id={id} value={draft} onChange={(e) => setDraft(e.target.value)} onBlur={() => { if (draft !== saved) onSave(draft); }}
+      maxLength={SUMMARY_MAX} className="rounded-xl min-h-[64px]" placeholder="A line or two for yourself" />
+  );
+}
+
+function AssessmentsPanel({ client, onNavigate }: { client: ClientRecord; onNavigate: () => void }) {
+  const setAssessment = useClientsStore((s) => s.setAssessment);
+  const switchTo = useClientsStore((s) => s.switchTo);
+  const activeClientId = useClientsStore((s) => s.activeClientId);
+  const liveLibrary = useDashboardStore((s) => s.datasetLibrary);
+  const [, navigate] = useLocation();
+  const list = cleanAssessments(client.assessments);
+  const library = client.id === activeClientId ? liveLibrary : client.workspace?.dashboard?.datasetLibrary;
+  const hasData = !!library?.some((d) => !d.archived && d.rows.length > 0);
+  const summary = summariseAssessments(client.assessments, client.status, Date.now());
+  const today = todayISO();
+
+  return (
+    <section className="space-y-3" data-testid="assessments">
+      <div>
+        <h3 className={cn(FIELD_LABEL, "flex items-center gap-1.5")}><ClipboardCheck className="w-3.5 h-3.5" /> Assessments</h3>
+        <p className="text-[13px] text-slate-600 mt-1">{summary.text || "Your checklist for this client."}</p>
+      </div>
+      <ul className="space-y-3">
+        {list.map((a) => {
+          const info = ASSESSMENT_INFO[a.kind];
+          const late = !!a.dueDate && a.dueDate < today && a.status !== "done";
+          return (
+            <li key={a.kind} className="rounded-2xl border border-slate-200 p-3.5 space-y-2.5" data-testid={`assessment-${a.kind}`}>
+              <div>
+                <p className="text-sm font-black text-slate-900">{info.label}</p>
+                <p className="text-[12px] text-slate-600">{info.what}</p>
+              </div>
+              <div className="grid grid-cols-3 gap-1.5" role="group" aria-label={`${info.label} status`}>
+                {ASSESSMENT_STATUSES.map((st: AssessmentStatus) => (
+                  <button key={st} type="button" aria-pressed={a.status === st} onClick={() => setAssessment(client.id, a.kind, { status: st })}
+                    className={cn("min-h-10 rounded-xl border text-[12px] font-bold px-1 transition-colors", a.status === st ? "border-primary bg-primary text-white" : "border-slate-200 text-slate-700 hover:bg-slate-50")}>
+                    {STATUS_LABEL[st]}
+                  </button>
+                ))}
+              </div>
+              {a.status === "done" ? (
+                <p className="text-[12px] text-slate-600">Marked done{a.completedAt ? ` ${new Date(a.completedAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })}` : ""}.</p>
+              ) : (
+                <div className="space-y-1">
+                  <label htmlFor={`due-${a.kind}`} className={FIELD_LABEL}>Due</label>
+                  <Input id={`due-${a.kind}`} type="date" value={a.dueDate ?? ""} onChange={(e) => setAssessment(client.id, a.kind, { dueDate: e.target.value || null })} className={cn("h-11 rounded-xl", late && "border-rose-400")} />
+                  {late && <p className="text-[12px] font-bold text-rose-700">Past the due date.</p>}
+                </div>
+              )}
+              <div className="space-y-1">
+                <label htmlFor={`note-${a.kind}`} className={FIELD_LABEL}>What you found (private)</label>
+                <AssessmentNote id={`note-${a.kind}`} saved={a.summary ?? ""} onSave={(t) => setAssessment(client.id, a.kind, { summary: t })} />
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <Button type="button" variant="outline" className="h-10 rounded-xl font-bold" onClick={() => { switchTo(client.id); navigate(info.href); onNavigate(); }}>{info.openLabel}</Button>
+                {a.status !== "done" && <span className={cn("text-[12px] font-semibold", hasData ? "text-emerald-800" : "text-slate-600")}>{hasData ? "Numbers uploaded, ready to start" : "Upload their data first"}</span>}
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+      <p className="text-[11px] text-slate-500">This is your own checklist. Nothing here checks that an assessment was carried out. Statuses and notes are private to you and are not shown to people you share the workspace with.</p>
+    </section>
+  );
+}
+
 function ReportActivity({ events }: { events?: ClientRecord["reportEvents"] }) {
   const list = cleanEvents(events).slice(0, 5);
   const now = Date.now();
@@ -395,6 +475,8 @@ function ClientSheet({ clientId, onClose }: { clientId: string | null; onClose: 
                 <a href={`mailto:${encodeURIComponent(client.contactEmail)}`} className="inline-flex items-center gap-1.5 text-sm font-bold text-primary"><Mail className="w-4 h-4" /> Email {client.contactName || "contact"}</a>
               )}
             </section>
+
+            <AssessmentsPanel client={client} onNavigate={onClose} />
 
             <ReportActivity events={client.reportEvents} />
 

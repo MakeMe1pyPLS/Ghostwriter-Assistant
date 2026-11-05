@@ -47,6 +47,17 @@ ok(JSON.stringify(alone) === JSON.stringify(sa), 'summary does not depend on oth
 const noRows = summariseClient({ ...A, dataset: undefined }, NOW);
 ok(noRows.outcomes.noData === 1 && noRows.outcomes.worse === 0 && noRows.attention.every((x) => x.kind !== 'wrong-way'), 'no data: outcome is "no new data", never "worse"', noRows.outcomes);
 
+// Assessments: pending counts, and only an overdue one asks for attention.
+const lateAsm = [{ kind: 'operational' as const, status: 'in-progress' as const, updatedAt: 1, dueDate: '2026-11-01' }];
+const asmA = summariseClient({ ...B, assessments: lateAsm }, NOW);
+ok(asmA.assessments.pending === 3 && asmA.assessments.overdue === 1 && asmA.attention.some((x) => x.kind === 'assessment' && x.text.includes('Operational')), 'an overdue assessment is flagged by name', asmA);
+ok(sb.assessments.pending === 3 && sb.attention.every((x) => x.kind !== 'assessment'), 'not-started assessments are counted but never nag', sb.assessments);
+ok(sd.assessments.pending === 0, 'a paused client has none pending', sd.assessments);
+const allDone = ['business', 'operational', 'gtm'].map((kind) => ({ kind: kind as any, status: 'done' as const, updatedAt: 1, completedAt: 1 }));
+ok(summariseClient({ ...B, assessments: allDone }, NOW).assessments.pending === 0, 'finished assessments are not pending');
+ok(rollUp([sa, sb, sc, sd]).pendingAssessments === 9, 'the roll-up adds up pending assessments across clients', rollUp([sa, sb, sc, sd]).pendingAssessments);
+ok(asmA.attention.findIndex((x) => x.kind === 'assessment') < asmA.attention.findIndex((x) => x.kind === 'no-data') || !asmA.attention.some((x) => x.kind === 'no-data'), 'assessment ranks above no-data');
+
 // Junk and empty never throw.
 ok(rollUp([]).clients === 0 && rollUp([]).attention.length === 0, 'empty roll-up');
 const junk = summariseClient({ id: 'j', name: 'J', status: 'Active', actions: [], dataset: { name: 'x', rows: [null as any, 5 as any], rowCount: 2 } }, NOW);

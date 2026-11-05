@@ -2,7 +2,7 @@
 // and every client side by side. Numbers come from each client's own uploaded
 // files; nothing is shared between clients.
 import { useLocation } from "wouter";
-import { AlertTriangle, CalendarClock, CircleDashed, Database, Hourglass, TrendingDown } from "lucide-react";
+import { AlertTriangle, CalendarClock, CircleDashed, ClipboardCheck, Database, Hourglass, TrendingDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useClientsStore } from "@/hooks/use-clients-store";
 import { usePortfolio } from "@/hooks/use-portfolio";
@@ -12,6 +12,7 @@ const KIND: Record<AttentionKind, { label: string; icon: typeof AlertTriangle }>
   "wrong-way": { label: "Moved the wrong way", icon: TrendingDown },
   overdue: { label: "Overdue", icon: AlertTriangle },
   "review-due": { label: "Review due", icon: CalendarClock },
+  assessment: { label: "Assessment late", icon: ClipboardCheck },
   "no-data": { label: "No data", icon: Database },
   quiet: { label: "Quiet", icon: Hourglass },
 };

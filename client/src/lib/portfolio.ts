@@ -19,5 +19,6 @@ export function clientInputFrom(client: ClientRecord, ws: WorkspaceSnapshot | nu
     })),
     dataset: ds ? { name: ds.name, rows: ds.rows, headers: ds.columns.map((c) => c.name), rowCount: ds.rowCount } : undefined,
     lastActivity: workspaceStats(ws).lastActivity,
+    assessments: client.assessments,
   };
 }
