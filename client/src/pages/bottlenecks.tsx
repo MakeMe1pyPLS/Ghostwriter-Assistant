@@ -1,6 +1,7 @@
 // Bottlenecks: the #1 thing slowing the business down, then everything else in
 // order. Each one says what's happening, why, what it costs and how to fix it.
 import { IssueActions } from "@/components/analyst/IssueActions";
+import { PossibleLinksPanel } from "@/components/analyst/PossibleLinksPanel";
 import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -171,6 +172,8 @@ export default function BottlenecksPage() {
             />
 
             <UpgradeBanner feature="bottlenecks" />
+
+            <PossibleLinksPanel />
 
             {loading && <LoadingCards count={3} height={140} />}
 

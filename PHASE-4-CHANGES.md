@@ -45,6 +45,13 @@ Phase 4 grows ChainInsideIQ from operations into business, operational and go-to
 - If your file is not recognised, the page lists what each kind of file needs and offers a blank CSV template (headers only).
 - **Coming soon:** direct connections to Google Ads, Meta Ads, HubSpot and Salesforce. For now, export a CSV and upload it. Lifetime value and before/after tracking for ad results are not built yet.
 
+## Stage 3: possible links between your numbers
+- New **"Possible links between your numbers"** panel at the top of **Bottlenecks**. It looks across your uploaded data, week by week, for numbers from different parts of the business that tend to move together or in opposite directions, for example ad cost and on-time delivery.
+- Every link is labelled **"Possible link, not proven"**. It says which way the numbers moved, how many weeks it is based on, a confidence level with its reason, **other explanations** (a sale, a season, a stock-out, a change in how data was recorded) and **a check you can do**. It never says one thing caused another.
+- To avoid false alarms it needs at least **8 weeks** of data with a date column, only compares numbers from **different areas**, uses a strict strength bar that rises as more pairs are checked, ignores pairs that only match because both drift up or down over time, skips pairs built from the same column (for example revenue and return on ad spend), and shows at most five, never the same finding twice.
+- With sample data, or too little history, it says so and shows no links.
+- Limits: it can miss real but weaker links, it only sees the rows kept in the browser, and it cannot tell you why numbers move together. Links between two different companies' data are not part of this yet.
+
 ## Fix: Fulfillment warehouse map labels
 - The zone labels on the warehouse map were too narrow, so "24 waiting" and "Bottleneck" overlapped on wide screens (and phones using the desktop view). Labels are wider and the floor sits lower so the top label is no longer clipped.
 
