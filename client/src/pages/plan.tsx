@@ -22,6 +22,7 @@ import { googleCalendarUrl, outlookCalendarUrl, icsFile, addDays } from "@/lib/c
 import { buildBasicWorkbook, downloadBlob } from "@/lib/client-export";
 import { appLink } from "@/lib/share";
 import { ShareMenu } from "@/components/ShareMenu";
+import { OutcomeCompare } from "@/components/OutcomeCompare";
 import { Stagger, StaggerItem, EASE_OUT } from "@/components/motion";
 import { GOALS, type StepOwner } from "@shared/growth";
 import { getIndustry } from "@shared/kpi-industries";
@@ -134,6 +135,12 @@ function ActionRow({ action, compact = false }: { action: ActionItem; compact?: 
                   </select>
                 </label>
               </div>
+              {action.baseline && <OutcomeCompare baseline={action.baseline} />}
+              <label className="block space-y-1">
+                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Notes</span>
+                <Textarea value={action.notes ?? ''} onChange={(e) => updateAction(action.id, { notes: e.target.value || undefined })}
+                  placeholder="What you tried, what you learned, who you spoke to" className="min-h-[72px] rounded-lg text-sm" data-testid={`action-notes-${action.id}`} />
+              </label>
               <div className="flex flex-wrap gap-2">
                 <Button variant="outline" size="sm" className="rounded-lg font-bold" asChild>
                   <Link href={`/insights?ask=${encodeURIComponent(`How should I approach this step: "${action.title}"? ${action.detail}`)}`}><Sparkles className="w-3.5 h-3.5 mr-1.5 text-primary" /> Ask the analyst</Link>

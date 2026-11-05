@@ -45,7 +45,7 @@ function TopBottleneck({ item, sector, stage }: { item: OperationsIntelItem; sec
               <dd className="text-[15px] text-slate-700 leading-relaxed">{item.issueDetected}</dd>
             </div>
             <div>
-              <dt><FieldLabel icon={GitBranch}>Why</FieldLabel></dt>
+              <dt><FieldLabel icon={GitBranch}>Possible reason</FieldLabel></dt>
               <dd className="text-[15px] text-slate-700 leading-relaxed">{item.rootCause}</dd>
             </div>
           </dl>
@@ -107,7 +107,7 @@ function BottleneckRow({ item, rank, sector, stage }: { item: OperationsIntelIte
               <dl className="grid sm:grid-cols-3 gap-4">
                 <div><dt><FieldLabel icon={Activity}>Right now</FieldLabel></dt><dd className="text-sm text-slate-700 leading-relaxed">{item.currentState}</dd></div>
                 <div><dt><FieldLabel icon={Search}>What’s happening</FieldLabel></dt><dd className="text-sm text-slate-700 leading-relaxed">{item.issueDetected}</dd></div>
-                <div><dt><FieldLabel icon={GitBranch}>Why</FieldLabel></dt><dd className="text-sm text-slate-700 leading-relaxed">{item.rootCause}</dd></div>
+                <div><dt><FieldLabel icon={GitBranch}>Possible reason</FieldLabel></dt><dd className="text-sm text-slate-700 leading-relaxed">{item.rootCause}</dd></div>
               </dl>
               <div className={cn("rounded-control border p-4", LEVEL[item.severity].box)}>
                 <FieldLabel icon={TrendingDown} className={LEVEL[item.severity].text}>What it’s costing you</FieldLabel>

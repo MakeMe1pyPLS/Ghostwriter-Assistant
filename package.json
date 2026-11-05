@@ -9,6 +9,7 @@
     "build": "tsx script/build.ts",
     "start": "cross-env NODE_ENV=production node dist/index.cjs",
     "check": "tsc",
+    "test": "tsx tests/kpi-engine.test.ts && tsx tests/company-types.test.ts && tsx tests/insight.test.ts",
     "db:push": "drizzle-kit push"
   },
   "dependencies": {

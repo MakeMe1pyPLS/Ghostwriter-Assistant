@@ -7,6 +7,7 @@ import { persist } from 'zustand/middleware';
 import type { AIEnginePreference } from '@shared/ai-types';
 import { describeProfile, type GrowthPlan, type GrowthProfile } from '@shared/growth';
 import type { ConsultAnswers, ConsultResult, SessionKind } from '@shared/consult';
+import type { InsightBaseline } from '@shared/insight';
 
 export type ActionStatus = 'todo' | 'doing' | 'done';
 export type ActionSource = 'plan' | 'bottleneck' | 'hub' | 'manual' | 'consult';
@@ -26,6 +27,10 @@ export interface ActionItem {
   threadId?: string;
   createdAt: number;
   completedAt?: number;
+  /** The KPI value when this fix was started, so the Plan can show before and after. Only set from the person's own data. */
+  baseline?: InsightBaseline;
+  /** Free-text notes on this action. */
+  notes?: string;
 }
 
 /** A finished AI consultant session and the decision taken. */

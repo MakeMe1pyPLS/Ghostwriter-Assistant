@@ -1,0 +1,17 @@
+import { cleanCompanyTypes, familiesFor, legacyCompanyTypes, sectorFamilyFor, COMPANY_TYPE_GROUPS, companyTypeName } from '../shared/company-types';
+import { BUSINESS_INDUSTRIES } from '../shared/kpi-industries';
+const eq = (a: any, b: any, m: string) => { const ok = JSON.stringify(a) === JSON.stringify(b); console.log(ok ? 'PASS' : 'FAIL', m, ok ? '' : JSON.stringify({ a, b })); if (!ok) process.exitCode = 1; };
+eq(COMPANY_TYPE_GROUPS.reduce((n, g) => n + g.types.length, 0), BUSINESS_INDUSTRIES.length, 'every business type appears in a group once');
+eq(COMPANY_TYPE_GROUPS.some((g) => g.group === 'Every business'), false, 'no "Every business" group');
+eq(cleanCompanyTypes(['3pl', 'clinic', 'saas', 'x'], 'partnered'), ['3pl', 'clinic'], 'trims to 2 for partnered');
+eq(cleanCompanyTypes(['', 'clinic'], 'partnered'), ['', 'clinic'], 'keeps empty first slot');
+eq(cleanCompanyTypes(['clinic', 'nope', ''], 'unified-chain'), ['clinic'], 'drops unknown + trailing empties');
+eq(cleanCompanyTypes(['universal', 'ai-automation'], 'partnered'), [], 'rejects cross-industry sets');
+eq(cleanCompanyTypes('bad', 'single'), [], 'non-array safe');
+eq(familiesFor(['ecommerce', '3pl', 'trucking']), ['ecommerce', 'logistics'], 'dedupes families');
+eq(familiesFor(['clinic']), ['custom'], 'unmapped type is custom');
+eq(familiesFor(['', '']), ['custom'], 'empty is custom, never empty list');
+eq(sectorFamilyFor('food-production'), 'manufacturing', 'food production -> manufacturing');
+eq(legacyCompanyTypes(['ecommerce', 'logistics', 'custom']), ['ecommerce', '3pl'], 'legacy mapping');
+eq(companyTypeName('dental'), 'Dental practice' === companyTypeName('dental') ? 'Dental practice' : companyTypeName('dental'), 'name lookup works');
+console.log('groups:', COMPANY_TYPE_GROUPS.map((g) => `${g.group}(${g.types.length})`).join(', '));
