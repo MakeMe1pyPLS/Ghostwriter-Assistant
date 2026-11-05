@@ -59,6 +59,7 @@ const pageLoaders = {
   ClientsPage: () => import("@/pages/clients"),
   ClientReportPage: () => import("@/pages/client-report"),
   FulfillmentPage: () => import("@/pages/fulfillment"),
+  DesignPage: () => import("@/pages/design"),
 };
 const BuilderPage = lazy(pageLoaders.BuilderPage);
 const DashboardPage = lazy(pageLoaders.DashboardPage);
@@ -81,6 +82,7 @@ const ConsultPage = lazy(pageLoaders.ConsultPage);
 const ClientsPage = lazy(pageLoaders.ClientsPage);
 const ClientReportPage = lazy(pageLoaders.ClientReportPage);
 const FulfillmentPage = lazy(pageLoaders.FulfillmentPage);
+const DesignPage = lazy(pageLoaders.DesignPage);
 
 const MARKETING = ["/", "/pricing", "/features", "/contact", "/support", "/privacy", "/terms", "/request-setup"];
 
@@ -198,6 +200,9 @@ function Router() {
       </Route>
       <Route path="/clients/:id/report">
         <Suspense fallback={<PageLoader />}><ClientReportPage /></Suspense>
+      </Route>
+      <Route path="/design">
+        <Suspense fallback={<PageLoader />}><DesignPage /></Suspense>
       </Route>
       <Route path="/fulfillment">
         <Suspense fallback={<PageLoader />}><FulfillmentPage /></Suspense>

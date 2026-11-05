@@ -370,3 +370,10 @@ Check each provider's model list and set the `*_MODEL` variables if a newer mode
 - **Phase 3:** Microsoft 365 and Google Workspace sign-in (Graph API for Outlook, Teams and OneDrive; Google APIs for Gmail, Chat, Sheets and Drive), scheduled reports, and live connectors (Shopify, QuickBooks, ShipStation…).
 
 Until Phase 2, all workspace data (plans, actions, collabs, Hub posts) is stored in the user's browser.
+
+### Design system foundation (step 2 of the redesign)
+- **Nothing in the product changes yet.** This adds the shared chart and status parts and a hidden preview page at `/design` (not linked anywhere, not indexed). Screens move onto these parts in later changes.
+- Chart colour tokens (`--chart-*`) for light and dark, checked for colour-blind separation and contrast.
+- Parts: KPI card, sparkline, chart frame with a Table view, trend chart, target gauge, heat strip, pipeline flow, bottleneck card, ranked problem row, action card, impact and effort quadrant, industry card, empty state, status chip.
+- One illustration style with six illustrations.
+- Rules written down in `docs/BRAND.md` under "Data visualization".

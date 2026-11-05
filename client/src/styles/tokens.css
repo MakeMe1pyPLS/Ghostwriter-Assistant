@@ -94,6 +94,20 @@
   --dur-fast: 150ms;   /* hover, press */
   --dur-base: 200ms;   /* open/close, small moves */
   --dur-slow: 250ms;   /* panels, page elements */
+
+  /* Charts (docs/BRAND.md → Data visualization). Marks only; text always wears text tokens.
+     Categorical slots are validated for colour-blind separation (see BRAND.md). Fixed order,
+     never cycled; past 3 series on scatter-like charts, fold into "Other" or facet. */
+  --chart-1: #0e9486; --chart-2: #e0561f; --chart-3: #5b4bd1; --chart-4: #c2417a;
+  --chart-good: #059669; --chart-warn: #d97706; --chart-bad: #e11d48;
+  --chart-muted: #94a3b8;   /* de-emphasised marks and "Other" */
+  --chart-grid: #e2e8f0;    /* hairline gridlines, one step off the surface */
+  --chart-axis: #cbd5e1;    /* baseline */
+  --chart-surface: #ffffff;
+  --chart-label: #4f5e74;   /* axis and legend text: ink, never a series colour */
+  --chart-track: #d9efec;   /* unfilled meter track: a light step of the brand ramp */
+  --chart-seq-1: #e6f6f4; --chart-seq-2: #bfe8e3; --chart-seq-3: #86d3ca;
+  --chart-seq-4: #3fb8ab; --chart-seq-5: #0e9486; --chart-seq-6: #0a6b61;
 }
 
 .dark {
@@ -108,6 +122,18 @@
   --ciq-info:    #7dd3fc; --ciq-info-bg:    rgb(14 165 233 / 0.14); --ciq-info-line:    rgb(56 189 248 / 0.3);
 
   --shadow-card: 0 1px 2px rgb(0 0 0 / 0.3), 0 8px 24px -12px rgb(0 0 0 / 0.5);
+
+  --chart-1: #12a596; --chart-2: #d95926; --chart-3: #9085e9; --chart-4: #d55181;
+  --chart-good: #34d399; --chart-warn: #fbbf24; --chart-bad: #fb7185;
+  --chart-muted: #64748b;
+  --chart-grid: #1f2a3b;
+  --chart-axis: #2c394d;
+  --chart-surface: #0D131E;
+  --chart-label: #9aa8bd;
+  --chart-track: #163432;
+  /* Sequential ramps flip in dark mode: the low end sits near the surface. */
+  --chart-seq-1: #12302e; --chart-seq-2: #17504b; --chart-seq-3: #1b756d;
+  --chart-seq-4: #12a596; --chart-seq-5: #4cc9bb; --chart-seq-6: #8fe3d8;
 }
 
 /* Tailwind colour names for the semantic tokens (text-success, bg-warning-soft…) */
