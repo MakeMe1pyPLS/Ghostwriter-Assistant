@@ -9,7 +9,9 @@
 //                                keys customers connect. Never change it once
 //                                customers have saved keys (they would have to
 //                                re-enter them).
-//   STRIPE_SECRET_KEY            Secret. sk_test_… while testing, sk_live_… later.
+//   STRIPE_SECRET_KEY            Secret. sk_test_… (or a restricted rk_test_…) while testing,
+//                                sk_live_… / rk_live_… later. A restricted key needs Write on
+//                                Customers, Checkout Sessions and Customer portal.
 //   STRIPE_WEBHOOK_SECRET        Secret. whsec_… from the Stripe webhook you add.
 //   APP_URL                      Where checkout returns to, e.g. https://chaininsideiq.ai
 //   ANTHROPIC_API_KEY, OPENAI_API_KEY, GEMINI_API_KEY
@@ -38,7 +40,7 @@ export function readiness() {
     database: !!config.serviceRoleKey,
     payments: !!config.stripeSecretKey && !!config.stripeWebhookSecret && !!config.serviceRoleKey,
     ownKeys: !!config.encryptionSecret && !!config.serviceRoleKey,
-    stripeMode: config.stripeSecretKey.startsWith('sk_live_') ? 'live' as const : config.stripeSecretKey ? 'test' as const : null,
+    stripeMode: /^(sk|rk)_live_/.test(config.stripeSecretKey) ? 'live' as const : config.stripeSecretKey ? 'test' as const : null,
   };
 }
 

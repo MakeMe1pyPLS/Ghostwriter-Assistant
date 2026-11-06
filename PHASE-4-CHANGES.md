@@ -124,5 +124,8 @@ An acceptance audit found screens that looked like analysis of your business but
 - Two new tests (`tests/safe-fetch.test.ts`, `tests/security-headers.test.ts`) are part of `npm test`.
 - **Still open:** rate limits are still per server instance (see `docs/ENTERPRISE-READINESS.md`).
 
+## Stripe restricted keys
+The server now recognises a restricted live key (`rk_live_…`) as live mode, as well as `sk_live_…`. Before, a restricted live key would have been shown as "test". Checkout behaviour is unchanged.
+
 ## Not built yet
 - Editor and admin roles, team accounts, invite emails, collab partner sign-in, a full audit trail and SSO. See `docs/ENTERPRISE-READINESS.md`.
