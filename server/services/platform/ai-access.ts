@@ -89,8 +89,8 @@ async function countAnswer(userId: string) {
 
 export interface AiAccess {
   engines: EngineSet;
-  /** Call after an answer is sent. Counts it only when our keys produced it. */
-  record: (generatedBy: string | undefined) => void;
+  /** Call (and wait for it) just before an answer is sent. Counts it only when our keys produced it. Never throws. */
+  record: (generatedBy: string | undefined) => Promise<void>;
   /** Shown to the person when they're getting the built-in analyst instead of AI. */
   notice?: 'signed_out' | 'limit_reached';
   /** On "Auto", the customer's own key goes first so it's used before their allowance. */
@@ -106,7 +106,7 @@ export async function aiAccessFor(req: Request): Promise<AiAccess> {
   // Running locally with no account system: keep the old behaviour.
   if (!user) {
     const anon = process.env.AI_ALLOW_SIGNED_OUT === 'true' || (!config.serviceRoleKey && process.env.NODE_ENV !== 'production');
-    return { engines: anon ? ours : NONE, record: () => {}, notice: anon ? undefined : 'signed_out' };
+    return { engines: anon ? ours : NONE, record: async () => {}, notice: anon ? undefined : 'signed_out' };
   }
   try {
     const [keys, profile] = await Promise.all([storedKeys(user.id), getBillingProfile(user.id)]);
@@ -134,13 +134,13 @@ export async function aiAccessFor(req: Request): Promise<AiAccess> {
       engines,
       ownFirst: ENGINES.find((id) => ownIds.has(id)),
       notice: !allowance && !ownIds.size ? 'limit_reached' : undefined,
-      record: (by) => {
+      record: async (by) => {
         if (!by || by === 'rule-based' || ownIds.has(by)) return;
-        countAnswer(user.id).catch((e) => console.warn('[ai] usage count failed', e?.message ?? e));
+        try { await countAnswer(user.id); } catch (e: any) { console.warn('[ai] usage count failed', e?.message ?? e); }
       },
     };
   } catch (e: any) {
     console.warn('[ai] access check failed, using built-in analyst', e?.message ?? e);
-    return { engines: NONE, record: () => {} };
+    return { engines: NONE, record: async () => {} };
   }
 }

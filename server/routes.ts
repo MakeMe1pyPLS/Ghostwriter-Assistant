@@ -48,9 +48,11 @@ export async function registerRoutes(
     if (pref === 'auto' && access?.ownFirst) pref = access.ownFirst;
     return getIntelligenceProvider(pref, access?.engines);
   };
-  const sendAi = (res: any, result: any) => {
+  // Counts the answer BEFORE replying: on serverless hosting the function is frozen once the reply is sent,
+  // which cut off the usage count and left every answer uncounted.
+  const sendAi = async (res: any, result: any) => {
     const access = res.locals.ai as AiAccess | undefined;
-    access?.record(result?.generatedBy);
+    await access?.record(result?.generatedBy);
     res.json(access?.notice ? { ...result, aiNotice: access.notice } : result);
   };
 
@@ -76,7 +78,7 @@ export async function registerRoutes(
         message: parsed.data.message,
         businessContext: parsed.data.businessContext,
       } satisfies AnalystChatRequest & { businessContext?: string });
-      sendAi(res, result);
+      await sendAi(res, result);
     } catch (err) {
       console.error('[ai/chat] error:', err);
       res.status(500).json({ error: 'Failed to generate analyst response' });
@@ -140,7 +142,7 @@ export async function registerRoutes(
     try {
       const provider = providerFor(req, res);
       const result = await provider.generateCommandCenter(normalizeIntelRequest(parsed.data));
-      sendAi(res, result);
+      await sendAi(res, result);
     } catch (err) {
       console.error('[command-center] error:', err);
       res.status(500).json({ error: 'Failed to generate command center briefing' });
@@ -156,7 +158,7 @@ export async function registerRoutes(
     try {
       const provider = providerFor(req, res);
       const result = await provider.generateOperationsIntel(normalizeIntelRequest(parsed.data));
-      sendAi(res, result);
+      await sendAi(res, result);
     } catch (err) {
       console.error('[operations-intel] error:', err);
       res.status(500).json({ error: 'Failed to generate operations intelligence' });
@@ -188,7 +190,7 @@ export async function registerRoutes(
     }
     try {
       const plan = await providerFor(req, res).generateGrowthPlan(parsed.data as GrowthProfile);
-      sendAi(res, plan);
+      await sendAi(res, plan);
     } catch (err) {
       console.error('[growth-plan] error:', err);
       res.status(500).json({ error: 'Failed to build growth plan' });
@@ -209,7 +211,7 @@ export async function registerRoutes(
     }
     try {
       const result = await providerFor(req, res).generateConsult(parsed.data as ConsultRequest);
-      sendAi(res, result);
+      await sendAi(res, result);
     } catch (err) {
       console.error('[consult] error:', err);
       res.status(500).json({ error: 'Failed to run consult session' });

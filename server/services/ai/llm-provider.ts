@@ -37,12 +37,23 @@ function clampSeverity(value: unknown): Severity {
   return value === 'high' || value === 'medium' || value === 'low' ? value : 'medium';
 }
 
-function extractJson(text: string): any {
+/** Pulls the JSON object out of a model reply. Tolerates code fences and trailing commas; throws otherwise. */
+export function extractJson(text: string): any {
   const start = text.indexOf('{');
   const end = text.lastIndexOf('}');
   if (start === -1 || end === -1) throw new Error('No JSON object in model output');
-  return JSON.parse(text.slice(start, end + 1));
+  const body = text.slice(start, end + 1);
+  try {
+    return JSON.parse(body);
+  } catch (first) {
+    // A trailing comma before } or ] is the most common slip. Only retry with that one repair.
+    const fixed = body.replace(/,(\s*[}\]])/g, '$1');
+    if (fixed !== body) { try { return JSON.parse(fixed); } catch { /* fall through */ } }
+    throw first;
+  }
 }
+
+const JSON_RULES = '\n\nReply with one valid JSON object and nothing else: escape any double quotes inside strings, no comments, no trailing commas.';
 
 function metricsBlock(req: CommandCenterRequest): string {
   return req.metrics
@@ -62,8 +73,17 @@ export class LLMIntelligenceProvider {
   get id() { return this.engine.id; }
 
   private async json(system: string, prompt: string, maxTokens: number): Promise<any> {
-    const raw = await this.engine.complete(system, prompt, maxTokens);
-    return extractJson(raw);
+    const started = Date.now();
+    const ask = async () => extractJson(await this.engine.complete(system + JSON_RULES, prompt, maxTokens));
+    try {
+      return await ask();
+    } catch (err: any) {
+      // A reply we can't read is usually a one-off. Ask once more if there's time left in the request.
+      const unreadable = err instanceof SyntaxError || /No JSON object/.test(String(err?.message));
+      if (!unreadable || Date.now() - started > 25_000) throw err;
+      console.warn(`[ai:${this.engine.id}] unreadable reply (${err.message}); asking once more`);
+      return await ask();
+    }
   }
 
   async generateCommandCenter(req: CommandCenterRequest): Promise<CommandCenterResult> {
