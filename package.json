@@ -9,7 +9,7 @@
     "build": "tsx script/build.ts",
     "start": "cross-env NODE_ENV=production node dist/index.cjs",
     "check": "tsc",
-    "test": "tsx tests/kpi-engine.test.ts && tsx tests/company-types.test.ts && tsx tests/insight.test.ts && tsx tests/gtm-engine.test.ts && tsx tests/links.test.ts && tsx tests/consultant.test.ts && tsx tests/audit.test.ts && tsx tests/report-activity.test.ts && tsx tests/assessments.test.ts && tsx tests/kpi-config.test.ts && tsx tests/branding.test.ts && tsx tests/sharing-migration.test.ts && tsx tests/honesty-guard.test.ts && tsx tests/safe-fetch.test.ts && tsx tests/security-headers.test.ts",
+    "test": "tsx tests/kpi-engine.test.ts && tsx tests/company-types.test.ts && tsx tests/insight.test.ts && tsx tests/gtm-engine.test.ts && tsx tests/links.test.ts && tsx tests/consultant.test.ts && tsx tests/audit.test.ts && tsx tests/report-activity.test.ts && tsx tests/assessments.test.ts && tsx tests/kpi-config.test.ts && tsx tests/branding.test.ts && tsx tests/sharing-migration.test.ts && tsx tests/honesty-guard.test.ts && tsx tests/safe-fetch.test.ts && tsx tests/security-headers.test.ts && tsx tests/stripe-mode.test.ts",
     "db:push": "drizzle-kit push"
   },
   "dependencies": {

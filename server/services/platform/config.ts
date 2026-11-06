@@ -31,6 +31,12 @@ export const config = {
   appUrl: env('APP_URL').replace(/\/$/, ''),
 };
 
+/** Standard (sk_) and restricted (rk_) Stripe keys both say live or test in their prefix. */
+export function stripeModeOf(key: string): 'live' | 'test' | null {
+  if (!key) return null;
+  return /^(sk|rk)_live_/.test(key) ? 'live' : 'test';
+}
+
 /** What's switched on. Safe to show the signed-in owner; never includes values. */
 export function readiness() {
   return {
@@ -38,7 +44,7 @@ export function readiness() {
     database: !!config.serviceRoleKey,
     payments: !!config.stripeSecretKey && !!config.stripeWebhookSecret && !!config.serviceRoleKey,
     ownKeys: !!config.encryptionSecret && !!config.serviceRoleKey,
-    stripeMode: config.stripeSecretKey.startsWith('sk_live_') ? 'live' as const : config.stripeSecretKey ? 'test' as const : null,
+    stripeMode: stripeModeOf(config.stripeSecretKey),
   };
 }
 
