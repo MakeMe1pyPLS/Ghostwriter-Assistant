@@ -124,5 +124,8 @@ An acceptance audit found screens that looked like analysis of your business but
 - Two new tests (`tests/safe-fetch.test.ts`, `tests/security-headers.test.ts`) are part of `npm test`.
 - **Still open:** rate limits are still per server instance (see `docs/ENTERPRISE-READINESS.md`).
 
+## Fix: pricing page sent signed-in people to sign-up
+When card payments were not switched on, choosing a plan sent everyone to the sign-up screen, even people already signed in, which looked like a sign-in loop. Signed-in people now stay on the pricing page and see "Card payments aren't switched on yet". People who are not signed in still go to sign-up as before.
+
 ## Not built yet
 - Editor and admin roles, team accounts, invite emails, collab partner sign-in, a full audit trail and SSO. See `docs/ENTERPRISE-READINESS.md`.

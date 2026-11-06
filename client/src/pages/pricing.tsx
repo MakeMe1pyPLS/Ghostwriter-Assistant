@@ -12,6 +12,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { startCheckout, type PaidPlan } from "@/lib/account";
+import { getSession } from "@/lib/supabase";
 
 type Billing = "monthly" | "yearly";
 
@@ -255,8 +256,13 @@ export default function PricingPage() {
       toast({ title: "Create your account first", description: "It takes a minute. You'll come back here to finish choosing your plan." });
       setLocation("/sign-up");
     } else if (r.kind === "not-ready") {
-      toast({ title: "Card payments open soon", description: "You can start your 14-day free trial now. No card needed." });
-      setLocation("/sign-up");
+      // Signed-in people stay here. Sending them to sign-up looked like a sign-in loop.
+      if (getSession()) {
+        toast({ title: "Card payments aren't switched on yet", description: "Your account is fine and your free trial is running. Try again soon." });
+      } else {
+        toast({ title: "Card payments open soon", description: "You can start your 14-day free trial now. No card needed." });
+        setLocation("/sign-up");
+      }
     } else if (r.kind === "already") {
       toast({ title: "You already have a plan", description: "Change or cancel it from Settings → Billing." });
       setLocation("/settings#billing");
