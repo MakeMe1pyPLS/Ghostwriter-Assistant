@@ -20,7 +20,7 @@ function requireStripe() {
 }
 
 /** Stripe wants form encoding with brackets for nested fields. */
-function form(obj: Record<string, unknown>, prefix = '', out = new URLSearchParams()): URLSearchParams {
+export function form(obj: Record<string, unknown>, prefix = '', out = new URLSearchParams()): URLSearchParams {
   for (const [k, v] of Object.entries(obj)) {
     if (v === undefined || v === null) continue;
     const key = prefix ? `${prefix}[${k}]` : k;
@@ -61,6 +61,46 @@ async function customerFor(user: SignedInUser): Promise<string> {
   return c.id;
 }
 
+/**
+ * Stripe's tax code for "Software as a service (SaaS) - business use". Stripe's Managed Payments
+ * (on by default for new accounts) refuses a Checkout Session unless every product carries an eligible
+ * tax code. Harmless when Managed Payments is off.
+ */
+export const SAAS_BUSINESS_TAX_CODE = 'txcd_10103001';
+
+/** The Checkout Session we ask Stripe for. Pure, so it can be tested without calling Stripe. */
+export function checkoutParams(o: {
+  userId: string; customer: string; tier: { id: string; name: string; price: number; priceAnnual: number };
+  billing: Billing; hadTrial: boolean; base: string;
+}): Record<string, unknown> {
+  const { tier, billing, base } = o;
+  const yearly = billing === 'yearly';
+  const meta = { user_id: o.userId, plan_id: tier.id, billing };
+  return {
+    mode: 'subscription',
+    customer: o.customer,
+    client_reference_id: o.userId,
+    line_items: [{
+      quantity: 1,
+      price_data: {
+        currency: 'usd',
+        unit_amount: Math.round((yearly ? tier.priceAnnual * 12 : tier.price) * 100),
+        recurring: { interval: yearly ? 'year' : 'month' },
+        product_data: { name: `ChainInsideIQ ${tier.name}`, tax_code: SAAS_BUSINESS_TAX_CODE, metadata: { plan_id: tier.id } },
+      },
+    }],
+    subscription_data: {
+      ...(o.hadTrial ? {} : { trial_period_days: TRIAL_DAYS }),
+      metadata: meta,
+    },
+    metadata: meta,
+    allow_promotion_codes: true,
+    billing_address_collection: 'auto',
+    success_url: `${base}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${base}/pricing?plan=${tier.id}&billing=${billing}`,
+  };
+}
+
 export async function createCheckout(user: SignedInUser, planId: string, billing: Billing, origin?: string): Promise<string> {
   requireStripe();
   const tier = PRICING_TIERS.find((t) => t.id === planId);
@@ -75,30 +115,9 @@ export async function createCheckout(user: SignedInUser, planId: string, billing
   // One free trial per account: skip it if they've had a subscription before.
   const hadTrial = !!profile?.subscription_status;
   const base = returnBase(origin);
-  const yearly = billing === 'yearly';
-  const session = await stripe('/checkout/sessions', {
-    mode: 'subscription',
-    customer,
-    client_reference_id: user.id,
-    line_items: [{
-      quantity: 1,
-      price_data: {
-        currency: 'usd',
-        unit_amount: Math.round((yearly ? tier.priceAnnual * 12 : tier.price) * 100),
-        recurring: { interval: yearly ? 'year' : 'month' },
-        product_data: { name: `ChainInsideIQ ${tier.name}`, metadata: { plan_id: tier.id } },
-      },
-    }],
-    subscription_data: {
-      ...(hadTrial ? {} : { trial_period_days: TRIAL_DAYS }),
-      metadata: { user_id: user.id, plan_id: tier.id, billing },
-    },
-    metadata: { user_id: user.id, plan_id: tier.id, billing },
-    allow_promotion_codes: true,
-    billing_address_collection: 'auto',
-    success_url: `${base}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${base}/pricing?plan=${tier.id}&billing=${billing}`,
-  });
+  const session = await stripe('/checkout/sessions', checkoutParams({
+    userId: user.id, customer, tier: { id: tier.id, name: tier.name, price: tier.price, priceAnnual: tier.priceAnnual }, billing, hadTrial, base,
+  }));
   return session.url as string;
 }
 
