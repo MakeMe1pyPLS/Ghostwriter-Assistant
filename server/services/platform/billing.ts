@@ -31,7 +31,7 @@ export function form(obj: Record<string, unknown>, prefix = '', out = new URLSea
   return out;
 }
 
-async function stripe(path: string, body?: Record<string, unknown>, method = 'POST'): Promise<any> {
+async function stripeRaw(path: string, body?: Record<string, unknown>, method = 'POST'): Promise<{ ok: boolean; status: number; json: any }> {
   requireStripe();
   const res = await fetch(`https://api.stripe.com/v1${path}`, {
     method,
@@ -39,11 +39,25 @@ async function stripe(path: string, body?: Record<string, unknown>, method = 'PO
     body: body ? form(body).toString() : undefined,
   });
   const json = await res.json().catch(() => ({}));
-  if (!res.ok) {
-    console.error(`[stripe] ${path} → ${res.status}: ${json?.error?.message ?? ''}`);
+  return { ok: res.ok, status: res.status, json };
+}
+
+async function stripe(path: string, body?: Record<string, unknown>, method = 'POST'): Promise<any> {
+  const { ok, status, json } = await stripeRaw(path, body, method);
+  if (!ok) {
+    console.error(`[stripe] ${path} → ${status}: ${json?.error?.message ?? ''}`);
     throw new HttpError(502, 'Stripe didn’t accept that. Try again in a moment.', 'stripe_error');
   }
   return json;
+}
+
+/**
+ * True when Stripe's answer to "fetch this customer" means the saved id is no use: it was never in this
+ * Stripe mode (a test-mode id used with a live key) or the customer was deleted.
+ */
+export function isUnusableCustomer(status: number, json: any): boolean {
+  if (status === 404 || json?.error?.code === 'resource_missing') return true;
+  return status === 200 && json?.deleted === true;
 }
 
 function returnBase(originHeader?: string): string {
@@ -55,7 +69,16 @@ function returnBase(originHeader?: string): string {
 async function customerFor(user: SignedInUser): Promise<string> {
   const p = await getBillingProfile(user.id);
   if (!p) throw new HttpError(404, 'Your account profile is missing. Sign out and back in.', 'no_profile');
-  if (p.stripe_customer_id) return p.stripe_customer_id;
+  if (p.stripe_customer_id) {
+    // A saved id can be stale (made with a test key, or deleted in Stripe). Make a fresh customer then.
+    const found = await stripeRaw(`/customers/${encodeURIComponent(p.stripe_customer_id)}`, undefined, 'GET');
+    if (found.ok && !isUnusableCustomer(found.status, found.json)) return p.stripe_customer_id;
+    if (!isUnusableCustomer(found.status, found.json)) {
+      console.error(`[stripe] customer lookup → ${found.status}: ${found.json?.error?.message ?? ''}`);
+      throw new HttpError(502, 'Stripe didn’t accept that. Try again in a moment.', 'stripe_error');
+    }
+    console.warn('[stripe] saved customer id not found in this Stripe mode; creating a new customer');
+  }
   const c = await stripe('/customers', { email: user.email || undefined, metadata: { user_id: user.id } });
   await updateProfile(user.id, { stripe_customer_id: c.id });
   return c.id;

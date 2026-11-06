@@ -133,5 +133,8 @@ The site now lives at **https://www.chaininsideiq.com** (`chaininsideiq.com` red
 ## Fix: checkout refused by Stripe ("product tax code is missing")
 Stripe accounts with Managed Payments switched on (the default for new accounts) reject a checkout unless the product carries an eligible tax code, so choosing a plan failed. Checkout now sends the tax code for business software (`txcd_10103001`). It is harmless if Managed Payments is off. The request is built by a tested function (`tests/checkout-params.test.ts`).
 
+## Fix: checkout failed for accounts with a test-mode Stripe customer
+An account that had paid or opened checkout in Stripe's test mode kept that customer id. After switching to live keys, Stripe did not recognise it and checkout failed. Checkout now looks the saved customer up first and creates a fresh one if Stripe does not know it (or it was deleted). A Stripe outage is not treated as a missing customer. Covered in `tests/checkout-params.test.ts`.
+
 ## Not built yet
 - Editor and admin roles, team accounts, invite emails, collab partner sign-in, a full audit trail and SSO. See `docs/ENTERPRISE-READINESS.md`.

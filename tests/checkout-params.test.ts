@@ -1,6 +1,6 @@
 // The Checkout Session we send to Stripe. A missing tax code made Stripe refuse every checkout
 // on accounts with Managed Payments switched on (the default for new accounts).
-import { checkoutParams, form, SAAS_BUSINESS_TAX_CODE } from '../server/services/platform/billing';
+import { checkoutParams, form, isUnusableCustomer, SAAS_BUSINESS_TAX_CODE } from '../server/services/platform/billing';
 let fails = 0;
 const ok = (c: boolean, m: string, x?: unknown) => { console.log(c ? 'PASS' : 'FAIL', m, c ? '' : JSON.stringify(x)); if (!c) fails++; };
 
@@ -26,5 +26,12 @@ ok(y['line_items[0][price_data][unit_amount]'] === String(39 * 12 * 100) && y['l
 
 const again = decode(checkoutParams({ ...base, hadTrial: true }));
 ok(!('subscription_data[trial_period_days]' in again), 'no second free trial', again);
+
+// A saved customer id from test mode must not be reused with a live key.
+ok(isUnusableCustomer(404, { error: { code: 'resource_missing' } }), 'unknown customer (404) is replaced');
+ok(isUnusableCustomer(400, { error: { code: 'resource_missing' } }), 'resource_missing is replaced');
+ok(isUnusableCustomer(200, { id: 'cus_1', deleted: true }), 'deleted customer is replaced');
+ok(!isUnusableCustomer(200, { id: 'cus_1' }), 'a live customer is kept');
+ok(!isUnusableCustomer(500, { error: { message: 'oops' } }), 'a Stripe outage is not mistaken for a missing customer');
 
 if (fails) { console.log(`\nFAILED: ${fails}`); process.exit(1); } else console.log('\nAll checkout checks passed');
