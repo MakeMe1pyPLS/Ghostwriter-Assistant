@@ -84,7 +84,7 @@ export class LLMIntelligenceProvider {
   private async json(system: string, prompt: string, maxTokens: number): Promise<any> {
     const started = Date.now();
     let lastRaw = '';
-    const ask = async () => { lastRaw = await this.engine.complete(system + JSON_RULES, prompt, maxTokens); return extractJson(lastRaw); };
+    const ask = async () => { lastRaw = await this.engine.complete(system + JSON_RULES, prompt, maxTokens, { json: true }); return extractJson(lastRaw); };
     try {
       return await ask();
     } catch (err: any) {

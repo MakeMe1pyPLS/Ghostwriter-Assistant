@@ -9,6 +9,7 @@
 //   GEMINI_MODEL    (default gemini-3.8-flash)
 import Anthropic from '@anthropic-ai/sdk';
 import type { AIEngineId } from '@shared/ai-types';
+import { unwrap } from './json-reply';
 
 export type LLMEngineId = Exclude<AIEngineId, 'rule-based'>;
 
@@ -16,7 +17,8 @@ export interface EngineAdapter {
   id: LLMEngineId;
   label: string;
   model: string;
-  complete(system: string, prompt: string, maxTokens: number): Promise<string>;
+  /** `json: true` asks for one JSON object; Claude then answers through a forced tool call, so the JSON is always well-formed. */
+  complete(system: string, prompt: string, maxTokens: number, opts?: { json?: boolean }): Promise<string>;
 }
 
 const TIMEOUT_MS = Number(process.env.AI_TIMEOUT_MS || 45000);
@@ -56,7 +58,23 @@ function claudeAdapter(key = process.env.ANTHROPIC_API_KEY, model = DEFAULT_MODE
   const client = new Anthropic({ apiKey: key, timeout: TIMEOUT_MS });
   return {
     id: 'claude', label: 'Claude', model,
-    async complete(system, prompt, maxTokens) {
+    async complete(system, prompt, maxTokens, opts) {
+      if (opts?.json) {
+        // Free-text JSON from Claude kept arriving with a broken array. A forced tool call returns the
+        // object already parsed by the API, so there is nothing to mis-parse.
+        const msg = await client.messages.create({
+          model, max_tokens: maxTokens, system,
+          messages: [{ role: 'user', content: prompt }],
+          tools: [{
+            name: 'respond',
+            description: 'Return the answer. Put the top-level fields of the JSON shape described in the instructions directly in this tool\'s input, without wrapping them in another key.',
+            input_schema: { type: 'object', additionalProperties: true },
+          }],
+          tool_choice: { type: 'tool', name: 'respond' },
+        });
+        const call = msg.content.find((b) => b.type === 'tool_use');
+        return call && call.type === 'tool_use' ? JSON.stringify(unwrap(call.input)) : '';
+      }
       const msg = await client.messages.create({
         model, max_tokens: maxTokens, system,
         messages: [{ role: 'user', content: prompt }],

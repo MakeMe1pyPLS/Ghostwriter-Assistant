@@ -1,5 +1,6 @@
 // Reading the JSON out of a model reply. A reply we can't read makes the router fall back to the built-in analyst.
 import { extractJson, shapeNear } from '../server/services/ai/llm-provider';
+import { unwrap } from '../server/services/ai/json-reply';
 let fails = 0;
 const ok = (c: boolean, m: string, x?: unknown) => { console.log(c ? 'PASS' : 'FAIL', m, c ? '' : JSON.stringify(x)); if (!c) fails++; };
 const throws = (f: () => unknown) => { try { f(); return false; } catch { return true; } };
@@ -14,5 +15,9 @@ ok(throws(() => extractJson('{"a":"cut off')), 'a cut-off reply is an error');
 const raw = '{"a":["Late \'orders\' hurt Acme Corp", "second" bad],"b":1}';
 const shape = shapeNear(raw, "Expected ',' or ']' after array element in JSON at position 38");
 ok(!/Acme|orders|Late/.test(shape) && shape.includes('x'), 'log snippet shows structure but not the text', shape);
+
+ok(JSON.stringify(unwrap({ response: { a: 1 } })) === '{"a":1}', 'an answer nested under one generic key is unwrapped');
+ok(JSON.stringify(unwrap({ a: 1, b: 2 })) === '{"a":1,"b":2}', 'a normal answer is left alone');
+ok(JSON.stringify(unwrap({ data: [1] })) === '{"data":[1]}', 'a real field holding a list is left alone');
 
 if (fails) { console.log(`\nFAILED: ${fails}`); process.exit(1); } else console.log('\nAll llm-json checks passed');

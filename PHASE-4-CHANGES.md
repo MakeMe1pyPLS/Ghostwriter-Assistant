@@ -143,5 +143,8 @@ An account that had paid or opened checkout in Stripe's test mode kept that cust
 ## Fix: Claude's first reply was often unreadable (answers took twice as long)
 Claude tended to put double quotation marks inside its sentences, which broke the reply format, so the app asked a second time. The instructions now tell it to use single quotes inside text. When a reply is still unreadable, the server log shows only the shape of the text near the error (letters and digits blanked), never the customer's content.
 
+## Fix: Claude answers now come back as a checked structure
+Asking Claude for JSON as plain text kept producing a broken list, so many answers fell back to the built-in analyst or took two tries. Claude now returns its answer through a forced tool call, which the API hands back already parsed. ChatGPT and Gemini are unchanged. Customer key checks are unchanged. If Claude still fails, the built-in analyst answers as before.
+
 ## Not built yet
 - Editor and admin roles, team accounts, invite emails, collab partner sign-in, a full audit trail and SSO. See `docs/ENTERPRISE-READINESS.md`.
