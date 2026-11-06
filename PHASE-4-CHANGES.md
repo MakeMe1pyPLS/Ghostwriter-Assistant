@@ -136,5 +136,9 @@ Stripe accounts with Managed Payments switched on (the default for new accounts)
 ## Fix: checkout failed for accounts with a test-mode Stripe customer
 An account that had paid or opened checkout in Stripe's test mode kept that customer id. After switching to live keys, Stripe did not recognise it and checkout failed. Checkout now looks the saved customer up first and creates a fresh one if Stripe does not know it (or it was deleted). A Stripe outage is not treated as a missing customer. Covered in `tests/checkout-params.test.ts`.
 
+## Fix: included AI answers were not counted, and some Claude replies fell back to the built-in analyst
+- The usage count ran after the reply was sent, and on Vercel the function is frozen at that point, so included answers were never counted against the plan allowance. The count now finishes before the reply goes out.
+- When Claude's reply could not be read as JSON, the answer silently came from the built-in analyst. Replies are now asked for with stricter JSON rules, trailing commas are repaired, and an unreadable reply is asked for once more (only if there is time left in the request) before falling back. Covered in `tests/llm-json.test.ts`.
+
 ## Not built yet
 - Editor and admin roles, team accounts, invite emails, collab partner sign-in, a full audit trail and SSO. See `docs/ENTERPRISE-READINESS.md`.
