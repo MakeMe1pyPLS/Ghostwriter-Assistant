@@ -140,5 +140,8 @@ An account that had paid or opened checkout in Stripe's test mode kept that cust
 - The usage count ran after the reply was sent, and on Vercel the function is frozen at that point, so included answers were never counted against the plan allowance. The count now finishes before the reply goes out.
 - When Claude's reply could not be read as JSON, the answer silently came from the built-in analyst. Replies are now asked for with stricter JSON rules, trailing commas are repaired, and an unreadable reply is asked for once more (only if there is time left in the request) before falling back. Covered in `tests/llm-json.test.ts`.
 
+## Fix: Claude's first reply was often unreadable (answers took twice as long)
+Claude tended to put double quotation marks inside its sentences, which broke the reply format, so the app asked a second time. The instructions now tell it to use single quotes inside text. When a reply is still unreadable, the server log shows only the shape of the text near the error (letters and digits blanked), never the customer's content.
+
 ## Not built yet
 - Editor and admin roles, team accounts, invite emails, collab partner sign-in, a full audit trail and SSO. See `docs/ENTERPRISE-READINESS.md`.
