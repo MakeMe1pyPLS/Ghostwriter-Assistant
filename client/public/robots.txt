@@ -10,4 +10,4 @@ Disallow: /settings
 Disallow: /checkout/
 Disallow: /clients
 
-Sitemap: https://ghostwriter-assistant.vercel.app/sitemap.xml
+Sitemap: https://www.chaininsideiq.com/sitemap.xml
