@@ -11,7 +11,7 @@
 //                                re-enter them).
 //   STRIPE_SECRET_KEY            Secret. sk_test_… while testing, sk_live_… later.
 //   STRIPE_WEBHOOK_SECRET        Secret. whsec_… from the Stripe webhook you add.
-//   APP_URL                      Where checkout returns to, e.g. https://chaininsideiq.ai
+//   APP_URL                      Where checkout returns to, e.g. https://www.chaininsideiq.com
 //   ANTHROPIC_API_KEY, OPENAI_API_KEY, GEMINI_API_KEY
 //                                Your own keys for the AI answers included in plans.
 

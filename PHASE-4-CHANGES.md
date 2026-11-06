@@ -127,5 +127,8 @@ An acceptance audit found screens that looked like analysis of your business but
 ## Fix: pricing page sent signed-in people to sign-up
 When card payments were not switched on, choosing a plan sent everyone to the sign-up screen, even people already signed in, which looked like a sign-in loop. Signed-in people now stay on the pricing page and see "Card payments aren't switched on yet". People who are not signed in still go to sign-up as before.
 
+## Custom domain
+The site now lives at **https://www.chaininsideiq.com** (`chaininsideiq.com` redirects to it). The page address used for search engines (canonical links, `sitemap.xml`, `robots.txt`) points there. The `vercel.app` address still works.
+
 ## Not built yet
 - Editor and admin roles, team accounts, invite emails, collab partner sign-in, a full audit trail and SSO. See `docs/ENTERPRISE-READINESS.md`.

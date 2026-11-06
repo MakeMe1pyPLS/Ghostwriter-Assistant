@@ -1,7 +1,7 @@
 // Page titles, descriptions and indexing rules per route, applied in one place
 // (see <RouteMeta /> in App.tsx). Marketing pages are indexable; the app and
 // account pages are not.
-export const SITE_URL = "https://ghostwriter-assistant.vercel.app";
+export const SITE_URL = "https://www.chaininsideiq.com";
 const BRAND = "ChainInsideIQ";
 const DEFAULT_DESC = "AI business analyst: growth plans, bottleneck detection and partner collaboration for businesses of every size.";
 
