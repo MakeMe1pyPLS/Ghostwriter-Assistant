@@ -126,10 +126,10 @@ async function request(path: string, init: RequestInit & { auth?: boolean; query
 
 // Refresh the access token shortly before it expires. One refresh at a time.
 let refreshing: Promise<CloudSession | null> | null = null;
-export async function freshSession(): Promise<CloudSession | null> {
+export async function freshSession(force = false): Promise<CloudSession | null> {
   const s = current;
   if (!s) return null;
-  if (s.expiresAt - 60 > Date.now() / 1000) return s;
+  if (!force && s.expiresAt - 60 > Date.now() / 1000) return s;
   if (!refreshing) {
     refreshing = (async () => {
       try {
@@ -147,6 +147,35 @@ export async function freshSession(): Promise<CloudSession | null> {
     })();
   }
   return refreshing;
+}
+
+/**
+ * Asks Supabase whether the saved session still works. A session can die while this browser still holds it
+ * (the password was reset, or the person signed out on another device). When it has, this gets a new token
+ * from the refresh token, or signs out here if that is dead too, so the page stops looking signed in
+ * when it isn't. Being offline keeps the session. Checks at most every 30 seconds unless forced.
+ */
+let lastCheck = 0;
+export async function verifySession(force = false): Promise<CloudSession | null> {
+  const s = current;
+  if (!s || !cloudEnabled) return null;
+  if (!force && Date.now() - lastCheck < 30_000) return s;
+  lastCheck = Date.now();
+  try {
+    await request('/auth/v1/user', { headers: { Authorization: `Bearer ${s.accessToken}` } });
+    return s;
+  } catch (e) {
+    if (e instanceof CloudError && (e.status === 401 || e.status === 403)) return freshSession(true);
+    return s;
+  }
+}
+
+// Check when the page opens and whenever the person comes back to the tab.
+if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+  const check = () => { if (document.visibilityState !== 'hidden') void verifySession(); };
+  document.addEventListener('visibilitychange', check);
+  window.addEventListener('focus', check);
+  setTimeout(check, 1500);
 }
 
 // ------------------------------------------------------------------ auth

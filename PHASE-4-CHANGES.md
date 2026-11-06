@@ -146,5 +146,8 @@ Claude tended to put double quotation marks inside its sentences, which broke th
 ## Fix: Claude answers now come back as a checked structure
 Asking Claude for JSON as plain text kept producing a broken list, so many answers fell back to the built-in analyst or took two tries. Claude now returns its answer through a forced tool call, which the API hands back already parsed. ChatGPT and Gemini are unchanged. Customer key checks are unchanged. If Claude still fails, the built-in analyst answers as before.
 
+## Fix: page looked signed in after the session had ended (for example after a password reset)
+Resetting a password (or signing out on another device) ends the session on the server, but the browser kept showing the person as signed in while every request was treated as signed out, so AI answers quietly came from the built-in analyst. The app now checks the session when the page opens and when you return to the tab. If the server turns a token down, it renews it from the refresh token; if that is also gone, it signs you out here (your data stays in the browser and syncs when you sign back in). A request that was refused is retried once with the new token. Being offline never signs you out. Covered in `tests/session-check.test.ts`.
+
 ## Not built yet
 - Editor and admin roles, team accounts, invite emails, collab partner sign-in, a full audit trail and SSO. See `docs/ENTERPRISE-READINESS.md`.
