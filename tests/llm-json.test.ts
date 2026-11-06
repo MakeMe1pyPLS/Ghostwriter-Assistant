@@ -1,5 +1,5 @@
 // Reading the JSON out of a model reply. A reply we can't read makes the router fall back to the built-in analyst.
-import { extractJson } from '../server/services/ai/llm-provider';
+import { extractJson, shapeNear } from '../server/services/ai/llm-provider';
 let fails = 0;
 const ok = (c: boolean, m: string, x?: unknown) => { console.log(c ? 'PASS' : 'FAIL', m, c ? '' : JSON.stringify(x)); if (!c) fails++; };
 const throws = (f: () => unknown) => { try { f(); return false; } catch { return true; } };
@@ -10,5 +10,9 @@ ok(extractJson('{"a":[{"x":1},{"x":2},],"b":2,}').a.length === 2, 'trailing comm
 ok(throws(() => extractJson('{"a":[{"x":1} {"x":2}]}')), 'a missing comma is still an error (the caller asks again)');
 ok(throws(() => extractJson('no json here')), 'text without an object is an error');
 ok(throws(() => extractJson('{"a":"cut off')), 'a cut-off reply is an error');
+
+const raw = '{"a":["Late \'orders\' hurt Acme Corp", "second" bad],"b":1}';
+const shape = shapeNear(raw, "Expected ',' or ']' after array element in JSON at position 38");
+ok(!/Acme|orders|Late/.test(shape) && shape.includes('x'), 'log snippet shows structure but not the text', shape);
 
 if (fails) { console.log(`\nFAILED: ${fails}`); process.exit(1); } else console.log('\nAll llm-json checks passed');

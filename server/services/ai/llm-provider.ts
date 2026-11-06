@@ -53,7 +53,16 @@ export function extractJson(text: string): any {
   }
 }
 
-const JSON_RULES = '\n\nReply with one valid JSON object and nothing else: escape any double quotes inside strings, no comments, no trailing commas.';
+const JSON_RULES = `\n\nReply with one valid JSON object and nothing else. Never put a double quote character inside a text value: use single quotes instead (write the 'late' orders, not the "late" orders). No comments, no trailing commas.`;
+
+/** The characters around a JSON error with every letter and digit blanked out, so logs show the structure but never the customer's content. */
+export function shapeNear(raw: string, message: string): string {
+  const at = Number(/position (\d+)/.exec(message)?.[1]);
+  if (!raw || !Number.isFinite(at)) return `(no position; ${raw.length} chars)`;
+  const start = raw.indexOf('{');
+  const from = Math.max(0, start + at - 60);
+  return JSON.stringify(raw.slice(from, start + at + 30).replace(/[A-Za-z0-9]/g, 'x').replace(/x+/g, 'x'));
+}
 
 function metricsBlock(req: CommandCenterRequest): string {
   return req.metrics
@@ -74,14 +83,15 @@ export class LLMIntelligenceProvider {
 
   private async json(system: string, prompt: string, maxTokens: number): Promise<any> {
     const started = Date.now();
-    const ask = async () => extractJson(await this.engine.complete(system + JSON_RULES, prompt, maxTokens));
+    let lastRaw = '';
+    const ask = async () => { lastRaw = await this.engine.complete(system + JSON_RULES, prompt, maxTokens); return extractJson(lastRaw); };
     try {
       return await ask();
     } catch (err: any) {
       // A reply we can't read is usually a one-off. Ask once more if there's time left in the request.
       const unreadable = err instanceof SyntaxError || /No JSON object/.test(String(err?.message));
       if (!unreadable || Date.now() - started > 25_000) throw err;
-      console.warn(`[ai:${this.engine.id}] unreadable reply (${err.message}); asking once more`);
+      console.warn(`[ai:${this.engine.id}] unreadable reply (${err.message}); shape near the error: ${shapeNear(lastRaw, err.message)}; asking once more`);
       return await ask();
     }
   }
