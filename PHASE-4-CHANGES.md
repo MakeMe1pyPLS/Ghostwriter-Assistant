@@ -149,5 +149,8 @@ Asking Claude for JSON as plain text kept producing a broken list, so many answe
 ## Fix: page looked signed in after the session had ended (for example after a password reset)
 Resetting a password (or signing out on another device) ends the session on the server, but the browser kept showing the person as signed in while every request was treated as signed out, so AI answers quietly came from the built-in analyst. The app now checks the session when the page opens and when you return to the tab. If the server turns a token down, it renews it from the refresh token; if that is also gone, it signs you out here (your data stays in the browser and syncs when you sign back in). A request that was refused is retried once with the new token. Being offline never signs you out. Covered in `tests/session-check.test.ts`.
 
+## Link previews
+Sharing chaininsideiq.com in Slack, X, LinkedIn or a text now shows a branded 1200×630 card (`/og-image.png`) with the line "Turn your business data into dashboards, KPIs and next steps." The tags use full addresses (some sites ignore relative ones), and `og:url` follows the page for pages that run the app's own meta updates.
+
 ## Not built yet
 - Editor and admin roles, team accounts, invite emails, collab partner sign-in, a full audit trail and SSO. See `docs/ENTERPRISE-READINESS.md`.

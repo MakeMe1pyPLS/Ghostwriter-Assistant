@@ -3,6 +3,8 @@
 // account pages are not.
 export const SITE_URL = "https://www.chaininsideiq.com";
 const BRAND = "ChainInsideIQ";
+// What link previews (Slack, X, LinkedIn, iMessage) show for the home page. Matches the tags in index.html.
+const SHARE_DESC = "Turn your business data into dashboards, KPIs and next steps.";
 const DEFAULT_DESC = "AI business analyst: growth plans, bottleneck detection and partner collaboration for businesses of every size.";
 
 type Meta = { title: string; description?: string; index?: boolean };
@@ -50,8 +52,11 @@ export function applyMeta(path: string) {
   document.title = m.title;
   const desc = m.description ?? DEFAULT_DESC;
   setMeta('meta[name="description"]', () => Object.assign(document.createElement("meta"), { name: "description" }), "content", desc);
-  setMeta('meta[property="og:title"]', () => { const e = document.createElement("meta"); e.setAttribute("property", "og:title"); return e; }, "content", m.title);
-  setMeta('meta[property="og:description"]', () => { const e = document.createElement("meta"); e.setAttribute("property", "og:description"); return e; }, "content", desc);
+  const home = path === "/";
+  const og = (name: string) => () => { const e = document.createElement("meta"); e.setAttribute("property", name); return e; };
+  setMeta('meta[property="og:title"]', og("og:title"), "content", home ? BRAND : m.title);
+  setMeta('meta[property="og:description"]', og("og:description"), "content", home ? SHARE_DESC : desc);
+  setMeta('meta[property="og:url"]', og("og:url"), "content", m.index ? SITE_URL + (home ? "" : path) : SITE_URL);
   setMeta('meta[name="robots"]', () => Object.assign(document.createElement("meta"), { name: "robots" }), "content", m.index ? null : "noindex");
   setMeta('link[rel="canonical"]', () => Object.assign(document.createElement("link"), { rel: "canonical" }), "href", m.index ? SITE_URL + (path === "/" ? "/" : path) : null);
 }
